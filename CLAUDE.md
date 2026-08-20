@@ -21,7 +21,7 @@ alle prove.
 
 ```bash
 npm install          # solo la prima volta: installa jsdom per le prove
-npm test             # estrae il JS e lancia le 250 prove
+npm test             # estrae il JS e lancia le 291 prove
 npm run verifica     # prove + controlli strutturali
 ```
 
@@ -375,6 +375,15 @@ prossima cosa da fare dopo l'embed.**
 4. **I 380px su un browser vero.** Nessuno li ha ancora guardati: nella sessione di oggi
    il riquadro del browser non si ridimensionava, e l'invariante 8 — nessun testo negli
    SVG sotto i 5px reali a viewport 380 — è verificata solo alla larghezza disponibile.
+5. **La revisione visiva della pagina non è finita.** Restano punti che non convincono, e
+   vanno guardati uno per uno in una passata dedicata, nei due temi e a schermo stretto.
+   Non è un elenco di difetti noti da spuntare: è **revisione editoriale**, e si fa
+   guardando, non misurando. Le prove dicono che il modello non si è rotto; non dicono che
+   la pagina si veda. Da fare a mente fresca, con il file aperto davanti, senza fretta.
+6. Minore, dal filtro dell'emiciclo: **il ritorno alla vista piena è annunciato con Esc**,
+   che al tocco non esiste; e il pulsante «Mostra tutti i seggi» sta sotto la legenda,
+   lontano dal punto in cui il dito ha appena premuto. Chi filtra da telefono ha la via
+   d'uscita più scomoda delle tre, ed è l'unico che non può usare quella dichiarata.
 
 ### Le due colonne «Seggi»: cosa è chiuso e cosa resta aperto
 
@@ -514,6 +523,6 @@ nessuno degli altri settori.
 trovati oggi — la stella della bandiera che sconfinava nelle bande, l'occhiello a filo del
 bordo sull'ombra, il vuoto di 372px sotto le ipotesi, l'evidenziazione che competeva con
 la codifica del riempimento, il verde arabo che si leggeva nero — sono stati trovati
-**guardando la pagina**, non dalla suite. Le 250 prove dicono che il modello non si è
+**guardando la pagina**, non dalla suite. Le 291 prove dicono che il modello non si è
 rotto; non dicono che la pagina si veda. Dopo ogni push, aprire
 <https://angrisanidj.github.io/modello-israele/> e guardarla nei due temi.

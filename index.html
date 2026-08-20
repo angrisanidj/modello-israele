@@ -554,6 +554,52 @@
 #kn26 #k-emi{max-width:600px;margin:0 auto;}
 @media(max-width:660px){#kn26 #k-emi{max-width:none;}}
 
+/* ══ EMICICLO: filtro dalla legenda ══ */
+/* L'attenuazione è per opacità. Non è una preferenza, è una misura.
+   · Opacità 0,22 sopra --card porta i seggi spenti a 1,2–1,6 di contrasto — la forma
+     dell'arco resta leggibile — e schiaccia il ΔE2000 fra loro da 12–45 a 0,3–6,7 in
+     tema chiaro: recedono come una massa sola invece di continuare a competere. Dal
+     colore pieno restano lontani 11–46, quindi il gruppo acceso è inequivocabile.
+   · La desaturazione è stata scartata su misura, non per gusto: saturate(0) conserva
+     la luminanza, e in questa tavolozza è proprio la luminanza a separare i blocchi.
+     In tema chiaro --coal spento diventerebbe #202020, contrasto 16,2:1 — i seggi
+     esclusi griderebbero più di quelli in evidenza — e il ΔE fra loro resterebbe a 14,6.
+   · La sfocatura non è stata provata perché non c'è niente da misurare: su cerchi di
+     5,4px fa poltiglia invece di profondità, e sarebbero 120 filtri per render.
+   L'opacità conserva l'ordine di luminanza, quindi la massa spenta resta una massa
+   anche per un occhio dicromate, che è il modo in cui l'emiciclo si legge davvero. */
+#kn26 #k-emi circle,#kn26 #k-emi text[data-g]{transition:opacity .18s;}
+#kn26 #k-emi.filtra circle,#kn26 #k-emi.filtra text[data-g]{opacity:.22;}
+#kn26 #k-emi.filtra circle.on,#kn26 #k-emi.filtra text[data-g].on{opacity:1;}
+@media (prefers-reduced-motion:reduce){
+ #kn26 #k-emi circle,#kn26 #k-emi text[data-g]{transition:none;}
+}
+/* Le voci di legenda sono <button> veri: tabulatore, invio e barra spaziatrice
+   arrivano dal browser, non da un gestore di tasti scritto a mano che li imiterebbe
+   peggio. Nessun touch-action: al tocco vale il tocco, e lo scorrimento verticale
+   della pagina resta al browser. */
+#kn26 #k-emileg button{font:inherit;color:inherit;background:none;cursor:pointer;
+ border:1px solid transparent;border-radius:9px;padding:5px 8px;text-align:left;transition:.14s;}
+#kn26 #k-emileg button:hover{background:var(--wash);}
+#kn26 #k-emileg button[aria-pressed="true"]{border-color:var(--acc);background:var(--accw);}
+#kn26 #k-emileg button:focus-visible{outline:2px solid var(--acc);outline-offset:2px;}
+#kn26 #k-emileg button:focus:not(:focus-visible){outline:none;}
+#kn26 .leg#k-emileg{gap:6px 10px;}
+#kn26 .leg#k-emileg button{display:inline-flex;align-items:center;gap:6px;font-weight:600;}
+#kn26 .legb#k-emileg{gap:10px;}
+#kn26 .legb#k-emileg>button{display:flex;gap:11px;align-items:flex-start;width:100%;}
+#kn26 .emif{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-top:12px;min-height:26px;}
+#kn26 .emist{font-size:11.5px;color:var(--ink2);}
+@media(max-width:820px){
+ /* la legenda resta un elenco di comandi anche in colonna: il bersaglio del dito non
+    scende sotto i 34px di altezza e le voci non si stringono l'una sull'altra.
+    Misurato a 760px: undici voci per lista, altezza minima 34px, nessuna sovrapposizione
+    fra bersagli, niente che esca dal riquadro. */
+ #kn26 #k-emileg button{padding:7px 9px;min-height:34px;}
+ #kn26 .leg#k-emileg{gap:8px;}
+ #kn26 #k-emiall{min-height:34px;}
+}
+
 /* ══ SELETTORE DEL TEMA ══ */
 #kn26 .tema{display:inline-flex;border:1px solid var(--hair);border-radius:99px;overflow:hidden;margin-left:auto;}
 /* Nella testata il selettore sta fra l'occhiello e la data: lì il filetto elastico
@@ -734,14 +780,23 @@
 </section>
 
 <section>
- <h2>L'emiciclo <em>proiezione centrale dei 120 seggi</em></h2>
+ <h2>La prossima Knesset <em>proiezione centrale dei 120 seggi</em></h2>
  <div class="box">
   <div class="sw2"><button data-emi="blocchi" class="on">Per blocco</button><button data-emi="partiti">Per lista</button></div>
   <div id="k-emi"></div>
-  <div class="leg" id="k-emileg"></div>
+  <div class="leg" id="k-emileg" role="group" aria-label="Filtro dei seggi per gruppo"></div>
+  <div class="emif">
+   <button type="button" class="btn g xs" id="k-emiall" data-emig="*" hidden>Mostra tutti i seggi</button>
+   <span class="emist" id="k-emist" aria-live="polite"></span>
+  </div>
   <p class="fn">I posti vuoti fra un gruppo e l'altro segnano il confine fra i blocchi: le file restano
    allineate e nessuna linea passa sopra i seggi. I tre numeri al centro sono i totali dei blocchi,
-   nello stesso ordine in cui compaiono nell'emiciclo.</p>
+   nello stesso ordine in cui compaiono nel grafico. <b>Facendo clic su una voce della legenda</b>
+   restano in evidenza soltanto i seggi di quel gruppo e gli altri si attenuano; si sceglie un
+   gruppo per volta. I tre totali restano tutti e tre — sono la lettura dell'aula intera, senza la
+   quale la soglia dei 61 non vorrebbe dire niente — e in evidenza resta quello del blocco a cui
+   appartiene la voce scelta. Si torna alla vista piena con un nuovo clic sulla stessa voce, con il
+   tasto Esc o con «Mostra tutti i seggi».</p>
  </div>
 </section>
 
@@ -918,7 +973,7 @@ var EVENTI=[
  {data:"2026-08-19",testo:"Hadash, Ta'al e Balad firmano l'accordo per la Lista Unita; Ra'am corre da sola"}
 ];
 var ESCL={}, AFF=0;
-var EMIMODE='blocchi', TRENDPTS=[], TRENDGEO=null, FILTRI={ist:'',per:'0',txt:''};
+var EMIMODE='blocchi', EMIFILT=null, TRENDPTS=[], TRENDGEO=null, FILTRI={ist:'',per:'0',txt:''};
 var SOND=BASE.slice(), PAR={recenti:0,listaunita:1}, DISP=8, SW=0, SIG=1, SIM=20000, COAL={};
 
 /* ══════════ 2b · DIAGNOSTICA DI AVVIO ══════════ */
@@ -1970,15 +2025,27 @@ function rEmi(){
  });
  pts.sort(function(a,b){return b.a-a.a;});
 
- var s='<svg viewBox="0 0 430 232" role="img" aria-label="Emiciclo">';
+ /* Il filtro della legenda: EMIFILT è la chiave di un blocco in vista «Per blocco» e
+    l'id di una lista in vista «Per lista». Se il gruppo scelto non esiste più — cambio
+    di vista, archivio aggiornato, lista scesa sotto soglia — si torna da soli alla vista
+    piena: il lettore non deve restare chiuso dentro un filtro che non seleziona niente. */
+ var nFilt=0;
+ if(EMIFILT!==null) pieno.forEach(function(id){
+  if(id!==null&&id!==undefined&&(id.charAt(0)==='§'?id.slice(1):id)===EMIFILT) nFilt++;});
+ if(EMIFILT!==null&&!nFilt) EMIFILT=null;
+
+ var s='<svg viewBox="0 0 430 232" role="img" aria-label="La prossima Knesset">';
  var pieni=[];                                  /* posizioni dei soli seggi occupati */
  pts.forEach(function(p,ix){
   var id=pieno[ix]; if(id===null||id===undefined) return;   /* seggio di stacco */
   pieni.push(p);
-  var col=C.hair,tit='';
-  if(id.charAt(0)==='§'){var kb=id.slice(1);col=BC(kb);tit=BL[kb].n;}
-  else {col=cp(P[id].c);tit=nm(id)+' — '+BL[P[id].b].n;}
-  s+='<circle cx="'+p.x.toFixed(2)+'" cy="'+p.y.toFixed(2)+'" r="5.4" fill="'+col+'">'+
+  var col=C.hair,tit='',gr='';
+  if(id.charAt(0)==='§'){var kb=id.slice(1);col=BC(kb);tit=BL[kb].n;gr=kb;}
+  else {col=cp(P[id].c);tit=nm(id)+' — '+BL[P[id].b].n;gr=id;}
+  /* data-g e class stanno PRIMA di cx: le prove sull'emiciclo leggono le coordinate
+     con /cx="…" cy="…"/, che pretende i due attributi adiacenti. */
+  s+='<circle data-g="'+E(gr)+'"'+(gr===EMIFILT?' class="on"':'')+
+     ' cx="'+p.x.toFixed(2)+'" cy="'+p.y.toFixed(2)+'" r="5.4" fill="'+col+'">'+
      '<title>'+E(tit)+'</title></circle>';});
  var b=blocchi(SEG);
  /* La soglia va dove sta davvero il 61° seggio contando da sinistra: con i posti
@@ -2001,14 +2068,35 @@ function rEmi(){
  var trio=[['arabo',b.arabo],['opposizione',b.opposizione],['coalizione',b.coalizione]]
    .filter(function(x){return x[1];});
  var larg=trio.length*58, x0=215-larg/2+29;
+ /* Sotto filtro i tre totali restano tutti e tre: sono la lettura dell'aula intera, e
+    senza di essa la soglia dei 61 non vorrebbe dire niente — un numero solo, per giunta
+    non di blocco quando si filtra una lista, resterebbe sospeso senza riferimento.
+    In evidenza resta quello del blocco a cui appartiene la voce scelta, così il filtro
+    è coerente su tutto il disegno e dice anche a quale campo appartiene la lista. */
+ var blSel=EMIFILT===null?null:(P[EMIFILT]?P[EMIFILT].b:EMIFILT);
  trio.forEach(function(t,ix){
-  s+='<text x="'+(x0+ix*58)+'" y="180" text-anchor="middle" font-size="31" '+
+  var acc=(t[0]===blSel)?' class="on"':'';
+  s+='<text data-g="'+t[0]+'"'+acc+' x="'+(x0+ix*58)+'" y="180" text-anchor="middle" font-size="31" '+
      'font-family="Georgia,serif" fill="'+BC(t[0])+'">'+f(t[1])+'</text>'+
-     '<text x="'+(x0+ix*58)+'" y="197" text-anchor="middle" font-size="8.5" '+
+     '<text data-g="'+t[0]+'"'+acc+' x="'+(x0+ix*58)+'" y="197" text-anchor="middle" font-size="8.5" '+
      'letter-spacing=".06em" fill="'+C.mute+'">'+E(sigla[t[0]])+'</text>';
  });
  s+='</svg>';
  $('k-emi').innerHTML=s;
+ var cont=$('k-emi');
+ if(cont.classList&&cont.classList.toggle) cont.classList.toggle('filtra',EMIFILT!==null);
+
+ /* La selezione è SINGOLA, non multipla. La domanda a cui l'emiciclo risponde è «dove
+    siedono questi seggi»: si guarda un gruppo per volta, e la massa attenuata funziona
+    da sfondo solo finché è una sola. Con undici liste selezionabili l'unione di più
+    scelte smetterebbe di essere una massa e diventerebbe un secondo emiciclo dentro il
+    primo, senza che nulla dica dove finisce l'uno e comincia l'altro. Il raggruppamento
+    per campo, che è l'unica unione con un senso politico, ce l'ha già il commutatore
+    «Per blocco». I pulsanti restano perciò a due stati con al più uno premuto. */
+ function voce(g,etichetta,dentro){
+  return '<button type="button" data-emig="'+E(g)+'" aria-pressed="'+(g===EMIFILT)+'"'+
+   ' aria-label="'+E(etichetta)+'">'+dentro+'</button>';
+ }
  if(EMIMODE==='blocchi'){
   var bl2=blocchi(SEG);
   $('k-emileg').className='legb';
@@ -2017,14 +2105,24 @@ function rEmi(){
     var membri=IDS.filter(function(i){return SEG[i]&&P[i].b===k;})
       .sort(function(a,b){return SEG[b]-SEG[a];})
       .map(function(i){return E(nm(i))+' '+f(SEG[i]);}).join(' · ');
-    return '<div><span class="sw" style="background:'+BC(k)+'"></span>'+
-     '<div><b>'+E(BL[k].n)+'<em>'+f(bl2[k])+' seggi</em></b><span class="ms">'+membri+'</span></div></div>';
+    return voce(k,'In evidenza i seggi di '+BL[k].n+', '+seg(bl2[k]),
+     '<span class="sw" style="background:'+BC(k)+'"></span>'+
+     '<span><b>'+E(BL[k].n)+'<em>'+f(bl2[k])+' seggi</em></b><span class="ms">'+membri+'</span></span>');
    }).join('');
  } else {
   $('k-emileg').className='leg';
   $('k-emileg').innerHTML=IDS.filter(function(i){return SEG[i];}).map(function(i){
-   return '<b><i style="background:'+cp(P[i].c)+'"></i>'+E(nm(i))+' '+f(SEG[i])+'</b>';}).join('');
+   return voce(i,'In evidenza i seggi di '+nm(i)+', '+seg(SEG[i]),
+    '<i style="background:'+cp(P[i].c)+'"></i>'+E(nm(i))+' '+f(SEG[i]));}).join('');
  }
+ /* Lo stato del filtro è dichiarato a voce alta: la riga è aria-live, così chi usa un
+    lettore di schermo sente che cosa è rimasto in evidenza senza doverlo andare a
+    cercare. Il pulsante di ritorno compare solo quando c'è qualcosa da cui tornare. */
+ var st=$('k-emist'), tutti=$('k-emiall');
+ if(st) st.textContent=EMIFILT===null?'':
+   ('In evidenza '+(P[EMIFILT]?nm(EMIFILT):BL[EMIFILT].n)+': '+seg(nFilt)+' su 120. '+
+    'Esc per tornare alla vista piena.');
+ if(tutti) tutti.hidden=(EMIFILT===null);
 }
 function rVeti(){
  $('k-veti').innerHTML=VETI.map(function(v,i){
@@ -2939,6 +3037,20 @@ R.addEventListener('change',function(e){
 R.addEventListener('input',function(e){
  if(e.target&&e.target.id==='f-txt'){FILTRI.txt=e.target.value;rTab();}
 });
+/* Esc come via d'uscita dal filtro dell'emiciclo, da qualunque punto della pagina: è la
+   terza strada per tornare indietro, accanto al nuovo clic sulla stessa voce e al
+   pulsante «Mostra tutti i seggi». Il fuoco resta dov'è — se è su una voce di legenda,
+   quella voce esiste ancora dopo il ritorno alla vista piena.
+   L'ascolto sta su document e non sulla radice #kn26 perché il fuoco può benissimo
+   trovarsi fuori dal riquadro — dopo uno scorrimento, o un clic nel vuoto — e una via
+   d'uscita che funziona solo a fuoco piazzato bene non è una via d'uscita. Fuori da un
+   filtro attivo il gestore non fa niente e non sottrae Esc alla pagina che ci ospita. */
+document.addEventListener('keydown',function(e){
+ if(e.key!=='Escape'||EMIFILT===null) return;
+ var a=document.activeElement, id=a&&a.dataset?a.dataset.emig:null;
+ EMIFILT=null; rEmi();
+ if(id&&id!=='*'){ var ri=R.querySelector('#k-emileg [data-emig="'+id+'"]'); if(ri&&ri.focus) ri.focus(); }
+});
 R.addEventListener('click',function(e){
  var t;
  if((t=e.target.closest('[data-ev]'))){
@@ -2958,9 +3070,22 @@ R.addEventListener('click',function(e){
   if(ESCL[ist]) delete ESCL[ist]; else ESCL[ist]=1;
   render();return;}
  if((t=e.target.closest('[data-emi]'))){
-  EMIMODE=t.dataset.emi;
+  EMIMODE=t.dataset.emi;EMIFILT=null;
   Array.prototype.forEach.call(R.querySelectorAll('[data-emi]'),function(b){b.classList.toggle('on',b===t);});
   rEmi();return;}
+ /* Le voci di legenda sono <button>: il gestore delegato riceve il clic del puntatore,
+    il tocco e l'attivazione da tastiera con invio o barra spaziatrice, tutti e tre come
+    click, perché è il browser a generarli. Nuovo clic sulla stessa voce = ritorno alla
+    vista piena, e «*» è il pulsante esplicito che fa lo stesso. */
+ if((t=e.target.closest('[data-emig]'))){
+  var g=t.dataset.emig;
+  EMIFILT=(g==='*'||g===EMIFILT)?null:g;
+  rEmi();
+  if(g!=='*'&&EMIFILT!==null){
+   var ri=R.querySelector('#k-emileg [data-emig="'+g+'"]');
+   if(ri&&ri.focus) ri.focus();
+  }
+  return;}
  if((t=e.target.closest('[data-par]'))){PAR[t.dataset.par]=!PAR[t.dataset.par];
   t.classList.toggle('on',!!PAR[t.dataset.par]);render();return;}
  if((t=e.target.closest('[data-v]'))){var i=+t.dataset.v;VETO_OFF[i]=!VETO_OFF[i];
