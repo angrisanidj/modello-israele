@@ -376,7 +376,40 @@ prossima cosa da fare dopo l'embed.**
    il riquadro del browser non si ridimensionava, e l'invariante 8 — nessun testo negli
    SVG sotto i 5px reali a viewport 380 — è verificata solo alla larghezza disponibile.
 
+### Sui colori, prima di tutto il resto: la scala delle bande parte troppo in basso
+
+**Il ΔE2000 mente in fondo alla scala.** La banda 1 sta a L\* 17, quasi nera, e a quella
+chiarezza la formula sovrastima la distinguibilità reale: Otzma e Shas sono a **ΔE 12
+sulla carta e a occhio sono due neri**. Non è un difetto della misura da correggere con
+una soglia, è che la misura lì non descrive quello che si vede.
+
+Misurato, e il risultato dice dove sta la leva: **alzare la banda non compra ΔE, alza L\***.
+
+| Y della banda | ΔE minimo | L\* |
+|---|---|---|
+| 0,021–0,025 *(oggi)* | 10,1–11,2 | 17 |
+| 0,038–0,045 | 11,3–11,4 | 24 |
+| 0,055–0,065 | 11,8 | 29 |
+
+Il ΔE si muove di poco più di un punto e mezzo su tutto l'intervallo; L\* passa da 17 a 29.
+È L\* che si vede.
+
+**Da valutare: una scala con L0 ≈ 0,04**, che dà bande a **0,040 · 0,103 · 0,185 · 0,293**.
+Mantiene i salti fra bande adiacenti ≥ 1,309 e resta sotto il tetto di 0,30 imposto dal
+3:1 su `--card`. Le due bande alte superano 0,183, quindi lì il testo sopra il colore
+pieno deve passare a `--on-color` scuro invece del bianco — **il token c'è già**, è stato
+aggiunto con la tavolozza del 20 agosto.
+
+**È un rifacimento dell'intera scala, non un ritocco.** Tutti e venti i colori cambiano.
+Vanno rimisurati con `node test/misura-consegna.mjs`, e `regola.js` deve tornare a legare
+tutte e cinque le copie: la regola, `P{}`, `BL{}`, `PAL_SCURO` e i quattro token CSS.
+Vale qui la riga generale scritta sopra — sono cinque strade per lo stesso valore, e una
+sola prova le tiene insieme.
+
 ### La leva rimasta sui verdi arabi
+
+Viene **dopo** il rifacimento della scala, non prima: se le bande si alzano, tutti e venti
+i colori si spostano e questa leva va rivalutata su quelli nuovi.
 
 Se dopo lo scambio di banda i verdi restano vicini all'occhio, c'è ancora spazio: il
 settore verde è largo **57°**, e fra la coalizione e l'ago della bilancia resta un arco di
