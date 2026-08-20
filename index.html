@@ -386,6 +386,16 @@
 #kn26 svg[tabindex]:focus:not(:focus-visible){outline:none;}
 
 /* ══ PANNELLO PARAMETRI ══ */
+/* I due pannelli occupano tutta la larghezza del riquadro: prima stavano affiancati e
+   «Ipotesi sui dati» lasciava 372px di vuoto sotto di sé, perché la griglia stira le
+   celle all'altezza della più alta. Ora la riga 1 tiene i due comandi sui dati, la 2
+   le ipotesi, la 3 i parametri. Prima cosa si fa ai dati, poi come li si modella. */
+#kn26 .cmd .pg{grid-column:1 / -1;}
+/* Dentro il pannello dei parametri: lo swing con la sua nota in una colonna, gli altri
+   due cursori impilati nell'altra. Resta un gruppo unitario — stesso titolo, stesso
+   bordo — e la nota metodologica smette di stare in mezzo a due cursori. */
+#kn26 .pgc{display:grid;grid-template-columns:1fr 1fr;gap:0 26px;align-items:start;}
+#kn26 .pgc>.rng{margin-bottom:0;}
 #kn26 .cmd .pg{background:var(--card);padding:17px 19px;}
 #kn26 .pgt{font-size:10px;letter-spacing:.14em;text-transform:uppercase;font-weight:700;
  color:var(--acc);margin-bottom:12px;display:flex;align-items:center;gap:10px;}
@@ -437,6 +447,11 @@
 
 @media(max-width:820px){
  #kn26 .cmd,#kn26 .pan{grid-template-columns:1fr;}
+ /* Al collasso della griglia esterna deve corrispondere quello della griglia interna
+    del pannello: altrimenti su mobile restano due colonne di cursori larghe mezzo
+    schermo. Tornando in colonna, lo swing riprende il margine sotto di sé. */
+ #kn26 .pgc{grid-template-columns:1fr;}
+ #kn26 .pgc>.rng{margin-bottom:15px;}
 }
 
 /* ══ BARRE DI SCORRIMENTO ══ */
@@ -614,6 +629,7 @@
  </div>
  <div class="pg">
   <div class="pgt">Parametri del modello <button class="lnk" id="k-reset-par">azzera</button></div>
+  <div class="pgc">
   <div class="rng">
    <label for="k-sw">Swing fra i blocchi <b id="k-swv">0,0 pt</b></label>
    <input type="range" id="k-sw" min="-6" max="6" step="0.5" value="0">
@@ -621,6 +637,7 @@
    <div class="anc" id="k-sw-anc"></div>
    <p class="ancn" id="k-sw-nota"></p>
   </div>
+  <div class="rngb">
   <div class="rng">
    <label for="k-sig">Ampiezza dell'errore <b id="k-sigv">100%</b></label>
    <input type="range" id="k-sig" min="60" max="180" step="5" value="100">
@@ -636,6 +653,8 @@
     <button data-aff="0" class="on">sondaggi · 60%</button>
     <button data-aff="7">2020 · 64,8%</button>
    </div>
+  </div>
+  </div>
   </div>
  </div>
 </div>
