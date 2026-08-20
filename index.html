@@ -372,6 +372,19 @@
 #kn26 .btn.big{font-size:13px;padding:11px 19px;letter-spacing:.02em;}
 #kn26 .cb .hint{font-size:11.5px;color:var(--mute);line-height:1.5;}
 
+/* ══ ISTOGRAMMI INTERROGABILI ══ */
+/* La riga di lettura ha un'altezza minima riservata: senza, il grafico salterebbe
+   di due righe alla prima interrogazione. */
+#kn26 .lett{font-size:11.5px;color:var(--ink2);line-height:1.45;margin-top:7px;
+ min-height:2.9em;font-variant-numeric:tabular-nums lining-nums;}
+#kn26 .lett b{color:var(--ink);font-weight:700;}
+/* L'evidenziazione non tocca il riempimento: quello codifica gia' altro — pallido
+   sotto il 61, pieno sopra — e una gradazione in piu' competerebbe con quella lettura
+   invece di distinguersene. Si usa un contorno, disegnato in due tratti concentrici. */
+#kn26 .bb{cursor:crosshair;}
+#kn26 svg[tabindex]:focus-visible{outline:2px solid var(--acc);outline-offset:3px;}
+#kn26 svg[tabindex]:focus:not(:focus-visible){outline:none;}
+
 /* ══ PANNELLO PARAMETRI ══ */
 #kn26 .cmd .pg{background:var(--card);padding:17px 19px;}
 #kn26 .pgt{font-size:10px;letter-spacing:.14em;text-transform:uppercase;font-weight:700;
@@ -1437,15 +1450,17 @@ function istogramma(arr,col,el,lab,centr,soglia){
  arr.forEach(function(v){if(v>=mn&&v<=mx)bins[v]++;});
  var top=0;for(i in bins) top=Math.max(top,bins[i]);
  var n=mx-mn+1,bw=(W-Lm*2)/n,p10=q(arr,.10),p90=q(arr,.90);
- var s='<svg viewBox="0 0 '+W+' '+H+'" role="img" aria-label="'+E(lab)+'">';
+ var s='<svg viewBox="0 0 '+W+' '+H+'" role="img" aria-label="'+E(lab)+'" tabindex="0" aria-describedby="'+el+'-l">';
  /* fascia dell'80% centrale: è lì che cade l'esito in 8 casi su 10 */
  var xa=Lm+(p10-mn)*bw, xb=Lm+(p90-mn+1)*bw;
  s+='<rect x="'+xa.toFixed(1)+'" y="16" width="'+(xb-xa).toFixed(1)+'" height="'+(H-B-16)+
     '" fill="'+col+'" opacity=".07"/>';
  for(i=mn;i<=mx;i++){
   var hh=(H-B-16)*bins[i]/(top||1),x=Lm+(i-mn)*bw;
-  s+='<rect x="'+x.toFixed(1)+'" y="'+(H-B-hh).toFixed(1)+'" width="'+(bw-.8).toFixed(1)+'" height="'+hh.toFixed(1)+
-     '" fill="'+col+'" opacity="'+(i>=61?1:.30)+'"><title>'+i+' seggi nel '+pc(bins[i]/arr.length,1)+' delle simulazioni</title></rect>';
+  /* niente <title>: il suggerimento nativo si sovrapporrebbe alla riga di lettura,
+     non e' raggiungibile da tastiera e al tocco non esiste */
+  s+='<rect class="bb" data-i="'+i+'" x="'+x.toFixed(1)+'" y="'+(H-B-hh).toFixed(1)+'" width="'+(bw-.8).toFixed(1)+'" height="'+hh.toFixed(1)+
+     '" fill="'+col+'" opacity="'+(i>=61?1:.30)+'"/>';
  }
  var x61=Lm+(61-mn)*bw;
  s+='<line x1="'+x61.toFixed(1)+'" y1="14" x2="'+x61.toFixed(1)+'" y2="'+(H-B)+'" stroke="'+C.ink+'" stroke-width="1.5"/>';
@@ -1461,8 +1476,77 @@ function istogramma(arr,col,el,lab,centr,soglia){
  s+='<line x1="'+xa.toFixed(1)+'" y1="'+(H-B+24)+'" x2="'+xb.toFixed(1)+'" y2="'+(H-B+24)+'" stroke="'+col+'" stroke-width="2.5"/>';
  s+='<text x="'+((xa+xb)/2).toFixed(1)+'" y="'+(H-B+38)+'" text-anchor="middle" font-size="10.5" fill="'+C.ink2+'">'+
     '8 simulazioni su 10 fra '+p10+' e '+p90+' seggi</text>';
+ /* Contorno dell'evidenziazione, a due tinte e dipinto per ultimo, quindi sopra tutto.
+    Una tinta sola non puo' farcela: nel tema chiaro dovrebbe stare sotto L 0,153 per
+    battere il riempimento pallido e sopra L 0,283 per battere quello pieno. Con due
+    tratti concentrici ogni superficie e' battuta da almeno uno dei due, e il minimo
+    misurato sulle dodici combinazioni superficie/tema/grafico e' 4,70.
+    E' anche il motivo per cui non si confonde con la linea del 61, che e' un tratto
+    singolo: questo e' doppio, chiaro fuori e scuro dentro. */
+ s+='<rect id="'+el+'-ho" fill="none" stroke="'+C.card+'" stroke-width="4" pointer-events="none" width="0" height="0" x="0" y="0"/>';
+ s+='<rect id="'+el+'-hi" fill="none" stroke="'+C.ink+'" stroke-width="1.6" pointer-events="none" width="0" height="0" x="0" y="0"/>';
  s+='</svg>';
- $(el).innerHTML=s;
+ $(el).innerHTML=s+'<p class="lett" id="'+el+'-l" aria-live="polite"></p>';
+
+ /* ── Lettura interrogabile ──────────────────────────────────────────────
+    Un solo punto di tabulazione sull'SVG, non uno per barra: con trenta
+    barre sarebbero trenta fermate di tabulazione da attraversare. Le frecce
+    spostano un cursore interno, il puntatore e il tocco aggiornano la stessa
+    riga. La riga e' aria-live, cosi' chi usa un lettore di schermo la sente
+    cambiare senza doverla cercare.
+    Nessun touch-action:none: il trascinamento resta al browser, quindi lo
+    scorrimento verticale della pagina non viene sottratto. Al tocco vale il
+    tocco singolo, che e' il degrado naturale del passaggio del puntatore. */
+ (function(){
+  /* Il contenitore puo' essere un DOM ridotto — le prove ne usano uno — in cui
+     querySelector non esiste: in quel caso non c'e' niente da agganciare e si esce.
+     Non e' uno stub permissivo: se l'SVG c'e', l'aggancio avviene davvero. */
+  var cont=$(el);
+  if(!cont||typeof cont.querySelector!=='function') return;
+  var svg=cont.querySelector('svg'), riga=$(el+'-l'), cur=-1, tot=arr.length;
+  if(!svg||typeof svg.addEventListener!=='function'||!riga) return;
+  var cum={},acc=0,k;
+  for(k=mx;k>=mn;k--){acc+=bins[k];cum[k]=acc;}      /* almeno k seggi */
+  var ho=$(el+'-ho'), hi=$(el+'-hi');
+  function mostra(i){
+   if(i<mn||i>mx||i===cur) return;
+   cur=i;
+   var b=svg.querySelector('.bb[data-i="'+i+'"]');
+   if(b&&ho&&hi){
+    /* un cestello vuoto ha altezza zero: senza un minimo il contorno sparirebbe
+       proprio dove il lettore ha piu' bisogno di sapere dove si trova */
+    var bh=Math.max(parseFloat(b.getAttribute('height'))||0,3);
+    var by=(H-B)-bh;
+    [ho,hi].forEach(function(r){
+     r.setAttribute('x',b.getAttribute('x'));
+     r.setAttribute('y',by.toFixed(1));
+     r.setAttribute('width',b.getAttribute('width'));
+     r.setAttribute('height',bh.toFixed(1));
+    });
+   }
+   riga.innerHTML='<b>'+i+' seggi</b> · '+pc(bins[i]/tot,1)+' delle simulazioni · '+
+     pc(cum[i]/tot,0)+' di averne almeno '+i;
+  }
+  function daX(cx){
+   var r=svg.getBoundingClientRect();
+   if(!r.width) return mn;
+   return Math.max(mn,Math.min(mx,mn+Math.floor(((cx-r.left)/r.width*W-Lm)/bw)));
+  }
+  svg.addEventListener('pointermove',function(e){mostra(daX(e.clientX));});
+  svg.addEventListener('pointerdown',function(e){mostra(daX(e.clientX));});
+  svg.addEventListener('focus',function(){if(cur<0)mostra(Math.max(mn,Math.min(mx,61)));});
+  svg.addEventListener('keydown',function(e){
+   var d=0;
+   if(e.key==='ArrowRight'||e.key==='ArrowUp') d=1;
+   else if(e.key==='ArrowLeft'||e.key==='ArrowDown') d=-1;
+   else if(e.key==='Home') return e.preventDefault(),mostra(mn);
+   else if(e.key==='End') return e.preventDefault(),mostra(mx);
+   if(!d) return;
+   e.preventDefault();
+   mostra(Math.max(mn,Math.min(mx,(cur<0?61:cur)+d)));
+  });
+ })();
+
  return {p10:p10,p90:p90,moda:(function(){var b=mn,v=-1;for(var k=mn;k<=mx;k++)if(bins[k]>v){v=bins[k];b=k;}return b;})()};
 }
 function rProj(){
