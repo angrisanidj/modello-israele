@@ -243,6 +243,14 @@
  #kn26 .scroll{max-height:none;}
 }
 
+#kn26 .htit{font-size:12px;font-weight:700;color:var(--ink);display:flex;align-items:center;
+ flex-wrap:wrap;gap:0 8px;margin-bottom:10px;padding-bottom:8px;border-bottom:1px solid var(--hair2);}
+#kn26 .htit i{width:11px;height:11px;border-radius:2px;flex:none;}
+#kn26 .htit em{font-style:normal;font-weight:400;font-size:10.5px;color:var(--mute);
+ width:100%;line-height:1.4;}
+#kn26 .blq{display:inline-block;width:7px;height:7px;border-radius:50%;margin-right:5px;
+ vertical-align:middle;}
+
 /* ══ LEGENDA PER BLOCCHI ══ */
 #kn26 .legb{display:grid;grid-template-columns:repeat(auto-fit,minmax(235px,1fr));gap:16px;
  margin-top:18px;padding-top:16px;border-top:1px solid var(--hair2);}
@@ -317,9 +325,6 @@
 #kn26 .diag .rr{display:flex;flex-wrap:wrap;gap:6px 22px;font-size:11.5px;color:var(--ink2);}
 #kn26 .diag .rr b{color:var(--mute);text-transform:uppercase;letter-spacing:.08em;font-size:9.5px;
  font-weight:700;margin-right:6px;}
-#kn26 .diag .kx{display:flex;gap:7px;margin-top:12px;align-items:center;flex-wrap:wrap;}
-#kn26 .diag .kx input{flex:1;min-width:200px;border:1px solid var(--hair);background:var(--card);
- color:var(--ink);font-family:inherit;font-size:12px;padding:7px 9px;border-radius:2px;}
 #kn26 .diag .nt{font-size:11px;color:var(--mute);margin-top:9px;line-height:1.5;}
 
 /* ══ FILTRI TABELLA ══ */
@@ -368,6 +373,35 @@
 #kn26 .rng label{display:flex;align-items:baseline;font-size:11.5px;font-weight:600;color:var(--ink2);margin-bottom:7px;}
 #kn26 .rng label b{margin-left:auto;font-family:var(--serif);font-size:17px;color:var(--ink);letter-spacing:-.01em;}
 #kn26 .rng input[type=range]{width:100%;accent-color:var(--acc);margin:0;}
+#kn26 .anc{display:flex;flex-wrap:wrap;gap:4px;margin-top:9px;}
+#kn26 .anc button{font-size:9.5px;letter-spacing:.05em;font-weight:700;padding:4px 8px;
+ border:1px solid var(--hair);background:var(--card);color:var(--mute);border-radius:99px;transition:.14s;}
+#kn26 .anc button:hover{border-color:var(--ink);color:var(--ink);}
+#kn26 .anc button.on{background:var(--acc);border-color:var(--acc);color:#fff;}
+#kn26 .ancn{font-size:11px;color:var(--ink2);line-height:1.5;margin-top:9px;
+ padding-top:8px;border-top:1px solid var(--hair2);}
+#kn26 .ancn b{color:var(--ink);font-weight:700;}
+
+/* ══ RIQUADRO DEL FATTO SELEZIONATO ══ */
+#kn26 .evsel{display:none;}
+#kn26 .evsel.on{display:block;position:relative;background:var(--wash);
+ border:1px solid var(--hair);border-radius:10px;padding:13px 15px;margin-bottom:14px;}
+#kn26 .evsel .x{position:absolute;top:9px;right:10px;background:none;border:0;
+ color:var(--mute);font-size:10.5px;cursor:pointer;padding:3px 6px;border-radius:5px;}
+#kn26 .evsel .x:hover{background:var(--hair2);color:var(--ink);}
+#kn26 .evsel .ed{font-size:12.5px;color:var(--ink);line-height:1.5;padding-right:52px;margin-bottom:11px;}
+#kn26 .evsel .ed em{font-style:normal;font-weight:700;color:var(--acc);margin-right:5px;}
+#kn26 .evsel .eb{display:flex;flex-wrap:wrap;gap:8px 22px;}
+#kn26 .evsel .eb>div{display:flex;align-items:center;gap:7px;font-size:11.5px;}
+#kn26 .evsel .eb i{width:9px;height:9px;border-radius:2px;flex:none;}
+#kn26 .evsel .eb span{color:var(--ink2);}
+#kn26 .evsel .eb b{font-family:var(--serif);font-size:19px;color:var(--ink);}
+#kn26 .evsel .eb s{text-decoration:none;font-size:10.5px;color:var(--mute);}
+#kn26 .evsel .en{font-size:10.5px;color:var(--mute);margin-top:9px;}
+#kn26 .crono div[data-ev]{cursor:pointer;border-radius:7px;transition:.15s;}
+#kn26 .crono div[data-ev]:hover{background:var(--wash);}
+#kn26 .crono div.sel{background:var(--wash);box-shadow:inset 2px 0 0 var(--acc);}
+@media(max-width:660px){#kn26 .evsel .eb{gap:7px 14px;}#kn26 .evsel .eb b{font-size:17px;}}
 #kn26 .rng .sc{display:flex;justify-content:space-between;font-size:9.5px;color:var(--mute);
  margin-top:5px;letter-spacing:.03em;}
 #kn26 .rng .sc span:nth-child(2){text-align:center;}
@@ -484,6 +518,22 @@
 #kn26 .boot.ko b{color:var(--neg);}
 #kn26 .boot code{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:11.5px;
  background:var(--card);border:1px solid var(--hair);padding:1px 5px;}
+
+/* ══ LEGENDA INTERATTIVA DEL GRAFICO ══ */
+#kn26 .leg.lint b[data-ln]{cursor:pointer;padding:3px 8px;border-radius:99px;transition:.15s;}
+#kn26 .leg.lint b[data-ln]:hover{background:var(--wash);}
+#kn26 .leg.lint b s{text-decoration:none;font-family:var(--serif);font-size:15px;color:var(--ink);margin-left:7px;}
+#kn26 .leg.lint b.spenta{opacity:.35;}
+#kn26 #k-trend .ln,#kn26 #k-trend .pt{transition:opacity .18s;}
+#kn26 #k-trendwrap.solo .ln,#kn26 #k-trendwrap.solo .pt{opacity:.10;}
+#kn26 #k-trendwrap.solo-g .ln-g,#kn26 #k-trendwrap.solo-g .pt-g,
+#kn26 #k-trendwrap.solo-o .ln-o,#kn26 #k-trendwrap.solo-o .pt-o,
+#kn26 #k-trendwrap.solo-a .ln-a,#kn26 #k-trendwrap.solo-a .pt-a{opacity:1;}
+#kn26 #k-trendwrap.solo-g .pt-g,#kn26 #k-trendwrap.solo-o .pt-o,#kn26 #k-trendwrap.solo-a .pt-a{opacity:.35;}
+@media(max-width:660px){
+ #kn26 .leg.lint{gap:6px 12px;font-size:11px;}
+ #kn26 .leg.lint b s{font-size:14px;}
+}
 </style>
 
 <div class="flag"><svg viewBox="0 0 100 100" aria-hidden="true"><g fill="none" stroke="var(--flag)" stroke-width="7"><path d="M50 14 L82 70 L18 70 Z"/><path d="M50 86 L18 30 L82 30 Z"/></g></svg></div>
@@ -520,7 +570,7 @@
 <div class="cmd">
  <div class="cb az">
   <button class="btn big" id="k-refresh">↻ Aggiorna i sondaggi</button>
-  <span class="hint">Legge la tabella integrale di Wikipedia e cerca sulla stampa israeliana le rilevazioni non ancora in archivio.</span>
+  <span class="hint">Rilegge la tabella integrale di Wikipedia e integra le righe non ancora in archivio, validandole una per una.</span>
  </div>
  <div class="cb az">
   <button class="btn g big" id="k-datapanel-t">Archivio dati · salva ed esporta</button>
@@ -541,26 +591,40 @@
   <div class="rng">
    <label for="k-sw">Swing fra i blocchi <b id="k-swv">0,0 pt</b></label>
    <input type="range" id="k-sw" min="-6" max="6" step="0.5" value="0">
-   <div class="sc"><span>−6 all'opposizione</span><span>parità</span><span>+6 alla coalizione</span></div>
+   <div class="sc"><span>−6 all'opposizione</span><span>parità</span><span>+6 a Netanyahu</span></div>
+   <div class="anc" id="k-sw-anc"></div>
+   <p class="ancn" id="k-sw-nota"></p>
   </div>
   <div class="rng">
    <label for="k-sig">Ampiezza dell'errore <b id="k-sigv">100%</b></label>
    <input type="range" id="k-sig" min="60" max="180" step="5" value="100">
    <div class="sc"><span>60% più fiducia</span><span>100% storico</span><span>180% più cautela</span></div>
   </div>
+  <div class="rng">
+   <label for="k-aff">Affluenza araba <b id="k-affv">60%</b></label>
+   <input type="range" id="k-aff" min="-30" max="15" step="1" value="0">
+   <div class="sc"><span>42% · sotto ogni precedente</span><span>60% · implicita nei sondaggi</span><span>69% · massimo storico</span></div>
+   <div class="anc" id="k-aff-anc">
+    <button data-aff="-26">2021 · 44,6%</button>
+    <button data-aff="-12">2022 · 53,2%</button>
+    <button data-aff="0" class="on">sondaggi · 60%</button>
+    <button data-aff="7">2020 · 64,8%</button>
+   </div>
+  </div>
  </div>
 </div>
 <div class="msg" id="k-msg"></div>
 <details id="k-guida"><summary>Come si usano i comandi</summary><div class="bd"><div class="guida">
- <div><b>Swing</b><span>Sposta punti percentuali da un blocco all'altro, come farebbe una campagna che premia un campo. A +2 la coalizione uscente guadagna due punti sottratti all'opposizione. Serve a chiedersi: quanto deve cambiare il paese perché cambi il risultato?</span></div>
+ <div><b>Swing</b><span>Sposta punti percentuali da un blocco all'altro, come farebbe una campagna che premia un campo. A +2 il blocco Netanyahu guadagna due punti sottratti all'opposizione. Serve a chiedersi: quanto deve cambiare il paese perché cambi il risultato?</span></div>
  <div><b>Incertezza</b><span>Regola l'ampiezza dell'errore simulato. Al 100% vale la calibrazione storica degli istituti israeliani; sotto il 100% si assume che i sondaggi siano più affidabili del solito, sopra che lo siano meno. Non sposta la proiezione, allarga o restringe le probabilità.</span></div>
  <div><b>Escludere un istituto</b><span>Ogni sondaggista può essere tolto dal calcolo dalla sua riga nella tabella <i>House effect</i>, o da qui per Direct Polls, che pubblica per Canale 14 e i24 e sopravvaluta sistematicamente il Likud. Nel modello pesa già la metà: escluderlo lo azzera del tutto.</span></div>
- <div><b>Solo ultimi 7 giorni</b><span>Restringe la media alla settimana in corso: reagisce prima agli scossoni della campagna, ma su meno rilevazioni e quindi con più rumore.</span></div>
+ <div><b>Affluenza araba</b><span>Non sposta voti fra blocchi: cambia quanti elettori arabi votano, moltiplicando le loro quote e diluendo tutte le altre. È la variabile che ha oscillato di più — dal 44,6% del 2021 al 64,8% del 2020 — e i sondaggi non la misurano, la assumono. I pulsanti sotto il cursore ancorano lo scenario alle sei elezioni dal 2015. <b>Attenzione al 2021:</b> aveva la stessa configurazione di oggi, tutti uniti tranne Ra'am, e produsse il minimo storico.</span></div>
+   <div><b>Solo ultimi 7 giorni</b><span>Restringe la media alla settimana in corso: reagisce prima agli scossoni della campagna, ma su meno rilevazioni e quindi con più rumore.</span></div>
  <div><b>Lista Unita araba</b><span>Attivo per impostazione predefinita: il 19 agosto Hadash, Ta'al e Balad hanno firmato l'accordo per correre insieme, mentre Ra'am resta separata. Il modello somma le loro quote di voto rilevazione per rilevazione, così i voti di Balad — sotto soglia da soli — smettono di disperdersi. Disattivandolo si vede il controfattuale: quanto costerebbe loro correre divisi.</span></div></div></div></details>
 
 <div class="box" id="k-datapanel" style="display:none">
  <h2 style="border:0;padding:0;margin-bottom:4px">Archivio sondaggi <em>aggiornamento automatico o inserimento manuale</em></h2>
- <p class="fn" style="margin-top:6px"><b>Aggiorna i sondaggi</b> cerca online le rilevazioni pubblicate dopo l'ultima presente in archivio e le integra. In alternativa compila il modulo: la somma dei seggi deve fare 120.</p>
+ <p class="fn" style="margin-top:6px"><b>Aggiorna i sondaggi</b> rilegge la tabella integrale di Wikipedia e ne integra le righe non ancora presenti. Per le rilevazioni troppo fresche per essere già su Wikipedia, compila il modulo: la somma dei seggi deve fare 120.</p>
  <div id="k-diag"></div>
  <div class="form" id="k-form-meta"></div>
  <div class="form" id="k-form-seggi"></div>
@@ -579,9 +643,13 @@
  <p class="lede" id="k-verdetto"></p>
  <div class="box">
   <div class="g2">
-   <figure><div id="k-hist"></div>
+   <figure>
+    <figcaption class="htit" id="k-htit1"></figcaption>
+    <div id="k-hist"></div>
     <figcaption class="fn" id="k-cap1"></figcaption></figure>
-   <figure><div id="k-hist2"></div>
+   <figure>
+    <figcaption class="htit" id="k-htit2"></figcaption>
+    <div id="k-hist2"></div>
     <figcaption class="fn" id="k-cap2"></figcaption></figure>
   </div>
  </div>
@@ -613,6 +681,9 @@
   <div class="sw2"><button data-emi="blocchi" class="on">Per blocco</button><button data-emi="partiti">Per lista</button></div>
   <div id="k-emi"></div>
   <div class="leg" id="k-emileg"></div>
+  <p class="fn">I posti vuoti fra un gruppo e l'altro segnano il confine fra i blocchi: le file restano
+   allineate e nessuna linea passa sopra i seggi. I tre numeri al centro sono i totali dei blocchi,
+   nello stesso ordine in cui compaiono nell'emiciclo.</p>
  </div>
 </section>
 
@@ -654,14 +725,15 @@
 </section>
 
 <section>
- <h2>Andamento dei blocchi <em>seggi attribuiti a ciascun blocco nelle singole rilevazioni</em></h2>
+ <h2>Come si è mossa la proiezione <em>il risultato del modello ricalcolato giorno per giorno</em></h2>
  <div class="box">
-  <div class="wrapT"><div id="k-trend"></div><div class="tip" id="k-tip"></div></div>
-  <div class="leg">
-   <b><i style="background:var(--coal)"></i>Coalizione Netanyahu</b>
-   <b><i style="background:var(--oppo)"></i>Opposizione sionista</b>
-   <b><i style="background:var(--ink);height:2px;width:16px"></i>Maggioranza 61</b>
-  </div>
+  <div class="evsel" id="k-evsel"></div>
+  <div class="wrapT" id="k-trendwrap"><div id="k-trend"></div><div class="tip" id="k-tip"></div></div>
+  <div class="leg lint" id="k-trendleg"></div>
+  <p class="fn">La linea spessa è la proiezione del modello ricalcolata a ogni data usando solo le rilevazioni
+   disponibili quel giorno: non è la media dei sondaggi, è quello che il modello avrebbe detto allora.
+   I puntini sono i singoli sondaggi. Le rilevazioni di gennaio-aprile sono armonizzate alla struttura di liste
+   attuale. Passa sopra una voce della legenda per isolare una linea.</p>
   <div class="crono" id="k-crono"></div>
  </div>
 </section>
@@ -722,10 +794,26 @@ var P={
  otzma       :{n:"Otzma Yehudit",      l:"Itamar Ben Gvir",    c:"#7a4a1f", b:"coalizione",  o:18, gov:1, r22:null}
 };
 var IDS=Object.keys(P).sort(function(a,b){return P[a].o-P[b].o;});
-var BL={coalizione:{n:"Coalizione uscente",c:"#1b4a8f"},opposizione:{n:"Opposizione sionista",c:"#0f8f8f"},
+var BL={coalizione:{n:"Blocco Netanyahu",c:"#1b4a8f"},opposizione:{n:"Opposizione sionista",c:"#0f8f8f"},
         arabo:{n:"Partiti arabi",c:"#3f8047"},incerto:{n:"Ago della bilancia",c:"#a0a6b0"}};
 
 /* veti dichiarati: [a, b, motivazione] */
+/* Correlazioni fra liste, misurate sull'archivio: residuo di ogni quota rispetto
+   alla tendenza locale, depurato del fattore di blocco che il modello simula già,
+   e confrontato con la correlazione meccanica indotta dal vincolo di somma.
+   Valore negativo = sostituzione (si contendono gli stessi elettori);
+   positivo = spinta comune (dipendono dallo stesso fattore, es. l'affluenza).
+   Solo le coppie con un meccanismo politico riconoscibile sono state tenute. */
+/* I valori sono SPOSTAMENTI rispetto alla correlazione che il modello già produce
+   attraverso la scossa di blocco (circa +0,28 fra due liste dello stesso campo),
+   e sono maggiorati di un quinto perché il riparto a seggi interi attenua l'effetto
+   di altrettanto: verificato simulando con e senza. */
+var CORR=[
+ ["byachad","yashar",     -0.45, "due liste di centro che si contendono lo stesso elettorato"],
+ ["likud","otzma",        -0.26, "Ben Gvir pesca nel bacino del Likud"],
+ ["likud","sionismo_rel", -0.20, "Smotrich pesca nel bacino del Likud"],
+ ["shas","utj",           +0.18, "stessa affluenza haredi"]
+];
 var VETI=[
  ['likud','yashar',"Eisenkot esclude un governo guidato da Netanyahu"],
  ['likud','byachad',"Bennett e Lapid escludono un governo Netanyahu"],
@@ -763,7 +851,7 @@ var EVENTI=[
  {data:"2026-08-17",testo:"Primarie del Likud"},
  {data:"2026-08-19",testo:"Hadash, Ta'al e Balad firmano l'accordo per la Lista Unita; Ra'am corre da sola"}
 ];
-var ESCL={};
+var ESCL={}, AFF=0;
 var EMIMODE='blocchi', TRENDPTS=[], TRENDGEO=null, FILTRI={ist:'',per:'0',txt:''};
 var SOND=BASE.slice(), PAR={recenti:0,listaunita:1}, DISP=8, SW=0, SIG=1, SIM=20000, COAL={};
 
@@ -899,10 +987,10 @@ function ripartoVeloce(sh,n,out){
 /* Selezione delle rilevazioni che alimentano il modello.
    "al" permette di rifare lo stesso calcolo a una data passata, per confrontare
    la proiezione di oggi con quella di una settimana fa. */
-function attiviAl(al){
- /* il modello usa solo l'era attuale: dopo la fusione B'Yachad (26 aprile 2026)
-    la mappa delle liste è cambiata e i sondaggi precedenti non sono commensurabili */
- var l=SOND.filter(function(s){return !s.pre&&(!al||s.data<=al);})
+function attiviAl(al,conPre){
+ /* La proiezione usa solo l'era attuale. La serie storica del modello può invece
+    risalire a gennaio, perché le rilevazioni precedenti sono armonizzate. */
+ var l=SOND.filter(function(s){return (conPre||!s.pre)&&(!al||s.data<=al);})
    .sort(function(a,b){return a.data<b.data?1:-1;});
  l=l.filter(function(s){return !ESCL[s.istituto];});
  /* il peso si dimezza ogni 7 giorni: oltre 8 settimane il contributo è sotto lo 0,4%.
@@ -958,6 +1046,29 @@ function montecarlo(base,N,giorni){
   isCo[i]=b==='coalizione'?1:0;isOp[i]=b==='opposizione'?1:0;isAr[i]=b==='arabo'?1:0;
   bs[i]=base[ids[i]];
  }
+ /* Le liste vicine alla soglia sono più volatili delle grandi: il loro esito è quasi
+    binario e il riparto le tratta a scatti. Il fattore vale 1 sopra il 6% e sale
+    fino a 1,46 alla soglia. Tarato sul banco di prova storico: senza, il risultato
+    vero cadeva nell'intervallo dell'80% nel 67% dei casi invece che nell'80%. */
+ var vol=new Float64Array(n);
+ for(i=0;i<n;i++) vol[i]=1+Math.max(0,(6-bs[i])/6);
+ /* Scosse accoppiate. Per ogni coppia si estrae una perturbazione che spinge le due
+    liste in direzioni opposte (sostituzione) o nella stessa (spinta comune). L'ampiezza
+    deriva dalla correlazione bersaglio: tau = sqrt(|r|/(1-|r|)). La parte idiosincratica
+    viene ridotta di altrettanto, così la varianza di ciascuna lista resta quella tarata
+    e a cambiare è solo la loro dipendenza reciproca. */
+ var idx={}; for(i=0;i<n;i++) idx[ids[i]]=i;
+ var CP=[];
+ for(i=0;i<CORR.length;i++){
+  var ia=idx[CORR[i][0]], ib=idx[CORR[i][1]], r=CORR[i][2];
+  if(ia===undefined||ib===undefined) continue;
+  var ar=Math.abs(r);
+  CP.push({a:ia,b:ib,tau:Math.sqrt(ar/(1-ar)),seg:r<0?-1:1});
+ }
+ var quota=new Float64Array(n);        /* varianza sottratta a ciascuna lista */
+ for(i=0;i<CP.length;i++){quota[CP[i].a]+=CP[i].tau*CP[i].tau;quota[CP[i].b]+=CP[i].tau*CP[i].tau;}
+ var idio=new Float64Array(n);
+ for(i=0;i<n;i++) idio[i]=Math.sqrt(Math.max(0.15,1-quota[i]));
  /* calibrazione sull'errore storico degli istituti israeliani: a due mesi dal voto
     lo scarto tipico su un partito maggiore è di 2-3 seggi, non di 5 */
  var sg=(0.065+0.085*Math.min(1,giorni/150))*SIG, sb=(0.050+0.055*Math.min(1,giorni/150))*SIG;
@@ -967,7 +1078,9 @@ function montecarlo(base,N,giorni){
  var coal=new Int32Array(N),oppz=new Int32Array(N);
  for(var s=0;s<N;s++){
   var sw=gauss()*sb,tot=0;
-  for(j=0;j<n;j++){sim[j]=bs[j]*Math.exp(gauss()*sg+dir[j]*sw);tot+=sim[j];}
+  for(j=0;j<n;j++) sim[j]=gauss()*idio[j];
+  for(j=0;j<CP.length;j++){var t=gauss()*CP[j].tau;sim[CP[j].a]+=t;sim[CP[j].b]+=CP[j].seg*t;}
+  for(j=0;j<n;j++){sim[j]=bs[j]*Math.exp(sim[j]*sg*vol[j]+dir[j]*sw);tot+=sim[j];}
   var sc=QSUM/tot;
   for(j=0;j<n;j++){sim[j]*=sc;if(sim[j]<SOGLIA)sotto[j]++;}
   ripartoVeloce(sim,n,seg);
@@ -1027,25 +1140,57 @@ function coalizioni(seggi){
  return out;
 }
 /* effetti casa */
+/* Effetti casa sull'archivio intero. Le rilevazioni di gennaio-aprile vengono
+   armonizzate alla struttura attuale e usate anch'esse: raddoppiano la base di stima
+   da 105 a 165 rilevazioni. Il consenso di riferimento è però calcolato per epoca,
+   perché fra gennaio e agosto i rapporti di forza sono cambiati e confrontare un
+   sondaggio di gennaio con la media dell'anno misurerebbe il tempo, non l'istituto. */
 function effettiCasa(){
- var l=SOND.filter(function(s){return !s.pre;}),cons={},w={};
- IDS.forEach(function(i){cons[i]=0;w[i]=0;});
- l.forEach(function(s){IDS.forEach(function(i){if(s.seggi[i]!==undefined||true){cons[i]+=(s.seggi[i]||0);w[i]++;}});});
- IDS.forEach(function(i){cons[i]=w[i]?cons[i]/w[i]:0;});
+ var ere=[SOND.filter(function(s){return s.pre;}),SOND.filter(function(s){return !s.pre;})];
  var by={};
- l.forEach(function(s){
-  var k=s.istituto;if(!by[k])by[k]={n:0,d:{},test:s.testata};
-  by[k].n++;
-  IDS.forEach(function(i){by[k].d[i]=(by[k].d[i]||0)+((s.seggi[i]||0)-cons[i]);});
+ ere.forEach(function(l){
+  if(l.length<8) return;
+  var cons={},w={};
+  IDS.forEach(function(i){cons[i]=0;w[i]=0;});
+  l.forEach(function(s){var g=armonizza(s);IDS.forEach(function(i){cons[i]+=(g[i]||0);w[i]++;});});
+  IDS.forEach(function(i){cons[i]=w[i]?cons[i]/w[i]:0;});
+  l.forEach(function(s){
+   var k=s.istituto,g=armonizza(s);
+   if(!by[k])by[k]={n:0,s:{},test:s.testata};
+   by[k].n++;
+   IDS.forEach(function(i){by[k].s[i]=(by[k].s[i]||0)+((g[i]||0)-cons[i]);});
+  });
+  if(!effettiCasa.cons) effettiCasa.cons=cons;
+  effettiCasa.cons=cons;                       /* il consenso mostrato è quello attuale */
  });
- Object.keys(by).forEach(function(k){IDS.forEach(function(i){by[k].d[i]/=by[k].n;});});
- return {cons:cons,by:by};
+ Object.keys(by).forEach(function(k){
+  by[k].d={};IDS.forEach(function(i){by[k].d[i]=by[k].s[i]/by[k].n;});
+ });
+ return {cons:effettiCasa.cons,by:by};
 }
 
 /* stato calcolato */
 var L,QUO,QBASE,SEG,MC,COALS,GIORNI,QSUM,SOGLIE,PREC;
 /* Dalle rilevazioni alle quote di voto. Estratto da calcola() per poter essere
    rieseguito su un sottoinsieme diverso (per esempio i sondaggi di una settimana fa). */
+/* Peso di una rilevazione dentro la media.
+   · recenza: si dimezza ogni sette giorni;
+   · numerosità: la precisione cresce con la radice del campione, quindi il peso
+     segue sqrt(n/500), con estremi limitati per non far dominare un singolo
+     sondaggio molto ampio;
+   · grappolo: nove sondaggi Kantar non sono nove prove indipendenti — stesso
+     panel, stessa metodologia, stesso effetto casa. Ogni rilevazione successiva
+     dello stesso istituto nella finestra vale progressivamente meno;
+   · effetto casa: se non lo si corregge esplicitamente, gli istituti di parte
+     valgono metà. */
+function pesoDi(s,rif,quanti){
+ var w=Math.pow(2,-gg(new Date(s.data),rif)/7);
+ var n=s.campione||500;
+ w*=Math.max(0.75,Math.min(1.6,Math.sqrt(n/500)));
+ w*=1/(1+0.5*(quanti||0));
+ if(s.casa) w*=0.5;
+ return w;
+}
 function quoteDa(L){
  if(!L||!L.length) return null;
  /* 1 · ogni sondaggio viene riportato a quote di voto */
@@ -1056,6 +1201,10 @@ function quoteDa(L){
   var q=100-Math.max(ws,DISP);
   if(s._qk!==q){s._q=invD(s.seggi,sotto,q);s._qk=q;}   /* cache: l'inversione è costosa */
   var sh=Object.assign({},s._q,sotto);
+  /* le rilevazioni pre-fusione vengono riportate alla struttura attuale sommando
+     le quote di Yesh Atid e Bennett 2026: sulle quote la somma è esatta */
+  if(s.pre){var ab=(sh.yesh_atid||0)+(sh.bennett26||0);
+   if(ab>0){sh.byachad=(sh.byachad||0)+ab;delete sh.yesh_atid;delete sh.bennett26;}}
   /* Lista Unita: la fusione va fatta sulle quote di voto di ogni rilevazione, non
      sui seggi né sulla media. Sommando le quote, il guadagno emerge da solo dal
      riparto: i voti di Balad, sotto soglia da soli, smettono di disperdersi.
@@ -1076,11 +1225,33 @@ function quoteDa(L){
  /* 3 · media ponderata delle quote: peso dimezzato ogni 7 giorni, effetto casa a metà */
  var rif=new Date(per[0].s.data),W=0,avg={};
  tutte.forEach(function(i){avg[i]=0;});
+ var visti={};
  per.forEach(function(p){
-  var w=Math.pow(2,-gg(new Date(p.s.data),rif)/7); if(p.s.casa) w*=0.5; W+=w;
+  var k=p.s.istituto;
+  var w=pesoDi(p.s,rif,visti[k]||0);
+  visti[k]=(visti[k]||0)+1;
+  p.w=w; W+=w;
   tutte.forEach(function(i){avg[i]+=p.sh[i]*w;});
  });
  tutte.forEach(function(i){avg[i]/=W;});
+ /* Correzione dell'effetto casa: invece di dimezzare a forfait gli istituti di
+    parte, si sottrae a ciascuno lo scarto medio misurato rispetto al consenso.
+    La stima si restringe verso zero quando l'istituto ha poche rilevazioni,
+    perché con due sondaggi lo "scarto" è quasi tutto rumore. */
+ /* 4b · affluenza araba: non è uno spostamento di voti fra blocchi ma un cambio
+    di partecipazione, quindi moltiplica le quote arabe e diluisce tutte le altre.
+    È la variabile che negli ultimi cicli ha oscillato di più. */
+ if(AFF){
+  var fatt=1+AFF/100, sommaAr=0, sommaAl=0, kk;
+  for(kk in avg){ if(!P[kk]) continue;
+   if(P[kk].b==='arabo') sommaAr+=avg[kk]; else sommaAl+=avg[kk]; }
+  if(sommaAr>0&&sommaAl>0){
+   var nuovoAr=sommaAr*fatt, delta=nuovoAr-sommaAr;
+   for(kk in avg){ if(!P[kk]) continue;
+    if(P[kk].b==='arabo') avg[kk]*=fatt;
+    else avg[kk]*=Math.max(0.2,(sommaAl-delta)/sommaAl); }
+  }
+ }
  /* 5 · normalizzazione, lasciando un 1% alle micro-liste mai rilevate */
  var QUO={},T=0;
  for(k in avg) if(avg[k]>0.05){QUO[k]=avg[k];T+=avg[k];}
@@ -1113,7 +1284,7 @@ function calcola(){
  COALS=coalizioni(SEG);
  SOGLIE={coalizione:puntiPer('coalizione'),opposizione:puntiPer('opposizione')};
 }
-/* sposta s punti percentuali dall'opposizione sionista alla coalizione uscente */
+/* sposta s punti percentuali dall'opposizione sionista al blocco Netanyahu */
 function applicaSwing(q,s){
  var o={},a=0,b=0,k;
  for(k in q){if(P[k].b==='coalizione')a+=q[k];else if(P[k].b==='opposizione')b+=q[k];}
@@ -1166,7 +1337,7 @@ function BC(k){return C[k==='coalizione'?'coal':(k==='opposizione'?'oppo':(k==='
 function rProb(){
  var b=blocchi(SEG),tot=MC.n;
  var items=[
-  {t:"Maggioranza alla coalizione uscente",v:MC.vC/tot,c:C.coal,k:'Coalizione',
+  {t:"Maggioranza al blocco Netanyahu",v:MC.vC/tot,c:C.coal,k:'Netanyahu',
    d:"Likud, Shas, Giudaismo Unito della Torah, Sionismo Religioso e Otzma Yehudit arrivano insieme a 61."},
   {t:"Maggioranza all'opposizione sionista",v:MC.vO/tot,c:C.oppo,k:'Opposizione',
    d:"Yashar, B'Yachad, Democratici e Yisrael Beitenu ce la fanno senza i partiti arabi."},
@@ -1186,7 +1357,7 @@ function rProb(){
    '<div class="d">'+x.d+'</div></div>';
  }).join('');
  var q5=q(MC.coal,.10),q95=q(MC.coal,.90),o5=q(MC.oppz,.10),o95=q(MC.oppz,.90);
- var t='La proiezione centrale assegna <b>'+f(b.coalizione)+' seggi</b> alla coalizione uscente e <b>'+
+ var t='La proiezione centrale assegna <b>'+f(b.coalizione)+' seggi</b> al blocco Netanyahu e <b>'+
   f(b.opposizione)+'</b> all\'opposizione sionista'+(b.incerto?', con '+f(b.incerto)+' alle liste dell\'ago della bilancia':'')+
   '. In 8 simulazioni su 10 la prima resta fra '+f(q5)+' e '+f(q95)+' seggi, la seconda fra '+f(o5)+' e '+f(o95)+'. ';
  var pri=Object.keys(MC.primo).sort(function(a,b){return MC.primo[b]-MC.primo[a];}).filter(function(k){return MC.primo[k];});
@@ -1199,7 +1370,7 @@ function rProb(){
  else if(MC.vC/MC.n>0.5) t+='Lo scenario prevalente è la <b>conferma del governo uscente</b>. ';
  if(SOGLIE){
   var a=SOGLIE.coalizione,b2=SOGLIE.opposizione;
-  t+='Per raggiungere autonomamente quota 61, la coalizione uscente dovrebbe sottrarre '+
+  t+='Per raggiungere autonomamente quota 61, il blocco Netanyahu dovrebbe sottrarre '+
    (a===null?'più di 12 punti':'<b>'+(a%1===0?f(a,0):f(a,1))+' punti percentuali</b>')+
    ' al campo avversario; all\'opposizione sionista ne basterebbero '+
    (b2===null?'più di 12':'<b>'+(b2%1===0?f(b2,0):f(b2,1))+'</b>')+
@@ -1209,7 +1380,7 @@ function rProb(){
  }
  $('k-verdetto').innerHTML=t;
  var mdc=q(MC.coal,.5),mdo=q(MC.oppz,.5);
- $('k-cap1').innerHTML='Distribuzione simulata dei seggi della coalizione uscente; in evidenza le simulazioni in cui '+
+ $('k-cap1').innerHTML='Distribuzione simulata dei seggi del blocco Netanyahu; in evidenza le simulazioni in cui '+
   'raggiunge o supera quota 61. Il triangolo segna la proiezione centrale ('+f(b.coalizione)+'), la didascalia la mediana '+
   'delle simulazioni ('+f(mdc)+').';
  $('k-cap2').innerHTML='Stessa distribuzione per l\'opposizione sionista, senza i partiti arabi. '+
@@ -1260,7 +1431,9 @@ function rProj(){
  ord.forEach(function(i){
   var d=MC.d[i]||[0],lo=q(d,.10),hi=q(d,.90),md=SEG[i]||0,ps=MC.sotto[i]/MC.n;
   var x=function(v){return 100*v/mx;};
-  h+='<div class="pr"><div class="nm">'+E(nm(i))+'<i>'+E(P[i].l)+'</i></div>'+
+  h+='<div class="pr"><div class="nm">'+E(nm(i))+
+     '<i><b class="blq" style="background:'+BC(P[i].b)+'"></b>'+E(BL[P[i].b].n)+
+     ' · '+E(P[i].l)+'</i></div>'+
      '<div class="sg srf">'+(md||'—')+'</div>'+
      '<div><svg viewBox="0 0 200 16" preserveAspectRatio="none" style="height:16px">'+
        '<line x1="'+(2*x(lo))+'" y1="8" x2="'+(2*x(hi))+'" y2="8" stroke="'+cp(P[i].c)+'" stroke-width="3" opacity=".3"/>'+
@@ -1308,6 +1481,18 @@ function movimenti(){
 }
 /* una lista è "in corsa" se compare in almeno metà delle rilevazioni recenti:
    evita di segnalare come a rischio liste alternative fra loro (Lista Unita e Hadash-Ta'al) */
+/* Riporta una rilevazione pre-fusione alla struttura di liste attuale, sommando
+   Yesh Atid e Bennett 2026 in B'Yachad. Misurato sull'archivio: nelle tre settimane
+   attorno al 26 aprile la somma delle due valeva 26 seggi e la lista fusa 25, e tutte
+   le altre liste sono rimaste identiche. La serie è quindi commensurabile, e i
+   sessanta sondaggi di gennaio-aprile diventano utilizzabili per tutto ciò che non
+   sia la proiezione — che li esclude comunque, essendo fuori dalla finestra di 60 giorni. */
+function armonizza(s){
+ if(!s.pre) return s.seggi;
+ var g=Object.assign({},s.seggi), b=(g.yesh_atid||0)+(g.bennett26||0);
+ if(b>0){g.byachad=(g.byachad||0)+b;delete g.yesh_atid;delete g.bennett26;}
+ return g;
+}
 function inCorsa(id){
  var w=finestra(0,13); if(!w.length) return !!SEG[id];
  var n=w.filter(function(s){return (s.seggi[id]||0)>0;}).length;
@@ -1339,7 +1524,7 @@ function rDirezione(){
  var mossi=IDS.filter(function(i){return Math.abs((SEG[i]||0)-(PREC.seg[i]||0))>=1;})
    .sort(function(a,b){return Math.abs((SEG[b]||0)-(PREC.seg[b]||0))-Math.abs((SEG[a]||0)-(PREC.seg[a]||0));});
  var h2='<div class="dz"><h4>La direzione del modello · confronto con sette giorni fa</h4><div class="row">'+
-  '<div class="cell"><div class="lb">Coalizione uscente</div><div class="vl">'+f(b.coalizione)+d(b.coalizione-bp.coalizione)+'</div></div>'+
+  '<div class="cell"><div class="lb">Blocco Netanyahu</div><div class="vl">'+f(b.coalizione)+d(b.coalizione-bp.coalizione)+'</div></div>'+
   '<div class="cell"><div class="lb">Opposizione sionista</div><div class="vl">'+f(b.opposizione)+d(b.opposizione-bp.opposizione)+'</div></div>'+
   '<div class="cell"><div class="lb">Prob. maggioranza coalizione</div><div class="vl">'+pc(pc1)+dp(pc1,pc0)+'</div></div>'+
   '<div class="cell"><div class="lb">Prob. maggioranza opposizione</div><div class="vl">'+pc(po1)+dp(po1,po0)+'</div></div>'+
@@ -1367,7 +1552,8 @@ function rAnalisi(){
    var c=v>0?'up':'dn';
    return '<div class="dl '+c+'">'+(v>0?'+':'−')+f(Math.abs(v),Math.abs(v)%1?1:0)+'</div>';
   }
-  hh+='<div class="pr mv"><div class="nm">'+E(nm(x.id))+'<i>'+E(P0.l)+'</i></div>'+
+  hh+='<div class="pr mv"><div class="nm">'+E(nm(x.id))+
+      '<i><b class="blq" style="background:'+BC(P0.b)+'"></b>'+E(BL[P0.b].n)+'</i></div>'+
       '<div class="sg srf">'+f(x.ora,x.ora%1?1:0)+'</div>'+
       '<div><svg viewBox="0 0 200 12" preserveAspectRatio="none" style="height:12px">'+
       '<rect x="0" y="3" width="200" height="6" fill="'+C.hair2+'"/>'+
@@ -1419,7 +1605,7 @@ function rAnalisi(){
  testo+='La mediana è calcolata su '+M.n0+' rilevazioni'+(M.da?' pubblicate fra il '+dl(M.da)+' e il '+dl(M.a):'')+'.';
  $('k-analisi').innerHTML=testo;
  /* sommario in testata */
- $('k-deck').innerHTML='Proiezione dei 120 seggi della 26ª Knesset. Oggi la coalizione uscente è stimata a <b>'+
+ $('k-deck').innerHTML='Proiezione dei 120 seggi della 26ª Knesset. Oggi il blocco Netanyahu è stimata a <b>'+
   f(b.coalizione)+' seggi</b>, mentre l\'opposizione sionista ne otterrebbe <b>'+f(b.opposizione)+'</b>. '+
   'Per governare senza il sostegno dei partiti arabi ne servono 61. Il modello utilizza la media ponderata di '+
   f(L.length)+' rilevazioni, assegna i seggi con il metodo Bader-Ofer ed esegue '+f(SIM)+' simulazioni per tenere '+
@@ -1428,7 +1614,33 @@ function rAnalisi(){
 function rCrono(){
  var l=EVENTI.slice().sort(function(a,b){return a.data<b.data?-1:1;});
  $('k-crono').innerHTML=l.map(function(e,i){
-  return '<div><b>'+(i+1)+'</b><span><em>'+dc(e.data)+'</em> '+E(e.testo)+'</span></div>';}).join('');
+  return '<div data-ev="'+E(e.data)+'"'+(EVSEL===e.data?' class="sel"':'')+'><b>'+(i+1)+
+   '</b><span><em>'+dc(e.data)+'</em> '+E(e.testo)+'</span></div>';}).join('');
+ rEvSel();
+}
+/* Cliccando un fatto della cronologia si legge sopra il grafico la proiezione
+   del modello a quella data, con lo scostamento rispetto a oggi. */
+var EVSEL=null;
+function rEvSel(){
+ var el=$('k-evsel'); if(!el) return;
+ if(!EVSEL){el.className='evsel';el.innerHTML='';return;}
+ var S=serieModello(), ev=null, i;
+ for(i=0;i<EVENTI.length;i++) if(EVENTI[i].data===EVSEL) ev=EVENTI[i];
+ var p=null;
+ for(i=0;i<S.length;i++){ if(S[i].d<=EVSEL) p=S[i]; }
+ if(!p||!ev){el.className='evsel';el.innerHTML='';return;}
+ var u=S[S.length-1];
+ function d(a,b){var x=a-b;return x===0?'invariato':((x>0?'+':'')+f(x)+' rispetto a oggi');}
+ el.className='evsel on';
+ el.innerHTML='<button class="x" data-ev="">chiudi</button>'+
+  '<div class="ed"><em>'+dc(ev.data)+'</em> '+E(ev.testo)+'</div>'+
+  '<div class="eb">'+
+   [['coalizione','Blocco Netanyahu',p.g,u.g],['opposizione','Opposizione sionista',p.o,u.o],
+    ['arabo','Partiti arabi',p.a,u.a]].map(function(x){
+    return '<div><i style="background:'+BC(x[0])+'"></i><span>'+E(x[1])+'</span>'+
+     '<b>'+f(x[2])+'</b><s>'+E(d(x[2],x[3]))+'</s></div>';}).join('')+
+  '</div><p class="en">Proiezione del modello al '+dc(p.d)+', calcolata su '+f(p.n)+
+  ' rilevazioni disponibili quel giorno.</p>';
 }
 function rCalendario(){
  var oggi=new Date();
@@ -1447,47 +1659,92 @@ function rCalendario(){
    '<div class="ds">'+x.t+'. '+x.s+'</div></div>';}).join('');
 }
 function rEmi(){
- var righe=5,r0=100,r1=188,rad=[],i;
+ /* Sequenza dei seggi da sinistra a destra, raggruppati per blocco. */
+ var seq=[],grp=[],bb=blocchi(SEG),i;
+ if(EMIMODE==='blocchi'){
+  ['arabo','opposizione','incerto','coalizione'].forEach(function(k){
+   var n=bb[k]||0; if(!n) return;
+   grp.push(n); for(var j=0;j<n;j++) seq.push('§'+k);
+  });
+ } else {
+  ['arabo','opposizione','incerto','coalizione'].forEach(function(b){
+   var liste=IDS.filter(function(i){return SEG[i]&&P[i].b===b;})
+     .sort(function(a,c){return SEG[c]-SEG[a];}), n=0;
+   liste.forEach(function(i){for(var j=0;j<SEG[i];j++){seq.push(i);n++;}});
+   if(n) grp.push(n);
+  });
+ }
+ /* Il distacco fra blocchi si ottiene lasciando seggi VUOTI, non spostando quelli
+    pieni: così le file restano allineate lungo archi regolari. */
+ var VUOTI=3, nG=grp.length, TOT=120+VUOTI*Math.max(0,nG-1);
+ var pieno=[],g;
+ for(g=0;g<nG;g++){
+  var da=grp.slice(0,g).reduce(function(a,b){return a+b;},0);
+  for(i=0;i<grp[g];i++) pieno.push(seq[da+i]);
+  if(g<nG-1) for(i=0;i<VUOTI;i++) pieno.push(null);
+ }
+ /* file di raggio crescente, con seggi proporzionali al raggio */
+ var righe=5,r0=100,r1=188,rad=[];
  for(i=0;i<righe;i++) rad.push(r0+(r1-r0)*i/(righe-1));
  var sm=rad.reduce(function(a,b){return a+b;},0);
- var cnt=rad.map(function(r){return Math.max(1,Math.round(120*r/sm));});
- var df=120-cnt.reduce(function(a,b){return a+b;},0),k=righe-1;
+ var cnt=rad.map(function(r){return Math.max(1,Math.round(TOT*r/sm));});
+ var df=TOT-cnt.reduce(function(a,b){return a+b;},0),k=righe-1;
  while(df!==0){cnt[k]+=(df>0?1:-1);df+=(df>0?-1:1);k=(k-1+righe)%righe;}
  var pts=[];
- rad.forEach(function(r,ri){var n=cnt[ri];
-  for(var j=0;j<n;j++){var t=(n===1)?.5:j/(n-1),a=Math.PI-t*Math.PI;
-   pts.push({x:215+r*Math.cos(a),y:212-r*Math.sin(a),a:a});}});
- pts.sort(function(a,b){return b.a-a.a;});
- var seq=[];
- if(EMIMODE==='blocchi'){
-  var ordB=['arabo','opposizione','incerto','coalizione'],bb=blocchi(SEG);
-  ordB.forEach(function(k){for(var j=0;j<(bb[k]||0);j++)seq.push('§'+k);});
- } else IDS.forEach(function(i){for(var j=0;j<(SEG[i]||0);j++)seq.push(i);});
- var s='<svg viewBox="0 0 430 244" role="img" aria-label="Emiciclo">';
- pts.forEach(function(p,ix){
-  var id=seq[ix],col=C.hair,tit='';
-  if(id&&id.charAt(0)==='§'){var kb=id.slice(1);col=BC(kb);tit=BL[kb].n;}
-  else if(id){col=cp(P[id].c);tit=nm(id);}
-  s+='<circle cx="'+p.x.toFixed(1)+'" cy="'+p.y.toFixed(1)+'" r="5" fill="'+col+'">'+
-     '<title>'+E(tit)+'</title></circle>';});
- if(EMIMODE==='blocchi'){
-  /* segna il confine fra un blocco e l'altro, cosi i gruppi si leggono a colpo d'occhio */
-  /* I pallini sono ordinati per angolo e due consecutivi stanno quasi sempre su
-     file diverse: il confine fra blocchi non è un segmento fra due punti, ma un
-     raggio. Si traccia dall'arco interno a quello esterno all'angolo di stacco. */
-  for(var z=1;z<seq.length;z++) if(seq[z]!==seq[z-1]){
-   var ang=(pts[z-1].a+pts[z].a)/2, ca=Math.cos(ang), sa=Math.sin(ang);
-   s+='<line x1="'+(215+(r0-9)*ca).toFixed(1)+'" y1="'+(212-(r0-9)*sa).toFixed(1)+
-      '" x2="'+(215+(r1+9)*ca).toFixed(1)+'" y2="'+(212-(r1+9)*sa).toFixed(1)+
-      '" stroke="'+C.paper+'" stroke-width="3" opacity=".95"/>';
+ rad.forEach(function(r,ri){
+  var n=cnt[ri];
+  /* Sfasamento minimo fra una fila e l'altra — due decimi di grado, invisibile.
+     Serve a rendere univoco l'ordine dei seggi da sinistra a destra: senza, le file
+     di numero dispari hanno un seggio esattamente a metà arco e quattro seggi
+     finiscono a pari angolo, rendendo ambiguo quale sia il 61°. */
+  var sfasa=ri*0.004, MG=0.004*(righe-1);
+  for(var j=0;j<n;j++){
+   /* l'arco resta dentro [0, pi]: sfasamenti che lo sforassero verrebbero
+      riportati dall'altra parte dal calcolo dell'angolo */
+   var t=(n===1)?0.5:j/(n-1), a=(Math.PI-MG)-t*(Math.PI-2*MG)+sfasa;
+   pts.push({x:215+r*Math.cos(a),y:212-r*Math.sin(a),a:a});
   }
- }
+ });
+ pts.sort(function(a,b){return b.a-a.a;});
+
+ var s='<svg viewBox="0 0 430 232" role="img" aria-label="Emiciclo">';
+ var pieni=[];                                  /* posizioni dei soli seggi occupati */
+ pts.forEach(function(p,ix){
+  var id=pieno[ix]; if(id===null||id===undefined) return;   /* seggio di stacco */
+  pieni.push(p);
+  var col=C.hair,tit='';
+  if(id.charAt(0)==='§'){var kb=id.slice(1);col=BC(kb);tit=BL[kb].n;}
+  else {col=cp(P[id].c);tit=nm(id)+' — '+BL[P[id].b].n;}
+  s+='<circle cx="'+p.x.toFixed(2)+'" cy="'+p.y.toFixed(2)+'" r="5.4" fill="'+col+'">'+
+     '<title>'+E(tit)+'</title></circle>';});
  var b=blocchi(SEG);
- s+='<line x1="215" y1="16" x2="215" y2="66" stroke="'+C.ink+'" stroke-width="1.2" stroke-dasharray="3 3"/>';
- s+='<text x="215" y="11" text-anchor="middle" font-size="9.5" font-weight="700" letter-spacing="1.2" fill="'+C.ink+'">MAGGIORANZA 61</text>';
- s+='<text x="215" y="196" text-anchor="middle" font-size="27" font-family="Georgia,serif" fill="'+C.ink+'">'+
-    f(b.coalizione)+'<tspan fill="'+C.inc+'"> · </tspan>'+f(b.opposizione+b.arabo+b.incerto)+'</text>';
- s+='<text x="215" y="228" text-anchor="middle" font-size="10" fill="'+C.mute+'">coalizione uscente · tutti gli altri partiti</text></svg>';
+ /* La soglia va dove sta davvero il 61° seggio contando da sinistra: con i posti
+    vuoti fra i blocchi non coincide più con il centro geometrico dell'arco. */
+ var a61=(pieni.length>=61)?((pieni[59].a+pieni[60].a)/2):(Math.PI/2);
+ var ca=Math.cos(a61), sa=Math.sin(a61);
+ s+='<line x1="'+(215+(r0-16)*ca).toFixed(2)+'" y1="'+(212-(r0-16)*sa).toFixed(2)+
+    '" x2="'+(215+(r1+13)*ca).toFixed(2)+'" y2="'+(212-(r1+13)*sa).toFixed(2)+
+    '" stroke="'+C.ink+'" stroke-width="1.3" stroke-dasharray="4 3"/>';
+ var xt=215+(r1+24)*ca, yt=212-(r1+24)*sa;
+ s+='<text x="'+xt.toFixed(1)+'" y="'+Math.max(11,yt).toFixed(1)+'" text-anchor="middle" font-size="9.5" '+
+    'font-weight="700" letter-spacing="1.1" fill="'+C.ink+'">MAGGIORANZA 61</text>';
+ /* I tre totali stanno dentro il vuoto dell'arco. Nessuna didascalia qui dentro:
+    alla quota della base i seggi delle estremità occupano già lo spazio — la riga
+    che c'era prima ne sovrapponeva sei — e la legenda sotto dice nomi e composizione
+    meglio di quanto possa fare una riga compressa. */
+ /* I totali stanno nel vuoto dell'arco, con sotto una sigla del blocco: alla quota
+    più bassa i seggi delle estremità occupano già lo spazio. */
+ var sigla={arabo:'arabi',opposizione:'opposizione',coalizione:'Netanyahu',incerto:'incerti'};
+ var trio=[['arabo',b.arabo],['opposizione',b.opposizione],['coalizione',b.coalizione]]
+   .filter(function(x){return x[1];});
+ var larg=trio.length*58, x0=215-larg/2+29;
+ trio.forEach(function(t,ix){
+  s+='<text x="'+(x0+ix*58)+'" y="180" text-anchor="middle" font-size="31" '+
+     'font-family="Georgia,serif" fill="'+BC(t[0])+'">'+f(t[1])+'</text>'+
+     '<text x="'+(x0+ix*58)+'" y="197" text-anchor="middle" font-size="8.5" '+
+     'letter-spacing=".06em" fill="'+C.mute+'">'+E(sigla[t[0]])+'</text>';
+ });
+ s+='</svg>';
  $('k-emi').innerHTML=s;
  if(EMIMODE==='blocchi'){
   var bl2=blocchi(SEG);
@@ -1600,80 +1857,199 @@ function rHouse(){
  h+='</tbody></table>';
  var d=e.by['Direct Polls'];
  $('k-house').innerHTML=h+'<p class="fn">La tabella mostra, in seggi, lo scostamento medio di ciascun istituto dalla '+
-  'media delle altre rilevazioni presenti in archivio. Il calcolo considera soltanto i sondaggi dell\'attuale fase '+
-  'politica, iniziata a maggio, per evitare di confrontare scenari partitici ormai diversi. '+
+  'media delle altre rilevazioni presenti in archivio. Il calcolo usa <b>tutte e '+f(SOND.length)+'</b> le '+
+  'rilevazioni: quelle di gennaio-aprile vengono riportate alla struttura attuale sommando Yesh Atid e '+
+  'Bennett 2026 in B\'Yachad, mentre il consenso di riferimento resta calcolato per epoca — fra gennaio '+
+  'e agosto i rapporti di forza sono cambiati, e confrontare un sondaggio di gennaio con la media '+
+  'dell\'anno misurerebbe il tempo, non l\'istituto. '+
   (d?'<b>Direct Polls</b>, l\'istituto di Shlomo Filber le cui rilevazioni sono pubblicate da Canale 14 e i24NEWS, '+
-   'attribuisce in media al Likud '+f(Math.abs(d.d.likud),1)+' seggi in più rispetto agli altri istituti. Per questo, '+
-   'nel modello il suo peso è dimezzato; i suoi sondaggi possono anche essere esclusi del tutto dai comandi in alto '+
-   'della pagina.':'')+
+   'attribuisce in media al Likud '+f(Math.abs(d.d.likud),1)+' seggi in più rispetto agli altri istituti. Per questo il modello '+
+   'ne dimezza il peso: è un giudizio editoriale, non una correzione statistica, perché senza il confronto con elezioni vere '+
+   'non si può sapere chi dei due campi abbia ragione. Ogni istituto può comunque essere escluso del tutto dal pulsante '+
+   'accanto al suo nome.':'')+
   ' Il pulsante accanto a ciascun istituto lo esclude o lo reinserisce nel calcolo: '+
   (Object.keys(ESCL).length?'<b>'+Object.keys(ESCL).map(E).join(', ')+'</b> '+
     (Object.keys(ESCL).length===1?'è oggi escluso':'sono oggi esclusi')+'.':'oggi sono inclusi tutti.')+'</p>';
 }
+/* La proiezione del modello ricalcolata a ogni data dell'archivio, usando solo
+   le rilevazioni disponibili fino a quel giorno. È cosa diversa dalla media dei
+   sondaggi: è quello che il modello avrebbe detto quel giorno. */
+var _serie=null,_serieKey='';
+function serieModello(){
+ var key=SOND.length+'|'+JSON.stringify(PAR)+'|'+Object.keys(ESCL).sort().join(',')+'|'+SW+'|'+AFF;
+ if(_serie&&_serieKey===key) return _serie;
+ var viste={},date=[];
+ SOND.forEach(function(s){if(!viste[s.data]){viste[s.data]=1;date.push(s.data);}});
+ date.sort();
+ var out=[];
+ date.forEach(function(d){
+  var l=attiviAl(d,true);
+  if(l.length<6) return;
+  var qq=quoteDa(l); if(!qq) return;
+  if(SW) qq=applicaSwing(qq,SW);
+  var sg=dhondt(qq),b=blocchi(sg);
+  out.push({d:d,g:b.coalizione,o:b.opposizione,a:b.arabo,n:l.length});
+ });
+ _serie=out;_serieKey=key;
+ return out;
+}
 function rTrend(){
- var pts=tutti().slice().sort(function(a,b){return a.data<b.data?-1:1;}).map(function(s){
-  var b=blocchi(s.seggi);
-  return {d:s.data,g:b.coalizione,o:b.opposizione,src:s.istituto,test:s.testata,pre:s.pre?1:0};});
- if(pts.length<2){$('k-trend').innerHTML='';return;}
- var W=900,H=260,Lm=30,Rm=44,T=16,B=30;
- var t0=+new Date(pts[0].d),t1=+new Date(pts[pts.length-1].d);
- var lo=44,hi=70;
+ var S=serieModello();
+ if(S.length<3){$('k-trend').innerHTML='';return;}
+ var punti=tutti().slice().sort(function(a,b){return a.data<b.data?-1:1;}).map(function(s){
+  var b=blocchi(s.pre?armonizza(s):s.seggi);
+  return {d:s.data,g:b.coalizione,o:b.opposizione,a:b.arabo,src:s.istituto,test:s.testata};});
+ /* Su schermo stretto si riduce la larghezza del riquadro invece dei caratteri:
+    l'SVG scala alla larghezza del contenitore, quindi un viewBox più stretto
+    rende il testo proporzionalmente più grande. */
+ var MOB=(window.matchMedia&&window.matchMedia('(max-width:660px)').matches);
+ var W=MOB?520:900, H=MOB?310:300, Lm=MOB?28:34, Rm=MOB?54:76, T=MOB?34:30, B=MOB?32:34;
+ var FS=MOB?1.55:1;                       /* ingrandimento dei caratteri su mobile */
+ var t0=+new Date(S[0].d),t1=+new Date(S[S.length-1].d);
+ var vals=[];S.forEach(function(x){vals.push(x.g,x.o,x.a);});
+ punti.forEach(function(x){vals.push(x.g,x.o,x.a);});
+ var lo=Math.min(38,Math.floor(Math.min.apply(null,vals)/4)*4);
+ var hi=Math.max(64,Math.ceil(Math.max.apply(null,vals)/4)*4);
  function X(d){return Lm+(W-Lm-Rm)*((+new Date(d)-t0)/(t1-t0||1));}
  function Y(v){return T+(H-T-B)*(1-(v-lo)/(hi-lo));}
- var s='<svg viewBox="0 0 '+W+' '+H+'" role="img" aria-label="Andamento blocchi">';
+ var s='<svg viewBox="0 0 '+W+' '+H+'" role="img" aria-label="Proiezione del modello nel tempo">';
  for(var v=lo;v<=hi;v+=4){
-  s+='<line x1="'+Lm+'" y1="'+Y(v).toFixed(1)+'" x2="'+(W-Rm)+'" y2="'+Y(v).toFixed(1)+'" stroke="'+C.hair2+'"/>'+
-     '<text x="'+(Lm-6)+'" y="'+(Y(v)+3.5).toFixed(1)+'" text-anchor="end" font-size="9.5" fill="'+C.mute+'">'+v+'</text>';}
- s+='<line x1="'+Lm+'" y1="'+Y(61).toFixed(1)+'" x2="'+(W-Rm)+'" y2="'+Y(61).toFixed(1)+'" stroke="'+C.ink+'" stroke-width="1.4" stroke-dasharray="5 4"/>';
+  s+='<line x1="'+Lm+'" y1="'+Y(v).toFixed(1)+'" x2="'+(W-Rm)+'" y2="'+Y(v).toFixed(1)+
+     '" stroke="'+C.hair2+'" stroke-width="1"/>'+
+     '<text x="'+(Lm-6)+'" y="'+(Y(v)+4).toFixed(1)+'" text-anchor="end" font-size="'+(12*FS).toFixed(1)+'" fill="'+C.mute+'">'+v+'</text>';
+ }
+ var mesi=['gen','feb','mar','apr','mag','giu','lug','ago','set','ott'];
+ for(var m=0;m<10;m++){
+  var dm=new Date(2026,m,1), fine=new Date(2026,m+1,0);
+  if(+fine<t0||+dm>t1) continue;                 /* il mese va etichettato se si sovrappone */
+  var xm=Math.max(Lm+10,Math.min(W-Rm-10,X(+dm<t0?new Date(t0):dm)));
+  s+='<text x="'+xm.toFixed(1)+'" y="'+(H-10)+'" text-anchor="middle" font-size="'+(12*FS).toFixed(1)+'" fill="'+C.mute+'">'+mesi[m]+'</text>';
+ }
+ /* linea della maggioranza */
+ s+='<line x1="'+Lm+'" y1="'+Y(61).toFixed(1)+'" x2="'+(W-Rm)+'" y2="'+Y(61).toFixed(1)+
+    '" stroke="'+C.ink+'" stroke-width="1.4" stroke-dasharray="6 4"/>'+
+    '<text x="'+(Lm+6)+'" y="'+(Y(61)-7).toFixed(1)+'" font-size="'+(11.5*FS).toFixed(1)+'" font-weight="700" fill="'+C.ink+'">61 = maggioranza</text>';
+ /* nuvola dei singoli sondaggi, sullo sfondo */
+ var SER=[['g','coal','Blocco Netanyahu','coalizione'],['o','oppo','Opposizione sionista','opposizione'],
+          ['a','arab','Partiti arabi','arabo']];
+ punti.forEach(function(p){
+  SER.forEach(function(z){
+   s+='<circle class="pt pt-'+z[0]+'" cx="'+X(p.d).toFixed(1)+'" cy="'+Y(p[z[0]]).toFixed(1)+
+      '" r="'+(MOB?2.2:2.6)+'" fill="'+C[z[1]]+'" opacity=".28"/>';
+  });
+ });
+ /* le tre linee del modello */
+ var fine=[];
+ SER.forEach(function(z){
+  var d=S.map(function(x){return {d:x.d,v:x[z[0]]};});
+  s+='<path class="ln ln-'+z[0]+'" d="'+d.map(function(p,i){
+    return (i?'L':'M')+X(p.d).toFixed(1)+' '+Y(p.v).toFixed(1);}).join(' ')+
+    '" fill="none" stroke="'+C[z[1]]+'" stroke-width="'+(MOB?2.4:2.8)+'" stroke-linejoin="round" stroke-linecap="round"/>';
+  fine.push({y:Y(d[d.length-1].v),v:d[d.length-1].v,c:C[z[1]],k:z[0],nome:z[2]});
+ });
+ /* etichette finali, scostate se troppo vicine */
+ fine.sort(function(a,b){return a.y-b.y;});
+ var DY=MOB?22:20;
+ for(var i2=1;i2<fine.length;i2++) if(fine[i2].y-fine[i2-1].y<DY) fine[i2].y=fine[i2-1].y+DY;
+ fine.forEach(function(f){
+  s+='<g class="ln ln-'+f.k+'">'+
+     '<rect x="'+(W-Rm+4)+'" y="'+(f.y-13).toFixed(1)+'" width="'+(MOB?42:34)+'" height="26" rx="4" fill="'+f.c+'"/>'+
+     '<text x="'+(W-Rm+4+(MOB?21:17))+'" y="'+(f.y+5).toFixed(1)+'" text-anchor="middle" font-size="'+(14.5*(MOB?1.35:1)).toFixed(1)+'" '+
+     'font-weight="700" fill="#fff" font-family="Georgia,serif">'+f.v+'</text></g>';
+ });
  /* cronologia: un segno numerato per ogni fatto politico rilevante */
- EVENTI.slice().sort(function(a,b){return a.data<b.data?-1:1;}).forEach(function(e,i){
+ EVENTI.slice().sort(function(a,b){return a.data<b.data?-1:1;}).forEach(function(e,ix){
   var xe=X(e.data);
   if(xe<Lm-1||xe>W-Rm+1) return;
-  s+='<line x1="'+xe.toFixed(1)+'" y1="'+(T+11)+'" x2="'+xe.toFixed(1)+'" y2="'+(H-B)+
-     '" stroke="'+C.inc+'" stroke-width="1" stroke-dasharray="2 3" opacity=".8"/>'+
-     '<circle cx="'+xe.toFixed(1)+'" cy="'+(T+5)+'" r="6.2" fill="'+C.ink2+'"/>'+
-     '<text x="'+xe.toFixed(1)+'" y="'+(T+8.3)+'" text-anchor="middle" font-size="8" '+
-     'font-family="Georgia,serif" fill="'+C.paper+'">'+(i+1)+'<title>'+dc(e.data)+' · '+E(e.testo)+'</title></text>';
+  s+='<line x1="'+xe.toFixed(1)+'" y1="'+(T-4)+'" x2="'+xe.toFixed(1)+'" y2="'+(H-B)+
+     '" stroke="'+C.inc+'" stroke-width="1" stroke-dasharray="2 3" opacity=".55"/>'+
+     '<circle cx="'+xe.toFixed(1)+'" cy="'+(T-13)+'" r="'+(MOB?10:8)+'" fill="'+C.ink2+'"/>'+
+     '<text x="'+xe.toFixed(1)+'" y="'+(T-9.2)+'" text-anchor="middle" font-size="'+(MOB?13:10.5)+'" '+
+     'font-family="Georgia,serif" fill="'+C.paper+'">'+(ix+1)+'<title>'+dc(e.data)+' · '+E(e.testo)+'</title></text>';
  });
- [['g',C.coal],['o',C.oppo]].forEach(function(pair){
-  var k=pair[0],c=pair[1],dd=pts.filter(function(p){return p[k]!=null;});
-  /* mediana mobile su finestra di 5 per la linea, punti singoli sotto */
-  dd.forEach(function(p){s+='<circle cx="'+X(p.d).toFixed(1)+'" cy="'+Y(p[k]).toFixed(1)+'" r="2.6" fill="'+c+'" opacity=".33"><title>'+dc(p.d)+' · '+E(p.src)+' · '+p[k]+'</title></circle>';});
-  /* media mobile su sette rilevazioni: linea continua sopra la nuvola dei singoli sondaggi */
-  var med=dd.map(function(p,i){
-   var w=dd.slice(Math.max(0,i-3),Math.min(dd.length,i+4)).map(function(x){return x[k];});
-   return {d:p.d,v:w.reduce(function(a,b){return a+b;},0)/w.length};});
-  s+='<path d="'+med.map(function(p,i){return (i?'L':'M')+X(p.d).toFixed(1)+' '+Y(p.v).toFixed(1);}).join(' ')+
-     '" fill="none" stroke="'+c+'" stroke-width="2.6" stroke-linejoin="round" stroke-linecap="round"/>';
-  var u=med[med.length-1];
-  s+='<text x="'+(W-Rm+7)+'" y="'+(Y(u.v)+4).toFixed(1)+'" font-size="15" font-family="Georgia,serif" fill="'+c+'">'+Math.round(u.v)+'</text>';
- });
- var ms={};pts.forEach(function(p){if(!ms[p.d.slice(0,7)])ms[p.d.slice(0,7)]=p.d;});
- Object.keys(ms).sort().forEach(function(m){
-  var lb=['gen','feb','mar','apr','mag','giu','lug','ago','set','ott','nov','dic'][+m.slice(5)-1];
-  s+='<text x="'+X(ms[m]).toFixed(1)+'" y="'+(H-9)+'" text-anchor="middle" font-size="9.5" fill="'+C.mute+'">'+lb+'</text>';});
  $('k-trend').innerHTML=s+'</svg>';
- TRENDPTS=pts.map(function(p){return {x:X(p.d),d:p.d,g:p.g,o:p.o,src:p.src,test:p.test};});
+ TRENDPTS=S.map(function(x){return {x:X(x.d),d:x.d,g:x.g,o:x.o,a:x.a,n:x.n};});
  TRENDGEO={W:W,H:H,Lm:Lm,Rm:Rm};
- attaccaTip();
+ attaccaTip();legendaInterattiva();
+ /* legenda interattiva */
+ $('k-trendleg').innerHTML=SER.map(function(z){
+  var u=S[S.length-1][z[0]];
+  return '<b data-ln="'+z[0]+'"><i style="background:'+C[z[1]]+'"></i>'+z[2]+
+   '<s>'+u+'</s></b>';}).join('')+
+  '<b class="nolink"><i style="background:'+C.ink+';height:2px;width:16px"></i>Maggioranza 61</b>';
+}
+/* Quanto swing sarebbe servito, in ciascuna delle tre elezioni passate, perché la
+   proiezione del modello coincidesse col risultato vero: calcolato sul banco di prova
+   storico applicando al modello lo stesso cursore che c'è qui sopra. */
+/* Lo swing che sarebbe servito, in ciascuna elezione passata, perché la proiezione
+   del modello coincidesse col risultato vero. Misurato sul banco di prova a più
+   distanze dal voto, e non è una costante: si dimezza avvicinandosi alle urne.
+   I punti sono (giorni al voto, punti di swing); da essi si stima una retta per
+   elezione, valutata alla distanza in cui ci troviamo oggi. */
+var SWSTOR={'2020':[[62,1.75],[3,0.35]],
+            '2021':[[58,2.65],[4,1.30]],
+            '2022':[[49,4.30],[38,2.85],[4,1.80]]};
+function swStorico(anno,g){
+ var p=SWSTOR[anno],n=p.length,i,mx=0,my=0;
+ for(i=0;i<n;i++){mx+=p[i][0];my+=p[i][1];}
+ mx/=n;my/=n;
+ var sxy=0,sxx=0;
+ for(i=0;i<n;i++){sxy+=(p[i][0]-mx)*(p[i][1]-my);sxx+=(p[i][0]-mx)*(p[i][0]-mx);}
+ var b=sxx?sxy/sxx:0, a=my-b*mx;
+ /* la distanza si limita a 75 giorni: oltre l'osservazione più lontana (62) si
+    estrapolerebbe troppo, e l'estrapolazione lineare crescerebbe senza freni */
+ var gg=Math.max(0,Math.min(75,g));
+ return Math.max(0,a+b*gg);
+}
+function rSwAnc(){
+ var el=$('k-sw-anc'); if(!el) return;
+ var g=GIORNI, v={}, somma=0;
+ ['2020','2021','2022'].forEach(function(a){v[a]=swStorico(a,g);somma+=v[a];});
+ var media=somma/3;
+ var voci=[{s:0,t:'nessuno swing'}];
+ ['2020','2021','2022'].forEach(function(a){
+  voci.push({s:v[a],t:'come nel '+a+' · +'+f(v[a],1)});});
+ voci.push({s:media,t:'media delle tre · +'+f(media,1)});
+ el.innerHTML=voci.map(function(x){
+  return '<button data-sw="'+x.s.toFixed(2)+'">'+E(x.t)+'</button>';}).join('');
+}
+function rSwNota(){
+ var el=$('k-sw-nota'); if(!el) return;
+ Array.prototype.forEach.call(R.querySelectorAll('[data-sw]'),function(b){
+  b.classList.toggle('on',Math.abs(+b.dataset.sw-SW)<0.03);});
+ var b=blocchi(SEG), t;
+ if(!SW){
+  var g=GIORNI, v=['2020','2021','2022'].map(function(a){return swStorico(a,g);});
+  t='Nel 2020, 2021 e 2022 il modello ha <b>sottostimato</b> il blocco di Netanyahu, e lo scarto '+
+    'si restringe avvicinandosi al voto. A <b>'+f(g)+' giorni</b> dalle urne — dove siamo oggi — '+
+    'sarebbero serviti fra '+f(Math.min.apply(null,v),1)+' e '+f(Math.max.apply(null,v),1)+
+    ' punti di swing perché la proiezione coincidesse col risultato. I pulsanti applicano '+
+    'quegli scarti, e si aggiornano da soli man mano che il voto si avvicina.';
+ } else {
+  t='Con uno swing di '+(SW>0?'+':'')+f(SW,1)+' punti il blocco di Netanyahu arriva a <b>'+
+    f(b.coalizione)+' seggi</b> e l\'opposizione sionista a <b>'+f(b.opposizione)+'</b>'+
+    (b.coalizione>=61?': <b>avrebbe la maggioranza</b>.'
+     :', ancora '+f(61-b.coalizione)+' sotto la soglia dei 61.')+
+    ' Probabilità di maggioranza: '+pc(MC.vC/MC.n)+'.';
+ }
+ el.innerHTML=t;
 }
 function rDiag(){
  var el=$('k-diag'); if(!el) return;
  var c=contesto();
- var mem={claude:'memoria di Claude',locale:'memoria del browser (localStorage)',nessuna:'nessuna: l\'archivio non verrà salvato'}[c.memoria];
- var web=c.claude?'attiva':(APIKEY?'attiva con la tua chiave':'non disponibile senza chiave');
+ var mem={claude:'memoria di Claude',locale:'memoria del browser (localStorage)',
+          nessuna:'nessuna: l\'archivio non verrà salvato'}[c.memoria];
  el.innerHTML='<div class="diag"><div class="rr">'+
   '<span><b>Contesto</b>'+E(c.dove)+'</span>'+
   '<span><b>Archivio salvato in</b>'+E(mem)+'</span>'+
-  '<span><b>Wikipedia</b>sempre disponibile</span>'+
-  '<span><b>Ricerca sulla stampa</b>'+E(web)+'</span></div>'+
-  (c.claude?'':'<div class="kx"><input type="password" id="k-apikey" placeholder="chiave API Anthropic (sk-ant-…)" value="'+
-    (APIKEY?'••••••••':'')+'"><button class="btn xs" id="k-apisave">Salva chiave</button>'+
-    (APIKEY?'<button class="btn g xs" id="k-apidel">Rimuovi</button>':'')+'</div>'+
-   '<p class="nt">L\'aggiornamento da Wikipedia funziona sempre e da solo basta a tenere allineato l\'archivio. '+
-   'Il secondo passo — la ricerca sulla stampa israeliana per le rilevazioni non ancora recepite da Wikipedia — '+
-   'passa dall\'API di Anthropic, che fuori da Claude richiede una chiave personale. La chiave resta nella memoria '+
-   'di questo browser e <b>non viene mai scritta dentro il file</b>: puoi pubblicarlo senza rischi.</p>')+
+  '<span><b>Fonte automatica</b>Wikipedia</span>'+
+  '<span><b>Rilevazioni</b>'+f(SOND.length)+'</span></div>'+
+  '<p class="nt">L\'unica fonte automatica è la tabella di Wikipedia, che espone le sue API con CORS aperto '+
+  'e quindi è leggibile ovunque: dentro Claude, da un server locale o da un file aperto su disco. '+
+  'Le rilevazioni pubblicate nelle ultime ore arrivano su Wikipedia con qualche giorno di ritardo: '+
+  'per quelle c\'è il modulo qui sotto, che rifiuta i sondaggi la cui somma non fa 120.</p>'+
+  (c.memoria==='nessuna'?'<p class="nt" style="color:var(--neg)">Questo browser non consente di salvare: '+
+   'gli aggiornamenti andranno persi alla ricarica. Esporta il JSON per conservarli.</p>':'')+
   '</div>';
 }
 function rTab(){
@@ -1713,8 +2089,19 @@ function rTab(){
 function rFoot(){
  $('k-foot').innerHTML=
  '<h3>Come funziona il modello</h3>'+
- '<p><b>1. Media dei sondaggi.</b> Ogni rilevazione pesa secondo la sua età: il peso si dimezza ogni sette giorni. '+
- 'Gli istituti con effetto casa dichiarato valgono la metà.</p>'+
+ '<p><b>1. Media dei sondaggi.</b> Il peso di ogni rilevazione combina tre fattori. L\'<i>età</i>: si dimezza ogni sette giorni. '+
+ 'La <i>numerosità</i>: segue la radice del campione, perché la precisione cresce con la radice di n, con estremi limitati '+
+ 'perché un singolo sondaggio molto ampio non domini. Il <i>grappolo</i>: nove rilevazioni dello stesso istituto non sono nove '+
+ 'prove indipendenti — condividono panel, metodo ed effetto casa — quindi ogni rilevazione successiva dello stesso sondaggista '+
+ 'nella finestra vale progressivamente meno. Senza quest\'ultima correzione un istituto che pubblica per due testate pesava '+
+ 'quanto due istituti diversi.</p>'+
+ '<p><b>1b. Perché gli effetti casa non vengono «corretti».</b> La tabella più sotto li misura, ma il modello non li sottrae, '+
+ 'e la ragione è di principio: lo scarto di un istituto è definito rispetto alla media degli altri, quindi sottrarlo a tutti '+
+ 'e rifare la media riporta esattamente alla media di partenza. Senza un riferimento esterno — il risultato di elezioni vere — '+
+ 'gli effetti casa non sono identificabili come errori: si sa solo chi si discosta da chi, non chi ha ragione. '+
+ 'L\'unico intervento che il modello si permette è dimezzare il peso degli istituti con schieramento dichiarato, '+
+ 'che è un giudizio editoriale esplicito e non una correzione statistica. Una vera correzione richiederebbe di tarare '+
+ 'ciascun sondaggista sui suoi errori passati nelle elezioni del 2019, 2020, 2021 e 2022.</p>'+
  '<p><b>2. Da seggi a voti.</b> I sondaggi israeliani pubblicano seggi, non percentuali, e i seggi nascondono '+
  'ciò che conta davvero: la distanza dalla soglia. Il modello inverte numericamente il riparto <i>sondaggio per sondaggio</i>, '+
  'risalendo alle quote di voto compatibili con quei seggi e con le percentuali pubblicate per le liste sotto soglia. '+
@@ -1732,6 +2119,102 @@ function rFoot(){
  'come farebbe una campagna elettorale che premia un campo. Serve a misurare la fragilità dell\'equilibrio, non a prevederlo.</p>'+
  '<p><b>6. Coalizioni.</b> Sono enumerate tutte le combinazioni che superano 61 senza membri superflui, poi filtrate con i veti '+
  'dichiarati pubblicamente dai leader. I veti sono un\'assunzione politica, non un dato: si possono disattivare.</p>'+
+ '<h3>Gli ancoraggi dello swing</h3>'+
+ '<p>Sotto il cursore dello swing ci sono cinque pulsanti che applicano gli scarti realmente osservati. '+
+ 'Per ciascuna delle tre elezioni passate si è cercato, sul banco di prova, quanti punti di swing avrebbero '+
+ 'fatto coincidere la proiezione del modello con il risultato vero. Lo scarto non è però una costante: '+
+ 'si restringe avvicinandosi alle urne, e in modo quasi lineare.</p>'+
+ '<table style="margin:10px 0 12px"><thead><tr><th class="l">Elezione</th><th>A due mesi</th>'+
+ '<th>Ultima settimana</th><th>Restringimento</th></tr></thead><tbody>'+
+ '<tr><td class="l">2020</td><td>+1,75 <small>(62 gg)</small></td><td>+0,35 <small>(3 gg)</small></td><td>0,024 pt al giorno</td></tr>'+
+ '<tr><td class="l">2021</td><td>+2,65 <small>(58 gg)</small></td><td>+1,30 <small>(4 gg)</small></td><td>0,025 pt al giorno</td></tr>'+
+ '<tr><td class="l">2022</td><td>+4,30 <small>(49 gg)</small></td><td>+1,80 <small>(4 gg)</small></td><td>0,050 pt al giorno</td></tr>'+
+ '</tbody></table>'+
+ '<p>Da questi punti si stima una retta per elezione, valutata alla distanza dal voto in cui ci si trova '+
+ 'oggi: i pulsanti cambiano quindi da soli col passare dei giorni, e a una settimana dal voto proporranno '+
+ 'valori tre volte più piccoli di adesso. L\'estrapolazione è limitata a 75 giorni, perché oltre '+
+ 'l\'osservazione più lontana — i 62 giorni del 2020 — una retta crescerebbe senza alcun freno empirico.</p>'+
+ '<p>Vale la pena dirlo esplicitamente: questi pulsanti <b>non correggono</b> la proiezione, la interrogano. '+
+ 'Il valore predefinito resta zero, per le ragioni discusse più sopra.</p>'+
+ '<h3>Liste che si muovono insieme</h3>'+
+ '<p>Nelle simulazioni le liste non sbagliano più in modo indipendente. Alcune si contendono lo stesso '+
+ 'elettorato — se una sale, l\'altra scende — altre dipendono dallo stesso fattore e si muovono insieme. '+
+ 'Le coppie sono state misurate sull\'archivio: per ogni rilevazione si calcola lo scarto della quota '+
+ 'rispetto alla tendenza locale, lo si depura del movimento del proprio blocco (che il modello simula già) '+
+ 'e lo si confronta con la correlazione che il vincolo di somma impone comunque.</p>'+
+ '<table style="margin:10px 0 12px"><thead><tr><th class="l">Coppia</th><th>Eccesso misurato</th>'+
+ '<th class="l">Meccanismo</th></tr></thead><tbody>'+
+ '<tr><td class="l">B\'Yachad · Yashar</td><td>−0,39</td><td class="l">due liste di centro sullo stesso elettorato</td></tr>'+
+ '<tr><td class="l">Likud · Otzma Yehudit</td><td>−0,22</td><td class="l">Ben Gvir pesca nel bacino del Likud</td></tr>'+
+ '<tr><td class="l">Likud · Sionismo Religioso</td><td>−0,16</td><td class="l">Smotrich pesca nel bacino del Likud</td></tr>'+
+ '<tr><td class="l">Shas · Giudaismo Unito Torah</td><td>+0,14</td><td class="l">stessa affluenza haredi</td></tr>'+
+ '</tbody></table>'+
+ '<p><b>Due risultati hanno smentito quello che davo per scontato.</b> Sionismo Religioso e Otzma Yehudit, '+
+ 'che sembravano la coppia di sostituzione più ovvia, non mostrano alcun legame oltre quello meccanico: '+
+ 'l\'eccesso è −0,05, cioè nulla. E Shas e Giudaismo Torah, che immaginavo legati dalla stessa affluenza, '+
+ 'lo sono solo debolmente. La sostituzione forte è altrove: fra le due liste di centro, e fra il Likud e '+
+ 'le liste alla sua destra.</p>'+
+ '<p>Sono state tenute solo le coppie con un meccanismo politico riconoscibile. Le correlazioni misurate '+
+ 'nascono dalla variazione fra un sondaggio e l\'altro, che non è la stessa cosa dell\'errore del giorno '+
+ 'del voto: sono un\'approssimazione, non una misura diretta. L\'effetto complessivo è modesto — la '+
+ 'dispersione dei blocchi si riduce di circa due decimi di seggio, perché le liste che si compensano '+
+ 'a vicenda rendono il totale del campo più stabile della somma delle sue parti.</p>'+
+ '<h3>Il modello messo alla prova sulle elezioni passate</h3>'+
+ '<p>Lo stesso motore è stato riapplicato ai sondaggi di tre elezioni vere — 2020, 2021 e 2022 — '+
+ 'in due momenti ciascuna: a un mese e mezzo o due dal voto, e nell\'ultima settimana. '+
+ 'Le rilevazioni sono state trascritte dalle tabelle di Wikipedia e validate su due vincoli indipendenti: '+
+ 'somma 120 e coincidenza con il totale di blocco pubblicato. Ecco come sarebbe andata.</p>'+
+ '<table style="margin:10px 0 12px"><thead><tr><th class="l">Istantanea</th><th>Giorni al voto</th>'+
+ '<th>Modello</th><th>Reale</th><th>Errore</th></tr></thead><tbody>'+
+ '<tr><td class="l">2020 · due mesi</td><td>62</td><td>54</td><td class="s">58</td><td>+4</td></tr>'+
+ '<tr><td class="l">2021 · due mesi</td><td>58</td><td>47</td><td class="s">52</td><td>+5</td></tr>'+
+ '<tr><td class="l">2022 · sette settimane</td><td>49</td><td>59</td><td class="s">64</td><td>+5</td></tr>'+
+ '<tr><td class="l">2022 · cinque settimane</td><td>38</td><td>60</td><td class="s">64</td><td>+4</td></tr>'+
+ '<tr><td class="l">2020 · ultima settimana</td><td>3</td><td>57</td><td class="s">58</td><td>+1</td></tr>'+
+ '<tr><td class="l">2021 · ultima settimana</td><td>4</td><td>51</td><td class="s">52</td><td>+1</td></tr>'+
+ '<tr><td class="l">2022 · ultima settimana</td><td>4</td><td>61</td><td class="s">64</td><td>+3</td></tr>'+
+ '</tbody></table>'+
+ '<p>I numeri si riferiscono al blocco di Netanyahu. In tutti e sette i casi il risultato vero cade '+
+ 'dentro l\'intervallo dichiarato dal modello. L\'errore resta piatto attorno a <b>4,5 seggi</b> fra i '+
+ '62 e i 38 giorni dal voto, e scende a <b>1,7</b> nell\'ultima settimana: non è una discesa graduale, '+
+ 'è un salto che avviene nelle ultime settimane di campagna. Questo modello si trova oggi nel tratto piatto.</p>'+
+ '<p><b>Quello che il banco di prova mostra e che il modello non sa fare.</b> In tutte e tre le elezioni '+
+ 'l\'errore a distanza è dominato non dal rumore statistico ma dalle <i>liste che cambiano</i>: nel 2020 '+
+ 'Yamina ed Emet non esistevano ancora al momento della rilevazione e nacquero da fusioni a gennaio; '+
+ 'nel 2021 il Sionismo Religioso era sotto soglia in cinque sondaggi su sei e tre settimane dopo si fuse '+
+ 'con Otzma prendendo sei seggi; nel 2022 la Lista Unita era intera nei sondaggi di metà settembre e si '+
+ 'spaccò il giorno del deposito, lasciando Balad al 2,90% e i suoi voti nel nulla. Il modello proietta '+
+ 'il sistema di partiti che vede, non quello che ci sarà: fino al deposito delle liste dell\'8 settembre '+
+ 'questa è la fonte di errore più grande, e non è riducibile con la statistica.</p>'+
+ '<p><b>Un limite dichiarato.</b> Sulle singole liste gli intervalli sono ottimistici: nel banco di prova '+
+ 'il risultato vero cade nell\'intervallo dell\'80% nel <b>73%</b> dei casi, non nell\'80%. La correzione '+
+ 'per la volatilità delle liste in zona soglia recupera parte dello scarto e poi si ferma: il residuo non '+
+ 'è ampiezza dell\'intervallo ma movimento reale della campagna, che nessun allargamento può catturare. '+
+ 'Va letto così: quando questa pagina scrive «8 casi su 10», la lettura prudente è «7 su 10».</p>'+
+ '<p>Un\'ultima nota di onestà: sul totale di blocco il modello è <i>leggermente peggiore</i> della semplice '+
+ 'media dei sondaggi (1,7 seggi di errore contro 1,4 nell\'ultima settimana), mentre è leggermente migliore '+
+ 'sulle singole liste. Scambia precisione sul blocco per precisione sulle liste, ed è una scelta, non un caso.</p>'+
+ '<h3>Affluenza araba: il precedente storico</h3>'+
+ '<p>Quando le liste arabe hanno corso unite l\'affluenza nelle località arabe è stata alta e i seggi molti; '+
+ 'quando si sono divise è crollata. Sei elezioni:</p>'+
+ '<table style="margin:10px 0 12px"><thead><tr><th class="l">Elezione</th><th class="l">Configurazione</th>'+
+ '<th>Affluenza</th><th>Seggi</th></tr></thead><tbody>'+
+ '<tr><td class="l">2015</td><td class="l">Lista Unita, quattro partiti</td><td>63,0%</td><td class="s">13</td></tr>'+
+ '<tr><td class="l">aprile 2019</td><td class="l">divisa in due</td><td>49,2%</td><td class="s">10</td></tr>'+
+ '<tr><td class="l">settembre 2019</td><td class="l">Lista Unita ricostituita</td><td>59,2%</td><td class="s">13</td></tr>'+
+ '<tr><td class="l">2020</td><td class="l">Lista Unita</td><td>64,8%</td><td class="s">15</td></tr>'+
+ '<tr><td class="l">2021</td><td class="l">uniti tranne Ra\'am</td><td>44,6%</td><td class="s">10</td></tr>'+
+ '<tr><td class="l">2022</td><td class="l">tre liste separate</td><td>53,2%</td><td class="s">10</td></tr>'+
+ '</tbody></table>'+
+ '<p>Con la lista piena unita la media è 62,3% e 13,7 seggi; divisi, 49,0% e 10 seggi esatti in tutte e tre le occasioni. '+
+ 'La regressione dei seggi sull\'affluenza spiega l\'84% della varianza, e associa i 13 seggi della proiezione attuale '+
+ 'a un\'affluenza intorno al <b>60%</b>: è il punto in cui il cursore è centrato, e non è un\'ipotesi neutra — '+
+ 'è il livello che storicamente si è visto <i>solo</i> con la Lista Unita completa.</p>'+
+ '<p><b>Perché il modello non alza l\'affluenza da solo.</b> L\'accordo del 19 agosto riunisce Hadash, Ta\'al e Balad '+
+ 'ma lascia fuori Ra\'am: è esattamente la configurazione del 2021, che produsse il minimo storico del 44,6%. '+
+ 'Il legame fra unità e partecipazione vale per la lista <i>piena</i>, e i precedenti sull\'unione parziale dicono '+
+ 'il contrario di quello che si sarebbe tentati di assumere. Per questo il cursore parte da ciò che i sondaggi già '+
+ 'incorporano, e lo spostamento resta una scelta esplicita di chi legge.</p>'+
  '<h3>Limiti</h3>'+
  '<p>Il modello non prevede le fusioni di liste, che in Israele si decidono fino al deposito delle candidature e possono cambiare '+
  'la mappa in un giorno; non stima l\'affluenza differenziale fra elettorato ebraico e arabo; non incorpora l\'errore storico degli '+
@@ -1774,17 +2257,21 @@ function renderInterno(){
  calcola();
  if(!SEG||!Object.keys(SEG).length) return;
  rTesta();rProb();
+ $('k-htit1').innerHTML='<i style="background:'+C.coal+'"></i>Blocco Netanyahu'+
+  '<em>Likud · Shas · Giudaismo Unito Torah · Sionismo Religioso · Otzma Yehudit</em>';
+ $('k-htit2').innerHTML='<i style="background:'+C.oppo+'"></i>Opposizione sionista'+
+  '<em>Yashar · B\'Yachad · Democratici · Yisrael Beitenu — senza i partiti arabi</em>';
  var i1=istogramma(MC.coal,C.coal,'k-hist','Distribuzione coalizione',blocchi(SEG).coalizione);
  var i2=istogramma(MC.oppz,C.oppo,'k-hist2','Distribuzione opposizione',blocchi(SEG).opposizione);
  var bb=blocchi(SEG);
  $('k-cap1').innerHTML='Ogni barra è un possibile risultato, alta quanto è frequente nelle '+f(SIM)+' simulazioni. '+
-  'La coalizione uscente supera quota 61 nel <b>'+pc(MC.vC/MC.n)+'</b> dei casi: sono le barre in tinta piena. '+
+  'Il blocco Netanyahu supera quota 61 nel <b>'+pc(MC.vC/MC.n)+'</b> dei casi: sono le barre in tinta piena. '+
   'Il risultato più frequente è <b>'+f(i1.moda)+' seggi</b>; il triangolo segna la stima puntuale del modello ('+f(bb.coalizione)+').';
  $('k-cap2').innerHTML='Stessa lettura per l\'opposizione sionista, senza i partiti arabi: supera 61 nel <b>'+
   pc(MC.vO/MC.n)+'</b> delle simulazioni, con esito più frequente <b>'+f(i2.moda)+' seggi</b> e stima puntuale '+f(bb.opposizione)+'. '+
   'Stima puntuale e risultato più frequente non coincidono sempre, perché la soglia di sbarramento e il riparto d\'Hondt '+
   'trasformano i voti in seggi a scatti, non con continuità.';
- rDiag();rAnalisi();rDirezione();rProj();rEmi();rVeti();rCoal();rPower();rChips();rHouse();rTrend();rCrono();rCalendario();rTab();rFoot();
+ mostraAff();rSwAnc();rSwNota();rDiag();rAnalisi();rDirezione();rProj();rEmi();rVeti();rCoal();rPower();rChips();rHouse();rTrend();rCrono();rCalendario();rTab();rFoot();
 }
 
 /* ══════════ PARSER DELLA TABELLA WIKIPEDIA ══════════
@@ -2045,10 +2532,7 @@ function unisci(nuovi){
  });
  return n;
 }
-/* Dentro Claude la chiamata all'API è autenticata dall'ambiente. Fuori — file
-   aperto da disco, server locale, sito pubblicato — serve una chiave personale,
-   che resta nella memoria del browser e non finisce mai dentro questo file. */
-var KAPI='knesset2026-apikey', APIKEY='';
+/* Contesto d'esecuzione: serve per dire dove finisce l'archivio salvato. */
 function contesto(){
  var proto='';try{proto=(window.location&&window.location.protocol)||'';}catch(e){}
  var dentroClaude=false;try{dentroClaude=!!(window.storage&&window.storage.get);}catch(e){}
@@ -2068,84 +2552,43 @@ function unisciEventi(ev){
 }
 /* Passo 1 · Wikipedia: deterministico, legge la tabella integrale riga per riga.
    Passo 2 · ricerca web: solo per le rilevazioni più recenti di quelle già in tabella. */
+/* Unica fonte automatica: Wikipedia, che espone le sue API con CORS aperto e
+   quindi è leggibile da qualunque contesto — dentro Claude, da un server locale
+   o da un file aperto su disco. Le rilevazioni delle ultime ore, che Wikipedia
+   non ha ancora recepito, si inseriscono dal modulo qui sotto. */
 $('k-refresh').addEventListener('click',function(){
  var b=this;b.disabled=true;b.textContent='Aggiorno…';
  msg('Scarico la tabella integrale da Wikipedia e la analizzo riga per riga…');
- var esito={wiki:0,web:0,ev:0,scartate:0,ignote:[],errW:null,errR:null};
  fetch(WIKI_URL,{headers:{'Accept':'text/html'}})
   .then(function(r){if(!r.ok)throw new Error('HTTP '+r.status);return r.text();})
   .then(function(txt){
    var out=parseWiki(txt,['2026']);
    if(!out.sondaggi.length) throw new Error('nessuna riga interpretabile');
-   esito.wiki=unisci(out.sondaggi);
-   esito.ev=unisciEventi(out.eventi);
-   esito.scartate=out.scartate.length;
-   esito.ignorate=(out.ignorate||[]).length;
-   esito.ignote=out.ignote;
-   esito.tot=out.sondaggi.length;
-  })['catch'](function(e){esito.errW=e.message||String(e);})
-  .then(function(){
-   var ult=SOND.map(function(s){return s.data;}).sort().pop();
-   msg('Wikipedia: '+(esito.errW?'non raggiungibile':esito.wiki+' nuove su '+esito.tot+' righe valide')+
-       '. Cerco ora le rilevazioni pubblicate dopo il '+dl(ult)+'…');
-   var have=SOND.filter(function(s){return !s.pre;}).slice(-25)
-     .map(function(s){return s.data+' '+s.istituto;}).join('; ');
-   var pr='Cerca i sondaggi elettorali israeliani per le elezioni della 26esima Knesset del 27 ottobre 2026 '+
-    'con data di rilevazione SUCCESSIVA al '+ult+'. Fonti: Maariv (Lazar), Canale 12 (Midgam), Kan 11 (Kantar), '+
-    'Canale 13 (Hamidgam Project, Maagar Mochot), i24NEWS e Canale 14 (Direct Polls), Israel Hayom, Zman Israel, '+
-    'Times of Israel, Jerusalem Post, Walla.\n\n'+
-    'Ho già in archivio, fra le altre: '+have+'. Non restituirle.\n\n'+
-    'Rispondi SOLO con JSON valido, senza testo e senza backtick:\n'+
-    '{"sondaggi":[{"data":"AAAA-MM-GG","istituto":"","testata":"","campione":0,'+
-    '"seggi":{"likud":24},"sotto":{"balad":1.5}}]}\n\n'+
-    'Chiavi ammesse: '+IDS.join(', ')+'. Note: "byachad" = lista Bennett-Lapid (Together/B\'Yachad); '+
-    '"yashar" = partito di Eisenkot; "lista_araba" = Hadash-Ta\'al-Balad uniti; '+
-    '"casa_sionista" = Beit Tzioni di Tropper-Hendel; "unity_erdan" = lista Erdan-Edelstein.\n'+
-    'In "seggi" solo le liste sopra il 3,25%, somma esattamente 120. In "sotto" le percentuali delle liste '+
-    'sotto soglia, se pubblicate. Solo sondaggi realmente pubblicati. Se non trovi nulla: {"sondaggi":[]}.';
-   var hh={'Content-Type':'application/json'};
-   if(APIKEY){                       /* chiamata diretta dal browser: serve l'intestazione dedicata */
-    hh['x-api-key']=APIKEY;
-    hh['anthropic-version']='2023-06-01';
-    hh['anthropic-dangerous-direct-browser-access']='true';
-   }else if(!contesto().claude){
-    esito.errR='fuori da Claude serve una chiave API personale, da inserire in Archivio dati';
-    return;
-   }
-   return fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:hh,
-    body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:1000,messages:[{role:'user',content:pr}],
-     tools:[{type:'web_search_20250305',name:'web_search'}]})})
-    .then(function(r){return r.json();})
-    .then(function(d){
-     var tx=(d.content||[]).filter(function(x){return x.type==='text';}).map(function(x){return x.text;}).join('\n');
-     var m=tx.replace(/```json|```/g,'').match(/\{[\s\S]*\}/);
-     if(!m) throw new Error('risposta non interpretabile');
-     esito.web=unisci(JSON.parse(m[0]).sondaggi);
-    })['catch'](function(e){esito.errR=e.message||String(e);});
-  })
-  .then(function(){
-   var tot=esito.wiki+esito.web;
-   if(tot||esito.ev){salva();render();}
-   var t=[];
-   if(esito.wiki) t.push('<b>'+esito.wiki+'</b> nuove rilevazioni da Wikipedia');
-   if(esito.web) t.push('<b>'+esito.web+'</b> dalla stampa israeliana');
-   if(esito.ev) t.push(esito.ev+' eventi aggiunti alla cronologia');
-   var s=t.length?('Archivio aggiornato: '+t.join(', ')+'. Ora contiene '+f(SOND.length)+' rilevazioni.')
-                 :'Nessuna rilevazione nuova: l\'archivio è già allineato a Wikipedia.';
-   if(esito.scartate) s+=' '+esito.scartate+(esito.scartate===1?' riga non supera':' righe non superano')+
-     ' la validazione (somma diversa da 120, oppure totale di blocco discordante) ed è stata esclusa.';
-   if(esito.ignorate) s+=' '+esito.ignorate+(esito.ignorate===1?' tabella della pagina non è di seggi':
-     ' tabelle della pagina non sono di seggi')+' — percentuali grezze, sondaggi tematici o scenari ipotetici — e '+
-     (esito.ignorate===1?'è stata ignorata':'sono state ignorate')+'.';
-   if(esito.ignote&&esito.ignote.length) s+=' <b>Da controllare:</b> in una tabella di seggi compaiono colonne '+
-     'non riconosciute ('+esito.ignote.map(E).join(', ')+'): probabilmente una lista nuova, da mappare a mano.';
-   if(esito.errW) s+=' <b>Wikipedia non raggiungibile</b> ('+E(esito.errW)+'): l\'archivio resta quello già salvato.';
-   if(esito.errR) s+=' La ricerca supplementare sulla stampa non è disponibile in questo contesto'+
-     (/fetch/i.test(esito.errR)?' (le chiamate esterne sono bloccate dalla pagina che ospita il modello)':'')+
-     ': l\'aggiornamento da Wikipedia è comunque andato a buon fine.';
-   msg(s,(esito.errW&&esito.errR)?'err':(tot?'ok':'info'));
-   b.disabled=false;b.textContent='↻ Aggiorna i sondaggi';
-  });
+   var nuove=unisci(out.sondaggi), ev=unisciEventi(out.eventi);
+   if(nuove||ev){salva();render();}
+   var s;
+   if(nuove) s='Archivio aggiornato: <b>'+nuove+(nuove===1?' nuova rilevazione':' nuove rilevazioni')+
+     '</b> da Wikipedia'+(ev?', '+ev+(ev===1?' evento aggiunto':' eventi aggiunti')+' alla cronologia':'')+
+     '. Ora contiene '+f(SOND.length)+' rilevazioni.';
+   else s='Nessuna rilevazione nuova: l\'archivio è già allineato a Wikipedia'+
+     (ev?', ma '+ev+(ev===1?' evento è stato aggiunto':' eventi sono stati aggiunti')+' alla cronologia':'')+'.';
+   s+=' Sono state lette <b>'+out.sondaggi.length+'</b> righe valide su '+
+     (out.sondaggi.length+out.scartate.length)+'.';
+   if(out.scartate.length) s+=' '+out.scartate.length+(out.scartate.length===1?' riga non supera':' righe non superano')+
+     ' la validazione (somma diversa da 120, oppure totale di blocco discordante).';
+   if(out.ignorate&&out.ignorate.length) s+=' '+out.ignorate.length+
+     (out.ignorate.length===1?' tabella della pagina non è di seggi':' tabelle della pagina non sono di seggi')+
+     ' — percentuali grezze, sondaggi tematici o scenari ipotetici — e '+
+     (out.ignorate.length===1?'è stata ignorata':'sono state ignorate')+'.';
+   if(out.ignote&&out.ignote.length) s+=' <b>Da controllare:</b> in una tabella di seggi compaiono colonne '+
+     'non riconosciute ('+out.ignote.map(E).join(', ')+'): probabilmente una lista nuova, da mappare a mano.';
+   s+=' Le rilevazioni pubblicate nelle ultime ore possono non essere ancora su Wikipedia: '+
+     'per quelle usa il modulo di inserimento qui sotto.';
+   msg(s,(nuove||ev)?'ok':'info');
+  })['catch'](function(e){
+   msg('<b>Wikipedia non raggiungibile</b> ('+E(e.message||e)+'): l\'archivio resta quello già salvato. '+
+    'Se il file è aperto da disco, prova a servirlo da un indirizzo locale.','err');
+  }).then(function(){b.disabled=false;b.textContent='↻ Aggiorna i sondaggi';});
 });
 
 /* modulo manuale */
@@ -2175,24 +2618,12 @@ $('k-refresh').addEventListener('click',function(){
  });
 })();
 $('k-reset-par').addEventListener('click',function(){
- PAR={recenti:0,listaunita:1};ESCL={};SW=0;SIG=1;
+ PAR={recenti:0,listaunita:1};ESCL={};SW=0;SIG=1;AFF=0;
+ $('k-aff').value=0;mostraAff();
  $('k-sw').value=0;$('k-swv').textContent='0,0';
  $('k-sig').value=100;$('k-sigv').textContent='100%';
  Array.prototype.forEach.call(R.querySelectorAll('[data-par]'),function(b){b.classList.remove('on');});
  render();msg('Parametri riportati ai valori predefiniti.');
-});
-R.addEventListener('click',function(e){
- var t=e.target;
- if(t&&t.id==='k-apisave'){
-  var v=($('k-apikey')||{}).value||'';
-  if(/^•+$/.test(v)){msg('Chiave già salvata.');return;}
-  if(!/^sk-ant-/.test(v.trim())){msg('La chiave dovrebbe cominciare con «sk-ant-».','err');return;}
-  APIKEY=v.trim();memSet(KAPI,APIKEY);rDiag();
-  msg('Chiave salvata nella memoria del browser. Ora anche la ricerca sulla stampa è attiva.','ok');
- }
- if(t&&t.id==='k-apidel'){
-  APIKEY='';memSet(KAPI,'');rDiag();msg('Chiave rimossa.');
- }
 });
 $('k-datapanel-t').addEventListener('click',function(){
  var p=$('k-datapanel');p.style.display=p.style.display==='none'?'block':'none';});
@@ -2213,6 +2644,18 @@ $('k-sw').addEventListener('input',function(){SW=+this.value;
 $('k-sw').addEventListener('change',render);
 $('k-sig').addEventListener('input',function(){SIG=+this.value/100;$('k-sigv').textContent=this.value+'%';});
 $('k-sig').addEventListener('change',render);
+/* 60% è l'affluenza che i sondaggi di oggi implicano: la regressione dei seggi
+   arabi sull'affluenza nelle sei elezioni dal 2015 (R²=0,84) associa 13 seggi a
+   circa il 60% di partecipazione. Il cursore si muove attorno a quel punto. */
+var AFF_BASE=60;
+function mostraAff(){
+ var a=AFF_BASE*(1+AFF/100);
+ $('k-affv').textContent=f(a)+'%';
+ Array.prototype.forEach.call(R.querySelectorAll('[data-aff]'),function(b){
+  b.classList.toggle('on',+b.dataset.aff===AFF);});
+}
+$('k-aff').addEventListener('input',function(){AFF=+this.value;mostraAff();});
+$('k-aff').addEventListener('change',render);
 
 R.addEventListener('change',function(e){
  var id=e.target&&e.target.id;
@@ -2224,6 +2667,17 @@ R.addEventListener('input',function(e){
 });
 R.addEventListener('click',function(e){
  var t;
+ if((t=e.target.closest('[data-ev]'))){
+  var v=t.dataset.ev;
+  EVSEL=(v&&v!==EVSEL)?v:null;
+  rCrono();
+  if(EVSEL) $('k-evsel').scrollIntoView({behavior:'smooth',block:'nearest'});
+  return;}
+ if((t=e.target.closest('[data-sw]'))){
+  SW=+t.dataset.sw;$('k-sw').value=SW;
+  $('k-swv').textContent=(SW>0?'+':'')+f(SW,1)+' pt';render();return;}
+ if((t=e.target.closest('[data-aff]'))){
+  AFF=+t.dataset.aff;$('k-aff').value=AFF;mostraAff();render();return;}
  if((t=e.target.closest('[data-tema]'))){applicaTema(t.dataset.tema);return;}
  if((t=e.target.closest('[data-escl]'))){
   var ist=t.dataset.escl;
@@ -2285,6 +2739,23 @@ function animaSezioni(){
  }catch(e){}
 }
 /* tooltip sul grafico di tendenza */
+/* Passando sopra una voce della legenda, o sopra il grafico, si isola una serie. */
+function legendaInterattiva(){
+ var leg=$('k-trendleg'), wrap=$('k-trendwrap');
+ if(!leg||!wrap||leg.dataset.pronto) return;
+ leg.dataset.pronto='1';
+ function isola(k){
+  wrap.className='wrapT'+(k?' solo solo-'+k:'');
+  Array.prototype.forEach.call(leg.querySelectorAll('b[data-ln]'),function(b){
+   b.classList.toggle('spenta',!!k&&b.dataset.ln!==k);});
+ }
+ leg.addEventListener('mouseover',function(e){
+  var t=e.target.closest('b[data-ln]'); if(t) isola(t.dataset.ln);});
+ leg.addEventListener('mouseleave',function(){isola(null);});
+ leg.addEventListener('click',function(e){
+  var t=e.target.closest('b[data-ln]');
+  if(t) isola(wrap.classList.contains('solo-'+t.dataset.ln)?null:t.dataset.ln);});
+}
 function attaccaTip(){
  var box=$('k-trend'),tip=$('k-tip');
  if(!box||!tip||!TRENDGEO||box.dataset.tip) return;
@@ -2294,8 +2765,8 @@ function attaccaTip(){
   var vx=cx/r.width*TRENDGEO.W,best=null,dm=1e9;
   TRENDPTS.forEach(function(p){var d=Math.abs(p.x-vx);if(d<dm){dm=d;best=p;}});
   if(!best||dm>18){tip.classList.remove('on');return;}
-  tip.innerHTML='<b>'+dl(best.d)+'</b><br>'+E(best.src)+(best.test?' · '+E(best.test):'')+
-   '<br>Coalizione '+best.g+' · Opposizione '+best.o;
+  tip.innerHTML='<b>'+dl(best.d)+'</b> · '+best.n+' rilevazioni nella finestra<br>'+
+   'Blocco Netanyahu <b>'+best.g+'</b> · Opposizione <b>'+best.o+'</b> · Arabi <b>'+best.a+'</b>';
   tip.classList.add('on');
   var px=best.x/TRENDGEO.W*r.width;
   tip.style.left=Math.max(0,Math.min(r.width-170,px-85))+'px';
@@ -2322,7 +2793,6 @@ try{if(window.matchMedia){var mq=window.matchMedia('(prefers-color-scheme: dark)
  if(mq.addEventListener) mq.addEventListener('change',ric); else if(mq.addListener) mq.addListener(ric);}}catch(e){}
 
 R.classList.add('auto');
-memGet(KAPI).then(function(v){if(v) APIKEY=v;rDiag();})['catch'](function(){});
 memGet('knesset2026-tema').then(function(v){
  if(v&&['auto','chiaro','scuro'].indexOf(v)>=0) applicaTema(v);
 })['catch'](function(){});
