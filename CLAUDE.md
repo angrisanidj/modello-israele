@@ -21,7 +21,7 @@ alle prove.
 
 ```bash
 npm install          # solo la prima volta: installa jsdom per le prove
-npm test             # estrae il JS e lancia le 239 prove
+npm test             # estrae il JS e lancia le 250 prove
 npm run verifica     # prove + controlli strutturali
 ```
 
@@ -411,8 +411,51 @@ Resta aperto, in ordine di scadenza:
   non spiega nulla.** Le tre note esistenti stanno altrove, e **nessuna nomina la finestra
   a 7 giorni contro quella a 60**, che è la ragione principale per cui i due numeri
   divergono.
-- Minore: l'ultimo avvenimento della cronologia entra in `k-analisi` con l'iniziale forzata
-  a minuscola, e su un nome proprio produce «hadash, Ta'al e Balad firmano l'accordo».
+
+### La Lista Unita araba è una relazione fra liste: la causa è chiusa, i consumatori no
+
+**Chiuso il 21 agosto 2026.** La Lista Unita era modellata come una lista fra le altre, ma
+è un contenitore che ne fonde due. L'archivio attraversa nel tempo due configurazioni —
+ventisette rilevazioni su 165 nominano il contenitore, le altre le componenti, **nessuna
+entrambi**, e le due si alternano da gennaio ad agosto. Il passo di imputazione di
+`quoteDa()` leggeva quell'assenza come «non rilevata» e accreditava il tetto di 3,00 punti
+alla lista mancante, in tutte e due le direzioni: **contenitore e componenti finivano nella
+stessa normalizzazione a 99, gli stessi elettori contati due volte.**
+
+Il rimedio, e sono due pezzi:
+
+- **il campo `dentro` in `P{}`** dichiara la parentela nell'anagrafica — `hadash_taal` e
+  `balad` dentro `lista_araba`, `yesh_atid` e `bennett26` dentro `byachad`. È l'unico posto
+  in cui la fusione è scritta come relazione e non come caso particolare: l'8 settembre
+  basta aggiungere il campo alle nuove componenti;
+- **la configurazione si deduce per rilevazione**, dal dato, non da una leva globale. Una
+  famiglia ha due lati — contenitore contro componenti, non membri paritari, o sparirebbe
+  la seconda componente insieme al contenitore — e si risolve nel lato della rilevazione
+  più recente che la nomina. Le liste dell'altro lato escono del tutto: niente quota,
+  niente imputazione.
+
+Misurato: a scenario acceso **non cambia una cifra** (quattordici quote identiche alla
+terza decimale, e la serie storica identica in tutti e 82 i punti). A scenario spento il
+blocco arabo passa da 10 a **11** seggi, la coalizione da 53 a **52**, i punti dispersi da
+10,01 a **7,13**; la riga fantasma della Lista Unita al 62% sotto soglia sparisce. Come
+conseguenza — senza toccarla — **la guardia sui colori duplicati non scatta più**: le due
+liste non coesistono più in `QUO`. `test/suite/fusione.js` tiene le due proprietà.
+
+**Restano aperti, e sono tutti la stessa cosa: consumatori che leggono l'anagrafica per id
+e non sanno niente della parentela.**
+
+- **`r22`**: il contenitore ha `r22:null` e la colonna «Rispetto al 2022» dice «nuovo»,
+  mentre le componenti avevano 5 seggi e 0.
+- **`CORR`** letta da `montecarlo()` e **`VETI`** letta da `coalizioni()`: fanno `continue`
+  sugli id che non trovano. Oggi non si perde niente perché nessuna coppia è araba, ma una
+  fusione futura le cui componenti compaiano lì perde la correlazione **in silenzio**.
+- **`armonizza()`** rifà la fusione B'Yachad sui seggi con gli id cablati.
+- **`sciolteDalloScenario()`** elenca `['hadash_taal','balad']` a mano invece di leggere
+  `dentro`.
+- **I preset** di `rChips()` elencano tutte le varianti e funzionano per fortuna.
+- **L'invariante generale sulle nove funzioni consumatrici**: in ogni punto della pagina
+  deve comparire o il contenitore o le componenti, mai entrambi. Oggi è provato su `QUO`;
+  restano `SEG`, `MC.d`, l'emiciclo, le pastiglie, la tabella e le legende.
 
 ### Sui colori, prima di tutto il resto: la scala delle bande parte troppo in basso
 
@@ -471,6 +514,6 @@ nessuno degli altri settori.
 trovati oggi — la stella della bandiera che sconfinava nelle bande, l'occhiello a filo del
 bordo sull'ombra, il vuoto di 372px sotto le ipotesi, l'evidenziazione che competeva con
 la codifica del riempimento, il verde arabo che si leggeva nero — sono stati trovati
-**guardando la pagina**, non dalla suite. Le 239 prove dicono che il modello non si è
+**guardando la pagina**, non dalla suite. Le 250 prove dicono che il modello non si è
 rotto; non dicono che la pagina si veda. Dopo ogni push, aprire
 <https://angrisanidj.github.io/modello-israele/> e guardarla nei due temi.

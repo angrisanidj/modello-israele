@@ -829,15 +829,23 @@ var R=document.getElementById('kn26'),$=function(i){return document.getElementBy
 var VOTO=new Date('2026-10-27T00:00:00'), KEY='knesset2026-v2', SOGLIA=3.25;
 
 /* ══════════ 1 · ANAGRAFICA ══════════ */
+/* `dentro` dichiara la parentela: la lista è una componente del contenitore che la fonde.
+   È l'unico posto in cui la fusione è scritta come relazione invece che come caso
+   particolare, e regge un numero qualunque di fusioni — l'8 settembre ne arriveranno
+   altre e basterà aggiungere il campo alle nuove componenti.
+   Serve a quoteDa(): contenitore e componenti descrivono lo stesso spazio politico e non
+   possono stare insieme nella normalizzazione, altrimenti gli stessi elettori vengono
+   contati due volte. Il resto del modello non lo legge ancora: r22, CORR, VETI, i preset
+   e la guardia sui colori restano indicizzati per id, ed è annotato in CLAUDE.md. */
 var P={
  lista_araba :{n:"Lista Unita araba", l:"Hadash-Ta'al-Balad", c:"#374100", b:"arabo",       o:1,  gov:0, r22:null},
- hadash_taal :{n:"Hadash–Ta'al",       l:"Odeh · Tibi",        c:"#374100", b:"arabo",       o:2,  gov:0, r22:5},
- balad       :{n:"Balad",              l:"Abu Shehadeh",       c:"#214238", b:"arabo",       o:3,  gov:0, r22:0},
+ hadash_taal :{n:"Hadash–Ta'al",       l:"Odeh · Tibi",        c:"#374100", b:"arabo",       o:2,  gov:0, r22:5,   dentro:"lista_araba"},
+ balad       :{n:"Balad",              l:"Abu Shehadeh",       c:"#214238", b:"arabo",       o:3,  gov:0, r22:0,   dentro:"lista_araba"},
  raam        :{n:"Ra'am",              l:"Mansour Abbas",      c:"#005220", b:"arabo",       o:4,  gov:1, r22:5},
  democratici :{n:"I Democratici",      l:"Yair Golan",         c:"#517B83", b:"opposizione", o:5,  gov:1, r22:4},
  byachad     :{n:"B'Yachad",           l:"Bennett · Lapid",    c:"#018279", b:"opposizione", o:6,  gov:1, r22:24},
- yesh_atid   :{n:"Yesh Atid",           l:"Yair Lapid",         c:"#018279", b:"opposizione", o:6.4,gov:1, r22:24},
- bennett26   :{n:"Bennett 2026",        l:"Naftali Bennett",    c:"#007C85", b:"opposizione", o:6.6,gov:1, r22:null},
+ yesh_atid   :{n:"Yesh Atid",           l:"Yair Lapid",         c:"#018279", b:"opposizione", o:6.4,gov:1, r22:24,  dentro:"byachad"},
+ bennett26   :{n:"Bennett 2026",        l:"Naftali Bennett",    c:"#007C85", b:"opposizione", o:6.6,gov:1, r22:null, dentro:"byachad"},
  blue_white  :{n:"Blu e Bianco",       l:"Benny Gantz",        c:"#42736E", b:"opposizione", o:7,  gov:1, r22:12},
  yashar      :{n:"Yashar",             l:"Gadi Eisenkot",      c:"#506E80", b:"opposizione", o:8,  gov:1, r22:null},
  casa_sionista:{n:"Casa Sionista",     l:"Tropper · Hendel",   c:"#8E4107", b:"incerto",     o:9,  gov:1, r22:null},
@@ -1303,23 +1311,68 @@ function quoteDa(L){
   for(k in sh){if(!P[k])continue;if(!noti[k])noti[k]=[];noti[k].push(sh[k]);}
   return {s:s,sh:sh};
  });
- /* 2 · imputazione per le liste assenti da un sondaggio ma note altrove */
+ /* 2a · configurazione di lista, dedotta da ogni singola rilevazione.
+    Una rilevazione elenca le componenti oppure il contenitore che le fonde, mai
+    entrambi: l'archivio attraversa nel tempo due configurazioni diverse. L'assenza di
+    una lista in una rilevazione che usa l'altra configurazione NON è un dato mancante —
+    quella lista lì non esiste — e imputarla accreditava 3,00 punti alla Lista Unita in
+    trentasei sondaggi che elencavano Hadash-Ta'al, e a Hadash-Ta'al in nove che
+    elencavano la Lista Unita. Contenitore e componenti finivano nella stessa
+    normalizzazione a 99: gli stessi elettori contati due volte, tre seggi arabi
+    dispersi sotto soglia e due consegnati al blocco Netanyahu.
+    Le famiglie si ricavano dal campo `dentro` di P{}, non sono cablate qui: vale per
+    un numero qualunque di fusioni. */
+ var FAM={},FDI={},kf;
+ for(kf in P){ var cont=P[kf].dentro; if(!cont||!P[cont]) continue;
+  if(!FAM[cont]) FAM[cont]=[cont];
+  FAM[cont].push(kf); }
+ Object.keys(FAM).forEach(function(f){FAM[f].forEach(function(i){FDI[i]=f;});});
+ /* Una famiglia ha due lati, non tre membri paritari: il contenitore da una parte, tutte
+    le sue componenti dall'altra. Risolverla scegliendo un id solo butterebbe via la
+    seconda componente — Balad sparirebbe insieme alla Lista Unita, e i suoi voti sotto
+    soglia con lei, che è proprio il meccanismo che la fusione serve a evitare.
+    Il lato si sceglie da quello che nomina la rilevazione più recente: per[] è ordinato
+    dalla più recente, e la recenza è già il criterio con cui il modello pesa il resto.
+    Le liste del lato perdente escono del tutto — niente quota, niente imputazione — così
+    un contenitore e una sua componente non possono mai coesistere. */
+ function latoDi(sh,f){
+  if(sh[f]!==undefined) return 'c';                                   /* contenitore */
+  return FAM[f].some(function(i){return i!==f&&sh[i]!==undefined;})?'p':null;  /* componenti */
+ }
+ var lato={};
+ Object.keys(FAM).forEach(function(f){
+  for(var j=0;j<per.length;j++){ var l=latoDi(per[j].sh,f); if(l){lato[f]=l;return;} }
+ });
+ Object.keys(noti).forEach(function(i){
+  var f=FDI[i]; if(!f||!lato[f]) return;
+  if(lato[f]==='c'? i!==f : i===f) delete noti[i];
+ });
+ /* 2b · imputazione per le liste assenti da un sondaggio ma note altrove */
  var tutte=Object.keys(noti),mn={};
  tutte.forEach(function(i){mn[i]=noti[i].reduce(function(a,b){return a+b;},0)/noti[i].length;});
  per.forEach(function(p){tutte.forEach(function(i){
-  if(p.sh[i]===undefined) p.sh[i]=Math.min(3.0,mn[i]*0.75);});});
- /* 3 · media ponderata delle quote: peso dimezzato ogni 7 giorni, effetto casa a metà */
- var rif=new Date(per[0].s.data),W=0,avg={};
- tutte.forEach(function(i){avg[i]=0;});
+  if(p.sh[i]!==undefined) return;
+  /* se la rilevazione nomina l'altro lato della stessa famiglia sta usando l'altra
+     configurazione: qui questa lista non esiste, e non va imputata. Se non nomina nessun
+     lato non ha detto niente sulla famiglia, e l'imputazione vale come prima. */
+  var f=FDI[i], l=f?latoDi(p.sh,f):null;
+  if(l&&l!==(i===f?'c':'p')) return;
+  p.sh[i]=Math.min(3.0,mn[i]*0.75);});});
+ /* 3 · media ponderata delle quote: peso dimezzato ogni 7 giorni, effetto casa a metà.
+    Il peso si accumula per lista e non una volta sola: una rilevazione che non nomina
+    una lista non ne abbassa la media, semplicemente non parla di lei. Per ogni lista mai
+    esclusa il totale coincide con quello complessivo, quindi il risultato non cambia. */
+ var rif=new Date(per[0].s.data),avg={},Wi={};
+ tutte.forEach(function(i){avg[i]=0;Wi[i]=0;});
  var visti={};
  per.forEach(function(p){
   var k=p.s.istituto;
   var w=pesoDi(p.s,rif,visti[k]||0);
   visti[k]=(visti[k]||0)+1;
-  p.w=w; W+=w;
-  tutte.forEach(function(i){avg[i]+=p.sh[i]*w;});
+  p.w=w;
+  tutte.forEach(function(i){ if(p.sh[i]===undefined) return; avg[i]+=p.sh[i]*w; Wi[i]+=w; });
  });
- tutte.forEach(function(i){avg[i]/=W;});
+ tutte.forEach(function(i){avg[i]=Wi[i]?avg[i]/Wi[i]:0;});
  /* Correzione dell'effetto casa: invece di dimezzare a forfait gli istituti di
     parte, si sottrae a ciascuno lo scarto medio misurato rispetto al consenso.
     La stima si restringe verso zero quando l'istituto ha poche rilevazioni,
@@ -1795,8 +1848,16 @@ function rAnalisi(){
    return '<b>'+nm(i)+'</b>, fuori nel '+pc(MC.sotto[i]/MC.n)+' delle simulazioni';}).join(', e ')+
    ': se non la supera, i suoi voti si disperdono e i seggi finiscono alle liste più grandi dello stesso campo. ';
  var ev=EVENTI.filter(function(e){return e.data<=(M.a||'9999');}).slice(-1)[0];
+ /* La voce di cronologia entra in pagina come è scritta, iniziale compresa. Abbassarla
+    produceva «hadash, Ta'al e Balad firmano l'accordo»: dopo i due punti l'italiano non
+    chiede la minuscola, quindi la forzatura non serviva a niente e su un nome proprio
+    faceva danno. Non è correggibile con un'eccezione — la cronologia non distingue un
+    nome proprio da un nome comune, riconoscerli a runtime non si può, e un elenco di
+    eccezioni cablate non reggerebbe l'8 settembre, quando la cronologia si riempirà di
+    nomi di lista e di persona. Le voci si scrivono già nella forma che serve: è la stessa
+    che serve all'elenco di rCrono, dove compaiono da sole. */
  if(ev) testo+='L\'ultimo avvenimento politico inserito nella cronologia risale al '+dl(ev.data)+': '+
-   ev.testo.charAt(0).toLowerCase()+ev.testo.slice(1)+'. ';
+   ev.testo+'. ';
  var db7=(function(){var w0=finestra(0,6),w1=finestra(7,13);
    function bl(l,k){if(!l.length)return null;var v=l.map(function(s){return blocchi(s.seggi)[k];}).sort(function(a,b){return a-b;});
     return v[Math.floor(v.length/2)];}
