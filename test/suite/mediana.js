@@ -60,9 +60,17 @@ eval(src);
 /* Archivio sintetico: cinque rilevazioni in cinque giorni, tutte dentro la finestra dei
    sette giorni di movimenti(). I numeri non devono sommare a 120 — la mediana non è un
    riparto — devono solo essere deterministici, perché l'archivio vero cambia ogni giorno
-   e una prova che dipenda da esso scade da sola. */
+   e una prova che dipenda da esso scade da sola.
+
+   Balad è a zero, e non è un dettaglio: nell'archivio vero nessuna rilevazione le assegna
+   seggi — compare come quota sotto soglia dentro "sotto", che med() non legge mai. Lo
+   scenario la scioglie ma la sua riga non c'è, quindi nominarla nella nota manda il
+   lettore a cercare un'assenza che non esiste. La prima stesura di questa fixture le dava
+   quattro seggi «per rendere la mutazione più forte», e in quel modo nascondeva
+   esattamente il difetto che c'era da trovare: una fixture più comoda del reale non
+   prova il reale. */
 const SEGGI = {yashar:24, likud:23, byachad:14, democratici:10, beitenu:10,
-               utj:8, otzma:8, shas:7, hadash_taal:6, balad:4, raam:5, sionismo_rel:5};
+               utj:8, otzma:8, shas:7, hadash_taal:6, balad:0, raam:5, sionismo_rel:5};
 const FINTI = ['2026-08-19','2026-08-18','2026-08-17','2026-08-16','2026-08-15']
   .map(function(d,i){ return {data:d, istituto:'Prova ' + i, campione:600,
                               seggi:Object.assign({}, SEGGI)}; });
@@ -74,6 +82,15 @@ function righeAnalisi(){
 }
 function testoAnalisi(){ return D.getElementById('k-analisi').textContent; }
 function notaSciolte(){ return D.getElementById('k-movscio').textContent; }
+/* i nomi che la nota dichiara di aver omesso, letti dal testo reso e non da
+   sciolteDalloScenario(): confrontare la nota con la funzione che la genera vuol dire
+   confrontare il codice con sé stesso, ed è così che è passata la nota che nominava
+   Balad — sciolta dallo scenario, ma senza mai una riga nella tabella. */
+function nomiNellaNota(){
+  return [].slice.call(D.querySelectorAll('#k-movscio .om'))
+    .map(function(n){ return n.textContent.trim(); });
+}
+function meno(a, b){ return a.filter(function(x){ return b.indexOf(x) < 0; }); }
 
 setTimeout(function(){
   const A = global.A;
@@ -119,29 +136,41 @@ setTimeout(function(){
   A.setSEG({likud:23, yashar:23, byachad:13, democratici:10, beitenu:10,
             utj:8, otzma:8, shas:7, lista_araba:8, raam:5, sionismo_rel:5});
   A.rAnalisi();
-  const sciolte = A.sciolte();
-  esito(sciolte.length > 0, 'con lo scenario attivo c\'è almeno una lista sciolta',
-    JSON.stringify(sciolte));
   const conFusione = righeAnalisi();
-  const intruse = sciolte.map(A.nm).filter(function(n){ return conFusione.indexOf(n) >= 0; });
-  esito(intruse.length === 0,
+  const nominate = nomiNellaNota();
+  const sciolte = A.sciolte();
+  esito(sciolte.map(A.nm).every(function(n){ return conFusione.indexOf(n) < 0; }),
     'nessuna lista sciolta dallo scenario compare nella tabella dell\'analisi',
-    'trovate ' + JSON.stringify(intruse) + ' fra ' + JSON.stringify(conFusione));
-  esito(sciolte.every(function(i){ return notaSciolte().indexOf(A.nm(i)) >= 0; }),
-    'la nota sotto la tabella nomina le liste omesse',
-    '"' + notaSciolte() + '"');
+    JSON.stringify(conFusione));
 
-  /* mutazione: spento lo scenario le stesse liste devono ricomparire, altrimenti il filtro
+  /* mutazione: spento lo scenario le righe tolte devono ricomparire, altrimenti il filtro
      starebbe nascondendo le liste arabe sempre invece che per via della fusione */
   A.setPAR('listaunita', 0);
   A.rAnalisi();
   const senzaFusione = righeAnalisi();
-  esito(sciolte.every(function(i){ return senzaFusione.indexOf(A.nm(i)) >= 0; }),
-    'mutazione: spento lo scenario le liste sciolte tornano nella tabella',
-    JSON.stringify(senzaFusione));
+  const sparite = meno(senzaFusione, conFusione);
+  esito(sparite.length > 0,
+    'lo scenario toglie davvero almeno una riga dalla tabella',
+    'acceso ' + JSON.stringify(conFusione) + ' · spento ' + JSON.stringify(senzaFusione));
   esito(notaSciolte() === '',
     'mutazione: spento lo scenario la nota sulle liste omesse sparisce',
     '"' + notaSciolte() + '"');
+
+  /* ══ 3 · la nota e la tabella devono dire la stessa cosa ══
+   *
+   * Le due direzioni, perché ciascuna copre un modo diverso di sbagliare:
+   * una riga tolta e non spiegata fa sparire seggi in silenzio; un nome scritto nella
+   * nota senza che manchi la riga manda il lettore a cercare un'assenza che non c'è.
+   * Il secondo è il difetto vero trovato guardando la pagina: la nota nominava Balad,
+   * che lo scenario scioglie ma che in tabella non c'era mai stata, perché nessuna
+   * rilevazione le assegna seggi — l'archivio la registra come quota sotto soglia. */
+  esito(meno(sparite, nominate).length === 0,
+    'ogni riga che lo scenario toglie è nominata nella nota',
+    'tolte ' + JSON.stringify(sparite) + ' · nominate ' + JSON.stringify(nominate));
+  esito(meno(nominate, sparite).length === 0,
+    'la nota non nomina liste che dalla tabella non sono sparite',
+    'nominate ' + JSON.stringify(nominate) + ' · tolte ' + JSON.stringify(sparite) +
+    ' · in più ' + JSON.stringify(meno(nominate, sparite)));
 
   console.log('\nmediana: ' + ok + '/' + (ok + ko));
   if (ko) process.exit(1);

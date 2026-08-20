@@ -1634,16 +1634,23 @@ function sciolteDalloScenario(){
 function movimenti(){
  var w0=finestra(0,6),w1=finestra(7,13),w2=finestra(28,34);
  if(w2.length<2) w2=finestra(25,38);
- var r=[],fuori=sciolteDalloScenario();
+ var r=[],omesse=[],fuori=sciolteDalloScenario();
  IDS.forEach(function(i){
-  if(fuori.indexOf(i)>=0) return;
   var a=med(w0,i); if(a===null) return;
   var b=med(w1,i),c=med(w2,i);
   if(!a&&!b&&!c) return;
+  /* Da qui in giù la lista una riga ce l'avrebbe. Se lo scenario l'ha sciolta si toglie,
+     ma si annota: la nota deve nominare ciò che è sparito davvero, non ciò che lo
+     scenario scioglie in astratto. Balad è sciolta e non ha mai una riga — nessuna
+     rilevazione le assegna seggi, l'archivio la registra come quota sotto soglia in
+     "sotto", che med() non legge — e nominarla mandava a cercare un'assenza che non c'è.
+     Il filtro sta dopo la condizione di emissione proprio per questo: è l'unico punto in
+     cui si sa se la riga ci sarebbe stata. */
+  if(fuori.indexOf(i)>=0){omesse.push(i);return;}
   r.push({id:i,ora:a,d7:b===null?null:a-b,d30:c===null?null:a-c,n:w0.length});
  });
  r.sort(function(x,y){return y.ora-x.ora;});
- return {r:r,n0:w0.length,n1:w1.length,n2:w2.length,
+ return {r:r,omesse:omesse,n0:w0.length,n1:w1.length,n2:w2.length,
    da:w0.length?w0[w0.length-1].data:null,a:w0.length?w0[0].data:null};
 }
 /* una lista è "in corsa" se compare in almeno metà delle rilevazioni recenti:
@@ -1730,11 +1737,20 @@ function rAnalisi(){
  $('k-movers').innerHTML=hh;
  /* la nota deve dire perché mancano le liste che lo scenario ha sciolto: il lettore
     che le cerca nella tabella non deve concludere che il modello se ne sia dimenticato */
- var fuori=sciolteDalloScenario();
+ /* Le liste omesse le dichiara movimenti(), che è l'unico punto in cui si sa quali righe
+    ci sarebbero state. Se l'insieme è vuoto la nota non compare affatto.
+    I nomi vanno marcati: sono ciò che la nota dichiara di aver omesso, e una prova deve
+    poterlo confrontare con le righe realmente sparite dalla tabella. Senza il marcatore
+    resterebbe da cercare a tentoni dentro il testo, e «Lista Unita araba» — che nella
+    frase è la destinazione della fusione, non una lista omessa — falserebbe il conto. */
+ var fuori=M.omesse,uno=fuori.length===1;
  $('k-movscio').innerHTML=fuori.length?
   ' La mediana è calcolata sulle rilevazioni grezze, che riportano ancora le liste separate: '+
-  fuori.map(function(i){return E(nm(i));}).join(' e ')+' non compaiono qui perché lo scenario attivo '+
-  'le ha fuse nella Lista Unita araba, che «Proiezione per lista» mostra al loro posto.':'';
+  fuori.map(function(i){return '<span class="om">'+E(nm(i))+'</span>';}).join(' e ')+
+  (uno?' non compare qui perché lo scenario attivo l\'ha fusa nella Lista Unita araba, '+
+       'che «Proiezione per lista» mostra al suo posto.'
+      :' non compaiono qui perché lo scenario attivo le ha fuse nella Lista Unita araba, '+
+       'che «Proiezione per lista» mostra al loro posto.'):'';
 
  /* testo di analisi generato dai numeri */
  var t=[],b=blocchi(SEG);
