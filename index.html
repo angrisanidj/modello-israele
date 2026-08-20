@@ -16,11 +16,16 @@
 <div id="kn26">
 <style>
 #kn26{
- --paper:#FBFCFE; --card:#FFFFFF; --ink:#0B1B33; --ink2:#3A4A63; --mute:#7C8AA0;
- --rule:#0B1B33; --hair:#DCE4EF; --hair2:#EDF1F7; --wash:#F2F6FB;
- --acc:#0038B8; --accw:#E8EFFB; --flag:#0038B8;
- --coal:#0038B8; --oppo:#0E8388; --arab:#3E7A4A; --inc:#94A3B8;
- --pos:#0F7A52; --neg:#B3261E;
+ --paper:#F7F8FA; --card:#FFFFFF; --wash:#F1F5FC;
+ --hair:#E2E7EF; --hair2:#EFF2F7;
+ --ink:#0A1730; --ink2:#33435A; --mute:#626D7E; --rule:#0A1730;
+ --acc:#0038B8;          /* blu della bandiera: stato attivo, mai decorativo */
+ --acc-hi:#00259A;
+ --accw:#E8EEFB;
+ --flag:#0038B8;      /* blu della bandiera: solo le due bande in testa */
+ --on-color:#FFFFFF;     /* testo sopra qualsiasi fondo pieno colorato */
+ --coal:#043F69; --oppo:#037772; --arab:#162902; --inc:#943C00;
+ --pos:#066E3E; --neg:#AE3232;
  --sans:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;
  --serif:'Iowan Old Style',Georgia,'Times New Roman',serif;
  --sh:0 1px 2px rgba(14,16,19,.04),0 8px 24px -14px rgba(14,16,19,.12);
@@ -33,16 +38,24 @@
 /* Tema scuro: si applica se il sistema lo chiede e l'utente non ha forzato il chiaro,
    oppure se l'utente lo ha scelto esplicitamente dal selettore in alto. */
 @media (prefers-color-scheme:dark){
- #kn26.auto{--paper:#0A1220;--card:#101C2E;--ink:#E8EEF7;--ink2:#AFBDD1;--mute:#78889F;
-  --rule:#E8EEF7;--hair:#22304A;--hair2:#18253A;--wash:#152238;--accw:#14263F;--acc:#6BA3F5;
-  --flag:#4A86E8;--coal:#6BA3F5;--oppo:#37B3B3;--arab:#69B078;--inc:#64748B;
-  --pos:#4FBF8B;--neg:#F08A82;
+ #kn26.auto{
+  --paper:#070D18; --card:#0F1727; --wash:#131E32;
+  --hair:#1F2B41; --hair2:#16202F;
+  --ink:#E8EDF6; --ink2:#A3B3C8; --mute:#7D8A9B; --rule:#E8EDF6;
+  --acc:#6994E5; --acc-hi:#8FB2F5; --accw:#12203A; --flag:#0156F0;
+  --on-color:#070D18;
+  --coal:#109CFC; --oppo:#09F0E7; --arab:#538B01; --inc:#FEA57B;
+  --pos:#59C58D; --neg:#FE9390;
   --sh:0 1px 2px rgba(0,0,0,.3),0 8px 24px -14px rgba(0,0,0,.55);}
 }
-#kn26.scuro{--paper:#0A1220;--card:#101C2E;--ink:#E8EEF7;--ink2:#AFBDD1;--mute:#78889F;
-  --rule:#E8EEF7;--hair:#22304A;--hair2:#18253A;--wash:#152238;--accw:#14263F;--acc:#6BA3F5;
-  --flag:#4A86E8;--coal:#6BA3F5;--oppo:#37B3B3;--arab:#69B078;--inc:#64748B;
-  --pos:#4FBF8B;--neg:#F08A82;
+#kn26.scuro{
+  --paper:#070D18; --card:#0F1727; --wash:#131E32;
+  --hair:#1F2B41; --hair2:#16202F;
+  --ink:#E8EDF6; --ink2:#A3B3C8; --mute:#7D8A9B; --rule:#E8EDF6;
+  --acc:#6994E5; --acc-hi:#8FB2F5; --accw:#12203A; --flag:#0156F0;
+  --on-color:#070D18;
+  --coal:#109CFC; --oppo:#09F0E7; --arab:#538B01; --inc:#FEA57B;
+  --pos:#59C58D; --neg:#FE9390;
   --sh:0 1px 2px rgba(0,0,0,.3),0 8px 24px -14px rgba(0,0,0,.55);}
 #kn26 *{box-sizing:inherit;}
 #kn26 h1,#kn26 h2,#kn26 h3,#kn26 p,#kn26 ul,#kn26 figure,#kn26 figcaption{margin:0;}
@@ -772,30 +785,30 @@ var VOTO=new Date('2026-10-27T00:00:00'), KEY='knesset2026-v2', SOGLIA=3.25;
 
 /* ══════════ 1 · ANAGRAFICA ══════════ */
 var P={
- lista_araba :{n:"Lista Unita araba", l:"Hadash-Ta'al-Balad", c:"#3f8047", b:"arabo",       o:1,  gov:0, r22:null},
- hadash_taal :{n:"Hadash–Ta'al",       l:"Odeh · Tibi",        c:"#6a9c3d", b:"arabo",       o:2,  gov:0, r22:5},
- balad       :{n:"Balad",              l:"Abu Shehadeh",       c:"#8fae63", b:"arabo",       o:3,  gov:0, r22:0},
- raam        :{n:"Ra'am",              l:"Mansour Abbas",      c:"#1f7a4d", b:"arabo",       o:4,  gov:1, r22:5},
- democratici :{n:"I Democratici",      l:"Yair Golan",         c:"#c0392b", b:"opposizione", o:5,  gov:1, r22:4},
- byachad     :{n:"B'Yachad",           l:"Bennett · Lapid",    c:"#0f8f8f", b:"opposizione", o:6,  gov:1, r22:24},
- yesh_atid   :{n:"Yesh Atid",           l:"Yair Lapid",         c:"#0f9fb5", b:"opposizione", o:6.4,gov:1, r22:24},
- bennett26   :{n:"Bennett 2026",        l:"Naftali Bennett",    c:"#0b7a7a", b:"opposizione", o:6.6,gov:1, r22:null},
- blue_white  :{n:"Blu e Bianco",       l:"Benny Gantz",        c:"#4a7fb5", b:"opposizione", o:7,  gov:1, r22:12},
- yashar      :{n:"Yashar",             l:"Gadi Eisenkot",      c:"#d98a1f", b:"opposizione", o:8,  gov:1, r22:null},
- casa_sionista:{n:"Casa Sionista",     l:"Tropper · Hendel",   c:"#8aa8c8", b:"incerto",     o:9,  gov:1, r22:null},
- economico   :{n:"Partito Economico",  l:"Yaron Zelekha",      c:"#9c8b6e", b:"incerto",     o:10, gov:1, r22:null},
- unity_erdan :{n:"Unità",              l:"Erdan · Edelstein",  c:"#7d8a99", b:"incerto",     o:11, gov:1, r22:null},
- israel_first:{n:"Israel First",       l:"Sharren Haskel",     c:"#b0a08a", b:"incerto",     o:12, gov:1, r22:null},
- beitenu     :{n:"Yisrael Beitenu",    l:"Avigdor Lieberman",  c:"#6b4fa0", b:"opposizione", o:13, gov:1, r22:6},
- likud       :{n:"Likud",              l:"Benjamin Netanyahu", c:"#1b4a8f", b:"coalizione",  o:14, gov:1, r22:32},
- shas        :{n:"Shas",               l:"Aryeh Deri",         c:"#2d3142", b:"coalizione",  o:15, gov:1, r22:11},
- utj         :{n:"Giudaismo Unito Torah",    l:"Yitzhak Goldknopf",  c:"#5b6472", b:"coalizione",  o:16, gov:1, r22:7},
- sionismo_rel:{n:"Sionismo Religioso", l:"Bezalel Smotrich",   c:"#b5712c", b:"coalizione",  o:17, gov:1, r22:null},
- otzma       :{n:"Otzma Yehudit",      l:"Itamar Ben Gvir",    c:"#7a4a1f", b:"coalizione",  o:18, gov:1, r22:null}
+ lista_araba :{n:"Lista Unita araba", l:"Hadash-Ta'al-Balad", c:"#202E00", b:"arabo",       o:1,  gov:0, r22:null},
+ hadash_taal :{n:"Hadash–Ta'al",       l:"Odeh · Tibi",        c:"#202E00", b:"arabo",       o:2,  gov:0, r22:5},
+ balad       :{n:"Balad",              l:"Abu Shehadeh",       c:"#1B2E1B", b:"arabo",       o:3,  gov:0, r22:0},
+ raam        :{n:"Ra'am",              l:"Mansour Abbas",      c:"#00320C", b:"arabo",       o:4,  gov:1, r22:5},
+ democratici :{n:"I Democratici",      l:"Yair Golan",         c:"#517B83", b:"opposizione", o:5,  gov:1, r22:4},
+ byachad     :{n:"B'Yachad",           l:"Bennett · Lapid",    c:"#018279", b:"opposizione", o:6,  gov:1, r22:24},
+ yesh_atid   :{n:"Yesh Atid",           l:"Yair Lapid",         c:"#018279", b:"opposizione", o:6.4,gov:1, r22:24},
+ bennett26   :{n:"Bennett 2026",        l:"Naftali Bennett",    c:"#007C85", b:"opposizione", o:6.6,gov:1, r22:null},
+ blue_white  :{n:"Blu e Bianco",       l:"Benny Gantz",        c:"#42736E", b:"opposizione", o:7,  gov:1, r22:12},
+ yashar      :{n:"Yashar",             l:"Gadi Eisenkot",      c:"#506E80", b:"opposizione", o:8,  gov:1, r22:null},
+ casa_sionista:{n:"Casa Sionista",     l:"Tropper · Hendel",   c:"#8E4107", b:"incerto",     o:9,  gov:1, r22:null},
+ economico   :{n:"Partito Economico",  l:"Yaron Zelekha",      c:"#745200", b:"incerto",     o:10, gov:1, r22:null},
+ unity_erdan :{n:"Unità",              l:"Erdan · Edelstein",  c:"#6F5147", b:"incerto",     o:11, gov:1, r22:null},
+ israel_first:{n:"Israel First",       l:"Sharren Haskel",     c:"#5D593D", b:"incerto",     o:12, gov:1, r22:null},
+ beitenu     :{n:"Yisrael Beitenu",    l:"Avigdor Lieberman",  c:"#017390", b:"opposizione", o:13, gov:1, r22:6},
+ likud       :{n:"Likud",              l:"Benjamin Netanyahu", c:"#004A72", b:"coalizione",  o:14, gov:1, r22:32},
+ shas        :{n:"Shas",               l:"Aryeh Deri",         c:"#80007E", b:"coalizione",  o:15, gov:1, r22:11},
+ utj         :{n:"Giudaismo Unito Torah",    l:"Yitzhak Goldknopf",  c:"#41445D", b:"coalizione",  o:16, gov:1, r22:7},
+ sionismo_rel:{n:"Sionismo Religioso", l:"Bezalel Smotrich",   c:"#523250", b:"coalizione",  o:17, gov:1, r22:null},
+ otzma       :{n:"Otzma Yehudit",      l:"Itamar Ben Gvir",    c:"#1704E7", b:"coalizione",  o:18, gov:1, r22:null}
 };
 var IDS=Object.keys(P).sort(function(a,b){return P[a].o-P[b].o;});
-var BL={coalizione:{n:"Blocco Netanyahu",c:"#1b4a8f"},opposizione:{n:"Opposizione sionista",c:"#0f8f8f"},
-        arabo:{n:"Partiti arabi",c:"#3f8047"},incerto:{n:"Ago della bilancia",c:"#a0a6b0"}};
+var BL={coalizione:{n:"Blocco Netanyahu",c:"#004A72"},opposizione:{n:"Opposizione sionista",c:"#018279"},
+        arabo:{n:"Partiti arabi",c:"#202E00"},incerto:{n:"Ago della bilancia",c:"#8E4107"}};
 
 /* veti dichiarati: [a, b, motivazione] */
 /* Correlazioni fra liste, misurate sull'archivio: residuo di ogni quota rispetto
@@ -887,7 +900,8 @@ try{
 var SCURO=false, C={};
 var C_FALL={ink:'#0E1013',ink2:'#3F464E',mute:'#8A9099',hair:'#E4E0D8',hair2:'#F0EDE6',
  paper:'#FCFBF8',card:'#FFFFFF',wash:'#F5F3ED',coal:'#1D4E89',oppo:'#0E8388',arab:'#3E7A4A',
- inc:'#9AA1AA',pos:'#1B6B45',neg:'#A32A2A',acc:'#0B4F8A'};
+ inc:'#9AA1AA',pos:'#1B6B45',neg:'#A32A2A',acc:'#0B4F8A',
+ 'on-color':'#FFFFFF'};
 var TEMA='auto';
 function applicaTema(t){
  TEMA=t||'auto';
@@ -917,7 +931,34 @@ function schiarisci(hex,q){
  function u(x){return Math.round(x+(255-x)*q);}
  return 'rgb('+u(r)+','+u(g)+','+u(b)+')';
 }
-function cp(hex){return SCURO?schiarisci(hex,0.40):hex;}
+/* La tavolozza dà un colore per tema: in scuro si legge quello, non la
+   schiaritura del 40%, che resterebbe una seconda schiaritura sopra la prima.
+   schiarisci() resta come ripiego per un colore che la tavolozza non conosce. */
+var PAL_SCURO={
+ "#00320C":"#099736",
+ "#004A72":"#12ACFE",
+ "#007C85":"#8BEFF9",
+ "#017390":"#92E2FF",
+ "#018279":"#3FFFF0",
+ "#1704E7":"#7AA0FF",
+ "#1B2E1B":"#728871",
+ "#202E00":"#698E05",
+ "#41445D":"#9DA2BF",
+ "#42736E":"#AEE2DB",
+ "#506E80":"#BBDCF1",
+ "#517B83":"#C1EFF8",
+ "#523250":"#B28CAF",
+ "#5D593D":"#C2BE9F",
+ "#6F5147":"#D7B5AA",
+ "#745200":"#F4B10E",
+ "#80007E":"#FE62FA",
+ "#8E4107":"#FFA673"
+};
+function cp(hex){
+ if(!SCURO) return hex;
+ var k=String(hex||"").toUpperCase();
+ return PAL_SCURO[k]||schiarisci(hex,0.40);
+}
 
 /* ══════════ 3b · UTILITY ══════════ */
 function f(n,d){return Number(n).toLocaleString('it-IT',{minimumFractionDigits:d||0,maximumFractionDigits:d||0});}
@@ -1955,7 +1996,7 @@ function rTrend(){
   s+='<g class="ln ln-'+f.k+'">'+
      '<rect x="'+(W-Rm+4)+'" y="'+(f.y-13).toFixed(1)+'" width="'+(MOB?42:34)+'" height="26" rx="4" fill="'+f.c+'"/>'+
      '<text x="'+(W-Rm+4+(MOB?21:17))+'" y="'+(f.y+5).toFixed(1)+'" text-anchor="middle" font-size="'+(14.5*(MOB?1.35:1)).toFixed(1)+'" '+
-     'font-weight="700" fill="#fff" font-family="Georgia,serif">'+f.v+'</text></g>';
+     'font-weight="700" fill="'+C['on-color']+'" font-family="Georgia,serif">'+f.v+'</text></g>';
  });
  /* cronologia: un segno numerato per ogni fatto politico rilevante */
  EVENTI.slice().sort(function(a,b){return a.data<b.data?-1:1;}).forEach(function(e,ix){
@@ -2256,6 +2297,17 @@ function renderInterno(){
  leggiTema();
  calcola();
  if(!SEG||!Object.keys(SEG).length) return;
+ /* Due liste accese nello stesso render non devono mai avere lo stesso colore.
+    B'Yachad condivide lo slot con Yesh Atid e la Lista Unita con Hadash-Ta'al:
+    è corretto finché le alternative non coesistono, e va detto se coesistono. */
+ (function(){
+  var visti={},doppi=[],i,c;
+  for(i in QUO){ if(!P[i]) continue;
+   c=String(cp(P[i].c)).toUpperCase();
+   if(visti[c]) doppi.push(nm(visti[c])+" e "+nm(i)); else visti[c]=i; }
+  if(doppi.length) msg("<b>Colori duplicati.</b> "+doppi.join(", ")+
+   " condividono lo stesso colore in questo grafico: il colore non è più un indice affidabile.","err");
+ })();
  rTesta();rProb();
  $('k-htit1').innerHTML='<i style="background:'+C.coal+'"></i>Blocco Netanyahu'+
   '<em>Likud · Shas · Giudaismo Unito Torah · Sionismo Religioso · Otzma Yehudit</em>';

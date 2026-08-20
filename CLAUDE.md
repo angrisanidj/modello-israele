@@ -21,7 +21,7 @@ alle prove.
 
 ```bash
 npm install          # solo la prima volta: installa jsdom per le prove
-npm test             # estrae il JS e lancia le 154 prove
+npm test             # estrae il JS e lancia le 189 prove
 npm run verifica     # prove + controlli strutturali
 ```
 
@@ -72,14 +72,18 @@ test/
   esegui.mjs          lancia tutta la suite e riassume
   struttura.mjs       controlli strutturali sul file
   suite/*.js          le prove, una per area
+  misura-consegna.mjs misuratore di tavolozza, a mano: node test/misura-consegna.mjs
 dati/
+  colore-liste.js     la regola generativa dei colori di lista
   storico.js          sondaggi delle elezioni 2020, 2021, 2022 (banco di prova)
   backtest.js         riapplica il motore alle elezioni passate
   corr.js             misura le correlazioni fra liste sull'archivio
   prefus.js           analisi della fusione B'Yachad del 26 aprile
   wikiparser.js       prove del parser della tabella Wikipedia
   fixture.js          tabella Wikipedia di riferimento per le prove
-docs/                 note di lavoro
+docs/
+  regola-colore.md    la specifica dei colori: bande, settori, punti, distanze
+  pubblicare.md       note di lavoro
 ```
 
 ## Il modello in breve
@@ -157,3 +161,56 @@ Messaggi di commit in italiano, all'infinito, con il perché e non solo il cosa.
 | 23 ottobre 2026 | Silenzio demoscopico: ultimi sondaggi pubblicabili |
 | **27 ottobre 2026** | **Voto** |
 | 4 novembre 2026 | Risultati ufficiali |
+
+---
+
+## La tavolozza: perché la soglia interna è 7,5 e non 8
+
+Applicata il 20 agosto 2026. I colori delle liste non sono più scritti a mano
+nell'anagrafica: vengono da una regola generativa — quattro bande di luminanza (una per
+blocco), un settore di tinta disgiunto per blocco, e per ogni slot una terna
+*tinta · posizione nella banda · croma*.
+
+**Il vincolo che morde è la larghezza delle bande, non la scelta dei punti.** Le bande
+sono fissate da due cose che non si possono allentare: i salti fra bande adiacenti devono
+stare a ≥ 1,309 in forma WCAG `(L₁+0,05)/(L₂+0,05)`, e i soffitti di contrasto impongono
+il tetto in tema chiaro e il pavimento in tema scuro. Quel che resta è un intervallo
+stretto, e dentro un settore di 50° con sei liste il ΔE2000 minimo non arriva a 8.
+
+Misurato, sull'opposizione sionista:
+
+| Configurazione | ΔE2000 minimo |
+|---|---|
+| sei liste accese | **8,0** |
+| cinque liste accese | **8,9** |
+| bande allargate, fuori specifica | **11,6** |
+
+Il riposizionamento degli slot vale molto — porta l'opposizione da 3,7 a 7,9 e la
+coalizione da 6,3 a 13,2 — ma 9,7 non è raggiungibile senza allargare le bande, e
+allargarle farebbe cadere il vincolo dei salti. La soglia di 8 era ricavata da una misura
+su un solo tema e con varianza sottostimata: **si corregge l'ingresso, non si aggiusta il
+risultato.** Da qui 7,5.
+
+Non riaprire la partita senza rimisurare: `node test/misura-consegna.mjs` rifà tutto il
+conto, e `MUTA=settori` verifica che il controllo sulle famiglie di tinta sappia fallire.
+
+**Due vincoli aggiunti che non sono negoziabili.** Massimizzare il ΔE senza di essi
+distrugge la famiglia di tinta: l'ottimo porta il croma a zero e produce grigi — e un
+grigio ha un angolo di tinta che non significa niente, quindi il controllo sui settori non
+se ne accorge. Perciò: pavimento di croma OKLCH a 0,0424 (il minimo della consegna
+precedente, quindi nessuna regressione) e ancore di blocco vincolate, tinta entro ±6° e
+croma non inferiore a quello della consegna precedente.
+
+## Difetti noti, di codice e non di tavolozza
+
+Nessuna scelta di colore li risolve: dipendono da come il modello disegna.
+
+1. **Tre sparkline di `k-proj` a opacità 0,55** stanno sotto 3:1 contro il fondo. Un
+   tratto al 55% su fondo pieno non arriva a 3 con nessuna tinta ragionevole: il massimo
+   ottenibile a α = 0,55 richiede una tinta piena con luminanza ≤ 0,048. La leva è
+   l'opacità, non il colore.
+2. **La linea della maggioranza in `k-emi`**, disegnata in `--ink` sopra un seggio pieno.
+   In tema chiaro il riordino delle bande l'ha portata sopra soglia; in tema scuro sta a
+   **1,22**, il valore peggiore mai misurato, perché `--ink` è quasi bianco e i seggi
+   dell'opposizione sono la banda più chiara. Serve un contorno, o un colore proprio per
+   quella linea.
