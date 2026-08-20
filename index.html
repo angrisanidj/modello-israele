@@ -288,10 +288,17 @@
 #kn26 .dz p{font-size:12px;color:var(--ink2);margin-top:14px;line-height:1.55;}
 
 /* ══ IDENTITÀ ISRAELIANA ══ */
-#kn26 .flag{height:34px;position:relative;margin-bottom:0;}
+/* Bandiera: le due bande blu e la stella. Il campo bianco fra le bande deve contenere
+   la stella per intero, con aria da entrambe le parti.
+   La stella DIPINTA è più alta della sua geometria: il tratto da 7 unità di viewBox e
+   il giunto a punta agli apici la portano a 0,861111 volte l'altezza dell'svg, non a
+   0,72 come restituisce getBBox(). Per una stella dipinta di 24px servono quindi
+   24 / 0,861111 = 27,87px di svg.
+   Campo bianco 34px: 24px di stella e 5px d'aria sopra e sotto. */
+#kn26 .flag{height:58px;position:relative;margin-bottom:0;}
 #kn26 .flag::before,#kn26 .flag::after{content:'';position:absolute;left:0;right:0;height:5px;background:var(--flag);}
-#kn26 .flag::before{top:6px;} #kn26 .flag::after{top:23px;}
-#kn26 .flag svg{position:absolute;left:50%;top:0;transform:translateX(-50%);height:34px;width:34px;}
+#kn26 .flag::before{top:7px;} #kn26 .flag::after{top:46px;}
+#kn26 .flag svg{position:absolute;left:50%;top:15.06px;transform:translateX(-50%);height:27.87px;width:27.87px;}
 #kn26 .brow .md{width:12px;height:12px;flex:none;}
 
 /* ══ INDICE ══ */
@@ -470,11 +477,19 @@
 #kn26 .idx{display:flex;flex-wrap:wrap;align-items:center;gap:0 14px;}
 #kn26 .idx nav{display:flex;flex-wrap:wrap;gap:4px;min-width:0;flex:1;}
 #kn26 .idx .bar{width:100%;}
-#kn26 .idx .bar{display:none;align-items:center;gap:16px;margin-top:8px;padding-top:8px;
+/* Il rientro orizzontale di 11px pareggia quello delle voci d'indice della riga sopra:
+   .idx a ha padding 10px piu' border 1px trasparente, quindi il suo testo comincia a
+   11px dal bordo della fascia. Senza, occhiello e probabilita' cadono a filo del bordo
+   — sull'ombra — mentre le voci sembrano rientrate. Il filetto resta a tutta larghezza,
+   perche' il padding sta dentro il bordo. */
+#kn26 .idx .bar{display:none;align-items:center;gap:16px;margin-top:8px;padding:8px 11px 0;
  border-top:1px solid var(--hair2);}
 #kn26 .idx.on .bar{display:flex;}
+/* Occhiello in blu bandiera. In tema chiaro --acc vale #0038B8, cioè esattamente il
+   blu della bandiera; in tema scuro vale #6994E5, che su --paper sta a 6,45. Usare
+   --flag alla lettera darebbe 3,33 in tema scuro, sotto il 4,5 che serve a 10px. */
 #kn26 .idx .lb{font-size:10px;letter-spacing:.14em;text-transform:uppercase;font-weight:700;
- color:var(--mute);white-space:nowrap;}
+ color:var(--acc);white-space:nowrap;}
 #kn26 .idx .lb b{color:var(--ink);}
 #kn26 .idx .sp{display:flex;gap:20px;margin-left:auto;}
 #kn26 .idx .sp i{font-style:normal;font-size:9px;letter-spacing:.09em;text-transform:uppercase;
@@ -541,6 +556,9 @@
 
 /* ══ SELETTORE DEL TEMA ══ */
 #kn26 .tema{display:inline-flex;border:1px solid var(--hair);border-radius:99px;overflow:hidden;margin-left:auto;}
+/* Nella testata il selettore sta fra l'occhiello e la data: lì il filetto elastico
+   .brow .bar fa già da distanziatore, quindi il margine automatico va tolto. */
+#kn26 .brow .tema{margin-left:0;flex:none;}
 #kn26 .tema button{font-size:9.5px;letter-spacing:.09em;text-transform:uppercase;font-weight:700;
  padding:5px 10px;border:0;background:var(--card);color:var(--mute);transition:.14s;}
 #kn26 .tema button.on{background:var(--acc);color:#fff;}
@@ -580,7 +598,7 @@
 <div class="flag"><svg viewBox="0 0 100 100" aria-hidden="true"><g fill="none" stroke="var(--flag)" stroke-width="7"><path d="M50 14 L82 70 L18 70 Z"/><path d="M50 86 L18 30 L82 30 Z"/></g></svg></div>
 
 <header class="mast">
- <div class="brow"><svg class="md" viewBox="0 0 100 100" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="9"><path d="M50 14 L82 70 L18 70 Z"/><path d="M50 86 L18 30 L82 30 Z"/></g></svg><span>Israele · Modello previsionale</span><span class="bar"></span><em id="k-upd">—</em></div>
+ <div class="brow"><svg class="md" viewBox="0 0 100 100" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="9"><path d="M50 14 L82 70 L18 70 Z"/><path d="M50 86 L18 30 L82 30 Z"/></g></svg><span>Israele · Modello previsionale</span><span class="bar"></span><div class="tema" id="k-tema" role="group" aria-label="Tema del sito"><button data-tema="auto" class="on" title="Segue le impostazioni del sistema">Auto</button><button data-tema="chiaro" title="Sempre chiaro">Chiaro</button><button data-tema="scuro" title="Sempre scuro">Scuro</button></div><em id="k-upd">—</em></div>
  <h1>Nessun blocco ha la maggioranza: il modello mostra quanto sia fragile l'equilibrio</h1>
  <p class="deck" id="k-deck"></p>
  <div class="meta"><span id="k-cd">—</span><span id="k-fresh">—</span><span id="k-n">—</span></div>
@@ -600,11 +618,6 @@
  <div class="bar">
   <span class="lb">Knesset 2026 · <b id="k-scd">—</b></span>
   <span class="sp" id="k-sprobs"></span>
- </div>
- <div class="tema" id="k-tema" role="group" aria-label="Tema del sito">
-  <button data-tema="auto" class="on" title="Segue le impostazioni del sistema">Auto</button>
-  <button data-tema="chiaro" title="Sempre chiaro">Chiaro</button>
-  <button data-tema="scuro" title="Sempre scuro">Scuro</button>
  </div>
 </div>
 
