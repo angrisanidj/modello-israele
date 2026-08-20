@@ -21,7 +21,7 @@ alle prove.
 
 ```bash
 npm install          # solo la prima volta: installa jsdom per le prove
-npm test             # estrae il JS e lancia le 145 prove
+npm test             # estrae il JS e lancia le 154 prove
 npm run verifica     # prove + controlli strutturali
 ```
 
