@@ -1,0 +1,6 @@
+# Normalizza i fine riga: nel repository sempre LF, così Windows e GitHub
+# non producono differenze fantasma su file identici.
+* text=auto
+
+# index.html è il file pubblicato: LF anche sul disco, su qualunque sistema.
+*.html text eol=lf

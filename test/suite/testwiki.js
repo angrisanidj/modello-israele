@@ -1,0 +1,22 @@
+const {JSDOM}=require('jsdom');
+const dom=new JSDOM('');
+global.DOMParser=dom.window.DOMParser;
+eval(require('fs').readFileSync(__dirname+'/../../dati/wikiparser.js','utf8'));
+const out=parseWiki(require('../../dati/fixture.js'),['2026']);
+console.log("SONDAGGI ACCETTATI:",out.sondaggi.length);
+out.sondaggi.forEach(s=>console.log("  ",s.data,s.istituto,"|",s.testata,"| camp",s.campione||'—',
+  "| casa",s.casa||0,"| seggi",JSON.stringify(s.seggi),"| sotto",JSON.stringify(s.sotto||{})));
+console.log("\nEVENTI:",out.eventi.length); out.eventi.forEach(e=>console.log("  ",e.data,e.testo));
+console.log("\nSCARTATE:",out.scartate.length); out.scartate.forEach(e=>console.log("  ",e.data,e.istituto,"→",e.motivo));
+console.log("\nCOLONNE IGNOTE:",out.ignote.length?out.ignote:"nessuna");
+console.log("\n── controlli ──");
+const d=out.sondaggi;
+console.log("scenario (riga con rowspan) escluso:", !d.some(s=>s.seggi.byachad===30) ? "OK":"FALLITO");
+console.log("sezione 2025 esclusa:", !d.some(s=>s.data.startsWith('2025'))?"OK":"FALLITO");
+console.log("tabella scenari esclusa:", !d.some(s=>s.seggi.likud===40)?"OK":"FALLITO");
+console.log("riga con gov errato scartata:", out.scartate.some(x=>/blocco governo/.test(x.motivo))?"OK":"FALLITO");
+console.log("evento intercettato:", out.eventi.some(e=>/primary/.test(e.testo))?"OK":"FALLITO");
+console.log("colspan Joint List risolto (hadash+balad):", d[0]&&d[0].seggi.hadash_taal===6?"OK":"FALLITO");
+console.log("note [21] ripulite dalla testata:", d[0]&&d[0].testata==='Kan 11'?"OK":"FALLITO");
+console.log("Filber normalizzato in Direct Polls:", d.some(s=>s.istituto==='Direct Polls'&&s.casa===1)?"OK":"FALLITO");
+d.forEach(s=>{const t=Object.values(s.seggi).reduce((a,b)=>a+b,0); if(t!==120) console.log("  !! somma",t,s.data);});
