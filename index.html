@@ -830,10 +830,10 @@ var VOTO=new Date('2026-10-27T00:00:00'), KEY='knesset2026-v2', SOGLIA=3.25;
 
 /* ══════════ 1 · ANAGRAFICA ══════════ */
 var P={
- lista_araba :{n:"Lista Unita araba", l:"Hadash-Ta'al-Balad", c:"#202E00", b:"arabo",       o:1,  gov:0, r22:null},
- hadash_taal :{n:"Hadash–Ta'al",       l:"Odeh · Tibi",        c:"#202E00", b:"arabo",       o:2,  gov:0, r22:5},
- balad       :{n:"Balad",              l:"Abu Shehadeh",       c:"#1B2E1B", b:"arabo",       o:3,  gov:0, r22:0},
- raam        :{n:"Ra'am",              l:"Mansour Abbas",      c:"#00320C", b:"arabo",       o:4,  gov:1, r22:5},
+ lista_araba :{n:"Lista Unita araba", l:"Hadash-Ta'al-Balad", c:"#374100", b:"arabo",       o:1,  gov:0, r22:null},
+ hadash_taal :{n:"Hadash–Ta'al",       l:"Odeh · Tibi",        c:"#374100", b:"arabo",       o:2,  gov:0, r22:5},
+ balad       :{n:"Balad",              l:"Abu Shehadeh",       c:"#214238", b:"arabo",       o:3,  gov:0, r22:0},
+ raam        :{n:"Ra'am",              l:"Mansour Abbas",      c:"#005220", b:"arabo",       o:4,  gov:1, r22:5},
  democratici :{n:"I Democratici",      l:"Yair Golan",         c:"#517B83", b:"opposizione", o:5,  gov:1, r22:4},
  byachad     :{n:"B'Yachad",           l:"Bennett · Lapid",    c:"#018279", b:"opposizione", o:6,  gov:1, r22:24},
  yesh_atid   :{n:"Yesh Atid",           l:"Yair Lapid",         c:"#018279", b:"opposizione", o:6.4,gov:1, r22:24},
@@ -845,15 +845,15 @@ var P={
  unity_erdan :{n:"Unità",              l:"Erdan · Edelstein",  c:"#6F5147", b:"incerto",     o:11, gov:1, r22:null},
  israel_first:{n:"Israel First",       l:"Sharren Haskel",     c:"#5D593D", b:"incerto",     o:12, gov:1, r22:null},
  beitenu     :{n:"Yisrael Beitenu",    l:"Avigdor Lieberman",  c:"#017390", b:"opposizione", o:13, gov:1, r22:6},
- likud       :{n:"Likud",              l:"Benjamin Netanyahu", c:"#004A72", b:"coalizione",  o:14, gov:1, r22:32},
- shas        :{n:"Shas",               l:"Aryeh Deri",         c:"#80007E", b:"coalizione",  o:15, gov:1, r22:11},
- utj         :{n:"Giudaismo Unito Torah",    l:"Yitzhak Goldknopf",  c:"#41445D", b:"coalizione",  o:16, gov:1, r22:7},
- sionismo_rel:{n:"Sionismo Religioso", l:"Bezalel Smotrich",   c:"#523250", b:"coalizione",  o:17, gov:1, r22:null},
- otzma       :{n:"Otzma Yehudit",      l:"Itamar Ben Gvir",    c:"#1704E7", b:"coalizione",  o:18, gov:1, r22:null}
+ likud       :{n:"Likud",              l:"Benjamin Netanyahu", c:"#00226E", b:"coalizione",  o:14, gov:1, r22:32},
+ shas        :{n:"Shas",               l:"Aryeh Deri",         c:"#392231", b:"coalizione",  o:15, gov:1, r22:11},
+ utj         :{n:"Giudaismo Unito Torah",    l:"Yitzhak Goldknopf",  c:"#43006D", b:"coalizione",  o:16, gov:1, r22:7},
+ sionismo_rel:{n:"Sionismo Religioso", l:"Bezalel Smotrich",   c:"#51003F", b:"coalizione",  o:17, gov:1, r22:null},
+ otzma       :{n:"Otzma Yehudit",      l:"Itamar Ben Gvir",    c:"#1F243B", b:"coalizione",  o:18, gov:1, r22:null}
 };
 var IDS=Object.keys(P).sort(function(a,b){return P[a].o-P[b].o;});
-var BL={coalizione:{n:"Blocco Netanyahu",c:"#004A72"},opposizione:{n:"Opposizione sionista",c:"#018279"},
-        arabo:{n:"Partiti arabi",c:"#202E00"},incerto:{n:"Ago della bilancia",c:"#8E4107"}};
+var BL={coalizione:{n:"Blocco Netanyahu",c:"#00226E"},opposizione:{n:"Opposizione sionista",c:"#018279"},
+        arabo:{n:"Partiti arabi",c:"#374100"},incerto:{n:"Ago della bilancia",c:"#8E4107"}};
 
 /* veti dichiarati: [a, b, motivazione] */
 /* Correlazioni fra liste, misurate sull'archivio: residuo di ogni quota rispetto
@@ -980,23 +980,23 @@ function schiarisci(hex,q){
    schiaritura del 40%, che resterebbe una seconda schiaritura sopra la prima.
    schiarisci() resta come ripiego per un colore che la tavolozza non conosce. */
 var PAL_SCURO={
- "#00320C":"#099736",
- "#004A72":"#12ACFE",
+ "#00226E":"#3A7CFE",
+ "#005220":"#49B867",
  "#007C85":"#8BEFF9",
  "#017390":"#92E2FF",
  "#018279":"#3FFFF0",
- "#1704E7":"#7AA0FF",
- "#1B2E1B":"#728871",
- "#202E00":"#698E05",
- "#41445D":"#9DA2BF",
+ "#1F243B":"#767D99",
+ "#214238":"#7B9F92",
+ "#374100":"#8AA20A",
+ "#392231":"#967A8C",
  "#42736E":"#AEE2DB",
+ "#43006D":"#AB59F6",
  "#506E80":"#BBDCF1",
+ "#51003F":"#E42BB9",
  "#517B83":"#C1EFF8",
- "#523250":"#B28CAF",
  "#5D593D":"#C2BE9F",
  "#6F5147":"#D7B5AA",
- "#745200":"#F4B10E",
- "#80007E":"#FE62FA",
+ "#745200":"#F4B10D",
  "#8E4107":"#FFA673"
 };
 function cp(hex){

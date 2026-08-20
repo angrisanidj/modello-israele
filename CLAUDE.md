@@ -21,7 +21,7 @@ alle prove.
 
 ```bash
 npm install          # solo la prima volta: installa jsdom per le prove
-npm test             # estrae il JS e lancia le 189 prove
+npm test             # estrae il JS e lancia le 211 prove
 npm run verifica     # prove + controlli strutturali
 ```
 
@@ -151,6 +151,25 @@ Messaggi di commit in italiano, all'infinito, con il perché e non solo il cosa.
     segnalati finora — testo nero su fondo nero, anteprima senza JavaScript, didascalia sopra i
     seggi — erano tutti di quel tipo e nessuna prova automatica li avrebbe visti.
 11. Settembre 2019 ricalcolato riga per riga (oggi è dato di seconda mano, da titoli di stampa)
+12. **Il conto dei giorni al voto tronca le ore invece di contare i giorni di calendario.**
+    Il 20 agosto la pagina dice «67 giorni», ma dal 20 agosto al 27 ottobre sono 68 giorni di
+    calendario. Il lettore confronta col calendario, non con le ore: il conto va fatto sulle
+    date a mezzanotte, non sulla differenza di millisecondi troncata.
+13. **Sei suite usano un DOM ridotto invece di jsdom.** `aff`, `emi`, `final`, `tema`,
+    `testint` e `verifica` sostituiscono `document` con oggetti finti in cui `innerHTML` è
+    una semplice proprietà di testo: nessun albero viene mai analizzato, quindi
+    `querySelector` non esiste. Sono state scritte così perché leggono la stringa HTML che
+    il modello scrive, non il risultato reso — costa meno di un'analisi per suite. Ma è
+    esattamente lo stub permissivo contro cui mette in guardia la sezione delle trappole,
+    e ha già presentato il conto: l'aggancio interattivo degli istogrammi ha dovuto
+    aggiungere una guardia d'uscita per non farle cadere, e quella guardia rendeva 108
+    righe non esercitate da nessuna prova. Oggi le copre `interazione.js`, che costruisce
+    un DOM vero. Vanno convertite: finché restano così, ogni codice che tocchi elementi
+    resi va provato altrove o non è provato affatto.
+14. **La tabella dell'archivio dei sondaggi sfora.** È larga 942px dentro un `div` con
+    `overflow-x:visible`, quindi spinge l'intero documento oltre la finestra e il corpo della
+    pagina scorre in orizzontale. Difetto preesistente alla tavolozza, misurato su browser
+    vero: serve un contenitore che scorra per conto suo.
 
 ## Calendario
 
@@ -201,6 +220,106 @@ se ne accorge. Perciò: pavimento di croma OKLCH a 0,0424 (il minimo della conse
 precedente, quindi nessuna regressione) e ancore di blocco vincolate, tinta entro ±6° e
 croma non inferiore a quello della consegna precedente.
 
+## Le bande restano: cosa sopravvive al bianco e nero e al daltonismo
+
+Deciso il 20 agosto 2026, misurato, e scritto qui per non riaprire la partita.
+
+Era stato chiesto se convenisse abbandonare le bande di luminanza — quelle che fanno dire
+il blocco al colore — per guadagnare distanza fra le liste. Senza bande il ΔE2000 minimo
+fra liste sale da **7,88** a **22,72**, quasi il triplo. Ma le quattro fasce di luminanza
+si sovrappongono tutte, e il blocco smette del tutto di leggersi in bianco e nero.
+
+La misura che ha deciso è un'altra, e va nella direzione opposta a quanto sembrava.
+Simulando deuteranopia e protanopia sulle 372 coppie di liste coesistenti:
+
+| | Nominale | Per un dicromate |
+|---|---|---|
+| fra **blocchi diversi** (294 coppie) | 14,85 | **9,18** |
+| dentro lo **stesso blocco** (78 coppie) | 7,88 | **0,86** |
+
+**Tutte e dodici** le coppie che scendono sotto ΔE 3 per un dicromate sono dello stesso
+blocco: nemmeno una fra blocchi diversi. La separazione fra blocchi regge in scala di
+grigi e regge per un occhio daltonico; quella fra liste della stessa famiglia no, perché
+è affidata alla sola tinta.
+
+È il compromesso giusto proprio perché i due posti non sono simmetrici: **nella tabella
+per lista il blocco è già scritto sotto ogni nome**, quindi la tinta ridondante che
+collassa non porta via informazione; **nell'emiciclo il colore è l'unico portatore**, e
+lì quello che conta è che il blocco si legga — e si legge.
+
+Rimisurabile con `node test/misura-consegna.mjs <cartella> --colori`. La simulazione usa
+le matrici di Viénot, Brettel e Mollon su RGB lineare: serve a ordinare le coppie, non a
+certificarle.
+
+## L'obiettivo a cascata, e perché l'ultimo blocco paga il conto
+
+Misurato il 20 agosto 2026. **Non ancora applicato alla tavolozza**: è una proprietà del
+metodo, registrata perché non si riparta da capo.
+
+Massimizzare il ΔE minimo *globale* è l'obiettivo sbagliato: appena il blocco più
+vincolato inchioda il minimo — l'opposizione, sei liste in un settore di 50° — l'ottimizzatore
+smette di spingere gli altri, che restano fermi al valore di quello. Massimizzando invece
+**blocco per blocco in cascata**, dal più vincolato al meno, ciascuno tenuto fisso per i
+successivi:
+
+| Blocco | Globale (oggi) | A cascata |
+|---|---|---|
+| opposizione | 7,88 | 7,88 |
+| arabo | 7,97 | **9,48** |
+| coalizione | 13,16 | **14,60** |
+| incerto | 14,52 | 14,46 |
+
+ΔE fra blocchi diversi: 14,85, invariato.
+
+**L'ultimo blocco della cascata non è libero come il primo, e può uscire peggiorato.**
+`incerto` scende di sei centesimi non per un difetto della ricerca ma per costruzione: la
+configurazione di partenza è valida finché anche i blocchi precedenti sono quelli di
+partenza, e una volta che gli altri tre si sono spostati quella configurazione può violare
+il ΔE ≥ 11 verso di loro. Chi viene per ultimo eredita i vincoli di tutti.
+
+Conseguenza pratica: l'ordine della cascata è una scelta, non un dettaglio. Metterci per
+ultimo il blocco che ha più margine — oggi `incerto`, a 14,5 — è ciò che rende il costo
+trascurabile.
+
+## Due limiti della tavolozza, misurati. Non rifare questo giro
+
+**L'opposizione non può cambiare banda, e il suo ~7,5 è il pavimento di tutta la
+tavolozza.** Sei liste coesistenti in un settore di tinta da 50° stanno **solo** nella
+banda più chiara: nelle altre tre l'ottimizzatore non trova nemmeno una configurazione
+valida. Su ventiquattro assegnazioni famiglia→banda, dodici cadono, e in dieci casi il
+blocco che non trova posto è l'opposizione. Da qui discende che il ΔE minimo dell'intera
+tavolozza è sempre il suo, fra 7,0 e 7,9 a seconda di dove stanno gli altri: qualunque
+guadagno su arabo, coalizione o ago della bilancia **non sposta il minimo complessivo**.
+
+**L'assegnazione famiglia→banda è stata enumerata su tutte e ventiquattro le combinazioni**,
+con i settori e le ancore di oggi e tutti i vincoli attivi. **Ne sopravvivono due**, e sono
+quelle con l'opposizione nella banda chiara:
+
+| B1 · B2 · B3 · B4 | arabo | oppos | coali | incer | fra blocchi |
+|---|---|---|---|---|---|
+| verde · blu · sabbia · verdeazzurro | 9,0 | 7,9 | 15,1 | 14,5 | 17,0 |
+| **blu · verde · sabbia · verdeazzurro** *(applicata)* | **14,0** | 7,9 | 12,4 | 14,5 | 13,5 |
+
+**È stata scelta la seconda, e non per il ΔE.** Con il verde nella banda più scura
+`--arab` era `#202E00`, luminanza 0,0226 e croma 0,070: non si legge come verde, si legge
+come nero — e il verde per le liste arabe è una convenzione a cui non si rinuncia. Il blu
+quella banda la regge, perché è naturalmente scuro. La fisica è quella: la luminanza pesa
+0,7152 sul verde e 0,0722 sul blu, quindi un verde saturo è intrinsecamente chiaro e un
+blu saturo intrinsecamente scuro.
+
+Il prezzo, accettato: coalizione da 15,1 a **12,4** e distanza fra blocchi da 17,0 a
+**13,5**, entrambe sopra soglia. Il guadagno: blocco arabo da 9,0 a **14,0**.
+
+**L'ancora della coalizione è stata riportata verso il blu bandiera**: da 241,6° a 262,2°,
+con `#0038B8` a 262,9° e il blu sRGB puro a 264,1°. Stava ventun gradi sotto, verso il
+ciano — la tinta meno blu del suo settore. `--coal` passa da `#004A72` a `#00226E`.
+
+Con il blu nella banda più scura serve anche un **pavimento di croma dedicato all'ancora
+della coalizione, 0,12** invece del generale 0,0424: senza, l'ottimo produceva `#1D2A40`,
+che si legge grigio e non blu — lo stesso difetto per cui il verde è stato spostato. Non
+costa niente, anzi: il blocco sale da 11,85 a 12,40 e la distanza fra blocchi da 12,62 a
+13,47, perché il vincolo spinge la ricerca in un bacino migliore.
+
 ## Difetti noti, di codice e non di tavolozza
 
 Nessuna scelta di colore li risolve: dipendono da come il modello disegna.
@@ -214,3 +333,48 @@ Nessuna scelta di colore li risolve: dipendono da come il modello disegna.
    **1,22**, il valore peggiore mai misurato, perché `--ink` è quasi bianco e i seggi
    dell'opposizione sono la banda più chiara. Serve un contorno, o un colore proprio per
    quella linea.
+
+---
+
+## Da dove riprendere
+
+Scritto il 20 agosto 2026, a fine sessione. Serve a chi apre il progetto domani senza
+ricordare niente di oggi.
+
+### Nell'ordine
+
+1. **La tabella dell'archivio dei sondaggi che sfora** (punto 13 delle cose da fare).
+   Prima dell'embed, non dopo: dentro `?embed=1`, in una colonna stretta, una tabella che
+   spinge il documento oltre la finestra peggiora invece di restare com'è.
+2. **Modalità `?embed=1`** per l'inserimento in FocusAmerica (punto 1).
+3. **I 380px su un browser vero.** Nessuno li ha ancora guardati: nella sessione di oggi
+   il riquadro del browser non si ridimensionava, e l'invariante 8 — nessun testo negli
+   SVG sotto i 5px reali a viewport 380 — è verificata solo alla larghezza disponibile.
+
+### La leva rimasta sui verdi arabi
+
+Se dopo lo scambio di banda i verdi restano vicini all'occhio, c'è ancora spazio: il
+settore verde è largo **57°**, e fra la coalizione e l'ago della bilancia resta un arco di
+**57°** inutilizzato. Allargare il verde lì dentro è la mossa successiva, e non tocca
+nessuno degli altri settori.
+
+### I difetti noti che restano
+
+- **Tre sparkline di `k-proj` a opacità 0,55** sotto 3:1. Di codice, non di tavolozza: a
+  quell'opacità nessuna tinta arriva a 3. La leva è l'opacità.
+- **La linea della maggioranza in `k-emi`**, in tema scuro a **1,22**. Stessa natura:
+  `--ink` quasi bianco sopra un seggio pieno. Serve un contorno o un colore proprio.
+- **Il conto dei giorni al voto tronca le ore** invece di contare i giorni di calendario
+  (punto 12).
+- **Sei suite usano un DOM ridotto** — `aff`, `emi`, `final`, `tema`, `testint`,
+  `verifica` — e non possono provare niente che tocchi elementi resi (punto 13 vecchio).
+
+### La cosa più importante
+
+**La verifica visiva non è automatizzabile, e non è un dettaglio.** Tutti i difetti veri
+trovati oggi — la stella della bandiera che sconfinava nelle bande, l'occhiello a filo del
+bordo sull'ombra, il vuoto di 372px sotto le ipotesi, l'evidenziazione che competeva con
+la codifica del riempimento, il verde arabo che si leggeva nero — sono stati trovati
+**guardando la pagina**, non dalla suite. Le 211 prove dicono che il modello non si è
+rotto; non dicono che la pagina si veda. Dopo ogni push, aprire
+<https://angrisanidj.github.io/modello-israele/> e guardarla nei due temi.

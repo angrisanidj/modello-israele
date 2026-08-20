@@ -29,26 +29,26 @@ var COLORE = (function () {
 
   /* 1 · bande di luminanza relativa [min, max] — invariate dalla revisione 4 */
   var BANDE = {
-    chiaro: { arabo:[0.0176,0.0229], coalizione:[0.0456,0.0608],
+    chiaro: { coalizione:[0.0176,0.0229], arabo:[0.0456,0.0608],
               incerto:[0.0951,0.0979], opposizione:[0.1438,0.1747] },
-    scuro:  { arabo:[0.2046,0.2248], coalizione:[0.3098,0.3673],
+    scuro:  { coalizione:[0.2046,0.2248], arabo:[0.3098,0.3673],
               incerto:[0.4964,0.5072], opposizione:[0.6795,0.7961] }
   };
 
   /* 2 · una famiglia di tinta per blocco, settori disgiunti — invariati */
   var SETTORI = {
-    arabo      : { da:125, a:182, posti:4 },   /* verde            */
+    arabo      : { da:116, a:173, posti:4 },   /* verde            */
     opposizione: { da:186, a:236, posti:6 },   /* verdeazzurro     */
-    coalizione : { da:240, a:330, posti:6 },   /* blu -> indaco    */
+    coalizione : { da:251, a:341, posti:6 },   /* blu -> indaco    */
     incerto    : { da: 38, a:102, posti:4 }    /* sabbia -> ambra  */
   };
 
   /* 3 · i punti: [tinta OKLCH, posizione nella banda 0..1, croma massimo] */
   var PUNTI = {
-    arabo       : [[126.13,0.9885,0.299], [146.75,1.0000,0.370], [143.91,0.9484,0.043], [180.40,0.6255,0.357]],
+    arabo       : [[119.63,0.0313,0.352], [149.38,1.0000,0.155], [172.00,0.0000,0.043], [180.40,0.6255,0.357]],
     opposizione : [[187.00,0.9276,0.363], [211.02,1.0000,0.048], [187.00,0.0248,0.054], [222.82,0.0000,0.164], [235.00,0.0277,0.045], [204.24,0.5284,0.095]],
-    coalizione  : [[241.50,1.0000,0.192], [329.00,1.0000,0.276], [277.45,1.0000,0.042], [329.00,0.0530,0.067], [266.28,0.9532,0.370], [292.38,0.0313,0.138]],
-    incerto     : [[49.49,0.0000,0.285], [39.00,0.6803,0.043], [101.00,0.9746,0.042], [80.51,0.9700,0.312]]
+    coalizione  : [[262.04,1.0000,0.273], [340.00,0.9354,0.042], [304.71,1.0000,0.227], [340.00,0.6689,0.252], [273.13,0.2302,0.043], [292.38,0.0313,0.138]],
+    incerto     : [[49.49,0.0000,0.285], [39.00,0.6803,0.043], [101.00,0.9746,0.042], [80.51,0.9076,0.312]]
   };
 
   /* 4 · pavimento di croma: sotto questo valore un colore non appartiene più a

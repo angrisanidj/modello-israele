@@ -742,3 +742,209 @@ console.log('\n  token consegna chiaro/scuro:');
 for (const k of Object.keys(T.consegna.chiaro).sort())
   if (/^#/.test(T.consegna.chiaro[k]))
     console.log('    --' + k.padEnd(10) + T.consegna.chiaro[k] + '  ' + (T.consegna.scuro[k]||''));
+
+/* ══════════════════════════════════════════════════════════════════════════
+   SEZIONE «DISTINGUIBILITÀ», dietro l'interruttore --colori.
+   Non gira per impostazione predefinita: il referto ordinario resta identico
+   a quello con cui sono stati misurati i quattro giri di consegna.
+
+     node test/misura-consegna.mjs <cartella> --colori
+
+   Risponde a tre domande:
+   1. quali coppie di liste coesistenti sono più vicine, e di quanto;
+   2. come cadono quelle stesse coppie per un occhio daltonico;
+   3. quanto si guadagnerebbe abbandonando le bande di luminanza.
+   ══════════════════════════════════════════════════════════════════════════ */
+if (process.argv.includes('--colori')) {
+
+/* Simulazione della dicromazia. Matrici di Viénot, Brettel e Mollon (1999) nella
+   forma su RGB lineare che se ne ricava comunemente: è un'approssimazione, non una
+   misura clinica, e serve a ordinare le coppie, non a certificarle. */
+const CVD = {
+  protanopia: [[0.152286, 1.052583,-0.204868],
+               [0.114503, 0.786281, 0.099216],
+               [-0.003882,-0.048116, 1.051998]],
+  deuteranopia:[[0.367322, 0.860646,-0.227968],
+               [0.280085, 0.672501, 0.047413],
+               [-0.011820, 0.042940, 0.968881]]
+};
+const aLineare = v => { v/=255; return v<=0.04045 ? v/12.92 : Math.pow((v+0.055)/1.055,2.4); };
+const aSrgb = v => 255*(v<=0.0031308 ? 12.92*v : 1.055*Math.pow(v,1/2.4)-0.055);
+function simula(t, tipo){
+  const M = CVD[tipo];
+  const l = t.map(aLineare);
+  return [0,1,2].map(i => {
+    const x = M[i][0]*l[0] + M[i][1]*l[1] + M[i][2]*l[2];
+    return Math.min(255, Math.max(0, aSrgb(Math.min(1, Math.max(0, x)))));
+  });
+}
+
+/* ── 1 · le dieci coppie più vicine fra liste coesistenti ── */
+const coppie = [];
+for (let i=0;i<IDS.length;i++) for (let j=i+1;j<IDS.length;j++) {
+  const a=IDS[i], b=IDS[j];
+  if (!coesistono(a,b)) continue;
+  for (const tema of ['chiaro','scuro']) {
+    const ca=rgb(PAL[a][tema]), cb=rgb(PAL[b][tema]);
+    coppie.push({a, b, tema, stesso: ANAG[a].blocco===ANAG[b].blocco,
+      hexA:PAL[a][tema].toUpperCase(), hexB:PAL[b][tema].toUpperCase(),
+      E: dE2000(ca,cb),
+      Ed: dE2000(simula(ca,'deuteranopia'), simula(cb,'deuteranopia')),
+      Ep: dE2000(simula(ca,'protanopia'),   simula(cb,'protanopia'))});
+  }
+}
+coppie.sort((x,y) => x.E - y.E);
+const dentro = coppie.filter(c => c.stesso).slice(0,10);
+const fra    = coppie.filter(c => !c.stesso).slice(0,10);
+
+function tabella(titolo, righe){
+  console.log('\n── ' + titolo + ' ──');
+  console.log('   ΔE      deut.   prot.   crollo   tema     coppia');
+  for (const c of righe) {
+    const peggio = Math.min(c.Ed, c.Ep);
+    const crollo = c.E > 0 ? (100*(1 - peggio/c.E)) : 0;
+    console.log('   ' + c.E.toFixed(1).padStart(5) + '   ' + c.Ed.toFixed(1).padStart(5)
+      + '   ' + c.Ep.toFixed(1).padStart(5)
+      + '   ' + (crollo>=0 ? '-'+crollo.toFixed(0)+'%' : '+'+(-crollo).toFixed(0)+'%').padStart(6)
+      + '   ' + c.tema.padEnd(7) + '  ' + (c.a+' / '+c.b).padEnd(28)
+      + c.hexA + ' · ' + c.hexB);
+  }
+}
+console.log('\n════ DISTINGUIBILITÀ · coppie coesistenti più vicine ════');
+console.log('   ΔE2000 nominale, poi simulando deuteranopia e protanopia.');
+tabella('STESSO BLOCCO — la vicinanza è voluta, il blocco lo dice la luminanza', dentro);
+tabella('BLOCCHI DIVERSI — qui la vicinanza non è voluta', fra);
+
+const tutte = coppie.slice();
+const peggiorNom = Math.min(...tutte.map(c=>c.E));
+const peggiorCvd = Math.min(...tutte.map(c=>Math.min(c.Ed,c.Ep)));
+console.log('\n   minimo nominale su tutte le coppie coesistenti : ' + peggiorNom.toFixed(2));
+console.log('   minimo simulando la dicromazia                  : ' + peggiorCvd.toFixed(2));
+const sotto3 = tutte.filter(c => Math.min(c.Ed,c.Ep) < 3);
+console.log('   coppie che scendono sotto ΔE 3 per un dicromate : ' + sotto3.length + ' su ' + tutte.length);
+if (sotto3.length) sotto3.sort((x,y)=>Math.min(x.Ed,x.Ep)-Math.min(y.Ed,y.Ep)).slice(0,8)
+  .forEach(c => console.log('      ' + Math.min(c.Ed,c.Ep).toFixed(1).padStart(4) + '  ' + c.tema.padEnd(7)
+    + c.a + ' / ' + c.b + (c.stesso ? '' : '   ← blocchi diversi')));
+
+/* ── 3 · quanto si guadagnerebbe senza le bande di luminanza ── */
+console.log('\n════ IL BIVIO · togliere le bande, tenere i settori di tinta ════');
+console.log('   Stesso ottimizzatore, stesso pavimento di croma, stesse ancore.');
+console.log('   Luminanza libera invece che vincolata alla banda del blocco.');
+console.log('   Misurato sul solo tema chiaro, per confronto omogeneo.');
+
+const SETT = REGOLA.SETTORI, INSET = 1.0;
+const ANC = {}; for (const b of Object.keys(SETT)) ANC[b] = aOklch(rgb(REGOLA.di(b,0,'chiaro'))).H;
+const ANC_C = {}; for (const b of Object.keys(SETT)) ANC_C[b] = aOklch(rgb(REGOLA.di(b,0,'chiaro'))).C;
+const CROMA_MIN = CROMA_PAVIMENTO;
+
+/* costruzione identica a quella della regola: tinta fissa, lightness per bisezione
+   fino alla luminanza voluta, croma abbassato finché il colore rientra nel gamut */
+const _cc = new Map();
+function daLuminanza(L,H,C){
+  const k = L.toFixed(6)+'|'+H.toFixed(3)+'|'+C.toFixed(4);
+  if (_cc.has(k)) return _cc.get(k);
+  const srgbF = c => c<=0.0031308 ? 12.92*c : 1.055*Math.pow(c,1/2.4)-0.055;
+  const linF  = c => c<=0.04045 ? c/12.92 : Math.pow((c+0.055)/1.055,2.4);
+  const ok = (Lo,Cr,Hu) => { const h=Hu*Math.PI/180, A=Cr*Math.cos(h), B=Cr*Math.sin(h);
+    const l=Math.pow(Lo+0.3963377774*A+0.2158037573*B,3),
+          m=Math.pow(Lo-0.1055613458*A-0.0638541728*B,3),
+          s=Math.pow(Lo-0.0894841775*A-1.2914855480*B,3);
+    return [srgbF( 4.0767416621*l-3.3077115913*m+0.2309699292*s),
+            srgbF(-1.2684380046*l+2.6097574011*m-0.3413193965*s),
+            srgbF(-0.0041960863*l-0.7034186147*m+1.7076147010*s)]; };
+  const lm = r => 0.2126*linF(r[0])+0.7152*linF(r[1])+0.0722*linF(r[2]);
+  let out = null;
+  for (let c=C; c>=0.004; c-=0.004) {
+    let lo=0, hi=1, mid, r;
+    for (let i=0;i<36;i++){ mid=(lo+hi)/2; r=ok(mid,c,H);
+      if (lm(r.map(x=>Math.min(1,Math.max(0,x)))) < L) lo=mid; else hi=mid; }
+    r = ok((lo+hi)/2,c,H);
+    if (r.every(x => x>=-0.002 && x<=1.002)) {
+      out = '#'+r.map(x=>{const v=Math.round(Math.min(1,Math.max(0,x))*255).toString(16).toUpperCase();
+        return v.length<2?'0'+v:v;}).join(''); break;
+    }
+  }
+  if (!out) out = '#808080';
+  _cc.set(k,out); return out;
+}
+let seme = 20260827>>>0;
+const rnd = () => { seme|=0; seme=seme+0x6D2B79F5|0; let t=Math.imul(seme^seme>>>15,1|seme);
+  t=t+Math.imul(t^t>>>7,61|t)^t; return ((t^t>>>14)>>>0)/4294967296; };
+
+const SLOTS = IDS.map(id => ({id, b: SLOT[id][0], k: SLOT[id][1]}));
+const unici = [];
+for (const s of SLOTS) if (!unici.some(u => u.b===s.b && u.k===s.k)) unici.push(s);
+
+function colori(p){ return unici.map((u,i) => daLuminanza(p[i][1], p[i][0], p[i][2])); }
+function valido(p){
+  const cs = colori(p);
+  for (let i=0;i<cs.length;i++) {
+    const o = aOklch(rgb(cs[i]));
+    const soglia = unici[i].k===0 ? ANC_C[unici[i].b] : CROMA_MIN;
+    if (o.C < soglia-1e-9) return false;
+    const S = SETT[unici[i].b];
+    if (o.H < S.da-1e-9 || o.H > S.a+1e-9) return false;
+  }
+  return true;
+}
+function punteggio(p){
+  if (!valido(p)) return -1;
+  const cs = colori(p).map(rgb);
+  let min = Infinity;
+  for (let i=0;i<cs.length;i++) for (let j=i+1;j<cs.length;j++) {
+    if (!coesistono(unici[i].id, unici[j].id) && unici[i].b===unici[j].b) continue;
+    min = Math.min(min, dE2000(cs[i],cs[j]));
+  }
+  return min;
+}
+function limiti(i){
+  const S = SETT[unici[i].b];
+  let lo=S.da+INSET, hi=S.a-INSET;
+  if (unici[i].k===0){ lo=Math.max(lo,ANC[unici[i].b]-6); hi=Math.min(hi,ANC[unici[i].b]+6); }
+  return [lo,hi];
+}
+let best=null, bk=-1;
+for (let r=0;r<4;r++){
+  let p = unici.map((u,i) => { const [lo,hi]=limiti(i);
+    return [lo+(hi-lo)*rnd(), 0.02+0.80*rnd(), 0.05+0.28*rnd()]; });
+  let k0 = punteggio(p);
+  for (let it=0; it<9000; it++){
+    const T = 3*Math.pow(0.0005/3, it/9000);
+    const q = p.map(x=>x.slice());
+    const i = Math.floor(rnd()*q.length), c = rnd(), [lo,hi]=limiti(i);
+    if (c<0.35) q[i][0] = Math.min(hi, Math.max(lo, q[i][0] + (rnd()*2-1)*(hi-lo)*0.3));
+    else if (c<0.75) q[i][1] = Math.min(0.90, Math.max(0.02, q[i][1] + (rnd()*2-1)*0.25));
+    else q[i][2] = Math.min(0.37, Math.max(0.03, q[i][2] + (rnd()*2-1)*0.10));
+    const kk = punteggio(q);
+    if (kk>k0 || (kk>0 && rnd()<Math.exp((kk-k0)/T))) { p=q; k0=kk; }
+    if (k0>bk){ bk=k0; best=p.map(x=>x.slice()); }
+  }
+}
+console.log('\n   ΔE minimo raggiungibile SENZA bande (tema chiaro) : ' + bk.toFixed(2));
+
+/* per confronto omogeneo, il minimo di oggi sul solo tema chiaro */
+let oggiChiaro = Infinity;
+for (let i=0;i<IDS.length;i++) for (let j=i+1;j<IDS.length;j++) {
+  if (!coesistono(IDS[i],IDS[j])) continue;
+  oggiChiaro = Math.min(oggiChiaro, dE2000(rgb(PAL[IDS[i]].chiaro), rgb(PAL[IDS[j]].chiaro)));
+}
+console.log('   ΔE minimo di oggi CON le bande (tema chiaro)      : ' + oggiChiaro.toFixed(2));
+
+/* e quanto si perde: i salti di luminanza fra blocchi adiacenti */
+if (best) {
+  const perB = {};
+  colori(best).forEach((h,i) => { (perB[unici[i].b] = perB[unici[i].b] || []).push(lum(rgb(h))); });
+  const ordine = Object.keys(perB).sort((a,b)=>Math.min(...perB[a])-Math.min(...perB[b]));
+  console.log('\n   bande di luminanza risultanti (senza vincolo):');
+  for (const b of ordine)
+    console.log('      ' + b.padEnd(13) + 'L da ' + Math.min(...perB[b]).toFixed(4) + ' a ' + Math.max(...perB[b]).toFixed(4));
+  let minSalto = Infinity, sovrapposti = 0;
+  for (let i=0;i<ordine.length-1;i++){
+    const alto = Math.min(...perB[ordine[i+1]]), basso = Math.max(...perB[ordine[i]]);
+    if (alto < basso) sovrapposti++;
+    minSalto = Math.min(minSalto, rapL(alto,basso));
+  }
+  console.log('   salto minimo fra blocchi adiacenti: ' + minSalto.toFixed(3)
+    + '   (con le bande: 1,309)   fasce sovrapposte: ' + sovrapposti);
+}
+}

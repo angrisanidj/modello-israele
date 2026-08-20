@@ -6,9 +6,13 @@ Non una tavolozza: una funzione. Il colore di una lista dipende da tre cose — 
 quel codice implementa. L'8 settembre, quando le liste si chiudono, il colore di una lista
 nuova si ricava chiamando la funzione, non scegliendolo a mano.
 
-La regola arriva da Design, revisione 4. La revisione 5 — quella applicata — cambia
-**solo la scelta dei punti** dentro confini già verificati: bande, settori di tinta,
-famiglie e ordine delle bande sono quelli consegnati.
+La regola arriva da Design, revisione 4. Da allora sono cambiate quattro cose, tutte
+misurate e tutte dentro i vincoli già verificati: l'**obiettivo** della scelta dei punti,
+che è diventato a cascata (§4); la **posizione** dei settori di tinta, ridistribuita per
+dare respiro ai confini fra famiglie (§2); l'**ancora della coalizione**, riportata verso
+il blu bandiera; e lo **scambio fra la prima e la seconda banda**, che ha portato il blu
+nella banda più scura e il verde nella seconda (§1). **Gli intervalli delle bande, le
+larghezze dei settori e le famiglie non sono mai stati toccati.**
 
 Due proprietà da cui dipende il resto:
 
@@ -25,8 +29,8 @@ sopravvive alla stampa in bianco e nero, alla fotocopia e al daltonismo.
 
 | Banda | Blocco | Chiaro (L) | Scuro (L) |
 |---|---|---|---|
-| 1 | arabo | 0,0176 – 0,0229 | 0,2046 – 0,2248 |
-| 2 | coalizione (Netanyahu) | 0,0456 – 0,0608 | 0,3098 – 0,3673 |
+| 1 | coalizione (Netanyahu) | 0,0176 – 0,0229 | 0,2046 – 0,2248 |
+| 2 | arabo | 0,0456 – 0,0608 | 0,3098 – 0,3673 |
 | 3 | ago della bilancia | 0,0951 – 0,0979 | 0,4964 – 0,5072 |
 | 4 | opposizione sionista | 0,1438 – 0,1747 | 0,6795 – 0,7961 |
 
@@ -35,8 +39,19 @@ non fra i centri. Il margine sopra 1,30 non è decorativo: assorbe l'arrotondame
 che può mangiare fino a 0,009 di salto. Sui colori effettivamente consegnati il salto
 minimo misurato è **1,3020**.
 
-L'ordine delle bande non è semantico ma strutturale: è l'unica sequenza che tiene verde e
-verdeazzurro — che distano appena 50° — in bande non adiacenti.
+L'ordine delle bande non è semantico ma strutturale: tiene verde e verdeazzurro — che
+distano appena 50° — in bande non adiacenti.
+
+**Perché il blu sta nella banda più scura e il verde nella seconda.** Non è una scelta di
+ΔE, è di significato. La luminanza pesa 0,7152 sul verde e 0,0722 sul blu: un verde saturo
+è intrinsecamente chiaro, un blu saturo intrinsecamente scuro. Nella banda 1 il verde
+arrivava a croma 0,070 e `--arab` era `#202E00`, che non si legge come verde ma come nero —
+e il verde per le liste arabe è una convenzione a cui non si rinuncia. Il blu quella banda
+la regge, perché è naturalmente scuro: `--coal` è `#00226E`, croma 0,137.
+
+Il prezzo, accettato e misurato: il blocco della coalizione scende da 15,1 a **12,4** e la
+distanza fra blocchi diversi da 16,5 a **13,5**. Entrambe restano sopra soglia. In cambio
+il blocco arabo sale da 8,7 a **14,0**.
 
 ## 2. Famiglie di tinta
 
@@ -46,10 +61,23 @@ settori dell'altro non significa niente.
 
 | Blocco | Settore | Ampiezza | Posti |
 |---|---|---|---|
-| arabo — verde | 125° – 182° | 57° | 4 |
+| arabo — verde | 116° – 173° | 57° | 4 |
 | opposizione — verdeazzurro | 186° – 236° | 50° | 6 |
-| coalizione — blu → indaco | 240° – 330° | 90° | 6 |
+| coalizione — blu → indaco | 251° – 341° | 90° | 6 |
 | ago della bilancia — sabbia → ambra | 38° – 102° | 64° | 4 |
+
+**Separazioni fra settori adiacenti**: 14° · 13° · 15° · 57°, minimo **13°**. Prima erano
+23° · 4° · 4° · 68°, minimo 4°: arabo e opposizione, e opposizione e coalizione, erano
+separate da una frontiera che di fatto non c'era. Le larghezze non sono cambiate, sono
+cambiate le posizioni: i 99° liberi stavano tutti nell'arco magenta-rosso, dove non abita
+nessuna famiglia, e ora sono distribuiti sui tre confini che contano. Il quarto resta
+grande per la stessa ragione: fra l'indaco e la sabbia non c'è nessuno.
+
+**L'ancora della coalizione è stata riportata verso il blu bandiera.** Stava a 241,6°,
+cioè ventun gradi sotto il blu della bandiera `#0038B8` (262,9°) e verso il ciano: era la
+tinta meno blu del suo settore. Ora sta a **262,2°**, e il croma passa da 0,092 a 0,137.
+Il vincolo d'ancora serve a impedire che `--coal` diventi magenta, non a congelare un
+valore: qui il riancoraggio avvicina il token alla sua famiglia, non lo allontana.
 
 I punti non si appoggiano mai al bordo: la tinta realizzata slitta fino a 0,75° con
 l'arrotondamento, e un punto sul bordo uscirebbe dal settore.
@@ -69,8 +97,14 @@ dei due temi, con due vincoli che non sono negoziabili:
   settori non se ne accorgerebbe: il pavimento è ciò che fa mordere quel controllo. Il
   valore è il croma minimo effettivo della revisione 4, quindi non è una regressione.
 - **Ancore di blocco.** Lo slot 0 di ogni banda è il token di blocco (`--coal`, `--oppo`,
-  `--arab`, `--inc`): tinta entro ±6° dal valore della revisione 4 e croma non inferiore a
-  quello. Senza, `--coal` finiva magenta e `--oppo` grigio-verdazzurro.
+  `--arab`, `--inc`): tinta entro ±6° dall'ancora della famiglia e croma non inferiore al
+  pavimento. Senza, `--coal` finiva magenta e `--oppo` grigio-verdazzurro.
+
+  Per la **coalizione** il pavimento dell'ancora è **0,12**, non 0,0424: nella banda più
+  scura quello generale lasciava passare un `#1D2A40`, che si legge grigio e non blu — lo
+  stesso difetto per cui il verde è stato tolto da quella banda. Pretendere l'ancora satura
+  non costa niente: il blocco passa da 11,85 a **12,40** e la distanza fra blocchi da 12,62
+  a **13,47**, perché il vincolo spinge la ricerca in un bacino migliore.
 
 I valori nel file sono già arrotondati alla griglia su cui sono stati misurati. L'ottimo è
 affilato: arrotondare dopo aver misurato costa fino a 0,8 di ΔE.
@@ -79,16 +113,28 @@ affilato: arrotondare dopo aver misurato costa fino a 0,8 di ΔE.
 
 ΔE2000 minimo fra liste **coesistenti dello stesso blocco**, peggiore dei due temi:
 
-| Blocco | Posti | Consegna 4 | Riposizionato |
-|---|---|---|---|
-| arabo | 4 | 5,8 | **7,97** |
-| coalizione | 6 | 6,3 | **13,16** |
-| ago della bilancia | 4 | 6,9 | **14,52** |
-| opposizione | 6 | 3,7 | **7,88** |
+| Blocco | Posti | Consegna 4 | Riposizionato | **A cascata** |
+|---|---|---|---|---|
+| arabo | 4 | 5,8 | 7,97 | **13,97** |
+| coalizione | 6 | 6,3 | 13,16 | **12,40** |
+| ago della bilancia | 4 | 6,9 | 14,52 | **14,52** |
+| opposizione | 6 | 3,7 | 7,88 | **7,88** |
 
-Fra blocchi diversi il minimo è **14,9**, contro una soglia di 11. Ogni colore supera 3:1
+**L'obiettivo è a cascata, non globale.** Massimizzare il minimo su tutti i blocchi
+insieme è sbagliato: appena il blocco più vincolato inchioda il minimo, l'ottimizzatore
+smette di spingere gli altri, che restano fermi al valore di quello. Si massimizza invece
+un blocco per volta, dal più vincolato al meno, tenendo fissi quelli già risolti e
+imponendo ΔE ≥ 11 verso di loro.
+
+Conseguenza da conoscere: **l'ultimo blocco della cascata non è libero come il primo.**
+La sua configurazione di partenza è valida finché anche i precedenti sono fermi; una volta
+che si sono spostati può violare il ΔE ≥ 11 verso di loro. Chi viene per ultimo eredita i
+vincoli di tutti, quindi in coda va messo il blocco con più margine.
+
+Fra blocchi diversi il minimo è **13,47**, contro una soglia di 11. Ogni colore supera 3:1
 su `--card` e `--paper` con margine (minimo 4,381), e il testo `--on-color` supera 4,5:1
-su ogni colore (minimo 4,656 in chiaro, 5,068 in scuro).
+su ogni colore (minimo 4,656 in chiaro, 4,782 in scuro). Salto minimo fra i colori
+consegnati: 1,302.
 
 **Perché la soglia interna è 7,5 e non 8** — la spiegazione lunga sta in
 [`CLAUDE.md`](../CLAUDE.md). In breve: il vincolo che morde è la larghezza delle bande,
@@ -141,25 +187,25 @@ Derivata dalla regola, **non autoritativa**: la fonte è la funzione. Che questa
 
 | Blocco | Slot | Lista | Chiaro | Scuro |
 |---|---|---|---|---|
-| arabo | 0 | Hadash–Ta'al → Lista Unita | `#202E00` | `#698E05` |
-| | 1 | Ra'am | `#00320C` | `#099736` |
-| | 2 | Balad | `#1B2E1B` | `#728871` |
-| | 3 | *libero* | `#002E27` | `#08917F` |
-| coalizione | 0 | Likud | `#004A72` | `#12ACFE` |
-| | 1 | Shas | `#80007E` | `#FE62FA` |
-| | 2 | Giudaismo Unito Torah | `#41445D` | `#9DA2BF` |
-| | 3 | Sionismo Religioso | `#523250` | `#B28CAF` |
-| | 4 | Otzma Yehudit | `#1704E7` | `#7AA0FF` |
-| | 5 | *libero* | `#452B81` | `#9E89E9` |
+| arabo | 0 | Hadash–Ta’al → Lista Unita | `#374100` | `#8AA20A` |
+|  | 1 | Ra’am | `#005220` | `#49B867` |
+|  | 2 | Balad | `#214238` | `#7B9F92` |
+|  | 3 | *libero* | `#064B42` | `#16B29E` |
+| coalizione | 0 | Likud | `#00226E` | `#3A7CFE` |
+|  | 1 | Shas | `#392231` | `#967A8C` |
+|  | 2 | Giudaismo Unito Torah | `#43006D` | `#AB59F6` |
+|  | 3 | Sionismo Religioso | `#51003F` | `#E42BB9` |
+|  | 4 | Otzma Yehudit | `#1F243B` | `#767D99` |
+|  | 5 | *libero* | `#2E0C64` | `#846FCB` |
 | ago | 0 | Casa Sionista | `#8E4107` | `#FFA673` |
-| | 1 | Unità | `#6F5147` | `#D7B5AA` |
-| | 2 | Israel First | `#5D593D` | `#C2BE9F` |
-| | 3 | Partito Economico | `#745200` | `#F4B10E` |
-| opposizione | 0 | Yesh Atid → B'Yachad | `#018279` | `#3FFFF0` |
-| | 1 | I Democratici | `#517B83` | `#C1EFF8` |
-| | 2 | Blu e Bianco | `#42736E` | `#AEE2DB` |
-| | 3 | Yisrael Beitenu | `#017390` | `#92E2FF` |
-| | 4 | Yashar | `#506E80` | `#BBDCF1` |
-| | 5 | Bennett 2026 | `#007C85` | `#8BEFF9` |
+|  | 1 | Unità | `#6F5147` | `#D7B5AA` |
+|  | 2 | Israel First | `#5D593D` | `#C2BE9F` |
+|  | 3 | Partito Economico | `#745200` | `#F4B10D` |
+| opposizione | 0 | Yesh Atid → B’Yachad | `#018279` | `#3FFFF0` |
+|  | 1 | I Democratici | `#517B83` | `#C1EFF8` |
+|  | 2 | Blu e Bianco | `#42736E` | `#AEE2DB` |
+|  | 3 | Yisrael Beitenu | `#017390` | `#92E2FF` |
+|  | 4 | Yashar | `#506E80` | `#BBDCF1` |
+|  | 5 | Bennett 2026 | `#007C85` | `#8BEFF9` |
 
 Token di blocco = slot 0 di ciascuna banda.
