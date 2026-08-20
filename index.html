@@ -721,7 +721,7 @@
   <div class="prh mv"><span>Lista</span><span>Seggi</span><span>Ultimi 7 giorni</span><span>7 gg</span><span>30 gg</span></div>
   <div id="k-movers"></div>
  </div>
- <p class="fn">I dati indicano la mediana dei seggi assegnati a ciascuna lista dai sondaggi compresi nelle diverse finestre temporali: in questo modo una singola rilevazione anomala non altera il risultato. Le variazioni inferiori a un seggio vanno considerate rumore statistico.</p>
+ <p class="fn">I dati indicano la mediana dei seggi assegnati a ciascuna lista dai sondaggi compresi nelle diverse finestre temporali: in questo modo una singola rilevazione anomala non altera il risultato. Le variazioni inferiori a un seggio vanno considerate rumore statistico.<span id="k-movscio"></span></p>
 </section>
 
 <section>
@@ -1622,11 +1622,21 @@ function med(l,id){
  var v=l.map(function(s){return s.seggi[id]||0;}).sort(function(a,b){return a-b;});
  return v.length%2?v[(v.length-1)/2]:(v[v.length/2-1]+v[v.length/2])/2;
 }
+/* Liste che lo scenario attivo ha sciolto dentro un'altra: la proiezione non le contiene
+   più, e mostrarle qui accanto — sotto un'intestazione «Seggi» identica a quella di
+   «Proiezione per lista» — fa dedurre al lettore che il modello ignori la fusione.
+   Non si fondono i seggi: sommare seggi già ripartiti è scorretto, per la ragione
+   spiegata in quoteDa(), dove la fusione avviene sulle quote di voto. Si omettono
+   soltanto, e la nota sotto la tabella lo dichiara. */
+function sciolteDalloScenario(){
+ return PAR.listaunita?['hadash_taal','balad']:[];
+}
 function movimenti(){
  var w0=finestra(0,6),w1=finestra(7,13),w2=finestra(28,34);
  if(w2.length<2) w2=finestra(25,38);
- var r=[];
+ var r=[],fuori=sciolteDalloScenario();
  IDS.forEach(function(i){
+  if(fuori.indexOf(i)>=0) return;
   var a=med(w0,i); if(a===null) return;
   var b=med(w1,i),c=med(w2,i);
   if(!a&&!b&&!c) return;
@@ -1718,6 +1728,13 @@ function rAnalisi(){
       d(x.d7)+d(x.d30)+'</div>';
  });
  $('k-movers').innerHTML=hh;
+ /* la nota deve dire perché mancano le liste che lo scenario ha sciolto: il lettore
+    che le cerca nella tabella non deve concludere che il modello se ne sia dimenticato */
+ var fuori=sciolteDalloScenario();
+ $('k-movscio').innerHTML=fuori.length?
+  ' La mediana è calcolata sulle rilevazioni grezze, che riportano ancora le liste separate: '+
+  fuori.map(function(i){return E(nm(i));}).join(' e ')+' non compaiono qui perché lo scenario attivo '+
+  'le ha fuse nella Lista Unita araba, che «Proiezione per lista» mostra al loro posto.':'';
 
  /* testo di analisi generato dai numeri */
  var t=[],b=blocchi(SEG);
@@ -1739,12 +1756,24 @@ function rAnalisi(){
  var testo=t.join(', ')+'. ';
  /* la mediana è grezza, la proiezione pesa per recenza e dimezza gli istituti di parte:
     quando i due indicatori divergono conviene dirlo, non nasconderlo */
- var capo=Object.keys(SEG).sort(function(a,b){return SEG[b]-SEG[a];})[0];
- if(primi.length&&capo&&capo!==primi[0].id&&Math.abs(primi[0].ora-primi[1].ora)>=0.6)
-  testo+='La proiezione del modello ribalta tuttavia l\'ordine e colloca <b>'+nmA(capo)+'</b> al primo posto. '+
-   'La differenza dipende dal metodo di calcolo: la mediana attribuisce lo stesso valore a tutte le rilevazioni, '+
+ /* A parità di seggi il primo posto in SEG non è un risultato del modello: è l'ordine in
+    cui dhondt() ha inserito le chiavi. Raccontarlo come sorpasso significa spacciare un
+    dettaglio di implementazione per una notizia, e la pagina lo ha fatto con Likud e
+    Yashar entrambi a 23. Quando i primi sono appaiati si dice che sono appaiati. */
+ var clas=Object.keys(SEG).filter(function(k){return SEG[k]>0;})
+   .sort(function(a,b){return SEG[b]-SEG[a];});
+ var capo=clas[0], exaequo=clas.filter(function(k){return SEG[k]===SEG[capo];});
+ var metodo='La differenza dipende dal metodo di calcolo: la mediana attribuisce lo stesso valore a tutte le rilevazioni, '+
    'mentre il modello assegna un peso maggiore ai sondaggi più recenti e dimezza quello degli istituti per i quali '+
    'è stato rilevato un effetto casa. ';
+ if(primi.length>1&&capo&&Math.abs(primi[0].ora-primi[1].ora)>=0.6){
+  if(exaequo.length>1)
+   testo+='La proiezione del modello non conferma tuttavia il distacco e dà '+
+    exaequo.map(function(k){return '<b>'+nm(k)+'</b>';}).join(' e ')+
+    ' appaiati a '+seg(SEG[capo])+'. '+metodo;
+  else if(capo!==primi[0].id)
+   testo+='La proiezione del modello ribalta tuttavia l\'ordine e colloca <b>'+nmA(capo)+'</b> al primo posto. '+metodo;
+ }
  var risk=aRischio();
  if(risk.length) testo+='Sul filo dello sbarramento c\'è '+risk.map(function(i){
    return '<b>'+nm(i)+'</b>, fuori nel '+pc(MC.sotto[i]/MC.n)+' delle simulazioni';}).join(', e ')+
@@ -1762,7 +1791,7 @@ function rAnalisi(){
  testo+='La mediana è calcolata su '+M.n0+' rilevazioni'+(M.da?' pubblicate fra il '+dl(M.da)+' e il '+dl(M.a):'')+'.';
  $('k-analisi').innerHTML=testo;
  /* sommario in testata */
- $('k-deck').innerHTML='Proiezione dei 120 seggi della 26ª Knesset. Oggi il blocco Netanyahu è stimata a <b>'+
+ $('k-deck').innerHTML='Proiezione dei 120 seggi della 26ª Knesset. Oggi il blocco Netanyahu è stimato a <b>'+
   f(b.coalizione)+' seggi</b>, mentre l\'opposizione sionista ne otterrebbe <b>'+f(b.opposizione)+'</b>. '+
   'Per governare senza il sostegno dei partiti arabi ne servono 61. Il modello utilizza la media ponderata di '+
   f(L.length)+' rilevazioni, assegna i seggi con il metodo Bader-Ofer ed esegue '+f(SIM)+' simulazioni per tenere '+

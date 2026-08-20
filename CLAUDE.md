@@ -21,7 +21,7 @@ alle prove.
 
 ```bash
 npm install          # solo la prima volta: installa jsdom per le prove
-npm test             # estrae il JS e lancia le 230 prove
+npm test             # estrae il JS e lancia le 239 prove
 npm run verifica     # prove + controlli strutturali
 ```
 
@@ -376,6 +376,44 @@ prossima cosa da fare dopo l'embed.**
    il riquadro del browser non si ridimensionava, e l'invariante 8 — nessun testo negli
    SVG sotto i 5px reali a viewport 380 — è verificata solo alla larghezza disponibile.
 
+### Le due colonne «Seggi»: cosa è chiuso e cosa resta aperto
+
+`SEG` (proiezione: media pesata a 60 giorni → Bader-Ofer) e `med()` (mediana grezza dei
+seggi già ripartiti, finestra 7 giorni) sono **due grandezze diverse di proposito**, e
+tali restano. `PAR.listaunita` acceso per impostazione predefinita è corretto: Hadash-Ta'al
+e Balad si sono fuse davvero, e le rilevazioni con le due liste separate sono dati storici
+che `quoteDa()` armonizza sulle quote. **La proiezione non si tocca.**
+
+Chiuso il 20 agosto 2026: il testo di `k-analisi` non rivendica più un primo posto quando
+in `SEG` i primi sono appaiati, e `movimenti()` non emette righe per le liste che lo
+scenario attivo ha sciolto. `test/suite/mediana.js` lega le due strade — è la stessa
+lacuna dei token di blocco chiusa in `f2ae70e`, spostata dal colore all'anagrafica delle
+liste. Prima di quel commit `movimenti` e `med` non comparivano in nessuna delle 230 prove.
+
+Resta aperto, in ordine di scadenza:
+
+- **Il rimedio pieno alla mediana — fondere sulle quote anche in `med()` — è ancora da
+  decidere.** Oggi le liste sciolte vengono soltanto omesse, e la nota lo dichiara. La
+  finestra a 7 giorni fa sì che il problema si risolva da sé quando i sondaggisti
+  passeranno alla sigla unita, ma **in una data che non controlliamo**; e l'**8 settembre**,
+  con le altre fusioni al deposito delle liste, il caso si moltiplica. Non improvvisare:
+  sommare seggi già ripartiti è scorretto, il perché sta nel commento in `quoteDa()`.
+- **La colonna mediana non risponde a nessun comando:** ignora `ESCL`, `SW`, `AFF`.
+  Misurato: escludendo Direct Polls la proiezione muove Likud 23→22, Yashar 23→24, Lista
+  Unita 8→7, e «L'analisi» resta immobile pur avendo due rilevazioni Direct Polls dentro
+  la sua finestra di sette giorni. Il lettore che preme un pulsante vede muoversi una
+  tabella sola.
+- **`k-direz` e `k-analisi` si contraddicono a tre righe di distanza.** Il riquadro dice
+  «Blocco Netanyahu 51 −1» (due esecuzioni del modello); la frase sotto dice «guadagna 1
+  seggio», perché `db7` fa la differenza fra mediane di blocco. Il riquadro dichiara la
+  distinzione, la frase no.
+- **Nel punto in cui la differenza si vede — le due colonne «Seggi» affiancate — la pagina
+  non spiega nulla.** Le tre note esistenti stanno altrove, e **nessuna nomina la finestra
+  a 7 giorni contro quella a 60**, che è la ragione principale per cui i due numeri
+  divergono.
+- Minore: l'ultimo avvenimento della cronologia entra in `k-analisi` con l'iniziale forzata
+  a minuscola, e su un nome proprio produce «hadash, Ta'al e Balad firmano l'accordo».
+
 ### Sui colori, prima di tutto il resto: la scala delle bande parte troppo in basso
 
 **Il ΔE2000 mente in fondo alla scala.** La banda 1 sta a L\* 17, quasi nera, e a quella
@@ -433,6 +471,6 @@ nessuno degli altri settori.
 trovati oggi — la stella della bandiera che sconfinava nelle bande, l'occhiello a filo del
 bordo sull'ombra, il vuoto di 372px sotto le ipotesi, l'evidenziazione che competeva con
 la codifica del riempimento, il verde arabo che si leggeva nero — sono stati trovati
-**guardando la pagina**, non dalla suite. Le 230 prove dicono che il modello non si è
+**guardando la pagina**, non dalla suite. Le 239 prove dicono che il modello non si è
 rotto; non dicono che la pagina si veda. Dopo ogni push, aprire
 <https://angrisanidj.github.io/modello-israele/> e guardarla nei due temi.
