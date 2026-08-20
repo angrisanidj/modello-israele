@@ -21,7 +21,7 @@ alle prove.
 
 ```bash
 npm install          # solo la prima volta: installa jsdom per le prove
-npm test             # estrae il JS e lancia le 211 prove
+npm test             # estrae il JS e lancia le 230 prove
 npm run verifica     # prove + controlli strutturali
 ```
 
@@ -341,13 +341,38 @@ Nessuna scelta di colore li risolve: dipendono da come il modello disegna.
 Scritto il 20 agosto 2026, a fine sessione. Serve a chi apre il progetto domani senza
 ricordare niente di oggi.
 
+### Trovato guardando la pagina pubblicata, dopo il push
+
+I quattro token CSS di blocco — `--coal` `--oppo` `--arab` `--inc` — non seguivano la
+regola. Il blocco arriva allo schermo per **due strade**: `BL{}` colora l'emiciclo e le
+legende, i token vengono letti da `leggiTema()` in `C{}` e colorano le barre di
+probabilità, i due istogrammi con le pastiglie di legenda, due colonne del backtest e il
+tratteggio dell'ago della bilancia. Erano già divergenti di ΔE 3–4 da prima; lo scambio di
+banda ha portato blu e verde a **ΔE 11**, e nel tema scuro `--arab` stava a **4,32** di
+contrasto, sotto la soglia. Allineati a `di(blocco, 0, tema)`: tutti i contrasti restano
+sopra 4,5 (il minimo diventa 4,69, `--coal` scuro), e `--arab` scuro sale a 6,19.
+
+La lezione non è il colore, è che **nessuna prova legava le due strade**. Ora
+`regola.js` lo fa. Prima di aggiungere un colore da qualche parte, cercare se lo stesso
+concetto ha già un'altra strada verso lo schermo.
+
+**La regola che vale oltre questo caso: ogni valore che arriva allo schermo per più di una
+strada deve avere una prova che le leghi.** Non basta che ciascuna strada sia giusta per
+conto suo — due copie corrette oggi divergono domani, e divergono in silenzio, perché
+nessuna delle due è sbagliata rispetto a sé stessa. Il colore di blocco è stato divergente
+per tre commit e nessuna delle 211 prove di allora aveva niente da ridire. Le due strade
+del colore di blocco sono chiuse; **se ce ne sono altre nel modello vanno cercate, ed è la
+prossima cosa da fare dopo l'embed.**
+
 ### Nell'ordine
 
 1. **La tabella dell'archivio dei sondaggi che sfora** (punto 13 delle cose da fare).
    Prima dell'embed, non dopo: dentro `?embed=1`, in una colonna stretta, una tabella che
    spinge il documento oltre la finestra peggiora invece di restare com'è.
 2. **Modalità `?embed=1`** per l'inserimento in FocusAmerica (punto 1).
-3. **I 380px su un browser vero.** Nessuno li ha ancora guardati: nella sessione di oggi
+3. **Cercare le altre strade doppie.** Ogni valore che raggiunge lo schermo per più di un
+   percorso e non ha una prova che li leghi è il prossimo colore di blocco. Vedi sopra.
+4. **I 380px su un browser vero.** Nessuno li ha ancora guardati: nella sessione di oggi
    il riquadro del browser non si ridimensionava, e l'invariante 8 — nessun testo negli
    SVG sotto i 5px reali a viewport 380 — è verificata solo alla larghezza disponibile.
 
@@ -375,6 +400,6 @@ nessuno degli altri settori.
 trovati oggi — la stella della bandiera che sconfinava nelle bande, l'occhiello a filo del
 bordo sull'ombra, il vuoto di 372px sotto le ipotesi, l'evidenziazione che competeva con
 la codifica del riempimento, il verde arabo che si leggeva nero — sono stati trovati
-**guardando la pagina**, non dalla suite. Le 211 prove dicono che il modello non si è
+**guardando la pagina**, non dalla suite. Le 230 prove dicono che il modello non si è
 rotto; non dicono che la pagina si veda. Dopo ogni push, aprire
 <https://angrisanidj.github.io/modello-israele/> e guardarla nei due temi.

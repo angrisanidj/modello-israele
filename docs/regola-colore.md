@@ -185,6 +185,18 @@ senza colore proprio.
 Derivata dalla regola, **non autoritativa**: la fonte è la funzione. Che questa tabella e
 `index.html` non divergano è verificato da `test/suite/regola.js` a ogni `npm test`.
 
+**Il colore del blocco è lo slot 0 del blocco.** Non è una convenzione grafica ma un
+vincolo: il blocco arriva allo schermo per due strade indipendenti — l'anagrafica `BL{}`,
+che colora l'emiciclo e le legende, e i quattro token CSS `--coal` `--oppo` `--arab`
+`--inc`, che `leggiTema()` raccoglie in `C{}` per le barre di probabilità, i due
+istogrammi con le loro pastiglie, due colonne del backtest e il tratteggio dell'ago della
+bilancia. Le due strade sono scritte a settecento righe di distanza e sono rimaste
+divergenti per tre commit senza che nulla lo segnalasse; lo scambio di banda fra blu e
+verde ha portato lo scarto a ΔE 11, cioè due blu diversi per lo stesso blocco nella stessa
+pagina, e nel tema scuro il verde dei token era sceso a 4,32 di contrasto, sotto la
+soglia. Ora `regola.js` lega entrambe le strade a `di(blocco, 0, tema)` e pretende che
+`cp(BL.blocco)` e il token scuro coincidano.
+
 | Blocco | Slot | Lista | Chiaro | Scuro |
 |---|---|---|---|---|
 | arabo | 0 | Hadash–Ta’al → Lista Unita | `#374100` | `#8AA20A` |

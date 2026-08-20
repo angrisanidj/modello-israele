@@ -68,6 +68,58 @@ for (const id of Object.keys(SLOT)) {
     ' · scuro: regola ' + attesoS + ' / pagina ' + (trovatoS || '(assente da PAL_SCURO)'));
 }
 
+/* ── i colori di blocco: BL{} e i token CSS devono dire la stessa cosa ──
+ *
+ * Il blocco ha due strade verso lo schermo. BL{} colora l'emiciclo e le legende;
+ * i quattro token --coal/--oppo/--arab/--inc vengono letti da leggiTema() in C{} e
+ * colorano le barre di probabilità, i due istogrammi con le loro pastiglie, due
+ * colonne del backtest e il tratteggio dell'ago della bilancia. Le due strade sono
+ * scritte in punti lontani del file e nessuno le confrontava: sono rimaste divergenti
+ * per tre commit, e lo scambio di banda del 20 agosto ha portato lo scarto a dE 11 —
+ * blu e verde diversi per lo stesso blocco, nella stessa pagina. */
+{
+  const BLOCCHI = {coal:'coalizione', oppo:'opposizione', arab:'arabo', inc:'incerto'};
+  const NOMI = {coal:'Blocco Netanyahu', oppo:'Opposizione sionista',
+                arab:'Partiti arabi', inc:'Ago della bilancia'};
+
+  const bl = html.match(/var BL=\{([\s\S]*?)\};/);
+  esito(!!bl, 'l\'anagrafica BL{} è leggibile in index.html');
+
+  /* Le tre dichiarazioni dei token: una per il tema chiaro, due per lo scuro
+     (.auto sotto prefers-color-scheme e .scuro esplicito). Se il numero cambia,
+     la prova lo dice invece di leggerne una a caso. */
+  const dich = html.match(/--coal:#[0-9A-Fa-f]{6}; --oppo:#[0-9A-Fa-f]{6}; --arab:#[0-9A-Fa-f]{6}; --inc:#[0-9A-Fa-f]{6};/g) || [];
+  esito(dich.length === 3, 'i token di blocco sono dichiarati tre volte (chiaro, .auto, .scuro)',
+    'trovate ' + dich.length + ' dichiarazioni');
+
+  const leggi = r => Object.fromEntries(
+    [...r.matchAll(/--(coal|oppo|arab|inc):(#[0-9A-Fa-f]{6})/g)].map(m => [m[1], m[2].toUpperCase()]));
+
+  if (dich.length === 3) {
+    esito(dich[1] === dich[2], 'le due dichiarazioni del tema scuro coincidono',
+      dich[1] + ' / ' + dich[2]);
+    const tok = {chiaro: leggi(dich[0]), scuro: leggi(dich[1])};
+
+    for (const k of Object.keys(BLOCCHI)) {
+      const b = BLOCCHI[k];
+      for (const tema of ['chiaro', 'scuro']) {
+        const atteso = COLORE.di(b, 0, tema).toUpperCase();
+        esito(tok[tema][k] === atteso, 'il token --' + k + ' del tema ' + tema + ' segue la regola',
+          'regola ' + atteso + ' / pagina ' + tok[tema][k]);
+      }
+      /* e BL{}, che è l'altra strada, deve puntare allo stesso colore chiaro */
+      const m = bl ? new RegExp('n:"' + NOMI[k] + '",c:"(#[0-9A-Fa-f]{6})"').exec(bl[1]) : null;
+      esito(!!m && m[1].toUpperCase() === tok.chiaro[k],
+        'BL.' + BLOCCHI[k] + ' e il token --' + k + ' sono lo stesso colore',
+        m ? 'BL ' + m[1].toUpperCase() + ' / token ' + tok.chiaro[k] : 'blocco assente da BL{}');
+      /* nel tema scuro l'emiciclo passa da cp(): PAL_SCURO deve portare allo stesso token */
+      if (m) esito(scuroDa[m[1].toUpperCase()] === tok.scuro[k],
+        'nel tema scuro cp(BL.' + BLOCCHI[k] + ') e il token --' + k + ' coincidono',
+        'PAL_SCURO ' + (scuroDa[m[1].toUpperCase()] || '(assente)') + ' / token ' + tok.scuro[k]);
+    }
+  }
+}
+
 /* ── nessun colore prodotto dalla regola può essere un grigio ── */
 {
   const smorti = [];
