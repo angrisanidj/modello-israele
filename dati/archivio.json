@@ -1,0 +1,3796 @@
+[
+ {
+  "data": "2026-01-01",
+  "istituto": "Direct Polls",
+  "testata": "Canale 14",
+  "seggi": {
+   "likud": 35,
+   "yesh_atid": 6,
+   "sionismo_rel": 5,
+   "otzma": 7,
+   "shas": 11,
+   "utj": 8,
+   "beitenu": 9,
+   "raam": 5,
+   "hadash_taal": 5,
+   "democratici": 10,
+   "bennett26": 11,
+   "yashar": 8
+  },
+  "sotto": {
+   "blue_white": 0.9,
+   "balad": 2.1
+  },
+  "campione": 736,
+  "casa": 1,
+  "pre": 1
+ },
+ {
+  "data": "2026-01-01",
+  "istituto": "Lazar · Panel4All",
+  "testata": "Maariv",
+  "seggi": {
+   "likud": 27,
+   "yesh_atid": 9,
+   "otzma": 10,
+   "shas": 8,
+   "utj": 7,
+   "beitenu": 10,
+   "raam": 5,
+   "hadash_taal": 5,
+   "democratici": 10,
+   "bennett26": 19,
+   "yashar": 10
+  },
+  "sotto": {
+   "sionismo_rel": 2.8,
+   "blue_white": 2,
+   "balad": 2,
+   "casa_sionista": 3
+  },
+  "pre": 1
+ },
+ {
+  "data": "2026-01-01",
+  "istituto": "Midgam",
+  "testata": "Canale 12",
+  "seggi": {
+   "likud": 26,
+   "yesh_atid": 10,
+   "otzma": 9,
+   "shas": 9,
+   "utj": 7,
+   "beitenu": 9,
+   "raam": 5,
+   "hadash_taal": 5,
+   "democratici": 11,
+   "bennett26": 21,
+   "yashar": 8
+  },
+  "sotto": {
+   "sionismo_rel": 2.9,
+   "blue_white": 2,
+   "balad": 1.8,
+   "casa_sionista": 2.7
+  },
+  "pre": 1
+ },
+ {
+  "data": "2026-01-01",
+  "istituto": "Yossi Taktika",
+  "testata": "Zman Israel",
+  "seggi": {
+   "likud": 28,
+   "yesh_atid": 10,
+   "otzma": 6,
+   "shas": 10,
+   "utj": 8,
+   "beitenu": 10,
+   "raam": 6,
+   "hadash_taal": 5,
+   "democratici": 8,
+   "bennett26": 22,
+   "yashar": 7
+  },
+  "campione": 500,
+  "pre": 1
+ },
+ {
+  "data": "2026-01-07",
+  "istituto": "Maagar Mochot",
+  "testata": "Canale 13",
+  "seggi": {
+   "likud": 26,
+   "yesh_atid": 7,
+   "otzma": 10,
+   "shas": 10,
+   "utj": 7,
+   "beitenu": 10,
+   "raam": 5,
+   "hadash_taal": 5,
+   "democratici": 8,
+   "bennett26": 24,
+   "yashar": 8
+  },
+  "sotto": {
+   "sionismo_rel": 2.3,
+   "blue_white": 2.3,
+   "balad": 2.3,
+   "casa_sionista": 1.6
+  },
+  "pre": 1
+ },
+ {
+  "data": "2026-01-08",
+  "istituto": "Direct Polls",
+  "testata": "Canale 14",
+  "seggi": {
+   "likud": 35,
+   "yesh_atid": 6,
+   "sionismo_rel": 4,
+   "otzma": 7,
+   "shas": 11,
+   "utj": 9,
+   "beitenu": 9,
+   "raam": 5,
+   "hadash_taal": 5,
+   "democratici": 8,
+   "bennett26": 13,
+   "yashar": 8
+  },
+  "sotto": {
+   "blue_white": 1.4,
+   "balad": 2.1
+  },
+  "campione": 506,
+  "casa": 1,
+  "pre": 1
+ },
+ {
+  "data": "2026-01-08",
+  "istituto": "Lazar · Panel4All",
+  "testata": "Maariv",
+  "seggi": {
+   "likud": 27,
+   "yesh_atid": 8,
+   "otzma": 9,
+   "shas": 8,
+   "utj": 7,
+   "beitenu": 9,
+   "raam": 5,
+   "hadash_taal": 5,
+   "democratici": 10,
+   "bennett26": 22,
+   "yashar": 10
+  },
+  "sotto": {
+   "sionismo_rel": 2.2,
+   "blue_white": 2.2,
+   "balad": 1.8,
+   "casa_sionista": 2.7
+  },
+  "campione": 503,
+  "pre": 1
+ },
+ {
+  "data": "2026-01-08",
+  "istituto": "Midgam",
+  "testata": "Canale 12",
+  "seggi": {
+   "likud": 25,
+   "yesh_atid": 9,
+   "sionismo_rel": 4,
+   "otzma": 8,
+   "shas": 8,
+   "utj": 7,
+   "beitenu": 8,
+   "raam": 5,
+   "hadash_taal": 5,
+   "democratici": 12,
+   "bennett26": 21,
+   "yashar": 8
+  },
+  "sotto": {
+   "blue_white": 0.6,
+   "balad": 1.3,
+   "casa_sionista": 2.5
+  },
+  "pre": 1
+ },
+ {
+  "data": "2026-01-08",
+  "istituto": "Yossi Taktika",
+  "testata": "Zman Israel",
+  "seggi": {
+   "likud": 28,
+   "yesh_atid": 10,
+   "otzma": 7,
+   "shas": 10,
+   "utj": 8,
+   "beitenu": 10,
+   "raam": 6,
+   "hadash_taal": 5,
+   "democratici": 9,
+   "bennett26": 21,
+   "yashar": 6
+  },
+  "campione": 500,
+  "pre": 1
+ },
+ {
+  "data": "2026-01-14",
+  "istituto": "Kantar",
+  "testata": "Israel Hayom",
+  "seggi": {
+   "likud": 27,
+   "yesh_atid": 8,
+   "otzma": 9,
+   "shas": 10,
+   "utj": 7,
+   "beitenu": 8,
+   "raam": 5,
+   "hadash_taal": 5,
+   "democratici": 9,
+   "bennett26": 23,
+   "yashar": 9
+  },
+  "sotto": {
+   "sionismo_rel": 2.9,
+   "blue_white": 3,
+   "balad": 1.9,
+   "casa_sionista": 2.7
+  },
+  "campione": 600,
+  "pre": 1
+ },
+ {
+  "data": "2026-01-15",
+  "istituto": "Direct Polls",
+  "testata": "Canale 14",
+  "seggi": {
+   "likud": 35,
+   "yesh_atid": 5,
+   "sionismo_rel": 4,
+   "otzma": 7,
+   "shas": 11,
+   "utj": 9,
+   "beitenu": 10,
+   "raam": 6,
+   "hadash_taal": 5,
+   "democratici": 11,
+   "bennett26": 11,
+   "yashar": 6
+  },
+  "sotto": {
+   "blue_white": 2.8,
+   "balad": 2.1
+  },
+  "campione": 604,
+  "casa": 1,
+  "pre": 1
+ },
+ {
+  "data": "2026-01-15",
+  "istituto": "Lazar · Panel4All",
+  "testata": "Maariv",
+  "seggi": {
+   "likud": 26,
+   "yesh_atid": 9,
+   "otzma": 10,
+   "shas": 8,
+   "utj": 7,
+   "beitenu": 8,
+   "raam": 4,
+   "hadash_taal": 5,
+   "democratici": 10,
+   "bennett26": 22,
+   "yashar": 11
+  },
+  "sotto": {
+   "sionismo_rel": 2.6,
+   "blue_white": 2.3,
+   "balad": 2.1,
+   "casa_sionista": 2.6
+  },
+  "campione": 501,
+  "pre": 1
+ },
+ {
+  "data": "2026-01-15",
+  "istituto": "Midgam",
+  "testata": "Canale 12",
+  "seggi": {
+   "likud": 26,
+   "yesh_atid": 9,
+   "otzma": 9,
+   "shas": 8,
+   "utj": 8,
+   "beitenu": 8,
+   "raam": 5,
+   "hadash_taal": 5,
+   "democratici": 12,
+   "bennett26": 22,
+   "yashar": 8
+  },
+  "sotto": {
+   "sionismo_rel": 2.9,
+   "blue_white": 2.4,
+   "balad": 1.7,
+   "casa_sionista": 1.4
+  },
+  "campione": 504,
+  "pre": 1
+ },
+ {
+  "data": "2026-01-15",
+  "istituto": "Yossi Taktika",
+  "testata": "Zman Israel",
+  "seggi": {
+   "likud": 27,
+   "yesh_atid": 9,
+   "otzma": 7,
+   "blue_white": 4,
+   "shas": 10,
+   "utj": 8,
+   "beitenu": 10,
+   "raam": 6,
+   "hadash_taal": 5,
+   "democratici": 8,
+   "bennett26": 19,
+   "yashar": 7
+  },
+  "campione": 500,
+  "pre": 1
+ },
+ {
+  "data": "2026-01-20",
+  "istituto": "Maagar Mochot",
+  "testata": "Canale 13",
+  "seggi": {
+   "likud": 25,
+   "yesh_atid": 7,
+   "otzma": 9,
+   "shas": 10,
+   "utj": 7,
+   "beitenu": 9,
+   "raam": 4,
+   "hadash_taal": 5,
+   "balad": 4,
+   "democratici": 10,
+   "bennett26": 23,
+   "yashar": 7
+  },
+  "sotto": {
+   "sionismo_rel": 2.6,
+   "blue_white": 2,
+   "casa_sionista": 2
+  },
+  "pre": 1
+ },
+ {
+  "data": "2026-01-22",
+  "istituto": "Lazar · Panel4All",
+  "testata": "Maariv",
+  "seggi": {
+   "likud": 25,
+   "yesh_atid": 9,
+   "otzma": 9,
+   "shas": 8,
+   "utj": 7,
+   "beitenu": 9,
+   "raam": 5,
+   "hadash_taal": 5,
+   "democratici": 9,
+   "bennett26": 23,
+   "yashar": 11
+  },
+  "sotto": {
+   "sionismo_rel": 2,
+   "blue_white": 2.8,
+   "balad": 1.9,
+   "casa_sionista": 2.8
+  },
+  "campione": 501,
+  "pre": 1
+ },
+ {
+  "data": "2026-01-22",
+  "istituto": "Midgam",
+  "testata": "Canale 12",
+  "seggi": {
+   "likud": 25,
+   "yesh_atid": 8,
+   "otzma": 9,
+   "shas": 9,
+   "utj": 8,
+   "beitenu": 9,
+   "raam": 5,
+   "hadash_taal": 5,
+   "democratici": 11,
+   "bennett26": 22,
+   "yashar": 9
+  },
+  "sotto": {
+   "sionismo_rel": 2.9,
+   "blue_white": 1.7,
+   "balad": 1.1,
+   "casa_sionista": 2.7
+  },
+  "campione": 501,
+  "pre": 1
+ },
+ {
+  "data": "2026-01-22",
+  "istituto": "Yossi Taktika",
+  "testata": "Zman Israel",
+  "seggi": {
+   "likud": 25,
+   "yesh_atid": 8,
+   "sionismo_rel": 4,
+   "otzma": 6,
+   "blue_white": 4,
+   "shas": 10,
+   "utj": 8,
+   "beitenu": 10,
+   "raam": 6,
+   "hadash_taal": 5,
+   "democratici": 9,
+   "bennett26": 18,
+   "yashar": 7
+  },
+  "campione": 500,
+  "pre": 1
+ },
+ {
+  "data": "2026-01-29",
+  "istituto": "Direct Polls",
+  "testata": "Canale 14",
+  "seggi": {
+   "likud": 34,
+   "yesh_atid": 6,
+   "sionismo_rel": 4,
+   "otzma": 7,
+   "shas": 10,
+   "utj": 9,
+   "beitenu": 9,
+   "lista_araba": 13,
+   "democratici": 9,
+   "bennett26": 12,
+   "yashar": 7
+  },
+  "sotto": {
+   "blue_white": 3
+  },
+  "campione": 952,
+  "casa": 1,
+  "pre": 1
+ },
+ {
+  "data": "2026-01-29",
+  "istituto": "Lazar · Panel4All",
+  "testata": "Maariv",
+  "seggi": {
+   "likud": 27,
+   "yesh_atid": 7,
+   "otzma": 8,
+   "shas": 8,
+   "utj": 7,
+   "beitenu": 9,
+   "lista_araba": 13,
+   "democratici": 9,
+   "bennett26": 22,
+   "yashar": 10
+  },
+  "sotto": {
+   "sionismo_rel": 2.2,
+   "blue_white": 2.7,
+   "casa_sionista": 1.8
+  },
+  "campione": 503,
+  "pre": 1
+ },
+ {
+  "data": "2026-01-29",
+  "istituto": "Midgam",
+  "testata": "Canale 12",
+  "seggi": {
+   "likud": 27,
+   "yesh_atid": 8,
+   "otzma": 8,
+   "shas": 9,
+   "utj": 7,
+   "beitenu": 8,
+   "lista_araba": 12,
+   "democratici": 11,
+   "bennett26": 21,
+   "yashar": 9
+  },
+  "sotto": {
+   "sionismo_rel": 2.9,
+   "blue_white": 1.8,
+   "casa_sionista": 1
+  },
+  "campione": 501,
+  "pre": 1
+ },
+ {
+  "data": "2026-02-04",
+  "istituto": "Maagar Mochot",
+  "testata": "Canale 13",
+  "seggi": {
+   "likud": 26,
+   "yesh_atid": 8,
+   "sionismo_rel": 4,
+   "otzma": 9,
+   "shas": 9,
+   "utj": 6,
+   "beitenu": 7,
+   "lista_araba": 15,
+   "democratici": 8,
+   "bennett26": 22,
+   "yashar": 6
+  },
+  "pre": 1
+ },
+ {
+  "data": "2026-02-05",
+  "istituto": "Direct Polls",
+  "testata": "Canale 14",
+  "seggi": {
+   "likud": 34,
+   "yesh_atid": 4,
+   "sionismo_rel": 4,
+   "otzma": 7,
+   "blue_white": 4,
+   "shas": 11,
+   "utj": 9,
+   "beitenu": 8,
+   "lista_araba": 13,
+   "democratici": 9,
+   "bennett26": 11,
+   "yashar": 6
+  },
+  "campione": 952,
+  "casa": 1,
+  "pre": 1
+ },
+ {
+  "data": "2026-02-05",
+  "istituto": "Yossi Taktika",
+  "testata": "Times of Israel",
+  "seggi": {
+   "likud": 27,
+   "yesh_atid": 8,
+   "otzma": 7,
+   "blue_white": 4,
+   "shas": 10,
+   "utj": 8,
+   "beitenu": 10,
+   "lista_araba": 14,
+   "democratici": 8,
+   "bennett26": 18,
+   "yashar": 6
+  },
+  "campione": 500,
+  "pre": 1
+ },
+ {
+  "data": "2026-02-06",
+  "istituto": "TrendZone",
+  "testata": "",
+  "seggi": {
+   "likud": 33,
+   "yesh_atid": 5,
+   "otzma": 8,
+   "shas": 7,
+   "utj": 7,
+   "beitenu": 8,
+   "lista_araba": 15,
+   "democratici": 9,
+   "bennett26": 20,
+   "yashar": 8
+  },
+  "pre": 1
+ },
+ {
+  "data": "2026-02-12",
+  "istituto": "Direct Polls",
+  "testata": "Canale 14",
+  "seggi": {
+   "likud": 35,
+   "yesh_atid": 5,
+   "sionismo_rel": 5,
+   "otzma": 7,
+   "shas": 10,
+   "utj": 9,
+   "beitenu": 8,
+   "lista_araba": 13,
+   "democratici": 10,
+   "bennett26": 10,
+   "yashar": 8
+  },
+  "campione": 532,
+  "casa": 1,
+  "pre": 1
+ },
+ {
+  "data": "2026-02-12",
+  "istituto": "Lazar · Panel4All",
+  "testata": "Maariv",
+  "seggi": {
+   "likud": 25,
+   "yesh_atid": 9,
+   "otzma": 10,
+   "shas": 8,
+   "utj": 7,
+   "beitenu": 9,
+   "raam": 5,
+   "hadash_taal": 5,
+   "democratici": 9,
+   "bennett26": 21,
+   "yashar": 12
+  },
+  "sotto": {
+   "sionismo_rel": 2.5,
+   "blue_white": 2.5,
+   "balad": 2,
+   "casa_sionista": 2.3
+  },
+  "campione": 593,
+  "pre": 1
+ },
+ {
+  "data": "2026-02-17",
+  "istituto": "Maagar Mochot",
+  "testata": "Canale 13",
+  "seggi": {
+   "likud": 25,
+   "yesh_atid": 9,
+   "otzma": 8,
+   "shas": 10,
+   "utj": 7,
+   "beitenu": 8,
+   "lista_araba": 15,
+   "democratici": 7,
+   "bennett26": 22,
+   "yashar": 9
+  },
+  "sotto": {
+   "sionismo_rel": 2.4,
+   "blue_white": 1.6,
+   "casa_sionista": 1.3
+  },
+  "pre": 1
+ },
+ {
+  "data": "2026-02-18",
+  "istituto": "Direct Polls",
+  "testata": "i24NEWS",
+  "seggi": {
+   "likud": 34,
+   "sionismo_rel": 4,
+   "otzma": 8,
+   "shas": 10,
+   "utj": 8,
+   "beitenu": 8,
+   "lista_araba": 14,
+   "democratici": 9,
+   "bennett26": 14,
+   "yashar": 11
+  },
+  "sotto": {
+   "yesh_atid": 2.9,
+   "blue_white": 2.6,
+   "casa_sionista": 2.4
+  },
+  "campione": 535,
+  "casa": 1,
+  "pre": 1
+ },
+ {
+  "data": "2026-02-19",
+  "istituto": "Direct Polls",
+  "testata": "Canale 14",
+  "seggi": {
+   "likud": 34,
+   "yesh_atid": 5,
+   "sionismo_rel": 4,
+   "otzma": 8,
+   "shas": 10,
+   "utj": 9,
+   "beitenu": 8,
+   "lista_araba": 13,
+   "democratici": 9,
+   "bennett26": 11,
+   "yashar": 9
+  },
+  "campione": 1024,
+  "casa": 1,
+  "pre": 1
+ },
+ {
+  "data": "2026-02-19",
+  "istituto": "Lazar · Panel4All",
+  "testata": "Maariv",
+  "seggi": {
+   "likud": 26,
+   "yesh_atid": 8,
+   "otzma": 9,
+   "shas": 8,
+   "utj": 7,
+   "beitenu": 8,
+   "raam": 5,
+   "hadash_taal": 5,
+   "democratici": 11,
+   "bennett26": 20,
+   "yashar": 13
+  },
+  "sotto": {
+   "sionismo_rel": 2.6,
+   "blue_white": 2.9,
+   "balad": 1.8,
+   "casa_sionista": 1.3
+  },
+  "campione": 501,
+  "pre": 1
+ },
+ {
+  "data": "2026-02-19",
+  "istituto": "Yossi Taktika",
+  "testata": "Zman Israel",
+  "seggi": {
+   "likud": 27,
+   "yesh_atid": 7,
+   "otzma": 7,
+   "blue_white": 4,
+   "shas": 10,
+   "utj": 8,
+   "beitenu": 10,
+   "raam": 6,
+   "hadash_taal": 5,
+   "democratici": 9,
+   "bennett26": 18,
+   "yashar": 9
+  },
+  "campione": 500,
+  "pre": 1
+ },
+ {
+  "data": "2026-02-26",
+  "istituto": "Direct Polls",
+  "testata": "Canale 14",
+  "seggi": {
+   "likud": 33,
+   "yesh_atid": 4,
+   "sionismo_rel": 5,
+   "otzma": 8,
+   "shas": 11,
+   "utj": 8,
+   "beitenu": 8,
+   "lista_araba": 13,
+   "democratici": 9,
+   "bennett26": 10,
+   "yashar": 11
+  },
+  "campione": 579,
+  "casa": 1,
+  "pre": 1
+ },
+ {
+  "data": "2026-02-26",
+  "istituto": "Midgam",
+  "testata": "Canale 12",
+  "seggi": {
+   "likud": 26,
+   "yesh_atid": 7,
+   "otzma": 10,
+   "shas": 9,
+   "utj": 7,
+   "beitenu": 8,
+   "raam": 6,
+   "hadash_taal": 4,
+   "democratici": 11,
+   "bennett26": 21,
+   "yashar": 11
+  },
+  "sotto": {
+   "sionismo_rel": 2.6,
+   "blue_white": 1.9,
+   "balad": 1.6,
+   "casa_sionista": 1.9
+  },
+  "pre": 1
+ },
+ {
+  "data": "2026-02-26",
+  "istituto": "Yossi Taktika",
+  "testata": "Zman Israel",
+  "seggi": {
+   "likud": 27,
+   "yesh_atid": 7,
+   "otzma": 8,
+   "shas": 10,
+   "utj": 8,
+   "beitenu": 10,
+   "raam": 6,
+   "hadash_taal": 5,
+   "democratici": 9,
+   "bennett26": 18,
+   "yashar": 12
+  },
+  "campione": 500,
+  "pre": 1
+ },
+ {
+  "data": "2026-03-05",
+  "istituto": "Direct Polls",
+  "testata": "Canale 14",
+  "seggi": {
+   "likud": 34,
+   "yesh_atid": 4,
+   "sionismo_rel": 4,
+   "otzma": 8,
+   "shas": 11,
+   "utj": 9,
+   "beitenu": 7,
+   "lista_araba": 13,
+   "democratici": 9,
+   "bennett26": 11,
+   "yashar": 10
+  },
+  "sotto": {
+   "blue_white": 1.3
+  },
+  "campione": 742,
+  "casa": 1,
+  "pre": 1
+ },
+ {
+  "data": "2026-03-05",
+  "istituto": "Lazar · Panel4All",
+  "testata": "Maariv",
+  "seggi": {
+   "likud": 27,
+   "yesh_atid": 6,
+   "otzma": 9,
+   "shas": 8,
+   "utj": 7,
+   "beitenu": 8,
+   "raam": 5,
+   "hadash_taal": 5,
+   "democratici": 10,
+   "bennett26": 21,
+   "yashar": 14
+  },
+  "sotto": {
+   "sionismo_rel": 2.8,
+   "blue_white": 2,
+   "balad": 1.6,
+   "casa_sionista": 2.8
+  },
+  "campione": 500,
+  "pre": 1
+ },
+ {
+  "data": "2026-03-05",
+  "istituto": "Yossi Taktika",
+  "testata": "Zman Israel",
+  "seggi": {
+   "likud": 31,
+   "yesh_atid": 6,
+   "otzma": 6,
+   "blue_white": 4,
+   "shas": 9,
+   "utj": 7,
+   "beitenu": 10,
+   "raam": 5,
+   "hadash_taal": 5,
+   "democratici": 8,
+   "bennett26": 15,
+   "yashar": 14
+  },
+  "campione": 500,
+  "pre": 1
+ },
+ {
+  "data": "2026-03-11",
+  "istituto": "Midgam",
+  "testata": "Canale 12",
+  "seggi": {
+   "likud": 26,
+   "yesh_atid": 6,
+   "otzma": 9,
+   "shas": 9,
+   "utj": 7,
+   "beitenu": 9,
+   "raam": 5,
+   "hadash_taal": 5,
+   "democratici": 12,
+   "bennett26": 21,
+   "yashar": 11
+  },
+  "pre": 1
+ },
+ {
+  "data": "2026-03-12",
+  "istituto": "Yossi Taktika",
+  "testata": "Zman Israel",
+  "seggi": {
+   "likud": 29,
+   "yesh_atid": 6,
+   "sionismo_rel": 4,
+   "otzma": 6,
+   "shas": 8,
+   "utj": 7,
+   "beitenu": 10,
+   "raam": 5,
+   "hadash_taal": 5,
+   "democratici": 8,
+   "bennett26": 17,
+   "yashar": 15
+  },
+  "campione": 500,
+  "pre": 1
+ },
+ {
+  "data": "2026-03-19",
+  "istituto": "Midgam",
+  "testata": "Canale 12",
+  "seggi": {
+   "likud": 28,
+   "yesh_atid": 6,
+   "otzma": 7,
+   "shas": 9,
+   "utj": 7,
+   "beitenu": 9,
+   "raam": 5,
+   "hadash_taal": 5,
+   "democratici": 12,
+   "bennett26": 20,
+   "yashar": 12
+  },
+  "campione": 503,
+  "pre": 1
+ },
+ {
+  "data": "2026-03-19",
+  "istituto": "Yossi Taktika",
+  "testata": "Zman Israel",
+  "seggi": {
+   "likud": 28,
+   "yesh_atid": 5,
+   "otzma": 7,
+   "blue_white": 4,
+   "shas": 8,
+   "utj": 8,
+   "beitenu": 10,
+   "raam": 5,
+   "hadash_taal": 5,
+   "democratici": 9,
+   "bennett26": 15,
+   "yashar": 16
+  },
+  "campione": 500,
+  "pre": 1
+ },
+ {
+  "data": "2026-03-20",
+  "istituto": "Lazar · Panel4All",
+  "testata": "Maariv",
+  "seggi": {
+   "likud": 28,
+   "yesh_atid": 8,
+   "otzma": 7,
+   "shas": 8,
+   "utj": 7,
+   "beitenu": 10,
+   "raam": 5,
+   "hadash_taal": 5,
+   "democratici": 10,
+   "bennett26": 21,
+   "yashar": 11
+  },
+  "pre": 1
+ },
+ {
+  "data": "2026-03-26",
+  "istituto": "Direct Polls",
+  "testata": "Canale 14",
+  "seggi": {
+   "likud": 35,
+   "yesh_atid": 4,
+   "sionismo_rel": 4,
+   "otzma": 7,
+   "shas": 10,
+   "utj": 9,
+   "beitenu": 8,
+   "lista_araba": 12,
+   "democratici": 10,
+   "bennett26": 10,
+   "yashar": 11
+  },
+  "sotto": {
+   "blue_white": 1.2
+  },
+  "campione": 754,
+  "casa": 1,
+  "pre": 1
+ },
+ {
+  "data": "2026-03-26",
+  "istituto": "Lazar · Panel4All",
+  "testata": "Maariv",
+  "seggi": {
+   "likud": 26,
+   "yesh_atid": 7,
+   "otzma": 9,
+   "shas": 8,
+   "utj": 7,
+   "beitenu": 9,
+   "raam": 5,
+   "hadash_taal": 5,
+   "democratici": 10,
+   "bennett26": 21,
+   "yashar": 13
+  },
+  "sotto": {
+   "sionismo_rel": 2.3,
+   "blue_white": 2.8,
+   "balad": 1.3,
+   "casa_sionista": 1.6
+  },
+  "campione": 500,
+  "pre": 1
+ },
+ {
+  "data": "2026-03-26",
+  "istituto": "Yossi Taktika",
+  "testata": "Zman Israel",
+  "seggi": {
+   "likud": 29,
+   "yesh_atid": 6,
+   "otzma": 7,
+   "shas": 9,
+   "utj": 8,
+   "beitenu": 10,
+   "raam": 5,
+   "hadash_taal": 5,
+   "democratici": 8,
+   "bennett26": 16,
+   "yashar": 17
+  },
+  "campione": 500,
+  "pre": 1
+ },
+ {
+  "data": "2026-03-31",
+  "istituto": "Lazar · Panel4All",
+  "testata": "Maariv",
+  "seggi": {
+   "likud": 25,
+   "yesh_atid": 8,
+   "otzma": 8,
+   "shas": 9,
+   "utj": 7,
+   "beitenu": 8,
+   "raam": 4,
+   "hadash_taal": 6,
+   "democratici": 9,
+   "bennett26": 22,
+   "yashar": 14
+  },
+  "sotto": {
+   "sionismo_rel": 2,
+   "blue_white": 1.4,
+   "balad": 1.2,
+   "casa_sionista": 1.4
+  },
+  "campione": 500,
+  "pre": 1
+ },
+ {
+  "data": "2026-04-09",
+  "istituto": "Direct Polls",
+  "testata": "Canale 14",
+  "seggi": {
+   "likud": 35,
+   "yesh_atid": 4,
+   "sionismo_rel": 4,
+   "otzma": 7,
+   "shas": 10,
+   "utj": 9,
+   "beitenu": 8,
+   "lista_araba": 11,
+   "democratici": 10,
+   "bennett26": 10,
+   "yashar": 12
+  },
+  "sotto": {
+   "blue_white": 1.8
+  },
+  "campione": 951,
+  "casa": 1,
+  "pre": 1
+ },
+ {
+  "data": "2026-04-09",
+  "istituto": "Kantar",
+  "testata": "Kan 11",
+  "seggi": {
+   "likud": 25,
+   "yesh_atid": 6,
+   "otzma": 10,
+   "shas": 9,
+   "utj": 7,
+   "beitenu": 9,
+   "raam": 5,
+   "hadash_taal": 5,
+   "democratici": 11,
+   "bennett26": 19,
+   "yashar": 14
+  },
+  "sotto": {
+   "sionismo_rel": 2.4,
+   "blue_white": 1.7,
+   "balad": 1.8,
+   "casa_sionista": 2.7
+  },
+  "campione": 552,
+  "pre": 1
+ },
+ {
+  "data": "2026-04-09",
+  "istituto": "Maagar Mochot",
+  "testata": "Canale 13",
+  "seggi": {
+   "likud": 22,
+   "yesh_atid": 6,
+   "sionismo_rel": 5,
+   "otzma": 10,
+   "shas": 10,
+   "utj": 7,
+   "beitenu": 8,
+   "raam": 5,
+   "hadash_taal": 6,
+   "democratici": 8,
+   "bennett26": 21,
+   "yashar": 12
+  },
+  "pre": 1
+ },
+ {
+  "data": "2026-04-09",
+  "istituto": "Midgam",
+  "testata": "Canale 12",
+  "seggi": {
+   "likud": 25,
+   "yesh_atid": 6,
+   "otzma": 9,
+   "shas": 9,
+   "utj": 7,
+   "beitenu": 9,
+   "raam": 5,
+   "hadash_taal": 5,
+   "democratici": 10,
+   "bennett26": 22,
+   "yashar": 13
+  },
+  "sotto": {
+   "sionismo_rel": 2.9,
+   "blue_white": 1.5,
+   "balad": 0.9,
+   "casa_sionista": 0.9
+  },
+  "pre": 1
+ },
+ {
+  "data": "2026-04-10",
+  "istituto": "Lazar · Panel4All",
+  "testata": "Maariv",
+  "seggi": {
+   "likud": 25,
+   "yesh_atid": 7,
+   "otzma": 8,
+   "shas": 9,
+   "utj": 7,
+   "beitenu": 9,
+   "raam": 5,
+   "hadash_taal": 5,
+   "democratici": 8,
+   "bennett26": 24,
+   "yashar": 13
+  },
+  "sotto": {
+   "sionismo_rel": 1.8,
+   "blue_white": 2.5,
+   "balad": 1.4,
+   "casa_sionista": 1.6
+  },
+  "campione": 500,
+  "pre": 1
+ },
+ {
+  "data": "2026-04-16",
+  "istituto": "Direct Polls",
+  "testata": "Canale 14",
+  "seggi": {
+   "likud": 35,
+   "sionismo_rel": 4,
+   "otzma": 7,
+   "shas": 11,
+   "utj": 8,
+   "beitenu": 9,
+   "lista_araba": 12,
+   "democratici": 10,
+   "bennett26": 11,
+   "yashar": 13
+  },
+  "sotto": {
+   "yesh_atid": 2.9,
+   "blue_white": 1.2
+  },
+  "campione": 511,
+  "casa": 1,
+  "pre": 1
+ },
+ {
+  "data": "2026-04-16",
+  "istituto": "Kantar",
+  "testata": "Israel Hayom",
+  "seggi": {
+   "likud": 26,
+   "yesh_atid": 6,
+   "otzma": 10,
+   "shas": 9,
+   "utj": 7,
+   "beitenu": 8,
+   "raam": 5,
+   "hadash_taal": 6,
+   "democratici": 9,
+   "bennett26": 20,
+   "yashar": 14
+  },
+  "sotto": {
+   "sionismo_rel": 2.5
+  },
+  "pre": 1
+ },
+ {
+  "data": "2026-04-16",
+  "istituto": "Midgam",
+  "testata": "Canale 12",
+  "seggi": {
+   "likud": 25,
+   "yesh_atid": 6,
+   "otzma": 10,
+   "shas": 9,
+   "utj": 7,
+   "beitenu": 9,
+   "raam": 5,
+   "hadash_taal": 5,
+   "democratici": 10,
+   "bennett26": 20,
+   "yashar": 14
+  },
+  "sotto": {
+   "sionismo_rel": 2.8,
+   "blue_white": 2,
+   "balad": 1.4,
+   "casa_sionista": 2.8
+  },
+  "pre": 1
+ },
+ {
+  "data": "2026-04-16",
+  "istituto": "Yossi Taktika",
+  "testata": "Zman Israel",
+  "seggi": {
+   "likud": 28,
+   "yesh_atid": 5,
+   "otzma": 6,
+   "blue_white": 4,
+   "shas": 9,
+   "utj": 8,
+   "beitenu": 10,
+   "raam": 5,
+   "hadash_taal": 4,
+   "democratici": 9,
+   "bennett26": 16,
+   "yashar": 16
+  },
+  "campione": 500,
+  "pre": 1
+ },
+ {
+  "data": "2026-04-17",
+  "istituto": "Lazar · Panel4All",
+  "testata": "Maariv",
+  "seggi": {
+   "likud": 25,
+   "yesh_atid": 7,
+   "otzma": 8,
+   "shas": 9,
+   "utj": 7,
+   "beitenu": 9,
+   "raam": 5,
+   "hadash_taal": 5,
+   "democratici": 9,
+   "bennett26": 24,
+   "yashar": 12
+  },
+  "sotto": {
+   "sionismo_rel": 2.3,
+   "blue_white": 2.1,
+   "balad": 2,
+   "casa_sionista": 2.3
+  },
+  "campione": 500,
+  "pre": 1
+ },
+ {
+  "data": "2026-04-23",
+  "istituto": "Direct Polls",
+  "testata": "Canale 14",
+  "seggi": {
+   "likud": 35,
+   "yesh_atid": 4,
+   "sionismo_rel": 4,
+   "otzma": 8,
+   "shas": 11,
+   "utj": 8,
+   "beitenu": 9,
+   "lista_araba": 11,
+   "democratici": 8,
+   "bennett26": 10,
+   "yashar": 12
+  },
+  "sotto": {
+   "blue_white": 1.2
+  },
+  "campione": 958,
+  "casa": 1,
+  "pre": 1
+ },
+ {
+  "data": "2026-04-23",
+  "istituto": "Midgam",
+  "testata": "Canale 12",
+  "seggi": {
+   "likud": 25,
+   "yesh_atid": 7,
+   "otzma": 9,
+   "shas": 9,
+   "utj": 7,
+   "beitenu": 8,
+   "raam": 5,
+   "hadash_taal": 5,
+   "democratici": 10,
+   "bennett26": 21,
+   "yashar": 14
+  },
+  "sotto": {
+   "sionismo_rel": 2.7,
+   "blue_white": 0.8,
+   "balad": 0.4,
+   "casa_sionista": 1.3
+  },
+  "pre": 1
+ },
+ {
+  "data": "2026-04-24",
+  "istituto": "Lazar · Panel4All",
+  "testata": "Maariv",
+  "seggi": {
+   "likud": 24,
+   "yesh_atid": 7,
+   "otzma": 9,
+   "shas": 9,
+   "utj": 7,
+   "beitenu": 9,
+   "raam": 5,
+   "hadash_taal": 5,
+   "democratici": 9,
+   "bennett26": 24,
+   "yashar": 12
+  },
+  "sotto": {
+   "sionismo_rel": 2.8,
+   "blue_white": 1.7,
+   "balad": 1.4,
+   "casa_sionista": 2
+  },
+  "campione": 502,
+  "pre": 1
+ },
+ {
+  "data": "2026-04-26",
+  "istituto": "Direct Polls",
+  "testata": "Canale 14",
+  "seggi": {
+   "likud": 34,
+   "byachad": 20,
+   "sionismo_rel": 4,
+   "otzma": 7,
+   "shas": 11,
+   "utj": 8,
+   "beitenu": 8,
+   "lista_araba": 11,
+   "democratici": 8,
+   "yashar": 9
+  },
+  "sotto": {
+   "blue_white": 0.7
+  },
+  "campione": 932,
+  "casa": 1
+ },
+ {
+  "data": "2026-04-27",
+  "istituto": "Direct Polls",
+  "testata": "i24NEWS",
+  "seggi": {
+   "likud": 33,
+   "byachad": 24,
+   "sionismo_rel": 4,
+   "otzma": 6,
+   "shas": 11,
+   "utj": 8,
+   "beitenu": 6,
+   "raam": 7,
+   "hadash_taal": 4,
+   "democratici": 9,
+   "yashar": 8
+  },
+  "campione": 578,
+  "casa": 1
+ },
+ {
+  "data": "2026-04-27",
+  "istituto": "Kantar",
+  "testata": "Kan 11",
+  "seggi": {
+   "likud": 27,
+   "byachad": 24,
+   "otzma": 9,
+   "shas": 9,
+   "utj": 7,
+   "beitenu": 8,
+   "raam": 5,
+   "hadash_taal": 5,
+   "democratici": 11,
+   "yashar": 15
+  },
+  "sotto": {
+   "sionismo_rel": 2,
+   "blue_white": 2.6,
+   "balad": 2,
+   "casa_sionista": 2.3
+  },
+  "campione": 555
+ },
+ {
+  "data": "2026-04-27",
+  "istituto": "Lazar · Panel4All",
+  "testata": "Maariv",
+  "seggi": {
+   "likud": 28,
+   "byachad": 27,
+   "otzma": 8,
+   "shas": 8,
+   "utj": 7,
+   "beitenu": 8,
+   "raam": 5,
+   "hadash_taal": 5,
+   "democratici": 9,
+   "yashar": 15
+  },
+  "campione": 500
+ },
+ {
+  "data": "2026-04-27",
+  "istituto": "Maagar Mochot",
+  "testata": "Canale 13",
+  "seggi": {
+   "likud": 26,
+   "byachad": 26,
+   "sionismo_rel": 4,
+   "otzma": 10,
+   "shas": 10,
+   "utj": 7,
+   "beitenu": 6,
+   "raam": 5,
+   "hadash_taal": 6,
+   "democratici": 8,
+   "yashar": 12
+  },
+  "sotto": {
+   "blue_white": 1.6,
+   "balad": 2.1,
+   "casa_sionista": 2.5
+  }
+ },
+ {
+  "data": "2026-04-27",
+  "istituto": "Midgam",
+  "testata": "Canale 12",
+  "seggi": {
+   "likud": 25,
+   "byachad": 26,
+   "otzma": 9,
+   "shas": 9,
+   "utj": 7,
+   "beitenu": 9,
+   "raam": 5,
+   "hadash_taal": 5,
+   "democratici": 10,
+   "yashar": 15
+  },
+  "sotto": {
+   "sionismo_rel": 2.9,
+   "blue_white": 1.9,
+   "balad": 1.8,
+   "casa_sionista": 1.9
+  },
+  "campione": 501
+ },
+ {
+  "data": "2026-04-30",
+  "istituto": "Kantar",
+  "testata": "Israel Hayom",
+  "seggi": {
+   "likud": 28,
+   "byachad": 23,
+   "otzma": 9,
+   "shas": 8,
+   "utj": 7,
+   "beitenu": 9,
+   "raam": 5,
+   "hadash_taal": 6,
+   "democratici": 9,
+   "yashar": 16
+  },
+  "sotto": {
+   "sionismo_rel": 2.7,
+   "blue_white": 1.6,
+   "balad": 1.9,
+   "casa_sionista": 2.6
+  }
+ },
+ {
+  "data": "2026-04-30",
+  "istituto": "Lazar · Panel4All",
+  "testata": "Maariv",
+  "seggi": {
+   "likud": 26,
+   "byachad": 28,
+   "otzma": 9,
+   "shas": 8,
+   "utj": 7,
+   "beitenu": 8,
+   "raam": 5,
+   "hadash_taal": 5,
+   "democratici": 10,
+   "yashar": 14
+  },
+  "sotto": {
+   "sionismo_rel": 1.5,
+   "blue_white": 1.4,
+   "balad": 1.4,
+   "casa_sionista": 2.8
+  },
+  "campione": 501
+ },
+ {
+  "data": "2026-04-30",
+  "istituto": "Yossi Taktika",
+  "testata": "Zman Israel",
+  "seggi": {
+   "likud": 26,
+   "byachad": 28,
+   "otzma": 7,
+   "shas": 9,
+   "utj": 8,
+   "beitenu": 10,
+   "raam": 5,
+   "hadash_taal": 4,
+   "democratici": 8,
+   "yashar": 15
+  },
+  "campione": 500
+ },
+ {
+  "data": "2026-05-07",
+  "istituto": "Direct Polls",
+  "testata": "Canale 14",
+  "seggi": {
+   "likud": 34,
+   "byachad": 16,
+   "sionismo_rel": 5,
+   "otzma": 8,
+   "shas": 10,
+   "utj": 8,
+   "beitenu": 8,
+   "raam": 5,
+   "hadash_taal": 5,
+   "democratici": 8,
+   "yashar": 13
+  },
+  "sotto": {
+   "blue_white": 1.8,
+   "balad": 2.1
+  },
+  "campione": 721,
+  "casa": 1
+ },
+ {
+  "data": "2026-05-07",
+  "istituto": "Lazar · Panel4All",
+  "testata": "Maariv",
+  "seggi": {
+   "likud": 26,
+   "byachad": 26,
+   "otzma": 9,
+   "shas": 8,
+   "utj": 7,
+   "beitenu": 9,
+   "raam": 5,
+   "hadash_taal": 5,
+   "democratici": 10,
+   "yashar": 15
+  },
+  "sotto": {
+   "sionismo_rel": 2.5,
+   "blue_white": 1.9,
+   "balad": 1.8,
+   "casa_sionista": 2.6
+  },
+  "campione": 503
+ },
+ {
+  "data": "2026-05-07",
+  "istituto": "Midgam",
+  "testata": "Canale 12",
+  "seggi": {
+   "likud": 25,
+   "byachad": 25,
+   "otzma": 9,
+   "shas": 9,
+   "utj": 8,
+   "beitenu": 9,
+   "raam": 5,
+   "hadash_taal": 5,
+   "democratici": 11,
+   "yashar": 14
+  },
+  "sotto": {
+   "sionismo_rel": 2.9,
+   "blue_white": 1.5,
+   "balad": 0.8,
+   "casa_sionista": 1
+  },
+  "campione": 503
+ },
+ {
+  "data": "2026-05-07",
+  "istituto": "Yossi Taktika",
+  "testata": "Zman Israel",
+  "seggi": {
+   "likud": 26,
+   "byachad": 26,
+   "otzma": 7,
+   "blue_white": 4,
+   "shas": 9,
+   "utj": 8,
+   "beitenu": 9,
+   "raam": 5,
+   "hadash_taal": 4,
+   "democratici": 8,
+   "yashar": 14
+  },
+  "campione": 500
+ },
+ {
+  "data": "2026-05-12",
+  "istituto": "Kantar",
+  "testata": "Kan 11",
+  "seggi": {
+   "likud": 26,
+   "byachad": 25,
+   "otzma": 9,
+   "shas": 9,
+   "utj": 7,
+   "beitenu": 9,
+   "raam": 5,
+   "hadash_taal": 5,
+   "democratici": 10,
+   "yashar": 15
+  },
+  "campione": 557
+ },
+ {
+  "data": "2026-05-13",
+  "istituto": "Kantar",
+  "testata": "Israel Hayom",
+  "seggi": {
+   "likud": 26,
+   "byachad": 24,
+   "otzma": 9,
+   "shas": 9,
+   "utj": 7,
+   "beitenu": 8,
+   "raam": 5,
+   "hadash_taal": 6,
+   "democratici": 10,
+   "yashar": 16
+  },
+  "sotto": {
+   "sionismo_rel": 2.9,
+   "blue_white": 2.7,
+   "balad": 1.8,
+   "casa_sionista": 3
+  }
+ },
+ {
+  "data": "2026-05-13",
+  "istituto": "Lazar · Panel4All",
+  "testata": "Maariv",
+  "seggi": {
+   "likud": 25,
+   "byachad": 26,
+   "otzma": 8,
+   "shas": 9,
+   "utj": 7,
+   "beitenu": 9,
+   "raam": 5,
+   "hadash_taal": 5,
+   "democratici": 10,
+   "yashar": 16
+  },
+  "sotto": {
+   "sionismo_rel": 2.1,
+   "blue_white": 2.1,
+   "balad": 1.4,
+   "casa_sionista": 2.6
+  },
+  "campione": 502
+ },
+ {
+  "data": "2026-05-13",
+  "istituto": "Maagar Mochot",
+  "testata": "Canale 13",
+  "seggi": {
+   "likud": 25,
+   "byachad": 26,
+   "sionismo_rel": 4,
+   "otzma": 10,
+   "shas": 10,
+   "utj": 7,
+   "beitenu": 7,
+   "raam": 5,
+   "hadash_taal": 5,
+   "democratici": 9,
+   "yashar": 12
+  }
+ },
+ {
+  "data": "2026-05-14",
+  "istituto": "Direct Polls",
+  "testata": "Canale 14",
+  "seggi": {
+   "likud": 33,
+   "byachad": 16,
+   "sionismo_rel": 5,
+   "otzma": 8,
+   "shas": 10,
+   "utj": 7,
+   "beitenu": 7,
+   "raam": 6,
+   "hadash_taal": 5,
+   "democratici": 9,
+   "yashar": 14
+  },
+  "sotto": {
+   "blue_white": 2.3,
+   "balad": 2.1
+  },
+  "campione": 436,
+  "casa": 1
+ },
+ {
+  "data": "2026-05-14",
+  "istituto": "Midgam",
+  "testata": "Canale 12",
+  "seggi": {
+   "likud": 26,
+   "byachad": 24,
+   "otzma": 9,
+   "shas": 9,
+   "utj": 8,
+   "beitenu": 9,
+   "raam": 5,
+   "hadash_taal": 5,
+   "democratici": 10,
+   "yashar": 15
+  },
+  "sotto": {
+   "sionismo_rel": 2.8,
+   "blue_white": 2.7,
+   "balad": 1.9,
+   "casa_sionista": 1
+  },
+  "campione": 506
+ },
+ {
+  "data": "2026-05-14",
+  "istituto": "Yossi Taktika",
+  "testata": "Zman Israel",
+  "seggi": {
+   "likud": 24,
+   "byachad": 24,
+   "sionismo_rel": 4,
+   "otzma": 8,
+   "shas": 9,
+   "utj": 8,
+   "beitenu": 10,
+   "raam": 6,
+   "hadash_taal": 4,
+   "democratici": 8,
+   "yashar": 15
+  },
+  "campione": 500
+ },
+ {
+  "data": "2026-05-19",
+  "istituto": "Direct Polls",
+  "testata": "i24NEWS",
+  "seggi": {
+   "likud": 30,
+   "byachad": 15,
+   "sionismo_rel": 4,
+   "otzma": 8,
+   "shas": 10,
+   "utj": 8,
+   "beitenu": 8,
+   "raam": 6,
+   "hadash_taal": 5,
+   "democratici": 9,
+   "yashar": 17
+  },
+  "sotto": {
+   "blue_white": 0.9,
+   "balad": 1.8,
+   "casa_sionista": 0.9
+  },
+  "campione": 546,
+  "casa": 1
+ },
+ {
+  "data": "2026-05-20",
+  "istituto": "Kantar",
+  "testata": "Kan 11",
+  "seggi": {
+   "likud": 27,
+   "byachad": 23,
+   "otzma": 9,
+   "shas": 9,
+   "utj": 8,
+   "beitenu": 8,
+   "raam": 5,
+   "hadash_taal": 5,
+   "democratici": 10,
+   "yashar": 16
+  },
+  "campione": 551
+ },
+ {
+  "data": "2026-05-20",
+  "istituto": "Lazar · Panel4All",
+  "testata": "Maariv",
+  "seggi": {
+   "likud": 24,
+   "byachad": 25,
+   "sionismo_rel": 4,
+   "otzma": 8,
+   "shas": 8,
+   "utj": 7,
+   "beitenu": 9,
+   "raam": 5,
+   "hadash_taal": 5,
+   "democratici": 10,
+   "yashar": 15
+  },
+  "sotto": {
+   "blue_white": 1.5,
+   "balad": 1.5,
+   "casa_sionista": 1.4
+  },
+  "campione": 500
+ },
+ {
+  "data": "2026-05-20",
+  "istituto": "Midgam",
+  "testata": "Canale 12",
+  "seggi": {
+   "likud": 25,
+   "byachad": 23,
+   "sionismo_rel": 4,
+   "otzma": 7,
+   "shas": 9,
+   "utj": 8,
+   "beitenu": 8,
+   "raam": 5,
+   "hadash_taal": 5,
+   "democratici": 10,
+   "yashar": 16
+  },
+  "sotto": {
+   "blue_white": 1.4,
+   "balad": 1.4,
+   "casa_sionista": 2.4
+  },
+  "campione": 501
+ },
+ {
+  "data": "2026-05-20",
+  "istituto": "Yossi Taktika",
+  "testata": "Zman Israel",
+  "seggi": {
+   "likud": 24,
+   "byachad": 23,
+   "sionismo_rel": 4,
+   "otzma": 6,
+   "blue_white": 4,
+   "shas": 9,
+   "utj": 8,
+   "beitenu": 9,
+   "raam": 5,
+   "hadash_taal": 4,
+   "democratici": 8,
+   "yashar": 16
+  },
+  "campione": 500
+ },
+ {
+  "data": "2026-05-21",
+  "istituto": "Lazar · Panel4All",
+  "testata": "Maariv",
+  "seggi": {
+   "likud": 24,
+   "byachad": 25,
+   "sionismo_rel": 4,
+   "otzma": 8,
+   "shas": 8,
+   "utj": 7,
+   "beitenu": 9,
+   "raam": 5,
+   "hadash_taal": 5,
+   "democratici": 10,
+   "yashar": 15
+  }
+ },
+ {
+  "data": "2026-05-25",
+  "istituto": "Maagar Mochot",
+  "testata": "Canale 13",
+  "seggi": {
+   "likud": 25,
+   "byachad": 23,
+   "sionismo_rel": 4,
+   "otzma": 10,
+   "shas": 10,
+   "utj": 7,
+   "beitenu": 8,
+   "raam": 4,
+   "hadash_taal": 6,
+   "democratici": 9,
+   "yashar": 14
+  }
+ },
+ {
+  "data": "2026-05-27",
+  "istituto": "Kantar",
+  "testata": "Israel Hayom",
+  "seggi": {
+   "likud": 25,
+   "byachad": 22,
+   "sionismo_rel": 4,
+   "otzma": 8,
+   "shas": 9,
+   "utj": 7,
+   "beitenu": 9,
+   "raam": 5,
+   "hadash_taal": 5,
+   "democratici": 9,
+   "yashar": 17
+  },
+  "sotto": {
+   "blue_white": 2.2,
+   "balad": 1.9,
+   "casa_sionista": 2.5
+  }
+ },
+ {
+  "data": "2026-05-28",
+  "istituto": "Direct Polls",
+  "testata": "Canale 14",
+  "seggi": {
+   "likud": 33,
+   "byachad": 15,
+   "sionismo_rel": 5,
+   "otzma": 7,
+   "shas": 11,
+   "utj": 7,
+   "beitenu": 8,
+   "raam": 5,
+   "hadash_taal": 5,
+   "democratici": 9,
+   "yashar": 15
+  },
+  "sotto": {
+   "blue_white": 1.2,
+   "balad": 2.1
+  },
+  "campione": 615,
+  "casa": 1
+ },
+ {
+  "data": "2026-05-28",
+  "istituto": "Midgam",
+  "testata": "Canale 12",
+  "seggi": {
+   "likud": 23,
+   "byachad": 22,
+   "sionismo_rel": 4,
+   "otzma": 8,
+   "shas": 8,
+   "utj": 8,
+   "beitenu": 9,
+   "raam": 5,
+   "hadash_taal": 5,
+   "democratici": 11,
+   "yashar": 17
+  },
+  "sotto": {
+   "blue_white": 1.8,
+   "balad": 1,
+   "casa_sionista": 0.7
+  },
+  "campione": 504
+ },
+ {
+  "data": "2026-05-28",
+  "istituto": "Yossi Taktika",
+  "testata": "Zman Israel",
+  "seggi": {
+   "likud": 24,
+   "byachad": 22,
+   "sionismo_rel": 4,
+   "otzma": 6,
+   "shas": 10,
+   "utj": 8,
+   "beitenu": 10,
+   "raam": 5,
+   "hadash_taal": 5,
+   "democratici": 8,
+   "yashar": 18
+  },
+  "campione": 500
+ },
+ {
+  "data": "2026-06-03",
+  "istituto": "Direct Polls",
+  "testata": "i24NEWS",
+  "seggi": {
+   "likud": 30,
+   "byachad": 14,
+   "sionismo_rel": 5,
+   "otzma": 8,
+   "shas": 9,
+   "utj": 8,
+   "beitenu": 9,
+   "raam": 6,
+   "hadash_taal": 5,
+   "democratici": 10,
+   "yashar": 16
+  },
+  "sotto": {
+   "blue_white": 1.4,
+   "balad": 2.5,
+   "casa_sionista": 0.8
+  },
+  "campione": 515,
+  "casa": 1
+ },
+ {
+  "data": "2026-06-04",
+  "istituto": "Kantar",
+  "testata": "Kan 11",
+  "seggi": {
+   "likud": 24,
+   "byachad": 23,
+   "sionismo_rel": 4,
+   "otzma": 10,
+   "shas": 8,
+   "utj": 7,
+   "beitenu": 8,
+   "raam": 4,
+   "hadash_taal": 6,
+   "democratici": 9,
+   "yashar": 17
+  },
+  "sotto": {
+   "blue_white": 2.3,
+   "balad": 1.5,
+   "casa_sionista": 2.1
+  },
+  "campione": 551
+ },
+ {
+  "data": "2026-06-04",
+  "istituto": "Lazar · Panel4All",
+  "testata": "Maariv",
+  "seggi": {
+   "likud": 25,
+   "byachad": 23,
+   "otzma": 9,
+   "shas": 9,
+   "utj": 7,
+   "beitenu": 10,
+   "raam": 4,
+   "hadash_taal": 6,
+   "democratici": 10,
+   "yashar": 17
+  },
+  "sotto": {
+   "sionismo_rel": 2.6,
+   "blue_white": 2.2,
+   "balad": 1.8,
+   "casa_sionista": 1.7
+  },
+  "campione": 500
+ },
+ {
+  "data": "2026-06-04",
+  "istituto": "Midgam",
+  "testata": "Canale 12",
+  "seggi": {
+   "likud": 23,
+   "byachad": 21,
+   "sionismo_rel": 4,
+   "otzma": 8,
+   "shas": 9,
+   "utj": 7,
+   "beitenu": 9,
+   "raam": 5,
+   "hadash_taal": 5,
+   "democratici": 10,
+   "yashar": 19
+  },
+  "sotto": {
+   "blue_white": 1.8,
+   "balad": 0.8,
+   "casa_sionista": 1.3
+  },
+  "campione": 505
+ },
+ {
+  "data": "2026-06-04",
+  "istituto": "Yossi Taktika",
+  "testata": "Zman Israel",
+  "seggi": {
+   "likud": 23,
+   "byachad": 21,
+   "sionismo_rel": 4,
+   "otzma": 6,
+   "blue_white": 4,
+   "shas": 9,
+   "utj": 8,
+   "beitenu": 10,
+   "raam": 4,
+   "hadash_taal": 4,
+   "democratici": 8,
+   "yashar": 19
+  },
+  "campione": 500
+ },
+ {
+  "data": "2026-06-05",
+  "istituto": "Direct Polls",
+  "testata": "Canale 14",
+  "seggi": {
+   "likud": 32,
+   "byachad": 14,
+   "sionismo_rel": 5,
+   "otzma": 9,
+   "shas": 10,
+   "utj": 7,
+   "beitenu": 8,
+   "raam": 5,
+   "hadash_taal": 5,
+   "democratici": 9,
+   "yashar": 16
+  },
+  "sotto": {
+   "blue_white": 1.3,
+   "balad": 2
+  },
+  "casa": 1
+ },
+ {
+  "data": "2026-06-11",
+  "istituto": "Direct Polls",
+  "testata": "Canale 14",
+  "seggi": {
+   "likud": 33,
+   "byachad": 13,
+   "sionismo_rel": 5,
+   "otzma": 8,
+   "shas": 10,
+   "utj": 7,
+   "beitenu": 8,
+   "raam": 5,
+   "hadash_taal": 6,
+   "democratici": 9,
+   "yashar": 16
+  },
+  "sotto": {
+   "blue_white": 0.8
+  },
+  "campione": 771,
+  "casa": 1
+ },
+ {
+  "data": "2026-06-11",
+  "istituto": "Kantar",
+  "testata": "Israel Hayom",
+  "seggi": {
+   "likud": 24,
+   "byachad": 19,
+   "sionismo_rel": 4,
+   "otzma": 9,
+   "shas": 9,
+   "utj": 7,
+   "beitenu": 9,
+   "raam": 4,
+   "hadash_taal": 6,
+   "democratici": 9,
+   "yashar": 20
+  },
+  "sotto": {
+   "blue_white": 2.2,
+   "balad": 1.8,
+   "casa_sionista": 2.5
+  }
+ },
+ {
+  "data": "2026-06-11",
+  "istituto": "Midgam",
+  "testata": "Canale 12",
+  "seggi": {
+   "likud": 22,
+   "byachad": 20,
+   "sionismo_rel": 4,
+   "otzma": 9,
+   "shas": 9,
+   "utj": 7,
+   "beitenu": 8,
+   "raam": 5,
+   "hadash_taal": 5,
+   "democratici": 11,
+   "yashar": 20
+  },
+  "sotto": {
+   "blue_white": 0.7,
+   "balad": 1.1,
+   "casa_sionista": 1.6
+  },
+  "campione": 501
+ },
+ {
+  "data": "2026-06-11",
+  "istituto": "Yossi Taktika",
+  "testata": "Zman Israel",
+  "seggi": {
+   "likud": 24,
+   "byachad": 21,
+   "otzma": 8,
+   "shas": 10,
+   "utj": 8,
+   "beitenu": 10,
+   "raam": 5,
+   "hadash_taal": 5,
+   "democratici": 8,
+   "yashar": 21
+  },
+  "campione": 500
+ },
+ {
+  "data": "2026-06-16",
+  "istituto": "Direct Polls",
+  "testata": "i24NEWS",
+  "seggi": {
+   "likud": 28,
+   "byachad": 12,
+   "sionismo_rel": 4,
+   "otzma": 9,
+   "shas": 9,
+   "utj": 8,
+   "beitenu": 9,
+   "raam": 5,
+   "hadash_taal": 7,
+   "democratici": 11,
+   "yashar": 18
+  },
+  "casa": 1
+ },
+ {
+  "data": "2026-06-16",
+  "istituto": "Kantar",
+  "testata": "Kan 11",
+  "seggi": {
+   "likud": 23,
+   "byachad": 17,
+   "sionismo_rel": 4,
+   "otzma": 9,
+   "shas": 9,
+   "utj": 7,
+   "beitenu": 10,
+   "raam": 4,
+   "hadash_taal": 7,
+   "democratici": 9,
+   "yashar": 21
+  },
+  "sotto": {
+   "blue_white": 1.6,
+   "balad": 1.5,
+   "casa_sionista": 2.6
+  },
+  "campione": 555
+ },
+ {
+  "data": "2026-06-17",
+  "istituto": "Hamidgam Project",
+  "testata": "Canale 13",
+  "seggi": {
+   "likud": 22,
+   "byachad": 17,
+   "sionismo_rel": 4,
+   "otzma": 8,
+   "shas": 9,
+   "utj": 8,
+   "beitenu": 11,
+   "raam": 4,
+   "hadash_taal": 6,
+   "democratici": 11,
+   "yashar": 20
+  },
+  "sotto": {
+   "blue_white": 2,
+   "balad": 2.4,
+   "casa_sionista": 3
+  }
+ },
+ {
+  "data": "2026-06-18",
+  "istituto": "Direct Polls",
+  "testata": "Canale 14",
+  "seggi": {
+   "likud": 33,
+   "byachad": 10,
+   "sionismo_rel": 4,
+   "otzma": 7,
+   "shas": 10,
+   "utj": 8,
+   "beitenu": 8,
+   "raam": 5,
+   "hadash_taal": 6,
+   "democratici": 9,
+   "yashar": 20
+  },
+  "sotto": {
+   "blue_white": 1.8
+  },
+  "campione": 1552,
+  "casa": 1
+ },
+ {
+  "data": "2026-06-18",
+  "istituto": "Lazar · Panel4All",
+  "testata": "Maariv",
+  "seggi": {
+   "likud": 21,
+   "byachad": 20,
+   "sionismo_rel": 4,
+   "otzma": 8,
+   "shas": 9,
+   "utj": 7,
+   "beitenu": 10,
+   "raam": 4,
+   "hadash_taal": 6,
+   "democratici": 10,
+   "yashar": 21
+  },
+  "sotto": {
+   "blue_white": 1.7,
+   "balad": 1.8,
+   "casa_sionista": 1.2
+  },
+  "campione": 501
+ },
+ {
+  "data": "2026-06-18",
+  "istituto": "Midgam",
+  "testata": "Canale 12",
+  "seggi": {
+   "likud": 22,
+   "byachad": 19,
+   "sionismo_rel": 4,
+   "otzma": 9,
+   "shas": 9,
+   "utj": 7,
+   "beitenu": 9,
+   "raam": 5,
+   "hadash_taal": 5,
+   "democratici": 10,
+   "yashar": 21
+  },
+  "sotto": {
+   "blue_white": 1.9,
+   "balad": 1.7,
+   "casa_sionista": 1.9
+  }
+ },
+ {
+  "data": "2026-06-18",
+  "istituto": "Yossi Taktika",
+  "testata": "Zman Israel",
+  "seggi": {
+   "likud": 23,
+   "byachad": 19,
+   "otzma": 9,
+   "shas": 10,
+   "utj": 8,
+   "beitenu": 10,
+   "raam": 5,
+   "hadash_taal": 5,
+   "democratici": 8,
+   "yashar": 23
+  },
+  "campione": 500
+ },
+ {
+  "data": "2026-06-24",
+  "istituto": "Hamidgam Project",
+  "testata": "Canale 13",
+  "seggi": {
+   "likud": 23,
+   "byachad": 15,
+   "sionismo_rel": 5,
+   "otzma": 9,
+   "shas": 8,
+   "utj": 8,
+   "beitenu": 12,
+   "raam": 4,
+   "hadash_taal": 6,
+   "democratici": 10,
+   "yashar": 20
+  },
+  "sotto": {
+   "blue_white": 1.8,
+   "balad": 1.5,
+   "casa_sionista": 1.3
+  }
+ },
+ {
+  "data": "2026-06-24",
+  "istituto": "Kantar",
+  "testata": "Kan 11",
+  "seggi": {
+   "likud": 24,
+   "byachad": 16,
+   "sionismo_rel": 5,
+   "otzma": 9,
+   "shas": 8,
+   "utj": 7,
+   "beitenu": 10,
+   "raam": 4,
+   "hadash_taal": 6,
+   "democratici": 9,
+   "yashar": 22
+  },
+  "sotto": {
+   "blue_white": 2.2,
+   "balad": 1.4,
+   "casa_sionista": 2.4
+  },
+  "campione": 553
+ },
+ {
+  "data": "2026-06-25",
+  "istituto": "Direct Polls",
+  "testata": "Canale 14",
+  "seggi": {
+   "likud": 33,
+   "byachad": 9,
+   "sionismo_rel": 4,
+   "otzma": 7,
+   "shas": 11,
+   "utj": 8,
+   "beitenu": 9,
+   "raam": 5,
+   "hadash_taal": 5,
+   "democratici": 9,
+   "yashar": 20
+  },
+  "sotto": {
+   "blue_white": 1.8
+  },
+  "campione": 654,
+  "casa": 1
+ },
+ {
+  "data": "2026-06-25",
+  "istituto": "Direct Polls",
+  "testata": "i24NEWS",
+  "seggi": {
+   "likud": 27,
+   "byachad": 11,
+   "sionismo_rel": 5,
+   "otzma": 8,
+   "shas": 9,
+   "utj": 8,
+   "beitenu": 10,
+   "raam": 5,
+   "hadash_taal": 7,
+   "democratici": 10,
+   "yashar": 20
+  },
+  "sotto": {
+   "blue_white": 1.2,
+   "casa_sionista": 1.7
+  },
+  "campione": 530,
+  "casa": 1
+ },
+ {
+  "data": "2026-06-25",
+  "istituto": "Kantar",
+  "testata": "Israel Hayom",
+  "seggi": {
+   "likud": 24,
+   "byachad": 16,
+   "sionismo_rel": 4,
+   "otzma": 9,
+   "shas": 8,
+   "utj": 8,
+   "beitenu": 9,
+   "raam": 4,
+   "hadash_taal": 7,
+   "democratici": 10,
+   "yashar": 21
+  },
+  "sotto": {
+   "blue_white": 1.8,
+   "balad": 1.7,
+   "casa_sionista": 2.7
+  }
+ },
+ {
+  "data": "2026-06-25",
+  "istituto": "Lazar · Panel4All",
+  "testata": "Maariv",
+  "seggi": {
+   "likud": 22,
+   "byachad": 18,
+   "sionismo_rel": 4,
+   "otzma": 9,
+   "shas": 8,
+   "utj": 7,
+   "beitenu": 11,
+   "raam": 4,
+   "hadash_taal": 6,
+   "democratici": 10,
+   "yashar": 21
+  },
+  "sotto": {
+   "blue_white": 1.7,
+   "balad": 1.6,
+   "casa_sionista": 1.2
+  },
+  "campione": 500
+ },
+ {
+  "data": "2026-06-25",
+  "istituto": "Midgam",
+  "testata": "Canale 12",
+  "seggi": {
+   "likud": 23,
+   "byachad": 18,
+   "sionismo_rel": 4,
+   "otzma": 9,
+   "shas": 9,
+   "utj": 7,
+   "beitenu": 9,
+   "raam": 4,
+   "hadash_taal": 6,
+   "democratici": 10,
+   "yashar": 21
+  },
+  "sotto": {
+   "blue_white": 1.8,
+   "balad": 1.7,
+   "casa_sionista": 1.6
+  },
+  "campione": 504
+ },
+ {
+  "data": "2026-06-25",
+  "istituto": "Yossi Taktika",
+  "testata": "Zman Israel",
+  "seggi": {
+   "likud": 21,
+   "byachad": 17,
+   "sionismo_rel": 4,
+   "otzma": 8,
+   "blue_white": 4,
+   "shas": 10,
+   "utj": 7,
+   "beitenu": 11,
+   "raam": 4,
+   "hadash_taal": 4,
+   "democratici": 7,
+   "yashar": 23
+  },
+  "campione": 500
+ },
+ {
+  "data": "2026-06-29",
+  "istituto": "Midgam",
+  "testata": "Canale 12",
+  "seggi": {
+   "likud": 24,
+   "byachad": 17,
+   "sionismo_rel": 4,
+   "otzma": 8,
+   "shas": 9,
+   "utj": 7,
+   "beitenu": 9,
+   "raam": 5,
+   "hadash_taal": 5,
+   "democratici": 10,
+   "yashar": 22
+  },
+  "sotto": {
+   "blue_white": 2.5,
+   "balad": 1.4,
+   "casa_sionista": 2.2
+  }
+ },
+ {
+  "data": "2026-06-30",
+  "istituto": "Direct Polls",
+  "testata": "i24NEWS",
+  "seggi": {
+   "likud": 29,
+   "byachad": 11,
+   "sionismo_rel": 4,
+   "otzma": 8,
+   "shas": 9,
+   "utj": 8,
+   "beitenu": 9,
+   "raam": 5,
+   "hadash_taal": 7,
+   "democratici": 11,
+   "yashar": 19
+  },
+  "casa": 1
+ },
+ {
+  "data": "2026-07-01",
+  "istituto": "Hamidgam Project",
+  "testata": "Canale 13",
+  "seggi": {
+   "likud": 21,
+   "byachad": 17,
+   "sionismo_rel": 5,
+   "otzma": 8,
+   "shas": 9,
+   "utj": 8,
+   "beitenu": 10,
+   "raam": 5,
+   "hadash_taal": 6,
+   "democratici": 11,
+   "yashar": 20
+  },
+  "sotto": {
+   "blue_white": 1.8,
+   "balad": 1.3,
+   "casa_sionista": 1.4
+  },
+  "campione": 1108
+ },
+ {
+  "data": "2026-07-02",
+  "istituto": "Direct Polls",
+  "testata": "Canale 14",
+  "seggi": {
+   "likud": 33,
+   "byachad": 9,
+   "sionismo_rel": 5,
+   "otzma": 7,
+   "shas": 11,
+   "utj": 7,
+   "beitenu": 8,
+   "raam": 5,
+   "hadash_taal": 6,
+   "democratici": 9,
+   "yashar": 20
+  },
+  "sotto": {
+   "blue_white": 1.9
+  },
+  "casa": 1
+ },
+ {
+  "data": "2026-07-02",
+  "istituto": "Lazar · Panel4All",
+  "testata": "Maariv",
+  "seggi": {
+   "likud": 21,
+   "byachad": 19,
+   "sionismo_rel": 5,
+   "otzma": 8,
+   "shas": 8,
+   "utj": 8,
+   "beitenu": 10,
+   "raam": 5,
+   "hadash_taal": 6,
+   "democratici": 10,
+   "yashar": 20
+  },
+  "sotto": {
+   "blue_white": 0.8,
+   "balad": 1.6,
+   "casa_sionista": 1.4
+  },
+  "campione": 606
+ },
+ {
+  "data": "2026-07-02",
+  "istituto": "Yossi Taktika",
+  "testata": "Zman Israel",
+  "seggi": {
+   "likud": 22,
+   "byachad": 16,
+   "sionismo_rel": 5,
+   "otzma": 8,
+   "shas": 10,
+   "utj": 8,
+   "beitenu": 11,
+   "raam": 4,
+   "hadash_taal": 5,
+   "democratici": 8,
+   "yashar": 23
+  },
+  "campione": 500
+ },
+ {
+  "data": "2026-07-05",
+  "istituto": "Kantar",
+  "testata": "Kan 11",
+  "seggi": {
+   "likud": 23,
+   "byachad": 16,
+   "sionismo_rel": 5,
+   "otzma": 9,
+   "shas": 8,
+   "utj": 8,
+   "beitenu": 9,
+   "raam": 4,
+   "hadash_taal": 6,
+   "democratici": 9,
+   "yashar": 23
+  },
+  "sotto": {
+   "blue_white": 1.9,
+   "casa_sionista": 2.3
+  },
+  "campione": 553
+ },
+ {
+  "data": "2026-07-06",
+  "istituto": "Midgam",
+  "testata": "Canale 12",
+  "seggi": {
+   "likud": 23,
+   "byachad": 16,
+   "sionismo_rel": 4,
+   "otzma": 9,
+   "shas": 8,
+   "utj": 8,
+   "beitenu": 9,
+   "raam": 4,
+   "hadash_taal": 6,
+   "democratici": 10,
+   "yashar": 23
+  },
+  "sotto": {
+   "blue_white": 1,
+   "balad": 0.7,
+   "casa_sionista": 1
+  },
+  "campione": 503
+ },
+ {
+  "data": "2026-07-08",
+  "istituto": "Hamidgam Project",
+  "testata": "Canale 13",
+  "seggi": {
+   "likud": 22,
+   "byachad": 15,
+   "sionismo_rel": 5,
+   "otzma": 8,
+   "shas": 8,
+   "utj": 8,
+   "beitenu": 10,
+   "raam": 5,
+   "hadash_taal": 6,
+   "democratici": 10,
+   "yashar": 23
+  },
+  "sotto": {
+   "blue_white": 2.1,
+   "casa_sionista": 2.2
+  }
+ },
+ {
+  "data": "2026-07-09",
+  "istituto": "Direct Polls",
+  "testata": "Canale 14",
+  "seggi": {
+   "likud": 33,
+   "byachad": 8,
+   "sionismo_rel": 5,
+   "otzma": 7,
+   "shas": 10,
+   "utj": 8,
+   "beitenu": 8,
+   "raam": 5,
+   "lista_araba": 5,
+   "democratici": 10,
+   "yashar": 21
+  },
+  "sotto": {
+   "blue_white": 0.8,
+   "casa_sionista": 1.6
+  },
+  "campione": 752,
+  "casa": 1
+ },
+ {
+  "data": "2026-07-09",
+  "istituto": "Direct Polls",
+  "testata": "i24NEWS",
+  "seggi": {
+   "likud": 29,
+   "byachad": 9,
+   "sionismo_rel": 5,
+   "otzma": 8,
+   "shas": 9,
+   "utj": 8,
+   "beitenu": 9,
+   "raam": 5,
+   "lista_araba": 7,
+   "democratici": 10,
+   "yashar": 21
+  },
+  "campione": 527,
+  "casa": 1
+ },
+ {
+  "data": "2026-07-09",
+  "istituto": "Kantar",
+  "testata": "Israel Hayom",
+  "seggi": {
+   "likud": 24,
+   "byachad": 14,
+   "sionismo_rel": 4,
+   "otzma": 8,
+   "shas": 8,
+   "utj": 9,
+   "beitenu": 8,
+   "raam": 5,
+   "hadash_taal": 5,
+   "democratici": 8,
+   "yashar": 23,
+   "casa_sionista": 4
+  },
+  "sotto": {
+   "blue_white": 2.1,
+   "balad": 2.2
+  }
+ },
+ {
+  "data": "2026-07-09",
+  "istituto": "Lazar · Panel4All",
+  "testata": "Maariv",
+  "seggi": {
+   "likud": 21,
+   "byachad": 18,
+   "sionismo_rel": 4,
+   "otzma": 8,
+   "shas": 8,
+   "utj": 8,
+   "beitenu": 10,
+   "raam": 5,
+   "hadash_taal": 6,
+   "democratici": 10,
+   "yashar": 22
+  },
+  "sotto": {
+   "blue_white": 1.4,
+   "balad": 1.8,
+   "casa_sionista": 2.9
+  },
+  "campione": 500
+ },
+ {
+  "data": "2026-07-12",
+  "istituto": "Kantar",
+  "testata": "Kan 11",
+  "seggi": {
+   "likud": 23,
+   "byachad": 15,
+   "sionismo_rel": 5,
+   "otzma": 8,
+   "shas": 8,
+   "utj": 8,
+   "beitenu": 10,
+   "raam": 5,
+   "hadash_taal": 5,
+   "democratici": 9,
+   "yashar": 24
+  },
+  "sotto": {
+   "blue_white": 2.7,
+   "balad": 2,
+   "casa_sionista": 3.1
+  },
+  "campione": 551
+ },
+ {
+  "data": "2026-07-13",
+  "istituto": "Midgam",
+  "testata": "Canale 12",
+  "seggi": {
+   "likud": 22,
+   "byachad": 16,
+   "sionismo_rel": 5,
+   "otzma": 8,
+   "shas": 8,
+   "utj": 8,
+   "beitenu": 10,
+   "raam": 5,
+   "hadash_taal": 5,
+   "democratici": 10,
+   "yashar": 23
+  },
+  "sotto": {
+   "blue_white": 1.4,
+   "balad": 0.9,
+   "casa_sionista": 2.9
+  },
+  "campione": 509
+ },
+ {
+  "data": "2026-07-15",
+  "istituto": "Hamidgam Project",
+  "testata": "Canale 13",
+  "seggi": {
+   "likud": 22,
+   "byachad": 15,
+   "sionismo_rel": 6,
+   "otzma": 7,
+   "shas": 7,
+   "utj": 8,
+   "beitenu": 10,
+   "raam": 4,
+   "hadash_taal": 5,
+   "democratici": 11,
+   "yashar": 21,
+   "casa_sionista": 4
+  },
+  "sotto": {
+   "blue_white": 0.8,
+   "balad": 2
+  }
+ },
+ {
+  "data": "2026-07-16",
+  "istituto": "Direct Polls",
+  "testata": "Canale 14",
+  "seggi": {
+   "likud": 32,
+   "byachad": 8,
+   "sionismo_rel": 6,
+   "otzma": 7,
+   "shas": 10,
+   "utj": 8,
+   "beitenu": 7,
+   "raam": 5,
+   "hadash_taal": 5,
+   "democratici": 11,
+   "yashar": 21
+  },
+  "sotto": {
+   "blue_white": 0.9,
+   "balad": 2.1,
+   "casa_sionista": 2.5
+  },
+  "casa": 1
+ },
+ {
+  "data": "2026-07-16",
+  "istituto": "Direct Polls",
+  "testata": "i24NEWS",
+  "seggi": {
+   "likud": 28,
+   "byachad": 9,
+   "sionismo_rel": 6,
+   "otzma": 7,
+   "shas": 9,
+   "utj": 8,
+   "beitenu": 8,
+   "raam": 5,
+   "lista_araba": 7,
+   "democratici": 11,
+   "yashar": 22
+  },
+  "sotto": {
+   "blue_white": 1.9,
+   "casa_sionista": 2.1
+  },
+  "campione": 550,
+  "casa": 1
+ },
+ {
+  "data": "2026-07-16",
+  "istituto": "Yossi Taktika",
+  "testata": "Zman Israel",
+  "seggi": {
+   "likud": 21,
+   "byachad": 15,
+   "sionismo_rel": 5,
+   "otzma": 7,
+   "blue_white": 4,
+   "shas": 9,
+   "utj": 8,
+   "beitenu": 10,
+   "raam": 4,
+   "lista_araba": 6,
+   "democratici": 8,
+   "yashar": 23
+  },
+  "sotto": {
+   "casa_sionista": 2.4
+  },
+  "campione": 500
+ },
+ {
+  "data": "2026-07-17",
+  "istituto": "Lazar · Panel4All",
+  "testata": "Maariv",
+  "seggi": {
+   "likud": 22,
+   "byachad": 16,
+   "sionismo_rel": 4,
+   "otzma": 7,
+   "shas": 7,
+   "utj": 8,
+   "beitenu": 9,
+   "raam": 5,
+   "hadash_taal": 5,
+   "democratici": 11,
+   "yashar": 22,
+   "casa_sionista": 4
+  },
+  "sotto": {
+   "blue_white": 1.7,
+   "balad": 2
+  },
+  "campione": 500
+ },
+ {
+  "data": "2026-07-19",
+  "istituto": "Kantar",
+  "testata": "Kan 11",
+  "seggi": {
+   "likud": 21,
+   "byachad": 15,
+   "sionismo_rel": 4,
+   "otzma": 10,
+   "shas": 8,
+   "utj": 8,
+   "beitenu": 9,
+   "raam": 5,
+   "hadash_taal": 5,
+   "democratici": 9,
+   "yashar": 22,
+   "casa_sionista": 4
+  },
+  "sotto": {
+   "blue_white": 2.2,
+   "balad": 1.9
+  },
+  "campione": 551
+ },
+ {
+  "data": "2026-07-20",
+  "istituto": "Midgam",
+  "testata": "Canale 12",
+  "seggi": {
+   "likud": 23,
+   "byachad": 15,
+   "sionismo_rel": 4,
+   "otzma": 8,
+   "shas": 8,
+   "utj": 8,
+   "beitenu": 9,
+   "raam": 5,
+   "hadash_taal": 5,
+   "democratici": 11,
+   "yashar": 24
+  },
+  "sotto": {
+   "blue_white": 1.3,
+   "balad": 1.7,
+   "casa_sionista": 2.7
+  },
+  "campione": 507
+ },
+ {
+  "data": "2026-07-23",
+  "istituto": "Lazar · Panel4All",
+  "testata": "Maariv",
+  "seggi": {
+   "likud": 20,
+   "byachad": 17,
+   "sionismo_rel": 5,
+   "otzma": 8,
+   "shas": 8,
+   "utj": 8,
+   "beitenu": 10,
+   "raam": 5,
+   "hadash_taal": 5,
+   "democratici": 11,
+   "yashar": 23
+  },
+  "sotto": {
+   "blue_white": 1.6,
+   "balad": 1.7,
+   "casa_sionista": 2.9
+  },
+  "campione": 500
+ },
+ {
+  "data": "2026-07-23",
+  "istituto": "Yossi Taktika",
+  "testata": "Zman Israel",
+  "seggi": {
+   "likud": 21,
+   "byachad": 13,
+   "sionismo_rel": 5,
+   "otzma": 8,
+   "shas": 9,
+   "utj": 8,
+   "beitenu": 10,
+   "raam": 5,
+   "lista_araba": 6,
+   "democratici": 10,
+   "yashar": 25
+  },
+  "sotto": {
+   "blue_white": 2,
+   "casa_sionista": 2.6
+  },
+  "campione": 500
+ },
+ {
+  "data": "2026-07-26",
+  "istituto": "Kantar",
+  "testata": "Kan 11",
+  "seggi": {
+   "likud": 22,
+   "byachad": 14,
+   "sionismo_rel": 5,
+   "otzma": 9,
+   "shas": 8,
+   "utj": 8,
+   "beitenu": 9,
+   "raam": 5,
+   "hadash_taal": 5,
+   "democratici": 10,
+   "yashar": 21,
+   "casa_sionista": 4
+  },
+  "sotto": {
+   "blue_white": 2.6,
+   "balad": 2.1
+  },
+  "campione": 551
+ },
+ {
+  "data": "2026-07-27",
+  "istituto": "Direct Polls",
+  "testata": "i24NEWS",
+  "seggi": {
+   "likud": 29,
+   "byachad": 9,
+   "sionismo_rel": 5,
+   "otzma": 8,
+   "shas": 9,
+   "utj": 8,
+   "beitenu": 9,
+   "raam": 5,
+   "lista_araba": 7,
+   "democratici": 10,
+   "yashar": 21
+  },
+  "campione": 525,
+  "casa": 1
+ },
+ {
+  "data": "2026-07-27",
+  "istituto": "Midgam",
+  "testata": "Canale 12",
+  "seggi": {
+   "likud": 22,
+   "byachad": 14,
+   "sionismo_rel": 4,
+   "otzma": 8,
+   "shas": 8,
+   "utj": 8,
+   "beitenu": 9,
+   "raam": 5,
+   "hadash_taal": 5,
+   "democratici": 10,
+   "yashar": 23,
+   "casa_sionista": 4
+  },
+  "sotto": {
+   "blue_white": 1.6,
+   "balad": 1.2
+  },
+  "campione": 509
+ },
+ {
+  "data": "2026-07-29",
+  "istituto": "Direct Polls",
+  "testata": "Canale 14",
+  "seggi": {
+   "likud": 32,
+   "byachad": 7,
+   "sionismo_rel": 5,
+   "otzma": 7,
+   "shas": 10,
+   "utj": 8,
+   "beitenu": 8,
+   "raam": 5,
+   "hadash_taal": 6,
+   "democratici": 10,
+   "yashar": 22
+  },
+  "sotto": {
+   "blue_white": 1.1,
+   "balad": 2.1,
+   "casa_sionista": 2.1
+  },
+  "campione": 539,
+  "casa": 1
+ },
+ {
+  "data": "2026-07-29",
+  "istituto": "Hamidgam Project",
+  "testata": "Canale 13",
+  "seggi": {
+   "likud": 23,
+   "byachad": 13,
+   "sionismo_rel": 4,
+   "otzma": 8,
+   "shas": 7,
+   "utj": 9,
+   "beitenu": 10,
+   "raam": 5,
+   "hadash_taal": 4,
+   "democratici": 9,
+   "yashar": 23,
+   "casa_sionista": 5
+  },
+  "sotto": {
+   "blue_white": 2.3,
+   "balad": 1.8
+  },
+  "campione": 956
+ },
+ {
+  "data": "2026-07-30",
+  "istituto": "Lazar · Panel4All",
+  "testata": "Maariv",
+  "seggi": {
+   "likud": 22,
+   "byachad": 15,
+   "sionismo_rel": 5,
+   "otzma": 7,
+   "shas": 7,
+   "utj": 8,
+   "beitenu": 10,
+   "raam": 5,
+   "hadash_taal": 5,
+   "democratici": 9,
+   "yashar": 23,
+   "casa_sionista": 4
+  },
+  "sotto": {
+   "blue_white": 1.2,
+   "balad": 1.8
+  },
+  "campione": 501
+ },
+ {
+  "data": "2026-07-30",
+  "istituto": "Yossi Taktika",
+  "testata": "Zman Israel",
+  "seggi": {
+   "likud": 20,
+   "byachad": 13,
+   "sionismo_rel": 6,
+   "otzma": 7,
+   "blue_white": 4,
+   "shas": 8,
+   "utj": 8,
+   "beitenu": 10,
+   "raam": 5,
+   "lista_araba": 6,
+   "democratici": 8,
+   "yashar": 21,
+   "casa_sionista": 4
+  },
+  "campione": 500
+ },
+ {
+  "data": "2026-08-02",
+  "istituto": "Kantar",
+  "testata": "Kan 11",
+  "seggi": {
+   "likud": 23,
+   "byachad": 13,
+   "sionismo_rel": 4,
+   "otzma": 9,
+   "shas": 8,
+   "utj": 8,
+   "beitenu": 9,
+   "raam": 5,
+   "hadash_taal": 6,
+   "democratici": 8,
+   "yashar": 23,
+   "casa_sionista": 4
+  },
+  "sotto": {
+   "blue_white": 1.4,
+   "balad": 2.2
+  },
+  "campione": 551
+ },
+ {
+  "data": "2026-08-03",
+  "istituto": "Midgam",
+  "testata": "Canale 12",
+  "seggi": {
+   "likud": 23,
+   "byachad": 14,
+   "sionismo_rel": 5,
+   "otzma": 7,
+   "shas": 7,
+   "utj": 8,
+   "beitenu": 9,
+   "raam": 5,
+   "hadash_taal": 5,
+   "democratici": 10,
+   "yashar": 23,
+   "casa_sionista": 4
+  },
+  "sotto": {
+   "blue_white": 1.4,
+   "balad": 1
+  },
+  "campione": 503
+ },
+ {
+  "data": "2026-08-04",
+  "istituto": "Direct Polls",
+  "testata": "Canale 14",
+  "seggi": {
+   "likud": 31,
+   "byachad": 8,
+   "sionismo_rel": 6,
+   "otzma": 6,
+   "shas": 11,
+   "utj": 8,
+   "beitenu": 8,
+   "raam": 5,
+   "hadash_taal": 5,
+   "democratici": 10,
+   "yashar": 22
+  },
+  "sotto": {
+   "blue_white": 0.5,
+   "balad": 2.9,
+   "casa_sionista": 1.9
+  },
+  "campione": 588,
+  "casa": 1
+ },
+ {
+  "data": "2026-08-04",
+  "istituto": "Maagar Mochot",
+  "testata": "Canale 16",
+  "seggi": {
+   "likud": 21,
+   "byachad": 14,
+   "sionismo_rel": 4,
+   "otzma": 9,
+   "shas": 9,
+   "utj": 8,
+   "beitenu": 9,
+   "raam": 4,
+   "hadash_taal": 5,
+   "democratici": 11,
+   "yashar": 22,
+   "casa_sionista": 4
+  }
+ },
+ {
+  "data": "2026-08-05",
+  "istituto": "Hamidgam Project",
+  "testata": "Canale 13",
+  "seggi": {
+   "likud": 22,
+   "byachad": 13,
+   "sionismo_rel": 5,
+   "otzma": 9,
+   "shas": 7,
+   "utj": 8,
+   "beitenu": 11,
+   "raam": 5,
+   "hadash_taal": 6,
+   "democratici": 11,
+   "yashar": 23
+  },
+  "sotto": {
+   "blue_white": 1.4,
+   "balad": 1.2,
+   "casa_sionista": 3
+  },
+  "campione": 961
+ },
+ {
+  "data": "2026-08-06",
+  "istituto": "Lazar · Panel4All",
+  "testata": "Maariv",
+  "seggi": {
+   "likud": 22,
+   "byachad": 15,
+   "sionismo_rel": 4,
+   "otzma": 8,
+   "shas": 7,
+   "utj": 8,
+   "beitenu": 10,
+   "raam": 5,
+   "hadash_taal": 5,
+   "democratici": 9,
+   "yashar": 23,
+   "casa_sionista": 4
+  },
+  "sotto": {
+   "blue_white": 1.2,
+   "balad": 1.4
+  },
+  "campione": 502
+ },
+ {
+  "data": "2026-08-06",
+  "istituto": "Yossi Taktika",
+  "testata": "Zman Israel",
+  "seggi": {
+   "likud": 21,
+   "byachad": 15,
+   "sionismo_rel": 6,
+   "otzma": 8,
+   "shas": 8,
+   "utj": 8,
+   "beitenu": 11,
+   "raam": 6,
+   "lista_araba": 6,
+   "democratici": 8,
+   "yashar": 23
+  },
+  "campione": 500
+ },
+ {
+  "data": "2026-08-09",
+  "istituto": "Direct Polls",
+  "testata": "Canale 14",
+  "seggi": {
+   "likud": 33,
+   "byachad": 7,
+   "sionismo_rel": 6,
+   "otzma": 6,
+   "shas": 10,
+   "utj": 7,
+   "beitenu": 8,
+   "raam": 5,
+   "hadash_taal": 5,
+   "democratici": 10,
+   "yashar": 23
+  },
+  "sotto": {
+   "blue_white": 0.4,
+   "balad": 2.3,
+   "casa_sionista": 1.2,
+   "unity_erdan": 0.9
+  },
+  "campione": 741,
+  "casa": 1
+ },
+ {
+  "data": "2026-08-09",
+  "istituto": "Kantar",
+  "testata": "Kan 11",
+  "seggi": {
+   "likud": 24,
+   "byachad": 13,
+   "sionismo_rel": 5,
+   "otzma": 8,
+   "shas": 8,
+   "utj": 8,
+   "beitenu": 10,
+   "raam": 6,
+   "hadash_taal": 5,
+   "democratici": 10,
+   "yashar": 23
+  },
+  "sotto": {
+   "blue_white": 1.3,
+   "balad": 2.1,
+   "casa_sionista": 3,
+   "unity_erdan": 1.9
+  },
+  "campione": 551
+ },
+ {
+  "data": "2026-08-10",
+  "istituto": "Midgam",
+  "testata": "Canale 12",
+  "seggi": {
+   "likud": 22,
+   "byachad": 15,
+   "sionismo_rel": 5,
+   "otzma": 8,
+   "shas": 7,
+   "utj": 8,
+   "beitenu": 10,
+   "raam": 5,
+   "hadash_taal": 5,
+   "democratici": 11,
+   "yashar": 24
+  },
+  "sotto": {
+   "blue_white": 0.8,
+   "balad": 1.6,
+   "casa_sionista": 2.7,
+   "unity_erdan": 1.3
+  },
+  "campione": 502
+ },
+ {
+  "data": "2026-08-12",
+  "istituto": "Hamidgam Project",
+  "testata": "Canale 13",
+  "seggi": {
+   "likud": 21,
+   "byachad": 12,
+   "sionismo_rel": 5,
+   "otzma": 8,
+   "shas": 7,
+   "utj": 8,
+   "beitenu": 10,
+   "raam": 5,
+   "hadash_taal": 6,
+   "democratici": 11,
+   "yashar": 23,
+   "casa_sionista": 4
+  },
+  "sotto": {
+   "blue_white": 1,
+   "balad": 1.2,
+   "unity_erdan": 1
+  },
+  "campione": 1240
+ },
+ {
+  "data": "2026-08-13",
+  "istituto": "Direct Polls",
+  "testata": "i24NEWS",
+  "seggi": {
+   "likud": 30,
+   "byachad": 8,
+   "sionismo_rel": 5,
+   "otzma": 7,
+   "shas": 8,
+   "utj": 9,
+   "beitenu": 9,
+   "raam": 5,
+   "hadash_taal": 6,
+   "democratici": 10,
+   "yashar": 23
+  },
+  "sotto": {
+   "blue_white": 0.9,
+   "balad": 1.1,
+   "casa_sionista": 2,
+   "unity_erdan": 1.1
+  },
+  "campione": 512,
+  "casa": 1
+ },
+ {
+  "data": "2026-08-13",
+  "istituto": "Lazar · Panel4All",
+  "testata": "Maariv",
+  "seggi": {
+   "likud": 21,
+   "byachad": 14,
+   "sionismo_rel": 4,
+   "otzma": 8,
+   "shas": 7,
+   "utj": 8,
+   "beitenu": 10,
+   "raam": 5,
+   "hadash_taal": 6,
+   "democratici": 10,
+   "yashar": 23,
+   "casa_sionista": 4
+  },
+  "sotto": {
+   "blue_white": 1.9,
+   "balad": 1.5,
+   "unity_erdan": 1.9
+  },
+  "campione": 506
+ },
+ {
+  "data": "2026-08-13",
+  "istituto": "Yossi Taktika",
+  "testata": "Zman Israel",
+  "seggi": {
+   "likud": 21,
+   "byachad": 13,
+   "sionismo_rel": 6,
+   "otzma": 7,
+   "shas": 8,
+   "utj": 8,
+   "beitenu": 11,
+   "raam": 6,
+   "lista_araba": 6,
+   "democratici": 9,
+   "yashar": 25
+  },
+  "sotto": {
+   "blue_white": 2,
+   "casa_sionista": 3,
+   "unity_erdan": 1
+  },
+  "campione": 500
+ },
+ {
+  "data": "2026-08-16",
+  "istituto": "Kantar",
+  "testata": "Kan 11",
+  "seggi": {
+   "likud": 23,
+   "byachad": 14,
+   "sionismo_rel": 4,
+   "otzma": 10,
+   "shas": 7,
+   "utj": 8,
+   "beitenu": 10,
+   "raam": 5,
+   "hadash_taal": 6,
+   "democratici": 10,
+   "yashar": 23
+  },
+  "sotto": {
+   "blue_white": 1.4,
+   "balad": 1.9,
+   "casa_sionista": 3,
+   "unity_erdan": 1.3
+  },
+  "campione": 1103
+ },
+ {
+  "data": "2026-08-17",
+  "istituto": "Midgam",
+  "testata": "Canale 12",
+  "seggi": {
+   "likud": 22,
+   "byachad": 15,
+   "sionismo_rel": 5,
+   "otzma": 8,
+   "shas": 7,
+   "utj": 8,
+   "beitenu": 10,
+   "raam": 5,
+   "hadash_taal": 5,
+   "democratici": 11,
+   "yashar": 24
+  },
+  "sotto": {
+   "blue_white": 1.4,
+   "balad": 1.8,
+   "casa_sionista": 1.5,
+   "unity_erdan": 1.7
+  },
+  "campione": 501
+ },
+ {
+  "data": "2026-08-18",
+  "istituto": "Direct Polls",
+  "testata": "Canale 14",
+  "seggi": {
+   "likud": 32,
+   "byachad": 6,
+   "sionismo_rel": 8,
+   "otzma": 6,
+   "shas": 10,
+   "utj": 7,
+   "beitenu": 7,
+   "raam": 5,
+   "hadash_taal": 6,
+   "democratici": 9,
+   "yashar": 24
+  },
+  "sotto": {
+   "blue_white": 0.4,
+   "balad": 2.1,
+   "casa_sionista": 1.2,
+   "unity_erdan": 0.1
+  },
+  "campione": 636,
+  "casa": 1
+ },
+ {
+  "data": "2026-08-19",
+  "istituto": "Kantar",
+  "testata": "Kan 11",
+  "seggi": {
+   "likud": 23,
+   "byachad": 14,
+   "sionismo_rel": 5,
+   "otzma": 9,
+   "shas": 7,
+   "utj": 8,
+   "beitenu": 9,
+   "raam": 5,
+   "hadash_taal": 6,
+   "democratici": 10,
+   "yashar": 24
+  },
+  "sotto": {
+   "blue_white": 1.4,
+   "balad": 2.1,
+   "casa_sionista": 2.9,
+   "unity_erdan": 1.6
+  },
+  "campione": 558
+ }
+]

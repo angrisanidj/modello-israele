@@ -2976,10 +2976,37 @@ function tipoMemoria(){
  return 'nessuna';
 }
 function salva(){memSet(KEY,JSON.stringify({s:SOND,t:Date.now()}));}
+/* L'archivio pubblicato vive in dati/archivio.json, che un lavoro notturno aggiorna
+   senza toccare questo file: così il territorio del lavoro automatico e quello delle
+   sessioni di lavoro restano separati, e ogni commit su index.html resta una decisione
+   esplicita. BASE, qui dentro, è il seme di riserva: chi apre il file con un doppio
+   clic da disco — dove il browser blocca fetch — o senza rete, vede i dati cotti nel
+   file all'ultimo aggiornamento manuale, che è il comportamento di sempre.
+   Il JSON si accetta solo se è un archivio plausibile: un array, non più corto del
+   seme, fatto di rilevazioni con data e seggi. Un file troncato o vuoto non deve
+   potersi portare via l'archivio. */
+function archivioFresco(){
+ try{
+  return fetch('dati/archivio.json',{cache:'no-cache'}).then(function(r){
+   if(!r||!r.ok) return null;
+   return r.json();
+  }).then(function(j){
+   if(!j||Object.prototype.toString.call(j)!=='[object Array]') return;
+   if(j.length<BASE.length) return;
+   for(var k=0;k<j.length;k++) if(!j[k]||!j[k].data||!j[k].seggi) return;
+   BASE=j; SOND=j.slice();
+  })['catch'](function(){});
+ }catch(e){ return Promise.resolve(); }
+}
 function carica(){
- return memGet(KEY).then(function(v){
+ return Promise.resolve(archivioFresco()).then(function(){
+  return memGet(KEY);
+ }).then(function(v){
   if(!v) return;
-  try{var d=JSON.parse(v);if(d.s&&d.s.length)SOND=d.s;}catch(e){}
+  /* il salvato locale (inserimenti manuali, aggiornamenti col pulsante) ha la
+     precedenza, ma le rilevazioni fresche del JSON che ancora non contiene vi
+     vengono unite: senza, un salvato di ieri nasconderebbe i dati di stanotte */
+  try{var d=JSON.parse(v);if(d.s&&d.s.length){SOND=d.s;unisci(BASE);}}catch(e){}
  })['catch'](function(){});
 }
 function msg(t,c){var e=$('k-msg');e.className='msg show '+(c||'');e.innerHTML=t;}
@@ -3011,6 +3038,10 @@ function unisci(nuovi){
   var o={data:s.data,istituto:s.istituto||'n.d.',testata:s.testata||'',campione:s.campione||null,
    casa:/direct polls|filber|channel 14|canale 14/i.test((s.istituto||'')+' '+(s.testata||''))?1:0,seggi:pul};
   if(s.sotto){o.sotto={};Object.keys(s.sotto).forEach(function(k){if(P[k])o.sotto[k]=+s.sotto[k];});}
+  /* il flag pre-fusione va conservato: senza, una rilevazione di gennaio reimportata
+     verrebbe trattata come attuale e armonizza()/quoteDa() smetterebbero di fondere
+     Yesh Atid e Bennett in B'Yachad. Perso finora da ogni import: era un difetto. */
+  if(s.pre) o.pre=1;
   SOND.push(o);n++;
  });
  return n;
@@ -3136,7 +3167,7 @@ $('k-imp').addEventListener('click',function(){
   r.onload=function(){try{var j=JSON.parse(r.result);var n=unisci(j.sondaggi||j);
    salva();render();msg('Importate '+n+' rilevazioni.','ok');}catch(e){msg('File non valido.','err');}};
   r.readAsText(fl);};i.click();});
-$('k-rst').addEventListener('click',function(){SOND=BASE.slice();salva();render();msg('Ripristinati i dati di agosto 2026.');});
+$('k-rst').addEventListener('click',function(){SOND=BASE.slice();salva();render();msg('Ripristinato l\'archivio di partenza.');});
 
 /* controlli */
 $('k-sw').addEventListener('input',function(){SW=+this.value;

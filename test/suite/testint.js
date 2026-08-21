@@ -43,7 +43,10 @@ setTimeout(()=>{
  console.log("\nrilevazioni nuove entrate:");
  nuove.forEach(s=>console.log("  ",s.data,s.istituto,s.testata));
  console.log("\n── controlli ──");
- console.log("Wikipedia interrogata:", calls[0].includes('wikipedia')?"OK":"FALLITO");
+ /* dall'introduzione di dati/archivio.json la PRIMA chiamata è il fetch relativo
+    dell'archivio fresco; Wikipedia arriva dopo, al click su Aggiorna */
+ console.log("prima chiamata: l'archivio fresco relativo:", /^dati\/archivio\.json$/.test(calls[0])?"OK":"FALLITO");
+ console.log("Wikipedia interrogata:", calls.some(c=>/wikipedia/.test(c))?"OK":"FALLITO");
  console.log("nessuna chiamata all'API di Anthropic:", !calls.some(c=>/anthropic/.test(c))?"OK":"FALLITO");
  console.log("evento nuovo in cronologia:", EVENTI.some(e=>/primary|primarie/i.test(e.testo))?"OK":"FALLITO");
  console.log("solo fonte Wikipedia:", !SOND.some(s=>s.data==='2026-08-21')?"OK":"FALLITO");

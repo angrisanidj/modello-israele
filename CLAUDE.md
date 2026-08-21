@@ -10,7 +10,9 @@ Tutto il testo rivolto al lettore è **in italiano**. Anche i commenti nel codic
 ## Regola prima: il file è uno solo
 
 `index.html` è un file **autonomo**: HTML, CSS e JavaScript in un unico documento, nessuna
-dipendenza esterna, nessuna chiamata di rete all'infuori dell'API di Wikipedia. Deve poter essere
+dipendenza esterna, nessuna chiamata di rete all'infuori dell'API di Wikipedia e dei file
+del progetto stesso (dati/archivio.json, servito da Pages accanto alla pagina; da disco il
+fetch fallisce e vale il seme BASE dentro il file). Deve poter essere
 salvato su disco, aperto con un doppio clic e funzionare. Deve poter essere incorporato in una
 pagina di Fanpage o FocusAmerica senza portarsi dietro nulla.
 
@@ -21,7 +23,7 @@ alle prove.
 
 ```bash
 npm install          # solo la prima volta: installa jsdom per le prove
-npm test             # estrae il JS e lancia le 335 prove
+npm test             # estrae il JS e lancia le 347 prove
 npm run verifica     # prove + controlli strutturali
 ```
 
@@ -81,6 +83,7 @@ dati/
   prefus.js           analisi della fusione B'Yachad del 26 aprile
   wikiparser.js       copia orfana del parser: obsoleta, nessuno la importa, da eliminare
   fixture.js          tabella Wikipedia di riferimento per le prove
+  archivio.json       l'archivio pubblicato: la pagina lo carica con fetch relativo
 docs/
   regola-colore.md    la specifica dei colori: bande, settori, punti, distanze
   pubblicare.md       note di lavoro
@@ -534,6 +537,6 @@ nessuno degli altri settori.
 trovati oggi — la stella della bandiera che sconfinava nelle bande, l'occhiello a filo del
 bordo sull'ombra, il vuoto di 372px sotto le ipotesi, l'evidenziazione che competeva con
 la codifica del riempimento, il verde arabo che si leggeva nero — sono stati trovati
-**guardando la pagina**, non dalla suite. Le 335 prove dicono che il modello non si è
+**guardando la pagina**, non dalla suite. Le 347 prove dicono che il modello non si è
 rotto; non dicono che la pagina si veda. Dopo ogni push, aprire
 <https://angrisanidj.github.io/modello-israele/> e guardarla nei due temi.
