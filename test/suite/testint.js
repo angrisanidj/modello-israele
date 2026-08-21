@@ -48,7 +48,13 @@ setTimeout(()=>{
  console.log("prima chiamata: l'archivio fresco relativo:", /^dati\/archivio\.json$/.test(calls[0])?"OK":"FALLITO");
  console.log("Wikipedia interrogata:", calls.some(c=>/wikipedia/.test(c))?"OK":"FALLITO");
  console.log("nessuna chiamata all'API di Anthropic:", !calls.some(c=>/anthropic/.test(c))?"OK":"FALLITO");
- console.log("evento nuovo in cronologia:", EVENTI.some(e=>/primary|primarie/i.test(e.testo))?"OK":"FALLITO");
+ /* Dalla porta unica sugli eventi la cronologia pubblicata NON cresce piu' col pulsante:
+    le voci trovate — in inglese, non curate — vengono dichiarate in attesa nel messaggio
+    e la loro chiave finisce nel salvato locale. L'attesa precedente («evento nuovo in
+    cronologia») e' obsoleta di proposito: era esattamente il difetto. */
+ console.log("la cronologia NON cresce col pulsante:", EVENTI.length===evPrima?"OK ("+evPrima+" invariato)":"FALLITO ("+EVENTI.length+")");
+ console.log("nessuna voce inglese entrata in cronologia:", !EVENTI.some(e=>/ the | and |conducts/.test(e.testo))?"OK":"FALLITO");
+ console.log("le voci trovate sono dichiarate in attesa:", /voci-evento|voce-evento/.test(store['k-msg'].innerHTML)?"OK":"FALLITO");
  console.log("solo fonte Wikipedia:", !SOND.some(s=>s.data==='2026-08-21')?"OK":"FALLITO");
  console.log("nessun duplicato per data+istituto+testata:",
    (new Set(SOND.map(s=>s.data+'|'+s.istituto+'|'+s.testata))).size===SOND.length?"OK":"FALLITO");

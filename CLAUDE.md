@@ -16,6 +16,12 @@ fetch fallisce e vale il seme BASE dentro il file). Deve poter essere
 salvato su disco, aperto con un doppio clic e funzionare. Deve poter essere incorporato in una
 pagina di Fanpage o FocusAmerica senza portarsi dietro nulla.
 
+Aprendo index.html con doppio clic, Chrome blocca il fetch di dati/archivio.json con un
+errore CORS in console — origine null, schema file: non ammesso. **È il comportamento
+atteso, non un difetto**: il catch ripiega sul seme BASE e la pagina funziona per intero.
+Verificato a mano il 21 agosto 2026, perché nessuna prova automatica può dirlo: jsdom non
+fa rete e il riquadro del browser non naviga file://.
+
 Non introdurre bundler, framework, npm a runtime, font remoti, CDN. `devDependencies` serve solo
 alle prove.
 
@@ -23,7 +29,7 @@ alle prove.
 
 ```bash
 npm install          # solo la prima volta: installa jsdom per le prove
-npm test             # estrae il JS e lancia le 347 prove
+npm test             # estrae il JS e lancia le 363 prove
 npm run verifica     # prove + controlli strutturali
 ```
 
@@ -84,6 +90,7 @@ dati/
   wikiparser.js       copia orfana del parser: obsoleta, nessuno la importa, da eliminare
   fixture.js          tabella Wikipedia di riferimento per le prove
   archivio.json       l'archivio pubblicato: la pagina lo carica con fetch relativo
+  eventi-grezzi.json  registro delle voci-evento da Wikipedia, in inglese, in attesa di revisione
 docs/
   regola-colore.md    la specifica dei colori: bande, settori, punti, distanze
   pubblicare.md       note di lavoro
@@ -537,6 +544,6 @@ nessuno degli altri settori.
 trovati oggi — la stella della bandiera che sconfinava nelle bande, l'occhiello a filo del
 bordo sull'ombra, il vuoto di 372px sotto le ipotesi, l'evidenziazione che competeva con
 la codifica del riempimento, il verde arabo che si leggeva nero — sono stati trovati
-**guardando la pagina**, non dalla suite. Le 347 prove dicono che il modello non si è
+**guardando la pagina**, non dalla suite. Le 363 prove dicono che il modello non si è
 rotto; non dicono che la pagina si veda. Dopo ogni push, aprire
 <https://angrisanidj.github.io/modello-israele/> e guardarla nei due temi.

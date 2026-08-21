@@ -2975,7 +2975,7 @@ function tipoMemoria(){
  try{if(window.localStorage){window.localStorage.setItem('kn-test','1');window.localStorage.removeItem('kn-test');return 'locale';}}catch(e){}
  return 'nessuna';
 }
-function salva(){memSet(KEY,JSON.stringify({s:SOND,t:Date.now()}));}
+function salva(){memSet(KEY,JSON.stringify({s:SOND,t:Date.now(),eg:Object.keys(EG)}));}
 /* L'archivio pubblicato vive in dati/archivio.json, che un lavoro notturno aggiorna
    senza toccare questo file: così il territorio del lavoro automatico e quello delle
    sessioni di lavoro restano separati, e ogni commit su index.html resta una decisione
@@ -3006,7 +3006,10 @@ function carica(){
   /* il salvato locale (inserimenti manuali, aggiornamenti col pulsante) ha la
      precedenza, ma le rilevazioni fresche del JSON che ancora non contiene vi
      vengono unite: senza, un salvato di ieri nasconderebbe i dati di stanotte */
-  try{var d=JSON.parse(v);if(d.s&&d.s.length){SOND=d.s;unisci(BASE);}}catch(e){}
+  try{var d=JSON.parse(v);
+   if(d.s&&d.s.length){SOND=d.s;unisci(BASE);}
+   if(d.eg&&d.eg.forEach)d.eg.forEach(function(k){EG[k]=1;});
+  }catch(e){}
  })['catch'](function(){});
 }
 function msg(t,c){var e=$('k-msg');e.className='msg show '+(c||'');e.innerHTML=t;}
@@ -3054,15 +3057,32 @@ function contesto(){
    dove:dentroClaude?'dentro Claude':(proto==='file:'?'file locale':(/^https?:/.test(proto)?'server web':'sconosciuto')),
    memoria:tipoMemoria()};
 }
-function unisciEventi(ev){
- var n=0;
+/* La cronologia pubblicata (EVENTI) è solo quella italiana, scritta a mano: le voci che
+   il parser trova su Wikipedia sono citazioni in inglese, non curate, e NON vi entrano
+   mai da sole — è già successo, e due voci inglesi sono finite in pagina fra le
+   quattordici italiane. La porta è una sola: il registro dati/eventi-grezzi.json, dove
+   il lavoro notturno deposita le voci trovate e da cui l'autore le porta in EVENTI dopo
+   averle tradotte. Le voci lavorate non si cancellano mai dal registro — cambiano stato —
+   così una voce già tradotta non può ripresentarsi come nuova il giorno dopo: il
+   confronto è per chiave (data + testo inglese normalizzato), non per data sola, che
+   è il confronto con cui le due voci del 22 gennaio e del 16 maggio erano sfuggite.
+   Il browser non può scrivere nel repository: il pulsante manuale deposita le chiavi
+   delle voci viste nel salvato locale (EG), le dichiara nel messaggio, e niente più. */
+function chiaveEvento(d,t){
+ return d+'|'+String(t).toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'').slice(0,72);
+}
+var EG={};             /* chiavi delle voci-evento già viste da questo browser */
+function eventiInAttesa(ev,registro){
+ var note={};
+ (registro||[]).forEach(function(r){if(r&&r.chiave)note[r.chiave]=1;});
+ var fresche=[];
  (ev||[]).forEach(function(e){
   if(!e.data||!e.testo) return;
-  if(EVENTI.some(function(x){return x.data===e.data;})) return;
-  EVENTI.push(e); n++;
+  var k=chiaveEvento(e.data,e.testo);
+  if(note[k]||EG[k]) return;
+  EG[k]=1; fresche.push(e);
  });
- EVENTI.sort(function(a,b){return a.data<b.data?-1:1;});
- return n;
+ return fresche.length;
 }
 /* Passo 1 · Wikipedia: deterministico, legge la tabella integrale riga per riga.
    Passo 2 · ricerca web: solo per le rilevazioni più recenti di quelle già in tabella. */
@@ -3078,14 +3098,24 @@ $('k-refresh').addEventListener('click',function(){
   .then(function(txt){
    var out=parseWiki(txt,['2026']);
    if(!out.sondaggi.length) throw new Error('nessuna riga interpretabile');
-   var nuove=unisci(out.sondaggi), ev=unisciEventi(out.eventi);
+   /* il registro pubblicato dice quali voci-evento sono già state viste dal lavoro
+      notturno; se non è raggiungibile — file aperto da disco — vale il solo salvato
+      locale, e al peggio una voce viene dichiarata in attesa una volta di troppo */
+   return fetch('dati/eventi-grezzi.json',{cache:'no-cache'})
+    .then(function(r){return (r&&r.ok)?r.json():null;})['catch'](function(){return null;})
+    .then(function(registro){return {out:out,registro:registro};});
+  })
+  .then(function(x){
+   var out=x.out;
+   var nuove=unisci(out.sondaggi), ev=eventiInAttesa(out.eventi,x.registro);
    if(nuove||ev){salva();render();}
    var s;
    if(nuove) s='Archivio aggiornato: <b>'+nuove+(nuove===1?' nuova rilevazione':' nuove rilevazioni')+
-     '</b> da Wikipedia'+(ev?', '+ev+(ev===1?' evento aggiunto':' eventi aggiunti')+' alla cronologia':'')+
-     '. Ora contiene '+f(SOND.length)+' rilevazioni.';
-   else s='Nessuna rilevazione nuova: l\'archivio è già allineato a Wikipedia'+
-     (ev?', ma '+ev+(ev===1?' evento è stato aggiunto':' eventi sono stati aggiunti')+' alla cronologia':'')+'.';
+     '</b> da Wikipedia. Ora contiene '+f(SOND.length)+' rilevazioni.';
+   else s='Nessuna rilevazione nuova: l\'archivio è già allineato a Wikipedia.';
+   if(ev) s+=' '+ev+(ev===1?' voce-evento nuova trovata':' voci-evento nuove trovate')+
+     ' (in inglese, non curate): la cronologia pubblicata resta quella curata in italiano, '+
+     'e le voci aspettano la revisione editoriale nel registro.';
    s+=' Sono state lette <b>'+out.sondaggi.length+'</b> righe valide su '+
      (out.sondaggi.length+out.scartate.length)+'.';
    if(out.scartate.length){
