@@ -29,7 +29,7 @@ alle prove.
 
 ```bash
 npm install          # solo la prima volta: installa jsdom per le prove
-npm test             # estrae il JS e lancia le 569 prove
+npm test             # estrae il JS e lancia le 586 prove
 npm run verifica     # prove + controlli strutturali
 ```
 
@@ -158,15 +158,16 @@ Messaggi di commit in italiano, all'infinito, con il perché e non solo il cosa.
 4. Incertezza sulla configurazione delle liste nel Monte Carlo
 5. Affluenza haredi (nessuna leva, ha oscillato meno di quella araba)
 6. Storico delle proiezioni salvate su disco invece che ricalcolate
-7. **Esportazione PNG dei grafici — e attenzione a cosa si esporta.** Dal 21 agosto 2026
-   i marcatori numerati degli eventi non sono più dentro l'SVG: sopra i 660px sono
-   `<button>` veri in uno strato HTML (`#k-evlay`) sovrapposto al grafico, perché un
-   `<circle>` non ha fuoco né area di tocco. **Un'esportazione del solo SVG li
-   perderebbe**, e perderebbe con loro il rimando alla cronologia: resterebbero i
-   tratteggi verticali senza il numero che dice a quale fatto appartengono. Chi la
-   scrive deve o comporre le due cose (SVG più strato) o ridisegnare i dischi dentro
-   l'SVG al momento dell'esportazione. Sotto i 660 i dischi sono ancora nell'SVG, quindi
-   il difetto si vede solo sulla larghezza che si esporterebbe davvero.
+7. **Esportazione PNG dei grafici.** Il vincolo annotato il 21 agosto — i marcatori
+   numerati fuori dall'SVG, che un'esportazione del solo disegno avrebbe perso — **non
+   esiste più dal 22 agosto 2026**: i dischi si disegnano dentro l'SVG a **tutte** le
+   larghezze, e lo strato HTML (`#k-evlay`) porta soltanto bersagli trasparenti da 30px
+   per il fuoco e il tocco. Nessun inchiostro vive fuori dal disegno, quindi esportare
+   l'SVG basta: tratteggi, dischi e numeri vengono via insieme.
+   Resta una cosa da decidere, ma è di contenuto e non di struttura: **se esportare lo
+   stato isolato o quello pieno.** Nello stato isolato le tre linee stanno a opacità 0,26
+   e una finestra di trenta giorni è accesa — un'immagine che si spiega solo insieme al
+   riquadro che la accompagna.
 8. Aggiornamento automatico programmato, con avviso se l'archivio è vecchio
 9. Accessibilità: navigazione da tastiera, ruoli ARIA
 10. **Prova su browser veri.** Tutto è verificato in jsdom, che non fa layout. I difetti veri
@@ -793,6 +794,6 @@ nessuno degli altri settori.
 trovati oggi — la stella della bandiera che sconfinava nelle bande, l'occhiello a filo del
 bordo sull'ombra, il vuoto di 372px sotto le ipotesi, l'evidenziazione che competeva con
 la codifica del riempimento, il verde arabo che si leggeva nero — sono stati trovati
-**guardando la pagina**, non dalla suite. Le 569 prove dicono che il modello non si è
+**guardando la pagina**, non dalla suite. Le 586 prove dicono che il modello non si è
 rotto; non dicono che la pagina si veda. Dopo ogni push, aprire
 <https://angrisanidj.github.io/modello-israele/> e guardarla nei due temi.

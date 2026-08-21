@@ -139,6 +139,55 @@ setTimeout(function(){
     'la voce di cronologia arriva a 44px: è il bersaglio, e a una riga misurava 18',
     regolaVoce.slice(0,80));
 
+  /* ══ 1b · i dischi vivono nell'SVG, e i bersagli ci stanno sopra ══
+   *
+   * Erano una fascia sospesa nel padding del contenitore, fuori dall'SVG: fra il fondo
+   * del disco e la verticale tratteggiata che gli corrisponde restavano 73,3px sulla
+   * corsia più popolata e 41,3 sull'altra, e niente legava il numero alla sua data. Ora
+   * il disegno è uno solo a tutte le larghezze e l'HTML porta soltanto fuoco e tocco. */
+  const svgT = () => $('k-trend').innerHTML;
+  const dischi = () => [].slice.call($('k-trend').querySelectorAll('circle'))
+    .filter(c => +c.getAttribute('r') >= 5);
+  esito(dischi().length === A.EVENTI().length,
+    'ogni evento ha il suo disco disegnato DENTRO il grafico', String(dischi().length));
+  esito([].slice.call(D.querySelectorAll('#k-evlay button')).every(b => !b.textContent.trim() ||
+        /transparent|font-size:0/.test(css.match(/#kn26 .evlay button{[^}]*}/)[0])),
+    'e i bottoni dello strato non disegnano niente: portano solo fuoco e area di tocco');
+  esito(/background:transparent/.test(css.match(/#kn26 .evlay button{[^}]*}/)[0]),
+    'lo dichiara la regola, non il caso', css.match(/#kn26 .evlay button{[^}]*}/)[0].slice(0,70));
+  esito(!/paddingTop/.test(fs.readFileSync(__dirname + '/../app.js','utf8')),
+    'e non resta nessuna fascia da riservare sopra il grafico');
+
+  /* il vuoto fra il disco più basso e la cima dell'area, alle tre larghezze.
+     La geometria è in unità di viewBox; le tre larghezze rese del contenitore sono
+     misurate su browser e sono le stesse che il codice usa come ripiego. */
+  const dash1 = [].slice.call($('k-trend').querySelectorAll('line'))
+    .filter(l => l.getAttribute('stroke-dasharray') === '2 3');
+  const cimaArea = +dash1[0].getAttribute('y1') + 2;        /* le verticali partono a T-2 */
+  const rr = +dischi()[0].getAttribute('r');
+  const cyBasso = Math.max.apply(null, dischi().map(c => +c.getAttribute('cy')));
+  const vuotoVb = cimaArea - (cyBasso + rr);
+  const Wvb = +$('k-trend').querySelector('svg').getAttribute('viewBox').split(' ')[2];
+  const rese = [['1265', 1070], ['760', 674], ['380', 326]];
+  rese.forEach(function(r){
+    const px = vuotoVb * (r[1] / Wvb);
+    esito(px < 6, 'a ' + r[0] + 'px il disco più basso sfiora la cima del grafico (< 6px)',
+      px.toFixed(2) + 'px');
+  });
+
+  /* la corsia più popolata è la più vicina all'area, non la più lontana: prima
+     l'assegnazione riempiva per prima la corsia più ALTA, e undici dischi su sedici
+     finivano al massimo della distanza */
+  const perCorsia = {};
+  dischi().forEach(function(c){ const k = c.getAttribute('cy'); perCorsia[k] = (perCorsia[k]||0)+1; });
+  /* le chiavi restano stringhe: sono attributi cy come «37.0», e Number(«37.0») non
+     rientra nell'oggetto — l'ordinamento è numerico, la lettura per chiave no */
+  const chiavi = Object.keys(perCorsia).sort(function(a,b){return +b - +a;});
+  esito(chiavi.length > 1, 'i dischi stanno su più di una corsia', String(chiavi.length));
+  esito(perCorsia[chiavi[0]] === Math.max.apply(null, Object.values(perCorsia)),
+    'e la corsia più popolata è quella più vicina alla cima del grafico',
+    chiavi.map(function(k){return perCorsia[k]+' a cy '+k;}).join(' · '));
+
   /* ══ 2 · lo stato pieno non ha niente di acceso ══ */
   esito(acc().length === 0, 'senza evento scelto non c\'è nessun tratto acceso');
   esito(!/\biso\b/.test($('k-trend').className), 'e il grafico non è in stato isolato');
@@ -298,6 +347,46 @@ setTimeout(function(){
   esito(D.activeElement === voci()[3],
     'riportando il fuoco sulla voce da cui si era entrati, non sul body',
     D.activeElement && D.activeElement.tagName);
+
+  /* il pulsante di uscita: grammatica, bersaglio e nome ══
+   * Era l'unico comando della pagina senza bordo — testo grigio in alto a destra, con
+   * l'aspetto di un'etichetta — mentre pastiglie dei veti, legenda dell'emiciclo e
+   * scorciatoie del simulatore hanno tutte un contorno. Ora porta .btn.g.xs, che è la
+   * classe di «Mostra tutti i seggi»: l'uscita dal filtro dell'emiciclo, cioè il suo
+   * precedente esatto. */
+  click(voci()[4]);
+  const usc = $('k-evsel').querySelector('.x');
+  /* le classi si leggono a pezzi, non con un regex: un confine di parola scritto male
+     passa inosservato e la prova diventa sempre vera o sempre falsa */
+  const classi = usc.className.trim().split(' ');
+  esito(['btn','g','xs'].every(function(c){return classi.indexOf(c)>=0;}),
+    'la via d uscita porta la stessa grammatica degli altri comandi (.btn.g.xs)', usc.className);
+  const regolaX = (css.match(/#kn26 \.evsel \.x\{[^}]*\}/) || [''])[0];
+  esito(regolaX.length > 0, 'la regola del pulsante di uscita esiste ed è stata trovata');
+  esito(/min-height:44px/.test(regolaX),
+    'e il bersaglio arriva a 44px veri, non a 29 con l area allargata di nascosto', regolaX.slice(0,70));
+  esito(!/font-size:10.5px/.test(regolaX) && !/border:0/.test(regolaX),
+    'senza più il corpo minuscolo e il niente al posto del bordo');
+  /* il nome del pulsante e quello citato nella nota sono lo stesso: due strade per lo
+     stesso nome, e se una cambia deve cambiare l altra */
+  const notaGrafico = [].slice.call(D.querySelectorAll('#kn26 p.fn'))
+    .find(function(x){ return /ripremendo lo stesso numero/.test(x.textContent); });
+  esito(!!notaGrafico, 'la nota sotto il grafico spiega come si esce');
+  /* sotto i 660 il pulsante è statico e va dove lo mette il documento: sta per ULTIMO,
+     o finisce sopra il titolo invece che in fondo, lontano dal dito */
+  esito(usc === $('k-evsel').lastElementChild,
+    'il pulsante di uscita è l ultimo elemento del riquadro',
+    $('k-evsel').lastElementChild.tagName + '.' + $('k-evsel').lastElementChild.className);
+  /* la nota va a capo nel sorgente: senza normalizzare gli spazi il nome citato
+     arriva troncato a «Torna alla» */
+  const citato = notaGrafico &&
+    (notaGrafico.textContent.split(/\s+/).join(' ').match(/«([^»]+)»/) || [])[1];
+  esito(citato === usc.textContent.trim(),
+    'e il nome che cita è esattamente quello scritto sul pulsante',
+    'nota «' + citato + '» · pulsante «' + usc.textContent.trim() + '»');
+  esito(!/chiudi/i.test(notaGrafico ? notaGrafico.textContent : ''),
+    'e non nomina più il vecchio «chiudi»');
+  click(usc);
 
   /* terza via: Esc */
   click(marcatori()[7]);

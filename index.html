@@ -575,9 +575,21 @@
 #kn26 .evsel{display:none;}
 #kn26 .evsel.on{display:block;position:relative;background:var(--wash);
  border:1px solid var(--hair);border-radius:10px;padding:13px 15px;margin-bottom:14px;}
-#kn26 .evsel .x{position:absolute;top:9px;right:10px;background:none;border:0;
- color:var(--mute);font-size:10.5px;cursor:pointer;padding:3px 6px;border-radius:5px;}
-#kn26 .evsel .x:hover{background:var(--hair2);color:var(--ink);}
+/* La via d'uscita porta la grammatica di «Mostra tutti i seggi», che è il suo precedente
+   esatto — l'uscita dal filtro dell'emiciclo: contorno --hair, fondo trasparente, peso
+   700. Era l'unico comando della pagina senza bordo, e sembrava un'etichetta.
+   Il bersaglio arriva a 44px veri, non a 29 con l'area allargata di nascosto: un
+   bersaglio che si vede quanto è grande è più onesto di uno che è grande e non lo dice.
+   E il testo nomina lo STATO, non l'azione, perché a 380 il riquadro sta dentro l'elenco
+   e il grafico è fuori schermo: chi preme una voce in fondo non vede che si è attenuato,
+   e questo pulsante è l'unico posto in cui lo scopre. Per lo stesso motivo lì scende in
+   fondo al riquadro, vicino al dito che ha appena premuto. */
+#kn26 .evsel .x{position:absolute;top:10px;right:12px;min-height:44px;padding:14px 12px;
+ display:inline-flex;align-items:center;}
+@media(max-width:660px){
+ #kn26 .evsel .x{position:static;margin-top:12px;width:100%;justify-content:center;}
+ #kn26 .evsel .ed{padding-right:0;}
+}
 #kn26 .evsel .ed{font-size:12.5px;color:var(--ink);line-height:1.5;padding-right:52px;margin-bottom:11px;}
 #kn26 .evsel .ed em{font-style:normal;font-weight:700;color:var(--acc);margin-right:5px;}
 #kn26 .evsel .eb{display:flex;flex-wrap:wrap;gap:8px 22px;}
@@ -618,13 +630,21 @@
 /* i marcatori cliccabili sono uno strato HTML sopra l'SVG: <button> veri, con il fuoco
    e l'area di tocco che un <circle> non può avere. Esistono solo sopra i 660px — sotto,
    il comando è la voce di cronologia, che è larga quanto il contenitore. */
-#kn26 .evlay{position:absolute;left:0;right:0;top:0;height:34px;pointer-events:none;}
-#kn26 .evlay button{position:absolute;transform:translateX(-50%);pointer-events:auto;
+/* Lo strato NON disegna più niente: i dischi numerati stanno dentro l'SVG a tutte le
+   larghezze, appoggiati alla cima dell'area come già facevano sotto i 900. Qui restano
+   solo bersagli trasparenti da 30px, centrati sul disco, che portano il fuoco e l'area
+   di tocco che un <circle> non può avere.
+   Prima i marcatori erano una fascia sospesa nel padding del contenitore, FUORI dall'SVG:
+   fra il fondo del disco e la verticale tratteggiata che gli corrisponde restavano 73,3px
+   sulla corsia più popolata e 41,3 sull'altra, e niente legava il numero alla sua data.
+   Ora il vuoto è quello di 380, dove il difetto non c'era: 3,6px.
+   Il posizionamento è in PERCENTUALE dell'SVG, non in pixel: così il bersaglio resta
+   incollato al suo disco a qualunque larghezza resa, senza ricalcoli. */
+#kn26 .evlay{position:absolute;inset:0;pointer-events:none;}
+#kn26 .evlay button{position:absolute;transform:translate(-50%,-50%);pointer-events:auto;
  width:30px;height:30px;border-radius:50%;border:0;padding:0;cursor:pointer;
- background:var(--ink2);color:var(--paper);font-family:var(--serif);font-size:11px;
- display:flex;align-items:center;justify-content:center;transition:.15s;}
-#kn26 .evlay button:hover{background:var(--ink);}
-#kn26 .evlay button[aria-pressed="true"]{background:var(--acc);}
+ background:transparent;color:transparent;font-size:0;transition:.15s;}
+#kn26 .evlay button:hover{box-shadow:0 0 0 2px var(--acc);}
 #kn26 .evlay button:focus-visible{outline:2px solid var(--acc);outline-offset:2px;}
 /* Lo strato dei pulsanti costa una fascia sopra il grafico: a 760 servivano TRE corsie
    per 102px su un grafico alto 224,7 — quasi metà. Sotto i 900 quel prezzo non si paga:
@@ -1059,8 +1079,8 @@
    I puntini sono i singoli sondaggi. Le rilevazioni di gennaio-aprile sono armonizzate alla struttura di liste
    attuale. Passa sopra una voce della legenda per isolare una linea. I numeri sopra il grafico
    e le voci qui sotto sono lo stesso comando: premendone uno il grafico isola quel momento e
-   accende i trenta giorni successivi. Si torna alla vista piena ripremendo lo stesso numero,
-   con «chiudi» o con il tasto Esc.</p>
+   accende i trenta giorni successivi. Si esce ripremendo lo stesso numero, con «Torna alla
+   vista piena» o con il tasto Esc.</p>
   <div class="crono" id="k-crono"></div>
  </div>
 </section>
@@ -2263,8 +2283,11 @@ function rEvSel(){
  var righe=[['coalizione','Blocco Netanyahu','g'],['opposizione','Opposizione sionista','o'],
             ['arabo','Partiti arabi','a']];
  el.className='evsel on';
- el.innerHTML='<button type="button" class="x" data-ev="">chiudi</button>'+
-  '<div class="ed"><em>'+dc(ev.data)+'</em> '+E(ev.testo)+'</div>'+
+ /* Il pulsante di uscita sta per ULTIMO nel markup, e non è indifferente: sopra i 660 è
+    in posizione assoluta e l'ordine non conta, ma sotto è statico e va dove lo mette il
+    documento — messo per primo finiva SOPRA il titolo invece che in fondo, cioè lontano
+    dal dito che ha appena premuto la voce. */
+ el.innerHTML='<div class="ed"><em>'+dc(ev.data)+'</em> '+E(ev.testo)+'</div>'+
   '<div class="eb">'+
    righe.map(function(x){
     return '<div><i style="background:'+BC(x[0])+'"></i><span>'+E(x[1])+'</span>'+
@@ -2282,7 +2305,8 @@ function rEvSel(){
   'punti che circondano quella data; alla data erano disponibili '+f(p.n)+' rilevazioni. '+
   (fin.tronca?'La finestra si ferma all\'ultimo dato disponibile. ':'')+
   '<b>È quello che è successo dopo, non l\'effetto di questo fatto</b>: il modello misura '+
-  'i sondaggi, non le cause.</p>';
+  'i sondaggi, non le cause.</p>'+
+  '<button type="button" class="x btn g xs" data-ev="">Torna alla vista piena</button>';
  collocaEvSel();
 }
 function rCalendario(){
@@ -2820,7 +2844,6 @@ function rTrend(){
     bersaglio dello strato è largo 30px, il disco nell'SVG 12,5 a 380 e 12 fra 660 e 900 */
  var PASSO=(STRATO?36:(MOB?15:14))*W/LAR;
  var DYVB=MOB?21:18;          /* passo fra corsie nell'SVG, in unità di viewBox */
- var DYPX=32;                 /* passo fra corsie nello strato HTML, in pixel reali */
  var ult=[], corsie=1;
  ORD.forEach(function(e){
   var xe=X(e.data);
@@ -2831,7 +2854,9 @@ function rTrend(){
  });
  /* con più di una corsia il margine superiore cresce, e con lui l'altezza: così l'area
     del grafico resta la stessa e non è la proiezione a pagare le corsie */
- var CRE=STRATO?0:(corsie-1)*DYVB, T=T0+CRE, H=H0+CRE;
+ /* il margine superiore cresce con le corsie a OGNI larghezza, perché i dischi vivono
+    sempre nell'SVG: l'area del grafico resta la stessa, cresce la cornice */
+ var CRE=(corsie-1)*DYVB, T=T0+CRE, H=H0+CRE;
  function Y(v){return T+(H-T-B)*(1-(v-lo)/(hi-lo));}
  var ISO=EVSEL?finestraEv(S,EVSEL):null;
  /* quanto sarebbe lungo il tratto, in pixel reali, con la geometria di QUESTO render */
@@ -2917,24 +2942,23 @@ function rTrend(){
   s+='<line x1="'+xe.toFixed(1)+'" y1="'+(T-2)+'" x2="'+xe.toFixed(1)+'" y2="'+(H-B)+
      '" stroke="'+C.inc+'" stroke-width="1" stroke-dasharray="2 3" opacity="'+
      (ISO?(e.data===ISO.da?'.9':'.2'):'.55')+'"/>';
-  if(!STRATO){
-   var rr=MOB?10:8, cy=T-(rr+3)-e._c*DYVB;
-   s+='<g class="evm'+(ISO&&e.data===ISO.da?' on':'')+'">'+
-      '<circle cx="'+xe.toFixed(1)+'" cy="'+cy.toFixed(1)+'" r="'+rr+'" fill="'+
-      (ISO&&e.data===ISO.da?C.acc:C.ink2)+'"/>'+
-      '<text x="'+xe.toFixed(1)+'" y="'+(cy+(MOB?3.8:3.5)).toFixed(1)+'" text-anchor="middle" font-size="'+
-      (MOB?13:10.5)+'" font-family="Georgia,serif" fill="'+C.paper+'">'+(ix+1)+
-      '<title>'+dc(e.data)+' · '+E(e.testo)+'</title></text></g>';
-  } else {
-   lay+='<button type="button" data-ev="'+E(e.data)+'" aria-pressed="'+(!!ISO&&e.data===ISO.da)+'"'+
-        ' style="left:'+(xe/W*100).toFixed(3)+'%;top:'+(e._c*DYPX)+'px"'+
-        ' title="'+dc(e.data)+' · '+E(e.testo)+'">'+(ix+1)+'</button>';
-  }
+  /* il disco: sempre qui dentro, e la corsia 0 — quella che l'assegnazione riempie per
+     prima, quindi la più popolata — è la PIÙ VICINA all'area, non la più lontana */
+  var rr=MOB?10:8, cy=T-(rr+3)-e._c*DYVB;
+  s+='<g class="evm'+(ISO&&e.data===ISO.da?' on':'')+'">'+
+     '<circle cx="'+xe.toFixed(1)+'" cy="'+cy.toFixed(1)+'" r="'+rr+'" fill="'+
+     (ISO&&e.data===ISO.da?C.acc:C.ink2)+'"/>'+
+     '<text x="'+xe.toFixed(1)+'" y="'+(cy+(MOB?3.8:3.5)).toFixed(1)+'" text-anchor="middle" font-size="'+
+     (MOB?13:10.5)+'" font-family="Georgia,serif" fill="'+C.paper+'">'+(ix+1)+
+     '<title>'+dc(e.data)+' · '+E(e.testo)+'</title></text></g>';
+  /* il bersaglio trasparente, centrato sul disco in percentuale del disegno */
+  if(STRATO) lay+='<button type="button" data-ev="'+E(e.data)+'" aria-pressed="'+
+    (!!ISO&&e.data===ISO.da)+'" style="left:'+(xe/W*100).toFixed(3)+'%;top:'+
+    (cy/H*100).toFixed(3)+'%" title="'+dc(e.data)+' · '+E(e.testo)+'">'+(ix+1)+'</button>';
  });
  $('k-trend').innerHTML=s+'</svg>';
  $('k-trend').className=ISO?'iso':'';
- if($('k-evlay')){ $('k-evlay').innerHTML=lay; $('k-evlay').style.height=(corsie*DYPX+2)+'px'; }
- if($('k-trendwrap')) $('k-trendwrap').style.paddingTop=(lay?(corsie*DYPX+6)+'px':'');
+ if($('k-evlay')) $('k-evlay').innerHTML=lay;
  TRENDPTS=S.map(function(x){return {x:X(x.d),d:x.d,g:x.g,o:x.o,a:x.a,n:x.n};});
  TRENDGEO={W:W,H:H,Lm:Lm,Rm:Rm};
  attaccaTip();legendaInterattiva();
