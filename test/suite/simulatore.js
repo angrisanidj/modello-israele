@@ -51,7 +51,7 @@ let src = fs.readFileSync(__dirname + '/../app.js','utf8');
 src = src.replace('carica().then(render,render)',
   'global.A={render:render,sim:function(v){SIM=v;},rChips:rChips,SEG:function(){return SEG;},' +
   'setSEG:function(v){SEG=v;},setCOAL:function(v){COAL=v;},COAL:function(){return COAL;},' +
-  'P:function(){return P;},cp:cp};carica().then(render,render)');
+  'P:function(){return P;},cp:cp,calcola:calcola};carica().then(render,render)');
 eval(src);
 
 const $ = i => D.getElementById(i);
@@ -137,6 +137,88 @@ setTimeout(function(){
   /* ripristino */
   A.calcola && A.calcola();
   A.setCOAL({});
+
+  /* ══ l'etichetta della soglia regge sui TRE fondi possibili ══
+   *
+   * Il tratto e l'etichetta cadono su --wash finché il riempimento non li raggiunge, e sul
+   * riempimento — --neg o --pos — quando lo supera. La misura di prima era contro --wash
+   * soltanto: lo stesso errore dell'anello, una tinta scelta contro un fondo mentre i
+   * fondi sono due. Nessuna tinta singola regge su tutti e tre (--mute 4,79 su --wash ma
+   * 1,21 su --neg e --pos in chiaro; --ink 2,80; --on-color 1,09), e non basta nemmeno
+   * far cambiare colore all'etichetta secondo il fondo, perché sopra i 61 seggi
+   * l'etichetta cade quasi sempre A METÀ — misurato a 69, 72 e 79 — con una parte su
+   * ciascun fondo. Da qui la targhetta: un fondo --wash solido sotto il testo. */
+  function rgb(h){ h = h.replace('#',''); return [0,2,4].map(i => parseInt(h.substr(i,2),16)); }
+  function lin(v){ v /= 255; return v <= 0.03928 ? v/12.92 : Math.pow((v+0.055)/1.055, 2.4); }
+  function lum(t){ return 0.2126*lin(t[0]) + 0.7152*lin(t[1]) + 0.0722*lin(t[2]); }
+  function rap(a, b){ const A = lum(rgb(a)), B = lum(rgb(b)); return (Math.max(A,B)+0.05)/(Math.min(A,B)+0.05); }
+  function vars(b){ const o = {}; for (const m of b.matchAll(/--([a-z0-9-]+)\s*:\s*(#[0-9A-Fa-f]{3,8})/g)) o[m[1]] = m[2]; return o; }
+  const CH = vars(html.match(/#kn26\{([\s\S]*?)\n\}/)[1]);
+  const SC = Object.assign({}, CH, vars(html.match(/#kn26\.scuro\{([\s\S]*?)\}/)[1]));
+
+  const regolaThl = (css.match(/#kn26 \.gauge \.thl\{[^}]*\}/) || [''])[0];
+  esito(/background:var\(--wash\)/.test(regolaThl),
+    'l\'etichetta della soglia porta una targhetta --wash sotto il testo', regolaThl.slice(0, 90));
+  esito(/padding:/.test(regolaThl), 'la targhetta ha un margine interno, o sarebbe invisibile');
+  [['chiaro', CH], ['scuro', SC]].forEach(function(t){
+    const nome = t[0], V = t[1];
+    const fondi = [['--wash', V.wash], ['--neg', V.neg], ['--pos', V.pos]];
+    /* senza targhetta: nessuna tinta singola regge su tutti e tre */
+    const nudo = Math.min.apply(null, fondi.map(f => rap(V.mute, f[1])));
+    esito(nudo < 4.5,
+      'tema ' + nome + ': senza targhetta l\'etichetta sul fondo peggiore sta sotto 4,5 — la targhetta serve',
+      nudo.toFixed(2));
+    /* con la targhetta: il testo sta sempre su --wash, e la targhetta si stacca dai fondi */
+    esito(rap(V.mute, V.wash) >= 4.5,
+      'tema ' + nome + ': il testo sulla targhetta regge 4,5', rap(V.mute, V.wash).toFixed(2));
+    const targMin = Math.min.apply(null, fondi.slice(1).map(f => rap(V.wash, f[1])));
+    esito(targMin >= 3,
+      'tema ' + nome + ': la targhetta si stacca dal riempimento in entrambi gli stati (≥3)',
+      targMin.toFixed(2));
+    /* il tratto, stessa storia: nudo non regge, con l'alone sì */
+    const trattoNudo = Math.min.apply(null, fondi.map(f => rap(V.ink, f[1])));
+    esito(trattoNudo < 3, 'tema ' + nome + ': il tratto nudo sul riempimento sta sotto 3',
+      trattoNudo.toFixed(2));
+  });
+  const regolaTh = (css.match(/#kn26 \.gauge \.th\{[^}]*\}/) || [''])[0];
+  esito(/box-shadow:[^;}]*var\(--wash\)/.test(regolaTh),
+    'il tratto della soglia porta l\'alone --wash, che è ciò che lo salva sul riempimento',
+    regolaTh.slice(0, 90));
+
+  /* ══ le scorciatoie del cambiamento: tre gradi distinti ══
+   *
+   * «Blocco del cambiamento» prometteva l'opposizione sionista e includeva già Ra'am: il
+   * pulsante per la sola opposizione non esisteva. Ora i tre gradi sono distinti, e la
+   * differenza è sostanziale — Ra'am ha gov:1 ed entra al governo, le altre liste arabe
+   * hanno gov:0 e sostengono dall'esterno. */
+  function selezionate(){
+    return [].slice.call($('k-chips').querySelectorAll('.chip.on')).map(b => b.dataset.p).sort();
+  }
+  function preset(p){ D.querySelector('[data-pre="' + p + '"]')
+    .dispatchEvent(new W.MouseEvent('click',{bubbles:true})); return selezionate(); }
+  A.calcola(); A.rChips();
+
+  const zionista = ['byachad','democratici','yashar','beitenu'].sort();
+  esito(JSON.stringify(preset('cambio')) === JSON.stringify(zionista),
+    '«Blocco del cambiamento» seleziona la sola opposizione sionista, senza Ra\'am',
+    JSON.stringify(preset('cambio')));
+  const conRaam = zionista.concat(['raam']).sort();
+  esito(JSON.stringify(preset('cambio_raam')) === JSON.stringify(conRaam),
+    '«Cambiamento + Ra\'am» aggiunge Ra\'am e nient\'altro',
+    JSON.stringify(preset('cambio_raam')));
+  const conArabi = preset('cambio_ar');
+  esito(conRaam.every(i => conArabi.indexOf(i) >= 0) && conArabi.length > conRaam.length,
+    '«Cambiamento + liste arabe» contiene i precedenti e aggiunge le altre liste arabe',
+    JSON.stringify(conArabi));
+  esito(conArabi.some(i => A.P()[i] && !A.P()[i].gov),
+    'e le liste che aggiunge sono quelle con gov:0, che sostengono dall\'esterno',
+    JSON.stringify(conArabi.filter(i => A.P()[i] && !A.P()[i].gov)));
+  esito(preset('cambio_raam').indexOf('raam') >= 0 && preset('cambio').indexOf('raam') < 0,
+    'i tre gradi sono davvero distinti: Ra\'am separa il primo dal secondo');
+  esito(D.querySelectorAll('[data-pre]').length === 6,
+    'le scorciatoie sono sei', String(D.querySelectorAll('[data-pre]').length));
+  preset('clear');
+  esito(selezionate().length === 0, '«Azzera» le toglie tutte');
 
   console.log('\nsimulatore: ' + ok + '/' + (ok + ko));
   if (ko) process.exit(1);

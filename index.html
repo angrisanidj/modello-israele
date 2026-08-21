@@ -246,8 +246,18 @@
 #kn26 .gauge.ok i{background:var(--pos);}
 #kn26 .gauge .th{position:absolute;top:0;bottom:0;left:50.83%;width:2px;background:var(--ink);
  box-shadow:0 0 0 1.5px var(--wash);}
-#kn26 .gauge .thl{position:absolute;left:calc(50.83% + 11px);top:0;line-height:52px;font-size:10px;
- font-weight:700;letter-spacing:.13em;text-transform:uppercase;color:var(--mute);white-space:nowrap;}
+/* L'etichetta della soglia porta sotto di sé una targhetta --wash, la stessa costruzione
+   a due tinte del tratto e dell'anello degli istogrammi. Non basta farle cambiare colore
+   secondo il fondo: quando i seggi superano 61 l'etichetta cade QUASI SEMPRE A METÀ —
+   misurato a 69, 72 e 79 seggi — con una parte sul riempimento e una su --wash, e nessuna
+   tinta singola può stare bene su tutti e due contemporaneamente. Sui tre fondi possibili
+   --mute sta a 4,79 su --wash ma a 1,21 su --neg e --pos in chiaro, 1,64 in scuro; e
+   nessun altro token regge su tutti e tre (--ink 2,80; --on-color 1,09). Con la targhetta
+   il testo sta sempre su --wash — 4,79 e 4,75 — e la targhetta si stacca dal riempimento
+   a 5,8 e 7,8, sopra la soglia di 3 degli elementi grafici. */
+#kn26 .gauge .thl{position:absolute;left:calc(50.83% + 10px);top:50%;transform:translateY(-50%);
+ font-size:10px;font-weight:700;letter-spacing:.13em;text-transform:uppercase;color:var(--mute);
+ white-space:nowrap;background:var(--wash);padding:4px 8px;border-radius:3px;}
 #kn26 .gauge .vv{position:absolute;left:16px;top:0;line-height:52px;font-size:21px;font-weight:400;
  color:var(--on-color);font-family:var(--serif);letter-spacing:-.01em;white-space:nowrap;}
 /* a zero seggi il totale sta sul fondo --wash, non sul riempimento: va in --ink */
@@ -614,7 +624,7 @@
  /* corpo 15, non 17: con 17 il totale «accanto» nella zona 29-34 seggi finiva sopra
     l'etichetta del 61, che a questa larghezza sta a 168px dal bordo */
  #kn26 .gauge .vv{line-height:44px;font-size:15px;}
- #kn26 .gauge .thl{line-height:44px;font-size:9px;left:calc(50.83% + 8px);}
+ #kn26 .gauge .thl{font-size:9px;left:calc(50.83% + 7px);padding:3px 6px;}
  #kn26 .tip{font-size:10.5px;padding:6px 9px;}
 }
 @media(max-width:400px){
@@ -904,7 +914,8 @@
   <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px">
    <button class="btn g xs" data-pre="netanyahu">Blocco Netanyahu</button>
    <button class="btn g xs" data-pre="cambio">Blocco del cambiamento</button>
-   <button class="btn g xs" data-pre="cambio_ar">Cambiamento + arabi</button>
+   <button class="btn g xs" data-pre="cambio_raam">Cambiamento + Ra'am</button>
+   <button class="btn g xs" data-pre="cambio_ar">Cambiamento + liste arabe</button>
    <button class="btn g xs" data-pre="unita">Grande coalizione</button>
    <button class="btn g xs" data-pre="clear">Azzera</button>
   </div>
@@ -3496,7 +3507,16 @@ R.addEventListener('click',function(e){
  if((t=e.target.closest('[data-pre]'))){
   COAL={};var p=t.dataset.pre;
   if(p==='netanyahu')['likud','shas','utj','sionismo_rel','otzma'].forEach(function(i){COAL[i]=1;});
-  if(p==='cambio'||p==='cambio_ar')['yashar','byachad','democratici','beitenu','casa_sionista','raam'].forEach(function(i){COAL[i]=1;});
+  /* Tre gradi del blocco del cambiamento, e la differenza fra loro è sostanziale.
+     `cambio` è la sola opposizione sionista: fin qui non esisteva un pulsante per lei,
+     perché quello etichettato «Blocco del cambiamento» includeva già Ra'am — l'etichetta
+     prometteva una cosa e ne dava un'altra.
+     `cambio_raam` aggiunge Ra'am, che ha gov:1 ed è disponibile a entrare in un governo:
+     è una maggioranza vera.
+     `cambio_ar` aggiunge tutte le liste arabe, che hanno gov:0: è una maggioranza che
+     regge solo con appoggio esterno, ed è quello che la riga di esito dichiara già. */
+  if(/^cambio/.test(p))['yashar','byachad','democratici','beitenu','casa_sionista'].forEach(function(i){COAL[i]=1;});
+  if(p==='cambio_raam'||p==='cambio_ar') COAL.raam=1;
   if(p==='cambio_ar')['hadash_taal','lista_araba','balad'].forEach(function(i){COAL[i]=1;});
   if(p==='unita')['likud','yashar','byachad','beitenu','democratici'].forEach(function(i){COAL[i]=1;});
   rChips();return;}
