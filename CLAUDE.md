@@ -427,9 +427,40 @@ prossima cosa da fare dopo l'embed.**
     «dentro/accanto» che è misurata sul testo reso più 24px — a 380px con corpo 15 non ha
     zona di collisione con l'etichetta «61 · maggioranza», controllato seggio per seggio
     fra 28 e 46. **Chi tocca corpo, altezza della barra o posizione dell'etichetta
-    rimisura col browser**, nei due temi: il riquadro segue `prefers-color-scheme` e con
-    «auto» misura scuro anche quando si crede di misurare chiaro — il tema va forzato dal
-    selettore.
+    rimisura col browser**, nei due temi.
+
+    Riverificato sulla pagina pubblicata il 21 agosto 2026, dopo la targhetta
+    dell'etichetta della soglia, alle tre larghezze — 935, 760, 380 — nei due temi e con
+    le tre scorciatoie del cambiamento, che danno 56, 61 e 68 seggi. Testo sulla targhetta
+    4,79 in chiaro e 4,75 in scuro; targhetta contro il riempimento 5,81 e 7,78; totale
+    dentro il riempimento 6,35 e 9,07. A 68 seggi l'etichetta cade davvero **a cavallo**
+    del bordo del riempimento — 38px sopra a 935, 29,2 a 760, 11,9 a 380 — ed è il caso
+    per cui nessun colore condizionato poteva bastare. Divario fra totale ed etichetta
+    338,5 · 261,8 · 103px, nessuna collisione. Pulsanti 29px e pillole 34px uniformi,
+    nessuno sforamento dentro `sez-7`.
+
+    **L'alone `--wash` del tratto serve da 61 in poi, non da 68**, e non è la stessa
+    soglia dell'etichetta. Il tratto sta a 50,83% e 61 seggi riempiono il 50,833%: i due
+    bordi si toccano esattamente lì, quindi da 61 in su il tratto è sul riempimento — a
+    61 la differenza è sotto il pixel e il verso dipende dall'arrotondamento della barra,
+    misurato vero a 935 e falso per un pixel a 380. L'etichetta invece va a cavallo solo
+    più in alto, perché sta 7px a destra del tratto. Chi misura l'alone lo misuri a 61,
+    non a 68: è lì che il tratto nudo scenderebbe a 2,80 in chiaro e 1,83 in scuro.
+
+    **Due trappole del banco di prova, e vanno lette insieme.** Il riquadro segue
+    `prefers-color-scheme` e con «auto» misura scuro anche quando si crede di misurare
+    chiaro: il tema va forzato dal selettore. E — peggio, perché non si annuncia — **con
+    la pagina non composta le transizioni CSS si congelano a metà, e le geometrie lette in
+    quello stato sono false.** Il riempimento `#k-gb` riportava 137,7px per
+    `width:56,6667%` di una barra da 324px, e su quel numero le prime misure negavano che
+    l'etichetta fosse a cavallo: negavano cioè esattamente il difetto che si stava
+    chiudendo. Non è una lettura rumorosa da rifare — è stabile e sbagliata, e ripetuta dà
+    lo stesso numero. Il rimedio va messo **prima** di qualunque misura di geometria:
+
+    ```js
+    document.head.insertAdjacentHTML('beforeend',
+      '<style>#kn26 *{transition:none !important;animation:none !important}</style>');
+    ```
 
 ### Le due colonne «Seggi»: cosa è chiuso e cosa resta aperto
 
