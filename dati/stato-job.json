@@ -3,8 +3,9 @@
  "valide": 154,
  "ambigue": 24,
  "blocchi": {
-  "coalizione": 51,
+  "coalizione": 52,
   "opposizione": 56,
-  "arabo": 13
+  "arabo": 12,
+  "incerto": 0
  }
 }
