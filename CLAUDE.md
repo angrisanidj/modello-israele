@@ -180,10 +180,23 @@ Messaggi di commit in italiano, all'infinito, con il perché e non solo il cosa.
     righe non esercitate da nessuna prova. Oggi le copre `interazione.js`, che costruisce
     un DOM vero. Vanno convertite: finché restano così, ogni codice che tocchi elementi
     resi va provato altrove o non è provato affatto.
-14. **La tabella dell'archivio dei sondaggi sfora.** È larga 942px dentro un `div` con
-    `overflow-x:visible`, quindi spinge l'intero documento oltre la finestra e il corpo della
-    pagina scorre in orizzontale. Difetto preesistente alla tavolozza, misurato su browser
-    vero: serve un contenitore che scorra per conto suo.
+14. **La tabella che sfora è quella dell'*house effect*, non quella dell'archivio.**
+    Questo punto ha indirizzato sulla tabella sbagliata per tre commit: la misura era
+    giusta — 942px dentro un `div` con `overflow-x:visible` — ma quei numeri sono di
+    `#k-house`, non di `#k-tab`. Rimisurato su browser vero il 21 agosto 2026:
+
+    | | larghezza | contenitore | `overflow-x` | spinge il documento? |
+    |---|---|---|---|---|
+    | house effect `#k-house` | **941,8px**, 13 colonne | `#k-house` | **`visible`** | **sì, 588,8px a 380** |
+    | archivio `#k-tab` | 1288,9px, 22 colonne | `.scroll` | `auto` | no, scorre da sé |
+
+    L'archivio è **il doppio più largo** e non sfora, perché sta già dentro `.scroll`.
+    Era chiuso da prima; non c'è niente da fare lì. Sull'house effect serve un contenitore
+    che scorra per conto suo, oppure una forma che non abbia bisogno di scorrere. Misurato
+    che togliendogli lo sforamento il documento a 380 passa da 588,8 a **35px**: i 35 che
+    restano non sono suoi, sono `#k-upd` nell'intestazione (85,8px) e, dietro, quattro
+    tabelle dentro `#k-metodo` che sforano di 28,8 · 35,4 · 74,9 · **175**px. Tre
+    sorgenti indipendenti, non una.
 
 ## Calendario
 
@@ -381,7 +394,8 @@ prossima cosa da fare dopo l'embed.**
 
 ### Nell'ordine
 
-1. **La tabella dell'archivio dei sondaggi che sfora** (punto 13 delle cose da fare).
+1. **La tabella dell'house effect che sfora** (punto 14 delle cose da fare, dove per tre
+   commit è stata chiamata «tabella dell'archivio»: l'archivio scorre già da sé).
    Prima dell'embed, non dopo: dentro `?embed=1`, in una colonna stretta, una tabella che
    spinge il documento oltre la finestra peggiora invece di restare com'è.
 2. **Modalità `?embed=1`** per l'inserimento in FocusAmerica (punto 1).
