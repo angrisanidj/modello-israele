@@ -29,7 +29,7 @@ alle prove.
 
 ```bash
 npm install          # solo la prima volta: installa jsdom per le prove
-npm test             # estrae il JS e lancia le 363 prove
+npm test             # estrae il JS e lancia le 386 prove
 npm run verifica     # prove + controlli strutturali
 ```
 
@@ -75,6 +75,9 @@ commit* spiegando perché nel messaggio.
 
 ```
 index.html            il modello, pubblicato così com'è come GitHub Pages
+.github/
+  workflows/aggiorna.yml   lavoro notturno: parser, guardie, commit dei soli file dati
+  scripts/aggiorna.mjs     le guardie (valuta) e il registro, funzioni pure provate da job.js
 test/
   estrai.mjs          estrae il JS da index.html in test/app.js
   esegui.mjs          lancia tutta la suite e riassume
@@ -91,6 +94,7 @@ dati/
   fixture.js          tabella Wikipedia di riferimento per le prove
   archivio.json       l'archivio pubblicato: la pagina lo carica con fetch relativo
   eventi-grezzi.json  registro delle voci-evento da Wikipedia, in inglese, in attesa di revisione
+  stato-job.json      i conteggi di ieri, riferimento delle guardie del lavoro notturno
 docs/
   regola-colore.md    la specifica dei colori: bande, settori, punti, distanze
   pubblicare.md       note di lavoro
@@ -544,6 +548,6 @@ nessuno degli altri settori.
 trovati oggi — la stella della bandiera che sconfinava nelle bande, l'occhiello a filo del
 bordo sull'ombra, il vuoto di 372px sotto le ipotesi, l'evidenziazione che competeva con
 la codifica del riempimento, il verde arabo che si leggeva nero — sono stati trovati
-**guardando la pagina**, non dalla suite. Le 363 prove dicono che il modello non si è
+**guardando la pagina**, non dalla suite. Le 386 prove dicono che il modello non si è
 rotto; non dicono che la pagina si veda. Dopo ogni push, aprire
 <https://angrisanidj.github.io/modello-israele/> e guardarla nei due temi.

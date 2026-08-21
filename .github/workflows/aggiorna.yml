@@ -1,0 +1,66 @@
+# Aggiornamento notturno dell'archivio da Wikipedia.
+#
+# Il job scarica la pagina dei sondaggi, esegue il parser vero (estratto da index.html),
+# unisce le rilevazioni nuove a dati/archivio.json e deposita le voci-evento nel registro.
+# Tocca SOLO file in dati/: index.html resta territorio delle sessioni di lavoro, e ogni
+# commit del job su quel file sarebbe per definizione un'anomalia.
+#
+# Il modo di fallire è non fare niente: le guardie dentro aggiorna.mjs terminano il
+# processo prima di ogni scrittura, npm run verifica fa da cancello dopo, e il push non
+# forza mai — se il rebase non è pulito il job si arrende e riprova la notte dopo.
+# Quando la guardia chiede una decisione umana (colonne di lista non riconosciute,
+# configurazioni senza contenitore) viene aperta una issue con l'elenco di cosa mappare:
+# è il segnale atteso per l'8 settembre, al deposito delle liste.
+name: Aggiorna archivio
+on:
+  schedule:
+    - cron: '30 3 * * *'    # 03:30 UTC, 05:30/06:30 in Israele: i sondaggi della sera sono in tabella
+  workflow_dispatch:
+permissions:
+  contents: write
+  issues: write
+concurrency: aggiorna-archivio
+jobs:
+  aggiorna:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: {node-version: '22'}
+      - run: npm install
+      - run: node test/estrai.mjs
+      - name: Parser e guardie
+        run: node .github/scripts/aggiorna.mjs
+      - name: Verifica completa con i dati nuovi
+        run: npm run verifica
+      - name: Commit e push dei soli file dati
+        run: |
+          if git diff --quiet dati/; then
+            echo "niente di nuovo: nessun commit, nessuna pubblicazione"
+            exit 0
+          fi
+          git config user.name "aggiornamento-notturno"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add dati/archivio.json dati/eventi-grezzi.json dati/stato-job.json
+          git commit -m "Aggiornare l'archivio dai sondaggi di Wikipedia (lavoro notturno)"
+          # mai forzare: se nel frattempo è arrivato un push umano e il rebase non è
+          # pulito, il job si arrende senza danni e riprova la notte successiva
+          if ! git pull --rebase origin main; then
+            git rebase --abort || true
+            echo "rebase non pulito: mi arrendo senza forzare"
+            exit 1
+          fi
+          git push origin main
+      - name: Issue per la guardia
+        if: failure()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          [ -f guardia-issue.md ] || exit 0
+          TITOLO=$(head -1 guardia-issue.md)
+          if gh issue list --state open --json title --jq '.[].title' | grep -qxF "$TITOLO"; then
+            echo "issue già aperta: non ne creo una seconda"
+            exit 0
+          fi
+          tail -n +3 guardia-issue.md > corpo-issue.md
+          gh issue create --title "$TITOLO" --body-file corpo-issue.md
