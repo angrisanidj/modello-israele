@@ -203,10 +203,33 @@
 #kn26 .gauge .vv{position:absolute;left:14px;top:0;line-height:46px;font-size:17px;font-weight:700;
  color:#fff;text-shadow:0 1px 4px rgba(0,0,0,.45);font-family:var(--serif);}
 
+/* Le pastiglie dei veti sono <button> veri. Prima erano <span> senza tabindex: da
+   tastiera i veti non si potevano toccare affatto — non era un caso limite, era una
+   funzione irraggiungibile. Con il <button> il tabulatore le raggiunge e invio e barra
+   spaziatrice generano il click che il delegato [data-v] già riceve, quindi il gesto di
+   disattivazione non è scritto a mano e non c'è nessun keydown che possa rubarli. */
 #kn26 .veto{font-size:11.5px;border:1px solid var(--hair);padding:6px 10px;margin:0 6px 6px 0;
- display:inline-block;background:var(--card);border-radius:2px;transition:.14s;cursor:pointer;}
+ display:inline-block;background:var(--card);border-radius:2px;transition:.14s;cursor:pointer;
+ font-family:inherit;color:inherit;text-align:left;}
 #kn26 .veto:hover{border-color:var(--ink);}
 #kn26 .veto.off{opacity:.38;text-decoration:line-through;}
+#kn26 .veto:focus-visible{outline:2px solid var(--acc);outline-offset:2px;}
+#kn26 .veto:focus:not(:focus-visible){outline:none;}
+/* L'altezza della riga è riservata anche quando è vuota, o il riquadro sobbalza a ogni
+   passaggio del puntatore e il sobbalzo sposta le pastiglie sotto il dito. Le due righe
+   di riserva le dà già `.lett`, che questa riga condivide con gli istogrammi: non serve
+   ripeterle qui, e ripeterle era peggio che inutile — `.lett` sta più in basso nel foglio,
+   quindi con la stessa specificità vinceva lei e lo scavalco per schermo stretto era
+   codice morto. Da qui il selettore a due classi, che vince a prescindere dall'ordine.
+   Misurato: il testo più lungo occupa due righe fino a 480px e tre da 420px in giù, dove
+   la riserva a due faceva saltare il riquadro di 17px. Il confine è messo su un punto di
+   rottura che esiste già e non sulla lunghezza delle stringhe di oggi, che sono in
+   revisione editoriale e cambieranno. */
+@media(max-width:660px){#kn26 .lett.vetol{min-height:4.4em;}}
+@media(max-width:820px){
+ /* quattordici pastiglie in colonne strette: il bersaglio del dito non scende sotto i 34px */
+ #kn26 .veto{min-height:34px;padding:8px 11px;}
+}
 
 #kn26 table{border-collapse:collapse;width:100%;font-size:12px;}
 #kn26 th,#kn26 td{padding:7px 9px;border-bottom:1px solid var(--hair2);text-align:right;white-space:nowrap;}
@@ -806,6 +829,7 @@
  <div class="box">
   <div style="font-size:9.5px;text-transform:uppercase;letter-spacing:.09em;color:var(--mute);font-weight:700;margin-bottom:8px">Veti attivi — fare clic per disattivarli</div>
   <div id="k-veti"></div>
+  <p class="lett vetol" id="k-vetol" aria-live="polite"></p>
  </div>
  <div id="k-coal"></div>
  <p class="fn" id="k-coalnota"></p>
@@ -935,21 +959,35 @@ var CORR=[
  ["likud","sionismo_rel", -0.20, "Smotrich pesca nel bacino del Likud"],
  ["shas","utj",           +0.18, "stessa affluenza haredi"]
 ];
+/* Quattro campi: [a, b, motivazione, fonte].
+   La fonte — chi ha dichiarato il veto e quando, o il collegamento alla dichiarazione —
+   e' stata aggiunta perche' questi testi non sono piu' suggerimenti che il lettore
+   incontra per caso: dalla riga di lettura sotto le pastiglie diventano testo pubblicato,
+   e sono affermazioni su persone reali su un sito firmato. Il campo resta vuoto dove il
+   dato non c'e' ancora, e in quel caso la riga mostra la sola motivazione: meglio una
+   lacuna dichiarata di una fonte inventata.
+   La struttura si tocca adesso e non l'8 settembre, quando i veti cambieranno sotto
+   scadenza e non sara' il momento di rifare la forma del dato.
+   Le quattordici motivazioni sono tutte diverse fra loro, e non e' un caso: la riga di
+   lettura e' una sola, quindi due pastiglie con lo stesso testo la lascerebbero immobile
+   al passaggio dall'una all'altra e sembrerebbe bloccata invece che aggiornata. Quattro
+   testi sono stati riscritti per questo, e le due coppie che si escludono a vicenda ora
+   nominano le persone invece di ripetere la definizione di veto. Una prova lo tiene. */
 var VETI=[
- ['likud','yashar',"Eisenkot esclude un governo guidato da Netanyahu"],
- ['likud','byachad',"Bennett e Lapid escludono un governo Netanyahu"],
- ['likud','democratici',"Golan esclude Netanyahu"],
- ['likud','beitenu',"Lieberman esclude Netanyahu dal 2019"],
- ['likud','casa_sionista',"Casa Sionista si è impegnata con il fronte anti-Netanyahu"],
- ['likud','raam',"Il Likud esclude Ra'am al governo"],
- ['beitenu','shas',"Lieberman esclude i partiti haredi"],
- ['beitenu','utj',"Lieberman esclude i partiti haredi"],
- ['democratici','otzma',"Incompatibilità dichiarata con Ben Gvir"],
- ['democratici','sionismo_rel',"Incompatibilità dichiarata con Smotrich"],
- ['yashar','otzma',"Eisenkot esclude Ben Gvir al governo"],
- ['byachad','otzma',"Bennett esclude Ben Gvir al governo"],
- ['raam','otzma',"Reciproca esclusione"],
- ['raam','sionismo_rel',"Reciproca esclusione"]
+ ['likud','yashar',"Eisenkot esclude un governo guidato da Netanyahu",""],
+ ['likud','byachad',"Bennett e Lapid escludono un governo Netanyahu",""],
+ ['likud','democratici',"Golan esclude Netanyahu",""],
+ ['likud','beitenu',"Lieberman esclude Netanyahu dal 2019",""],
+ ['likud','casa_sionista',"Casa Sionista si è impegnata con il fronte anti-Netanyahu",""],
+ ['likud','raam',"Il Likud esclude Ra'am al governo",""],
+ ['beitenu','shas',"Lieberman esclude Shas dal governo",""],
+ ['beitenu','utj',"Lieberman esclude il Giudaismo Unito Torah dal governo",""],
+ ['democratici','otzma',"Incompatibilità dichiarata con Ben Gvir",""],
+ ['democratici','sionismo_rel',"Incompatibilità dichiarata con Smotrich",""],
+ ['yashar','otzma',"Eisenkot esclude Ben Gvir al governo",""],
+ ['byachad','otzma',"Bennett esclude Ben Gvir al governo",""],
+ ['raam','otzma',"Ben Gvir e Abbas si escludono a vicenda",""],
+ ['raam','sionismo_rel',"Smotrich e Abbas si escludono a vicenda",""]
 ];
 var VETO_OFF={};
 
@@ -2124,10 +2162,40 @@ function rEmi(){
     'Esc per tornare alla vista piena.');
  if(tutti) tutti.hidden=(EMIFILT===null);
 }
+/* La riga di lettura sotto le pastiglie, sul modello di quella degli istogrammi: la stessa
+   riga si riempie al passaggio del puntatore e all'arrivo del fuoco, e si svuota quando
+   l'uno o l'altro se ne vanno. Una strada sola, non due: il `title` è stato tolto perché
+   il suggerimento nativo del browser sarebbe comparso in ritardo, in un altro punto e con
+   un altro tempo, per dire la stessa cosa.
+   La riga porta motivazione, fonte se c'è, e stato. Lo stato serviva: fin qui passava
+   soltanto dal testo barrato, che a un lettore di schermo non arriva. */
+function testoVeto(i){
+ var v=VETI[i]; if(!v) return '';
+ return '<b>'+E(nm(v[0]))+' ⁄ '+E(nm(v[1]))+'</b> · '+E(v[2])+
+  (v[3]?' · Fonte: '+E(v[3]):'')+
+  ' · '+(VETO_OFF[i]?'veto disattivato, le due liste possono governare insieme'
+                   :'veto attivo, le due liste non compaiono nella stessa coalizione');
+}
 function rVeti(){
  $('k-veti').innerHTML=VETI.map(function(v,i){
-  return '<span class="veto'+(VETO_OFF[i]?' off':'')+'" data-v="'+i+'" title="'+E(v[2])+'">'+
-   E(nm(v[0]))+' ⁄ '+E(nm(v[1]))+'</span>';}).join('');
+  /* aria-pressed dice che il veto è attivo, cioè che il pulsante è «premuto»:
+     l'intestazione del riquadro recita «Veti attivi — fare clic per disattivarli». */
+  return '<button type="button" class="veto'+(VETO_OFF[i]?' off':'')+'" data-v="'+i+
+   '" aria-pressed="'+(VETO_OFF[i]?'false':'true')+'">'+
+   E(nm(v[0]))+' ⁄ '+E(nm(v[1]))+'</button>';}).join('');
+ /* Il contenitore può essere un DOM ridotto — sei suite ne usano uno — in cui
+    querySelectorAll non esiste: lì non c'è niente da agganciare. Non è uno stub
+    permissivo: dove le pastiglie ci sono davvero, l'aggancio avviene, e a provarlo è
+    test/suite/veti.js su un DOM vero. */
+ var cont=$('k-veti'), riga=$('k-vetol');
+ if(!cont||typeof cont.querySelectorAll!=='function'||!riga) return;
+ Array.prototype.forEach.call(cont.querySelectorAll('button[data-v]'),function(b){
+  var i=+b.dataset.v;
+  b.addEventListener('pointerenter',function(){riga.innerHTML=testoVeto(i);});
+  b.addEventListener('focus',function(){riga.innerHTML=testoVeto(i);});
+  b.addEventListener('pointerleave',function(){riga.innerHTML='';});
+  b.addEventListener('blur',function(){riga.innerHTML='';});
+ });
 }
 function rCoal(){
  var ok=COALS.filter(function(c){return !c.c.length;}),ko=COALS.filter(function(c){return c.c.length;});
@@ -3089,7 +3157,14 @@ R.addEventListener('click',function(e){
  if((t=e.target.closest('[data-par]'))){PAR[t.dataset.par]=!PAR[t.dataset.par];
   t.classList.toggle('on',!!PAR[t.dataset.par]);render();return;}
  if((t=e.target.closest('[data-v]'))){var i=+t.dataset.v;VETO_OFF[i]=!VETO_OFF[i];
-  calcola();rVeti();rCoal();rPower();rChips();return;}
+  calcola();rVeti();rCoal();rPower();rChips();
+  /* rVeti() ricostruisce le pastiglie, quindi il pulsante appena premuto non esiste più e
+     il fuoco cadrebbe sul corpo della pagina: chi usa la tastiera potrebbe disattivare un
+     veto solo, e poi dovrebbe ritabulare dall'inizio. Il fuoco torna sulla pastiglia
+     corrispondente, e il suo gestore di focus riscrive la riga con lo stato aggiornato.
+     Al puntatore non si vede nulla: l'anello compare solo con :focus-visible. */
+  var ri=R.querySelector('#k-veti [data-v="'+i+'"]'); if(ri&&ri.focus) ri.focus();
+  return;}
  if((t=e.target.closest('.chip'))){COAL[t.dataset.p]=!COAL[t.dataset.p];rChips();return;}
  if((t=e.target.closest('[data-pre]'))){
   COAL={};var p=t.dataset.pre;
