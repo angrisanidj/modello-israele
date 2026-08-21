@@ -1,22 +1,142 @@
-const {JSDOM}=require('jsdom');
-const dom=new JSDOM('');
-global.DOMParser=dom.window.DOMParser;
-eval(require('fs').readFileSync(__dirname+'/../../dati/wikiparser.js','utf8'));
-const out=parseWiki(require('../../dati/fixture.js'),['2026']);
-console.log("SONDAGGI ACCETTATI:",out.sondaggi.length);
-out.sondaggi.forEach(s=>console.log("  ",s.data,s.istituto,"|",s.testata,"| camp",s.campione||'—',
-  "| casa",s.casa||0,"| seggi",JSON.stringify(s.seggi),"| sotto",JSON.stringify(s.sotto||{})));
-console.log("\nEVENTI:",out.eventi.length); out.eventi.forEach(e=>console.log("  ",e.data,e.testo));
-console.log("\nSCARTATE:",out.scartate.length); out.scartate.forEach(e=>console.log("  ",e.data,e.istituto,"→",e.motivo));
-console.log("\nCOLONNE IGNOTE:",out.ignote.length?out.ignote:"nessuna");
-console.log("\n── controlli ──");
-const d=out.sondaggi;
-console.log("scenario (riga con rowspan) escluso:", !d.some(s=>s.seggi.byachad===30) ? "OK":"FALLITO");
-console.log("sezione 2025 esclusa:", !d.some(s=>s.data.startsWith('2025'))?"OK":"FALLITO");
-console.log("tabella scenari esclusa:", !d.some(s=>s.seggi.likud===40)?"OK":"FALLITO");
-console.log("riga con gov errato scartata:", out.scartate.some(x=>/blocco governo/.test(x.motivo))?"OK":"FALLITO");
-console.log("evento intercettato:", out.eventi.some(e=>/primary/.test(e.testo))?"OK":"FALLITO");
-console.log("colspan Joint List risolto (hadash+balad):", d[0]&&d[0].seggi.hadash_taal===6?"OK":"FALLITO");
-console.log("note [21] ripulite dalla testata:", d[0]&&d[0].testata==='Kan 11'?"OK":"FALLITO");
-console.log("Filber normalizzato in Direct Polls:", d.some(s=>s.istituto==='Direct Polls'&&s.casa===1)?"OK":"FALLITO");
-d.forEach(s=>{const t=Object.values(s.seggi).reduce((a,b)=>a+b,0); if(t!==120) console.log("  !! somma",t,s.data);});
+/* Il parser della tabella Wikipedia, quello che gira davvero.
+ *
+ * Fino a oggi questa suite valutava `dati/wikiparser.js`, che è una SECONDA COPIA del
+ * parser: 197 righe di logica duplicata, rimaste indietro rispetto a index.html. La suite
+ * era verde mentre il parser vero perdeva 90 rilevazioni su 116. È la trappola delle due
+ * strade descritta in CLAUDE.md, con dentro un parser invece di un colore.
+ * Ora si carica `test/app.js`, cioè il JavaScript estratto da index.html: c'è una strada
+ * sola, e quello che si prova è quello che gira.
+ *
+ * La fixture è tarata sulle forme misurate sulla pagina reale il 21 agosto 2026:
+ *   · cella «Joint List» con colspan=2, che vale una volta sola e sta al contenitore;
+ *   · cella che copre Ra'am + Hadash–Ta'al + Balad, senza contenitore in anagrafica;
+ *   · celle senza cifre nelle loro scritture vere: «—N/a», «N/A», «n/a», «—»;
+ *   · «(<1%)», che è una percentuale con un segno di disuguaglianza davanti;
+ *   · il CSS che Wikipedia inietta dentro la cella con un <style>;
+ *   · una tabella dove il conteggio delle righe valide decide se accettarla.
+ */
+const {JSDOM} = require('jsdom');
+const fs = require('fs');
+
+let ok = 0, ko = 0;
+function esito(cond, desc, dettaglio){
+  if (cond) { ok++; console.log('OK ' + desc); }
+  else { ko++; console.log('KO ' + desc + (dettaglio ? ' — ' + dettaglio : '')); }
+}
+
+const dom = new JSDOM('<!doctype html><html><body><div id="kn26"></div></body></html>', {pretendToBeVisual:true});
+const W = dom.window, D = W.document;
+global.DOMParser = W.DOMParser;
+const html = fs.readFileSync('../../index.html','utf8');
+D.body.innerHTML = html.replace(/<script>[\s\S]*?<\/script>/g,'')
+  .match(/<body[^>]*>([\s\S]*)<\/body>/)[1];
+global.document = D; global.window = W;
+W.matchMedia = () => ({matches:false, addEventListener(){}, addListener(){}});
+W.IntersectionObserver = class { observe(){} unobserve(){} };
+global.IntersectionObserver = W.IntersectionObserver;
+W.requestAnimationFrame = f => f();
+W.localStorage = {getItem:()=>null, setItem(){}, removeItem(){}};
+global.getComputedStyle = () => ({getPropertyValue:()=>''});
+global.Blob = function(){};
+global.URL = {createObjectURL(){ return ''; }};
+global.FileReader = function(){};
+global.fetch = () => Promise.reject(0);
+
+let src = fs.readFileSync(__dirname + '/../app.js','utf8');
+src = src.replace('carica().then(render,render)',
+  'global.A={parseWiki:parseWiki,wTesto:wTesto,wContenitore:wContenitore,' +
+  'P:function(){return P;}};carica().then(render,render)');
+eval(src);
+
+setTimeout(function(){
+  const A = global.A;
+  const out = A.parseWiki(require('../../dati/fixture.js'), ['2026']);
+  const d = out.sondaggi;
+  const somma = s => Object.keys(s.seggi).reduce((a,k) => a + s.seggi[k], 0);
+  const per = k => d.filter(s => s.data === k);
+
+  console.log('sondaggi accettati: ' + d.length + '   scartati: ' + out.scartate.length +
+    '   eventi: ' + out.eventi.length + '   tabelle ignorate: ' + out.ignorate.length);
+  d.forEach(s => console.log('   ' + s.data + '  ' + String(s.istituto).padEnd(16) +
+    ' somma ' + somma(s) + '  ' + JSON.stringify(s.seggi)));
+  out.scartate.forEach(s => console.log('   scartata ' + s.data + ' ' +
+    String(s.istituto).padEnd(16) + ' [' + s.tipo + '] ' + s.motivo));
+  console.log('');
+
+  /* ══ le prove che c'erano già, ora sul parser vero ══ */
+  esito(!d.some(s => s.seggi.byachad === 30), 'la riga di scenario, che eredita la data, resta esclusa');
+  esito(!d.some(s => s.data.startsWith('2025')), 'la sezione 2025 resta esclusa');
+  esito(!d.some(s => s.seggi.likud === 40), 'la tabella degli scenari ipotetici resta esclusa');
+  esito(out.scartate.some(x => x.tipo === 'blocco'), 'la riga col totale di blocco sbagliato viene scartata');
+  esito(out.eventi.some(e => /primary/.test(e.testo)), 'la riga-evento viene intercettata');
+  esito(d[0] && d[0].testata === 'Kan 11', 'le note [21] sono ripulite dalla testata', d[0] && d[0].testata);
+  esito(d.some(s => s.istituto === 'Direct Polls' && s.casa === 1), 'Filber è normalizzato in Direct Polls');
+  esito(d.every(s => somma(s) === 120), 'ogni riga accettata somma 120',
+    JSON.stringify(d.filter(s => somma(s) !== 120).map(s => s.data + ':' + somma(s))));
+
+  /* ══ 1 · colspan nelle righe di dato ══ */
+  const dueCol = per('2026-08-20')[0];
+  esito(!!dueCol, 'la riga con la cella «Joint List» su due colonne viene accettata');
+  esito(!!dueCol && somma(dueCol) === 120,
+    'quella riga somma 120: la cella vale una volta sola, non due',
+    dueCol && String(somma(dueCol)));
+  esito(!!dueCol && dueCol.seggi.lista_araba === 7,
+    'il valore va al CONTENITORE lista_araba', dueCol && JSON.stringify(dueCol.seggi));
+  esito(!!dueCol && dueCol.seggi.hadash_taal === undefined && dueCol.seggi.balad === undefined,
+    'e non alle componenti: il doppio conteggio chiuso ieri non si riapre',
+    dueCol && JSON.stringify(dueCol.seggi));
+  /* il verso opposto: dove le colonne sono due celle distinte restano due componenti */
+  esito(d[0] && d[0].seggi.hadash_taal === 6 && d[0].seggi.lista_araba === undefined,
+    'con due celle distinte restano invece le componenti', d[0] && JSON.stringify(d[0].seggi));
+  esito(d.every(s => !(s.seggi.lista_araba !== undefined &&
+      (s.seggi.hadash_taal !== undefined || s.seggi.balad !== undefined))),
+    'nessuna riga porta insieme contenitore e componenti');
+  /* una cella su tre liste senza contenitore comune non si indovina: si respinge */
+  const amb = out.scartate.filter(x => x.tipo === 'ambigua');
+  esito(amb.length === 1 && /raam/.test(amb[0].motivo),
+    'la cella che copre Ra\'am con le altre due viene respinta, non attribuita a caso',
+    JSON.stringify(amb.map(x => x.motivo)));
+
+  /* ══ 2 · celle senza cifre e percentuali ══ */
+  const sotto = per('2026-08-15')[0];
+  esito(!!sotto, 'la riga con «(<1%)», «N/A» e «n/a» viene accettata');
+  esito(!!sotto && somma(sotto) === 120, 'e somma 120', sotto && String(somma(sotto)));
+  esito(!!sotto && sotto.sotto && sotto.sotto.blue_white === 1,
+    '«(<1%)» è letta come percentuale sotto soglia', sotto && JSON.stringify(sotto.sotto));
+  esito(!!sotto && sotto.seggi.casa_sionista === undefined && sotto.seggi.unity_erdan === undefined,
+    '«N/A» e «n/a» non diventano seggi', sotto && JSON.stringify(sotto.seggi));
+  /* il CSS iniettato da Wikipedia non deve arrivare fino al valore */
+  const conCss = D.createElement('td');
+  conCss.innerHTML = '—<style>.mw-parser-output .sr-only{border:0;height:1px;margin:-1px}</style>N/a';
+  esito(A.wTesto(conCss) === '—N/a',
+    'il <style> iniettato da Wikipedia non finisce nel valore della cella',
+    '"' + A.wTesto(conCss) + '"');
+  esito(!/\d/.test(A.wTesto(conCss)),
+    'e quindi la cella resta senza cifre, com\'è giusto che sia');
+
+  /* ══ 3 · il conteggio delle valide decide sulla tabella ══ */
+  const soglia = ['2026-08-09','2026-08-08','2026-08-07','2026-08-05'].map(k => per(k)[0]).filter(Boolean);
+  esito(soglia.length === 4,
+    'la tabella di prova entra con le sue quattro righe valide: 4 su 6, il 67%',
+    String(soglia.length) + ' su 4 attese');
+  esito(soglia.every(s => somma(s) === 120 && s.seggi.blue_white === undefined),
+    'quelle righe sommano 120 con la colonna «—N/a» semplicemente non rilevata');
+  esito(out.scartate.filter(x => /2026-08-0[32]/.test(x.data)).length === 2,
+    'e le due righe rotte davvero restano scartate',
+    JSON.stringify(out.scartate.filter(x => /2026-08-0[32]/.test(x.data)).map(x => x.motivo)));
+  /* il legame: se quelle quattro non fossero valide la tabella cadrebbe sotto il 50%
+     e si porterebbe via anche loro. È il difetto misurato sulla pagina vera. */
+  esito(soglia.length / 6 >= 0.5,
+    'il conteggio che decide la sorte della tabella è quello delle righe davvero valide',
+    (100 * soglia.length / 6).toFixed(0) + '%');
+
+  /* ══ 4 · le tabelle che non sono di seggi restano fuori ══ */
+  esito(out.ignorate.length === 2,
+    'restano ignorate solo le due tabelle che non sono di seggi',
+    JSON.stringify(out.ignorate));
+  esito(!out.ignote.length, 'nessuna colonna di lista non riconosciuta',
+    JSON.stringify(out.ignote));
+
+  console.log('\ntestwiki: ' + ok + '/' + (ok + ko));
+  if (ko) process.exit(1);
+}, 3000);

@@ -32,6 +32,17 @@ module.exports=`
 <tr><td>1 Aug</td><td>Kantar</td><td>Kan 11</td><td>500</td>
  <td>23</td><td>14</td><td>5</td><td>9</td><td>—</td><td>7</td><td>8</td><td>9</td><td>5</td>
  <td>6</td><td>—</td><td>11</td><td>23</td><td>—</td><td>—</td><td>—</td><td>99</td></tr>
+<tr><td>19–20 Aug</td><td>Yossi Tatika</td><td>Zman Yisrael</td><td>500</td>
+ <td>21</td><td>15</td><td>6</td><td>7</td><td><i>(2.4%)</i></td><td>9</td><td>8</td><td>11</td><td>5</td>
+ <td colspan="2">7</td>
+ <td>8</td><td>23</td><td><i>(3.0%)</i></td><td><i>(0.8%)</i></td><td>—<style>.mw-parser-output .sr-only{border:0;clip:rect(0,0,0,0);height:1px;margin:-1px}</style>N/a</td><td>51</td></tr>
+<tr><td>15 Aug</td><td>Direct Polls</td><td>i24 News</td><td>535</td>
+ <td>30</td><td>9</td><td>5</td><td>6</td><td>(&lt;1%)</td><td>8</td><td>8</td><td>8</td><td>5</td>
+ <td>6</td><td>(1.4%)</td><td>11</td><td>24</td><td>N/A</td><td>n/a</td><td>—</td><td>57</td></tr>
+<tr><td>10 Jan</td><td>Midgam R&amp;C</td><td>HaHadashot 12</td><td>500</td>
+ <td>25</td><td>14</td><td>5</td><td>8</td><td>—</td><td>8</td><td>8</td><td>9</td>
+ <td colspan="3">10</td>
+ <td>10</td><td>23</td><td>—</td><td>—</td><td>—</td><td>54</td></tr>
 </table>
 <h3>2025</h3>
 <table class="wikitable">
@@ -42,6 +53,35 @@ module.exports=`
 <table class="wikitable">
 <tr><th>Fieldwork date</th><th>Polling firm</th><th>Publisher</th><th>Likud</th><th>Together</th><th>Shas</th><th>Gov.</th></tr>
 <tr><td>1 Aug</td><td>Lazar</td><td>Maariv</td><td>40</td><td>40</td><td>40</td><td>40</td></tr>
+</table>
+`;
+
+/* Tabella tarata per legare il conteggio delle righe valide alla decisione sulla
+   tabella. Quattro righe sono valide — sommano 120 e il blocco torna — e portano una
+   colonna sempre a «—N/a», che è la scrittura reale di Wikipedia per una lista non
+   rilevata. Due righe sono rotte davvero, con somma 119.
+   Con il parser riparato: 4 valide su 6, il 67%, la tabella si accetta.
+   Se la lettura delle celle senza cifre tornasse a fallire: 0 valide su 6, e la
+   tabella verrebbe ignorata in blocco portandosi via anche le quattro buone. È il
+   difetto misurato sulla pagina vera, dove costava 24 rilevazioni. */
+module.exports += `
+<h3>2026</h3>
+<table class="wikitable">
+<tr><th>Fieldwork date</th><th>Polling firm</th><th>Publisher</th><th>Likud</th><th>Together</th>
+ <th>RZP</th><th>Otzma</th><th>Blue &amp; White</th><th>Shas</th><th>UTJ</th><th>Yisrael Beiteinu</th>
+ <th>Ra'am</th><th>Hadash–Ta'al</th><th>Dems</th><th>Yashar</th><th>Gov.</th></tr>
+<tr><td>9 Aug</td><td>Kantar</td><td>Kan 11</td><td>30</td><td>15</td><td>5</td><td>8</td><td>—N/a</td>
+ <td>9</td><td>8</td><td>9</td><td>5</td><td>6</td><td>10</td><td>15</td><td>60</td></tr>
+<tr><td>8 Aug</td><td>Midgam</td><td>HaHadashot 12</td><td>30</td><td>15</td><td>5</td><td>8</td><td>—N/a</td>
+ <td>9</td><td>8</td><td>9</td><td>5</td><td>6</td><td>10</td><td>15</td><td>60</td></tr>
+<tr><td>7 Aug</td><td>Lazar</td><td>Maariv</td><td>30</td><td>15</td><td>5</td><td>8</td><td>—N/a</td>
+ <td>9</td><td>8</td><td>9</td><td>5</td><td>6</td><td>10</td><td>15</td><td>60</td></tr>
+<tr><td>5 Aug</td><td>Maagar Mochot</td><td>Israel Hayom</td><td>30</td><td>15</td><td>5</td><td>8</td><td>—N/a</td>
+ <td>9</td><td>8</td><td>9</td><td>5</td><td>6</td><td>10</td><td>15</td><td>60</td></tr>
+<tr><td>3 Aug</td><td>Panels Politics</td><td>Maariv</td><td>29</td><td>15</td><td>5</td><td>8</td><td>—N/a</td>
+ <td>9</td><td>8</td><td>9</td><td>5</td><td>6</td><td>10</td><td>15</td><td>59</td></tr>
+<tr><td>2 Aug</td><td>Stat-Net</td><td>Walla</td><td>29</td><td>15</td><td>5</td><td>8</td><td>—N/a</td>
+ <td>9</td><td>8</td><td>9</td><td>5</td><td>6</td><td>10</td><td>15</td><td>59</td></tr>
 </table>
 `;
 

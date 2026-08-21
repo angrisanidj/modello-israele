@@ -21,7 +21,7 @@ alle prove.
 
 ```bash
 npm install          # solo la prima volta: installa jsdom per le prove
-npm test             # estrae il JS e lancia le 316 prove
+npm test             # estrae il JS e lancia le 335 prove
 npm run verifica     # prove + controlli strutturali
 ```
 
@@ -79,7 +79,7 @@ dati/
   backtest.js         riapplica il motore alle elezioni passate
   corr.js             misura le correlazioni fra liste sull'archivio
   prefus.js           analisi della fusione B'Yachad del 26 aprile
-  wikiparser.js       prove del parser della tabella Wikipedia
+  wikiparser.js       copia orfana del parser: obsoleta, nessuno la importa, da eliminare
   fixture.js          tabella Wikipedia di riferimento per le prove
 docs/
   regola-colore.md    la specifica dei colori: bande, settori, punti, distanze
@@ -384,6 +384,17 @@ prossima cosa da fare dopo l'embed.**
    che al tocco non esiste; e il pulsante «Mostra tutti i seggi» sta sotto la legenda,
    lontano dal punto in cui il dito ha appena premuto. Chi filtra da telefono ha la via
    d'uscita più scomoda delle tre, ed è l'unico che non può usare quella dichiarata.
+7. Dal parser Wikipedia, dopo la riparazione del 21 agosto: **24 righe di gennaio-aprile
+   hanno una cella unica che copre Ra'am, Hadash–Ta'al e Balad** — la Joint List larga di
+   gennaio, una configurazione che non ha contenitore in anagrafica. Il parser le respinge
+   dichiarandolo, ed è giusto così: **vanno mappate a mano**, decidendo se aggiungere il
+   contenitore a `P{}` (con `dentro` su tutte e tre le componenti, Ra'am compresa) o
+   lasciarle fuori. Sessanta rilevazioni circa di storia in più, se si decide di volerle.
+8. Sempre dal parser: **le righe-evento arrivano in inglese** («Hadash, Ta'al and Balad
+   re-form the Joint List») **in una cronologia che è in italiano.** `unisciEventi` salta
+   le date già presenti, quindi oggi non entra niente di nuovo, ma il primo evento inglese
+   nuovo si mescolerà alle quattordici voci italiane. Serve una traduzione manuale al
+   momento dell'ingresso, o una coda di revisione prima che finiscano in cronologia.
 
 ### Le due colonne «Seggi»: cosa è chiuso e cosa resta aperto
 
@@ -523,6 +534,6 @@ nessuno degli altri settori.
 trovati oggi — la stella della bandiera che sconfinava nelle bande, l'occhiello a filo del
 bordo sull'ombra, il vuoto di 372px sotto le ipotesi, l'evidenziazione che competeva con
 la codifica del riempimento, il verde arabo che si leggeva nero — sono stati trovati
-**guardando la pagina**, non dalla suite. Le 316 prove dicono che il modello non si è
+**guardando la pagina**, non dalla suite. Le 335 prove dicono che il modello non si è
 rotto; non dicono che la pagina si veda. Dopo ogni push, aprire
 <https://angrisanidj.github.io/modello-israele/> e guardarla nei due temi.
