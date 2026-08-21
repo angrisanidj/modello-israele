@@ -158,6 +158,44 @@ setTimeout(function(){
   esito(!/paddingTop/.test(fs.readFileSync(__dirname + '/../app.js','utf8')),
     'e non resta nessuna fascia da riservare sopra il grafico');
 
+  /* ══ 1c · il nome accessibile del bersaglio è l'evento, non il suo numero ══
+   *
+   * Il nome era «6»: il title portava data e fatto, ma il title è una DESCRIZIONE e
+   * qualche tecnologia assistiva non la annuncia. Un lettore di schermo sentiva
+   * «6, pulsante». E siccome il numero è pur sempre il contenuto del bottone, senza
+   * aria-hidden l'aria-label e il numero si sarebbero sommati.
+   * Data e fatto raggiungono lo schermo per TRE strade — il <title> del disco, il title
+   * del bersaglio, il suo aria-label — e queste prove le legano: è la stessa lacuna dei
+   * token di blocco, spostata dal colore all'etichetta. */
+  const dcT = d => { const p = d.split('-'); return p[2] + '.' + p[1]; };
+  const soloCifre = t => t !== '' && String(+t) === t;
+  const perData = {}; A.EVENTI().forEach(e => { perData[e.data] = e; });
+  esito(marcatori().every(b => (b.getAttribute('aria-label') || '').trim().length > 3),
+    'ogni bersaglio dei marcatori ha un aria-label, e non è il solo numero',
+    marcatori()[0] && marcatori()[0].getAttribute('aria-label'));
+  esito(marcatori().every(b => !soloCifre((b.getAttribute('aria-label')||'').trim())),
+    'nessun nome accessibile è un numero e basta: era «6, pulsante»');
+  esito(marcatori().every(function(b){
+      const e = perData[b.getAttribute('data-ev')];
+      const l = b.getAttribute('aria-label') || '';
+      return !!e && l.indexOf(dcT(e.data)) === 0 && l.indexOf(e.testo) > 0;
+    }),
+    'e dice la data e il fatto di QUEL marcatore, non di un altro');
+  esito(marcatori().every(b => b.getAttribute('aria-label') === b.getAttribute('title')),
+    'title e aria-label sono la stessa stringa: una sola sorgente, non due copie');
+  esito(marcatori().every(function(b){
+      const n = b.querySelector('[aria-hidden="true"]');
+      return !!n && n.textContent.trim() === b.textContent.trim() && soloCifre(n.textContent.trim());
+    }),
+    "il numero dentro il bottone esce dall'albero: o il nome sarebbe la somma dei due");
+  esito(marcatori().every(function(b){
+      const e = perData[b.getAttribute('data-ev')];
+      const t = [].slice.call($('k-trend').querySelectorAll('title'))
+        .filter(x => x.textContent.indexOf(dcT(e.data)) === 0 && x.textContent.indexOf(e.testo) > 0);
+      return t.length === 1 && t[0].textContent === b.getAttribute('aria-label');
+    }),
+    "e il <title> del disco nell'SVG porta la stessa identica stringa del bersaglio");
+
   /* il vuoto fra il disco più basso e la cima dell'area, alle tre larghezze.
      La geometria è in unità di viewBox; le tre larghezze rese del contenitore sono
      misurate su browser e sono le stesse che il codice usa come ripiego. */

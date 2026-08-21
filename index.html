@@ -67,7 +67,21 @@
 #kn26 .mast{padding:34px 0 26px;border-bottom:1px solid var(--rule);}
 #kn26 .brow{display:flex;align-items:center;gap:11px;font-size:10px;letter-spacing:.2em;
  text-transform:uppercase;font-weight:700;color:var(--acc);}
-#kn26 .brow em{font-style:normal;color:var(--mute);}
+/* A 380 la data non sforava «di 35px»: era già andata a capo QUATTRO volte, una parola
+   per riga — AGGIORNATO / AL 20 / AGOSTO / 2026 — e gli 85,8px che le si attribuivano
+   sono la larghezza della sola parola «AGGIORNATO» a 10px maiuscolo con 2px di
+   spaziatura, cioè il minimo sotto cui il riquadro flessibile non può scendere. La prima
+   riga usciva dallo schermo di 35px e la terza di 1, e la testata era alta 62px invece
+   di 31.
+   L'aritmetica dice perché accorciare il testo non bastava: 12 (marchio) + 93,6 (titolo)
+   + 0 (il filetto, già collassato) + 168,3 (i tre pulsanti del tema) + 85,8 = 359,7 in
+   358, e i 44px di gap sono in più. NEMMENO azzerando tutti i gap la riga starebbe.
+   Quindi va a capo: il flex-wrap agisce da solo quando serve — a 760 la testata è
+   identica a prima — e il margine automatico tiene la data allineata a destra sulla riga
+   sua, dov'era. Nascondere la data era la strada scartata: la testata è il primo posto in
+   cui si guarda per sapere se il dato è fresco. */
+#kn26 .brow{flex-wrap:wrap;}
+#kn26 .brow em{font-style:normal;color:var(--mute);margin-left:auto;}
 #kn26 .brow .bar{flex:1;height:1px;background:var(--hair);}
 #kn26 h1{font-family:var(--serif);font-size:clamp(31px,4.6vw,54px);line-height:1.03;
  letter-spacing:-.022em;margin-top:18px;}
@@ -376,6 +390,26 @@
  font-weight:700;margin:20px 0 7px;break-after:avoid;}
 #kn26 .foot h3:first-child{margin-top:0;}
 #kn26 .foot p{margin-bottom:9px;break-inside:avoid;}
+/* Le quattro tabelle della nota sono di PROSA — «due liste di centro sullo stesso
+   elettorato», «Lista Unita, quattro partiti», «2022 · sette settimane» — e la larghezza
+   gliela dava il white-space:nowrap GLOBALE delle celle, scritto per l'archivio e per
+   l'house effect, dove le colonne sono numeri e andare a capo sarebbe un difetto. Qui era
+   ereditato da tabelle che non ne hanno mai avuto bisogno: a 380 la peggiore — «Liste che
+   si muovono insieme», tre colonne, di cui «Meccanismo» da sola 232,3px — misurava 528 in
+   un contenitore da 326 e spingeva il documento fuori di 175px. Le altre tre 388,4 · 427,9
+   · 381,8, cioè 35,4 · 74,9 · 28,8 di sforamento. Andando a capo tornano tutte e quattro a
+   326, che è il contenitore: sforamento zero.
+   Non si sono fatte a schede come l'house effect, e la differenza è di sostanza: là la
+   tabella era larga DAVVERO (941,8px di numeri) e il pulsante di esclusione doveva stare
+   accanto al nome. Qui non c'è nessun comando — zero elementi focalizzabili in tutte e
+   quattro — e la larghezza non era del contenuto.
+   Il break-inside invece non serve a 380: serve a 1265, dove la nota va su due colonne.
+   Lì il backtest si spezzava fra le due — testata orfana in fondo alla sinistra e corpo in
+   cima alla destra, due frammenti misurati alti 45,2 e 248,2 — e la tabella delle
+   correlazioni, larga 528 in una colonna da 515, sbordava nella gronda da 44. Il capo riga
+   chiude la seconda, questa riga la prima. */
+#kn26 .foot td,#kn26 .foot th{white-space:normal;}
+#kn26 .foot table{break-inside:avoid;}
 
 @media(max-width:900px){
  #kn26{padding:0 20px 52px;}
@@ -756,6 +790,10 @@
  #kn26 .cal>div{padding:13px 14px;}
  #kn26 .cal .g{font-size:26px;}
  #kn26 .foot{font-size:12px;}
+ /* Il capo riga costa 472px di verticale sulle quattro tabelle messe insieme; il padding
+    stretto ne restituisce 186. Vale solo qui: sopra i 660 le tabelle non vanno a capo e
+    stringere le celle sarebbe soltanto più fitto. */
+ #kn26 .foot td,#kn26 .foot th{padding:6px 5px;}
  #kn26 .prob{padding:17px 16px 15px;}
  #kn26 .gauge{height:44px;}
  /* corpo 15, non 17: con 17 il totale «accanto» nella zona 29-34 seggi finiva sopra
@@ -2945,16 +2983,27 @@ function rTrend(){
   /* il disco: sempre qui dentro, e la corsia 0 — quella che l'assegnazione riempie per
      prima, quindi la più popolata — è la PIÙ VICINA all'area, non la più lontana */
   var rr=MOB?10:8, cy=T-(rr+3)-e._c*DYVB;
+  /* Una stringa sola per tutti i posti in cui l'evento si annuncia: il title del disco,
+     il title del bersaglio e il suo aria-label. Erano tre copie dello stesso testo, ed è
+     esattamente la strada doppia che questo progetto paga sempre due volte. */
+  var ETI=dc(e.data)+' · '+E(e.testo);
   s+='<g class="evm'+(ISO&&e.data===ISO.da?' on':'')+'">'+
      '<circle cx="'+xe.toFixed(1)+'" cy="'+cy.toFixed(1)+'" r="'+rr+'" fill="'+
      (ISO&&e.data===ISO.da?C.acc:C.ink2)+'"/>'+
      '<text x="'+xe.toFixed(1)+'" y="'+(cy+(MOB?3.8:3.5)).toFixed(1)+'" text-anchor="middle" font-size="'+
      (MOB?13:10.5)+'" font-family="Georgia,serif" fill="'+C.paper+'">'+(ix+1)+
-     '<title>'+dc(e.data)+' · '+E(e.testo)+'</title></text></g>';
-  /* il bersaglio trasparente, centrato sul disco in percentuale del disegno */
+     '<title>'+ETI+'</title></text></g>';
+  /* Il bersaglio trasparente, centrato sul disco in percentuale del disegno.
+     Il nome accessibile è la data più il fatto, non il numero: un lettore di schermo
+     sentiva «6, pulsante» e non sapeva di quale evento si trattasse. Il title è una
+     DESCRIZIONE — qualche tecnologia assistiva la annuncia, altre no — quindi non poteva
+     bastare. E il numero, che resta perché è la sola cosa che il bottone contiene, esce
+     dall'albero di accessibilità: senza aria-hidden il nome diventerebbe la somma dei due
+     e si sentirebbe «26.04 · … 6». */
   if(STRATO) lay+='<button type="button" data-ev="'+E(e.data)+'" aria-pressed="'+
     (!!ISO&&e.data===ISO.da)+'" style="left:'+(xe/W*100).toFixed(3)+'%;top:'+
-    (cy/H*100).toFixed(3)+'%" title="'+dc(e.data)+' · '+E(e.testo)+'">'+(ix+1)+'</button>';
+    (cy/H*100).toFixed(3)+'%" title="'+ETI+'" aria-label="'+ETI+'">'+
+    '<span aria-hidden="true">'+(ix+1)+'</span></button>';
  });
  $('k-trend').innerHTML=s+'</svg>';
  $('k-trend').className=ISO?'iso':'';
@@ -3115,11 +3164,14 @@ function rFoot(){
  'Per ciascuna delle tre elezioni passate si è cercato, sul banco di prova, quanti punti di swing avrebbero '+
  'fatto coincidere la proiezione del modello con il risultato vero. Lo scarto non è però una costante: '+
  'si restringe avvicinandosi alle urne, e in modo quasi lineare.</p>'+
+ /* Lo spazio fra il valore e la sua distanza dal voto è unificatore: da quando le celle
+    della nota vanno a capo, «+1,75 (62 gg)» potrebbe spezzarsi fra il numero e la
+    parentesi, e le due metà dicono qualcosa solo insieme. */
  '<table style="margin:10px 0 12px"><thead><tr><th class="l">Elezione</th><th>A due mesi</th>'+
  '<th>Ultima settimana</th><th>Restringimento</th></tr></thead><tbody>'+
- '<tr><td class="l">2020</td><td>+1,75 <small>(62 gg)</small></td><td>+0,35 <small>(3 gg)</small></td><td>0,024 pt al giorno</td></tr>'+
- '<tr><td class="l">2021</td><td>+2,65 <small>(58 gg)</small></td><td>+1,30 <small>(4 gg)</small></td><td>0,025 pt al giorno</td></tr>'+
- '<tr><td class="l">2022</td><td>+4,30 <small>(49 gg)</small></td><td>+1,80 <small>(4 gg)</small></td><td>0,050 pt al giorno</td></tr>'+
+ '<tr><td class="l">2020</td><td>+1,75&nbsp;<small>(62 gg)</small></td><td>+0,35&nbsp;<small>(3 gg)</small></td><td>0,024 pt al giorno</td></tr>'+
+ '<tr><td class="l">2021</td><td>+2,65&nbsp;<small>(58 gg)</small></td><td>+1,30&nbsp;<small>(4 gg)</small></td><td>0,025 pt al giorno</td></tr>'+
+ '<tr><td class="l">2022</td><td>+4,30&nbsp;<small>(49 gg)</small></td><td>+1,80&nbsp;<small>(4 gg)</small></td><td>0,050 pt al giorno</td></tr>'+
  '</tbody></table>'+
  '<p>Da questi punti si stima una retta per elezione, valutata alla distanza dal voto in cui ci si trova '+
  'oggi: i pulsanti cambiano quindi da soli col passare dei giorni, e a una settimana dal voto proporranno '+

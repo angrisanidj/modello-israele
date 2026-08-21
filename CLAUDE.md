@@ -29,7 +29,7 @@ alle prove.
 
 ```bash
 npm install          # solo la prima volta: installa jsdom per le prove
-npm test             # estrae il JS e lancia le 586 prove
+npm test             # estrae il JS e lancia le 611 prove
 npm run verifica     # prove + controlli strutturali
 ```
 
@@ -152,7 +152,15 @@ Messaggi di commit in italiano, all'infinito, con il perché e non solo il cosa.
 
 ## Ancora da fare
 
-1. Modalità `?embed=1` per l'inserimento in FocusAmerica
+1. **Modalità `?embed=1`** per l'inserimento in FocusAmerica.
+
+   **Da sapere prima di scriverlo, non dopo: dentro un `<iframe>` con `sandbox`, un
+   `<a download>` non scarica niente** se la sandbox non dichiara `allow-downloads`, e
+   vale anche per un `href` `blob:` o `data:` e per uno scaricamento avviato dal
+   codice. Fanpage e FocusAmerica incorporano in sandbox. Riguarda l'esportazione PNG
+   (punto 7), che è tutta costruita su quello: o l'embed chiede `allow-downloads`
+   all'ospite, o dentro l'embed il pulsante di esportazione non va messo. **Non è una
+   cosa da scoprire quando il PNG è già scritto.**
 2. Accordi di apparentamento (dall'8 settembre, valgono 1-2 seggi)
 3. Liste nuove e scissioni fino all'8 settembre (mappatura manuale, il parser avvisa)
 4. Incertezza sulla configurazione delle liste nel Monte Carlo
@@ -162,14 +170,124 @@ Messaggi di commit in italiano, all'infinito, con il perché e non solo il cosa.
    numerati fuori dall'SVG, che un'esportazione del solo disegno avrebbe perso — **non
    esiste più dal 22 agosto 2026**: i dischi si disegnano dentro l'SVG a **tutte** le
    larghezze, e lo strato HTML (`#k-evlay`) porta soltanto bersagli trasparenti da 30px
-   per il fuoco e il tocco. Nessun inchiostro vive fuori dal disegno, quindi esportare
-   l'SVG basta: tratteggi, dischi e numeri vengono via insieme.
-   Resta una cosa da decidere, ma è di contenuto e non di struttura: **se esportare lo
-   stato isolato o quello pieno.** Nello stato isolato le tre linee stanno a opacità 0,26
-   e una finestra di trenta giorni è accesa — un'immagine che si spiega solo insieme al
-   riquadro che la accompagna.
+   per il fuoco e il tocco.
+
+   **Inventario fatto il 22 agosto 2026, decisioni prese, codice non ancora scritto.**
+
+   ### Quattro disegni, non undici sezioni
+
+   | id | sezione | viewBox | elementi | testi |
+   |---|---|---|---|---|
+   | `#k-hist` | Il verdetto — blocco Netanyahu | 460×210 | 46 | 8 |
+   | `#k-hist2` | Il verdetto — opposizione | 460×210 | 45 | 8 |
+   | `#k-emi` | La prossima Knesset | 430×232 | 249 | 7 |
+   | `#k-trend` | Come si è mossa la proiezione | 520×331 | 650 | 44 |
+
+   Tutto il resto della pagina è HTML: `#k-house`, `#k-power`, il simulatore
+   (`#k-chips` + `#k-gauge`), `#k-coal`, `#k-tab`, `#k-analisi`, `#k-calend`,
+   `#k-probs`. **Restano fuori, e la ragione è quella di sempre**: rasterizzarli vuol
+   dire `foreignObject` — che contamina la tela in Safari — oppure riscrivere ogni
+   impaginato in SVG a mano, cioè **un secondo renderer da tenere allineato al primo**.
+   È la strada doppia che questo progetto ha già pagato tre volte.
+   Le sparkline di `#k-proj` e `#k-movers` sono SVG ma sono ornamenti di riga, 200×16
+   e 200×12 con due-quattro elementi: da sole non dicono niente.
+
+   ### Cosa va incorporato
+
+   **I colori non vanno risolti: sono già risolti.** `leggiTema()` legge le variabili in
+   `C{}` e il codice scrive esadecimali letterali. Misurato: `var(--` compare **0 volte**
+   nei quattro disegni, e **0 elementi** sono senza `fill` o `stroke` espliciti. Zero
+   `currentColor`, zero `url(...)`, zero `foreignObject`.
+
+   Va invece iniettato al momento dell'esportazione:
+
+   - **`xmlns`** — nessuno dei quattro root ce l'ha, e senza `new Image()` fallisce in
+     silenzio;
+   - **`width` e `height`** — tutti hanno solo il `viewBox`;
+   - **`font-family` sulla radice** — **45 dei 67 `<text>`** non hanno l'attributo e
+     ereditano dal `#kn26`: emiciclo 4/7, tendenza 25/44, i due istogrammi 8/8. Dentro un
+     `<img>` non c'è antenato. Verificato: rasterizzando `#k-hist` con e senza, i pixel
+     sono diversi (PNG 30 058 byte contro 31 010);
+   - **le opacità degli stati interattivi**, che vivono sul foglio e non nell'SVG:
+     `#k-trend.iso .ln`/`.pt`/`.acc`/`.evm`, `#k-trendwrap.solo-*`, `#k-emi.filtra
+     circle`. Sono 538 elementi con classe nel solo grafico della tendenza.
+
+   **Sul carattere si accetta la pila della macchina che esporta** — `-apple-system,
+   BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif` e `Georgia,
+   serif`. Il PNG coincide con quello che vede chi lo esporta, non con quello che
+   vedrebbe un altro. **Va scritto nella nota metodologica**: incorporare un font vero
+   come data URI sono centinaia di KB e viola la regola del file unico.
+
+   ### La strada, provata su browser
+
+   Serializzare → `Blob` (**non** data URI: la tendenza fa 94 473 caratteri, e un `#` di
+   colore non codificato tronca l'URI come frammento) → `new Image()` → `drawImage` →
+   `toDataURL('image/png')`. Misurato sulla pagina, `#k-emi` a 3×: PNG di **142,8 KB a
+   1290×696**, e `getImageData` non solleva niente — **la tela non è contaminata.**
+
+   Deciso: **`Blob`**, **`fillRect` col fondo del tema prima di disegnare** (la tela
+   nasce trasparente e nessuno dei quattro SVG disegna un fondo: trasparente si legge nero
+   in gran parte delle app), **K=3**.
+
+   ### La targa, e lo stato isolato
+
+   Deciso: **B** — targa sopra (44 unità: titolo della sezione, data dell'archivio,
+   firma, indirizzo) **e piede sotto** (30 unità, con la legenda che oggi vive in HTML) —
+   per la tendenza e i due istogrammi; **A**, la sola targa, per l'emiciclo, che la
+   legenda ce l'ha dentro. Tendenza a K=2: 520×405 di viewBox, cioè 1040×810.
+
+   Deciso sullo stato isolato: **si esporta quello che si vede**, con le opacità stampate
+   sulla copia, **e la riga dell'evento va nella targa** — «26.04 · Bennett e Lapid
+   fondono le liste in B'Yachad — nei 30 giorni successivi: Netanyahu 51, opposizione 47,
+   arabi 11». È l'unica delle tre che produce un'immagine pubblicabile: senza quella riga
+   l'isolato è un disegno quasi tutto grigio con una scheggia accesa di 36,8px su un asse
+   da 274.
+
+   ### Il comando
+
+   **Un pulsante per disegno**, nella testata della sezione, stile `.lnk`, con
+   **`aria-label` che nomina il grafico** — quattro pulsanti chiamati tutti «Scarica PNG»
+   sono indistinguibili in un elenco di comandi, ed è la stessa lezione dei bersagli dei
+   marcatori. Niente pulsante unico di pagina (quattro scaricamenti in un gesto), niente
+   scorciatoia da tastiera (un tasto nudo collide col filtro dell'archivio, una
+   combinazione con la pagina ospite): il pulsante nell'ordine di tabulazione **è**
+   l'accesso da tastiera.
+
+   ### Due trappole annotate prima di scrivere il codice
+
+   1. **La nuvola dei sondaggi porta `opacity=".28"` come attributo mentre il valore
+      calcolato in stato isolato è `.07`.** Oggi la pagina rende `.07`, che è quello che
+      si vuole — in SVG un attributo di presentazione perde contro qualunque dichiarazione
+      CSS — quindi non è un difetto di resa. **Ma le due strade dicono due cose diverse**,
+      e chiunque legga l'SVG invece del valore calcolato prende quella sbagliata:
+      l'esportazione lo farebbe, e mostrerebbe la nuvola a **quattro volte** l'opacità
+      voluta. È la solita forma — due strade per lo stesso valore, nessuna prova che le
+      leghi — e qui la divergenza è già scritta nel file. Chi scrive l'esportazione
+      stampa il valore **calcolato**, non l'attributo, e già che c'è valuti se
+      l'attributo debba restare.
+   2. **`<a download>` non scarica dentro un `<iframe>` con `sandbox`** senza
+      `allow-downloads`, nemmeno con `href` `blob:`. Cioè dentro `?embed=1`. Vedi il
+      punto 1: la cosa serve a chi scrive l'embed, e prima, non dopo.
 8. Aggiornamento automatico programmato, con avviso se l'archivio è vecchio
-9. Accessibilità: navigazione da tastiera, ruoli ARIA
+9. Accessibilità: navigazione da tastiera, ruoli ARIA.
+
+   **Chiuso il 22 agosto 2026**, dentro questo punto: i bersagli dei marcatori degli
+   eventi avevano per nome accessibile il solo numero — «6, pulsante» — e ora portano
+   `aria-label` con data e fatto, mentre il numero interno esce dall'albero con
+   `aria-hidden`. Vedi «Le due domande in sospeso» in fondo.
+
+   **Resta aperta, e non si decide a tavolino: i dischi dentro l'SVG sotto i 900px.**
+   Lì il `<title>` è l'unica cosa che li descrive, e sta dentro il `<text>`, non dentro
+   il `<g>`. **Si è scelto di lasciarlo com'è**, e la ragione è che sotto i 900 il disco
+   **non è attivabile**: dargli un nome accessibile metterebbe nell'albero una voce che
+   il lettore incontra senza poterci fare niente. Il comando è la voce di cronologia, che
+   ha un testo suo.
+
+   Ma è una scelta da **provare con un lettore di schermo vero**, non da stabilire
+   ragionando: è la stessa famiglia del layout — nessuna misura la risolve, e nessuna
+   prova di questa suite può dire come suona. Le alternative scartate, se la prova le
+   riaprisse: spostare il `<title>` sul `<g>` dandogli `role="img"`, oppure dichiarare
+   il gruppo decorativo con `aria-hidden` perché il testo è già nella cronologia sotto.
 10. **Prova su browser veri.** Tutto è verificato in jsdom, che non fa layout. I difetti veri
     segnalati finora — testo nero su fondo nero, anteprima senza JavaScript, didascalia sopra i
     seggi — erano tutti di quel tipo e nessuna prova automatica li avrebbe visti.
@@ -232,15 +350,89 @@ Messaggi di commit in italiano, all'infinito, con il perché e non solo il cosa.
     «L'house effect: due forme». Il documento a 380 passa da 588,8 a **35px** di
     sforamento, e a 760 da 225 a **zero**. I 35 che restano non sono suoi: sono i punti
     15 e 16 qui sotto. Tre sorgenti indipendenti, non una — chiuderne una non chiude le
-    altre.
-15. **Quattro tabelle dentro `#k-metodo` sforano**, di 28,8 · 35,4 · 74,9 e **175**px a
-    380. Oggi non si vedono perché il `<details>` è chiuso, ma contano già nella larghezza
-    di scorrimento del documento, e il primo che lo apre le trova. Annotato, non riparato:
-    è lo stesso caso dell'house effect, e la scelta fra scorrevole e cambio di forma va
-    fatta guardandole, non per analogia.
-16. **`#k-upd` sfora di 35px a 380.** È l'`<em>` «aggiornato al 20 agosto 2026»
-    nell'intestazione, largo 85,8px in un contenitore che a quella larghezza non lo
-    contiene. Piccolo e isolato, ma è ciò che resta fra la pagina e lo sforamento zero.
+    altre. **Chiuse anche quelle il 22 agosto 2026: a 380 lo sforamento è zero.**
+15. ~~Quattro tabelle dentro `#k-metodo` sforano~~ — **chiuse il 22 agosto 2026, e non
+    come l'house effect.** Il punto diceva «è lo stesso caso», e non lo era. Rimisurato:
+    quei quattro numeri sono lo sforamento del documento che ciascuna tabella provoca da
+    sola, e finalmente si sa quale è quale — il contenitore `#k-foot` a 380 vale 326px:
+
+    | tabella | col. | larghezza | sforamento |
+    |---|---|---|---|
+    | Liste che si muovono insieme | 3 | **528,0** | **175** |
+    | Il modello alla prova (backtest) | 5 | 427,9 | 74,9 |
+    | Ancoraggi dello swing | 4 | 388,4 | 35,4 |
+    | Affluenza araba | 4 | 381,8 | 28,8 |
+
+    **Non si sommano**: lo sforamento è un massimo. `#k-metodo` portava 175 e solo
+    quelli, tutti dalla tabella a *tre* colonne — non da quella a cinque, come verrebbe
+    da pensare.
+
+    **La larghezza non era del contenuto.** Gliela dava il `white-space:nowrap` **globale**
+    delle celle, scritto per l'archivio e per l'house effect — dove le colonne sono cifre
+    e andare a capo sarebbe un difetto — ed ereditato da quattro tabelle di prosa che non
+    ne hanno mai avuto bisogno: «Meccanismo» da sola 232,3px, «Configurazione» 153,
+    «Istantanea» 143,6. Rimedio: `white-space:normal` dentro `.foot`, e tutte e quattro
+    tornano a 326, cioè al contenitore. Costa 472px di verticale; il `padding:6px 5px`
+    sotto i 660 ne restituisce 186.
+
+    **Le schede sarebbero state il rimedio giusto per il problema sbagliato**: l'house
+    effect era largo *davvero* (941,8px di numeri) e doveva mettere un pulsante accanto a
+    un nome. Qui non c'è nessun comando — **zero elementi focalizzabili** in tutte e
+    quattro — e la larghezza era di una regola altrui. Nemmeno lo scorrevole serviva.
+
+    **E c'erano due difetti a 1265 che nessuno aveva registrato**, perché la nota è chiusa
+    per impostazione predefinita e lì va su **due colonne da 515px**:
+
+    - la tabella delle correlazioni, larga 528, **sbordava di 13px nella gronda da 44** —
+      e non solo a 1265: `width:100%` in multicolonna si risolve sulla colonna, e 528 è
+      il suo minimo, quindi sbordava **a qualunque larghezza a due colonne**;
+    - il backtest **si spezzava fra le due colonne**: `getClientRects()` ne restituiva
+      **due** frammenti, alti 45,2 e 248,2 — testata orfana in fondo alla sinistra e corpo
+      in cima alla destra. È un difetto di lettura, non di larghezza, e nessuna misura di
+      sforamento poteva vederlo. `break-inside:avoid` era su `.foot p` e non su
+      `.foot table`.
+
+    Verificato dopo, con le regole applicate, alle tre larghezze: documento **380 / 760 /
+    1250** con la nota **chiusa e aperta**, tabelle 326 · 678 · 515 cioè esattamente il
+    contenitore, **un frammento ciascuna**, zero nella gronda.
+
+    Una nota per l'8 settembre: queste tabelle non crescono con le liste, sono di storia.
+    Non vanno rimisurate come l'house effect.
+16. ~~`#k-upd` sfora di 35px a 380~~ — **chiuso il 22 agosto 2026, e la diagnosi del punto
+    era sbagliata.** Gli 85,8px non sono la larghezza della stringa: **la data era già
+    andata a capo quattro volte**, una parola per riga, e 85,8 è la larghezza della sola
+    parola «AGGIORNATO» a 10px maiuscolo con 2px di spaziatura — cioè il minimo sotto cui
+    un riquadro flessibile non può scendere. Ricostruito riga per riga dai rettangoli del
+    testo, a 380:
+
+    ```
+    AGGIORNATO    da 329 a 415   ← 35px fuori dallo schermo
+    AL 20         da 329 a 365
+    AGOSTO        da 329 a 381   ← 1px fuori
+    2026          da 329 a 360
+    ```
+
+    La testata era alta **62px invece di 31**. E l'aritmetica della riga dice perché
+    accorciare il testo *spostava* il problema invece di chiuderlo: 12 (marchio) + 93,6
+    (titolo) + 0 (il filetto `.bar`, già collassato) + 168,3 (i tre pulsanti del tema) +
+    85,8 = **359,7 in 358**, e i 44px di gap sono in più. **Nemmeno azzerando tutti i gap
+    la riga starebbe.** Provate e misurate: «20 ago 2026» arriva a sforamento zero ma resta
+    impilata su tre righe; «20.08.2026» è una parola sola larga 71,4 e **sfora comunque**
+    di 20px.
+
+    Rimedio: `flex-wrap:wrap` sulla testata — agisce da solo quando serve, a 760 e 1265
+    la testata è identica a prima — più `margin-left:auto` sull'`<em>`, che tiene la data
+    allineata a destra sulla riga sua, dov'era. A 380 la data sta su **una riga** larga
+    219,7 a filo del bordo destro, e la testata passa da 62 a 77px. A **660** migliora
+    anche dove non sforava: prima ci stava su due righe schiacciate, ora su una.
+
+    **Nascondere la data era la strada scartata**, benché la data compaia altre due volte
+    nella pagina: la testata è il primo posto in cui si guarda per sapere se il dato è
+    fresco.
+
+    **Con i punti 15 e 16 chiusi, a 380 il documento non scorre più in orizzontale — né
+    con la nota chiusa né con la nota aperta.** È la prima volta, ed è il prerequisito che
+    l'embed chiedeva.
 17. **Le righe degli istituti esclusi stanno a `opacity:.42`, e lì nessun token arriva a
     4,5.** Misurato nei due temi: il migliore è `--ink` a **2,70** in chiaro e **3,65** in
     scuro, `--mute` sta a 1,79 e 1,91, `--neg` a 2,03 e 2,44. Nessuna scelta di colore
@@ -575,11 +767,12 @@ Due conseguenze pratiche, e sono quelle da ricordare:
 
 ### Nell'ordine
 
-1. ~~La tabella dell'house effect che sfora~~ — **chiusa il 21 agosto 2026** con le
-   schede sotto la soglia. Restano gli altri due sforamenti, punti 15 e 16, che a 380
-   valgono in tutto 35px: vanno fatti **prima dell'embed, non dopo**, perché dentro
-   `?embed=1`, in una colonna stretta, un documento che scorre in orizzontale peggiora
-   invece di restare com'è.
+1. ~~Gli sforamenti a 380~~ — **chiusi tutti e tre.** L'house effect il 21 agosto con le
+   schede sotto la soglia; le quattro tabelle della nota e la data della testata — punti
+   15 e 16 — il 22 agosto, con il capo riga e con `flex-wrap`. **A 380 il documento non
+   scorre più in orizzontale, con la nota metodologica chiusa e aperta.** Era il
+   prerequisito dell'embed: dentro `?embed=1`, in una colonna stretta, un documento che
+   scorre in orizzontale peggiora invece di restare com'è.
 2. **Modalità `?embed=1`** per l'inserimento in FocusAmerica (punto 1).
 3. **Cercare le altre strade doppie.** Ogni valore che raggiunge lo schermo per più di un
    percorso e non ha una prova che li leghi è il prossimo colore di blocco. Vedi sopra.
@@ -794,7 +987,7 @@ nessuno degli altri settori.
 trovati oggi — la stella della bandiera che sconfinava nelle bande, l'occhiello a filo del
 bordo sull'ombra, il vuoto di 372px sotto le ipotesi, l'evidenziazione che competeva con
 la codifica del riempimento, il verde arabo che si leggeva nero — sono stati trovati
-**guardando la pagina**, non dalla suite. Le 586 prove dicono che il modello non si è
+**guardando la pagina**, non dalla suite. Le 611 prove dicono che il modello non si è
 rotto; non dicono che la pagina si veda. Dopo ogni push, aprire
 <https://angrisanidj.github.io/modello-israele/> e guardarla nei due temi.
 
@@ -805,7 +998,7 @@ rotto; non dicono che la pagina si veda. Dopo ogni push, aprire
 Scritta il 22 agosto 2026 per una passata sola, sezione per sezione. Serve a distinguere
 **quello che qualcuno ha già guardato reso** da **quello che nessuno ha mai visto**: in due
 giorni sono entrate parecchie cose che le prove dichiarano sane e che nessun occhio ha
-ancora confermato. Le 586 prove dicono che il modello non si è rotto; non dicono che la
+ancora confermato. Le 611 prove dicono che il modello non si è rotto; non dicono che la
 pagina si veda.
 
 Si guarda su <https://angrisanidj.github.io/modello-israele/>, **nei due temi forzati dal
@@ -848,18 +1041,27 @@ document.head.insertAdjacentHTML('beforeend',
 pagina pubblicata: `cursor: pointer`, bersaglio 30×30px, focalizzabile da tastiera. Non
 c'è niente da riparare.
 
-**L'etichetta accessibile: no, e questo è un difetto.** Il nome accessibile del bersaglio è
-**«6»** — il solo numero. La data e il fatto stanno in `title`
-(«26.04 · Bennett e Lapid fondono le liste in B'Yachad»), che è una *descrizione*:
-qualche tecnologia assistiva la annuncia, altre no. Un lettore di schermo sente
-**«6, pulsante»** e non sa di che evento si tratti.
+**L'etichetta accessibile: era un difetto — chiuso il 22 agosto 2026.** Il nome
+accessibile del bersaglio era **«6»**, il solo numero: data e fatto stavano in `title`
+(«26.04 · Bennett e Lapid fondono le liste in B'Yachad»), che è una *descrizione* —
+qualche tecnologia assistiva la annuncia, altre no. Un lettore di schermo sentiva
+**«6, pulsante»** e non sapeva di che evento si trattasse.
 
-Si ripara con `aria-label` sul bersaglio, con lo stesso testo del `title` — e allora il
-numero visibile dentro il bottone (oggi a `font-size:0`) va tolto dall'albero di
-accessibilità con `aria-hidden="true"`, o il nome diventa la somma dei due. **La stessa
-domanda va posta ai dischi dentro l'SVG sotto i 900**, dove il `<title>` è l'unica cosa
-che li descrive e il comando è la voce di cronologia: lì probabilmente va bene così, ma
-non l'ha guardato nessuno.
+Ora il bersaglio porta `aria-label` con lo stesso testo del `title`, e il numero dentro
+il bottone — che resta, perché è la sola cosa che il bottone contiene — è avvolto in uno
+`<span aria-hidden="true">`: senza, il nome sarebbe diventato la somma dei due.
+
+**E la stessa stringa nasce una volta sola.** Data e fatto raggiungevano lo schermo per
+tre strade — il `<title>` del disco nell'SVG, il `title` del bersaglio, ora anche il suo
+`aria-label` — cioè tre copie dello stesso testo. È la lacuna dei token di blocco
+spostata dal colore all'etichetta: adesso c'è una variabile sola, `ETI`, e sei prove in
+`test/suite/isola.js` legano le tre strade. Mutate: togliendo l'`aria-label` ne cadono
+cinque, togliendo l'`aria-hidden` una, facendo divergere `aria-label` dal `title`
+quattro.
+
+**Resta aperta la domanda sui dischi dentro l'SVG sotto i 900**, dove il `<title>` è
+l'unica cosa che li descrive e il comando è la voce di cronologia: lì probabilmente va
+bene così, ma non l'ha guardato nessuno.
 
 ### Come annotare quello che si trova
 
