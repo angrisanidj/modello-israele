@@ -797,3 +797,73 @@ la codifica del riempimento, il verde arabo che si leggeva nero — sono stati t
 **guardando la pagina**, non dalla suite. Le 586 prove dicono che il modello non si è
 rotto; non dicono che la pagina si veda. Dopo ogni push, aprire
 <https://angrisanidj.github.io/modello-israele/> e guardarla nei due temi.
+
+---
+
+## Revisione visiva finale: la lista di controllo
+
+Scritta il 22 agosto 2026 per una passata sola, sezione per sezione. Serve a distinguere
+**quello che qualcuno ha già guardato reso** da **quello che nessuno ha mai visto**: in due
+giorni sono entrate parecchie cose che le prove dichiarano sane e che nessun occhio ha
+ancora confermato. Le 586 prove dicono che il modello non si è rotto; non dicono che la
+pagina si veda.
+
+Si guarda su <https://angrisanidj.github.io/modello-israele/>, **nei due temi forzati dal
+selettore** — con «auto» si misura quello che il sistema decide, non quello che si crede —
+e alle tre larghezze di riferimento: **1265**, **760**, **380**.
+
+E prima di misurare qualunque geometria, spegnere le transizioni, o si leggono valori
+congelati a metà che sono stabili e falsi:
+
+```js
+document.head.insertAdjacentHTML('beforeend',
+  '<style>#kn26 *{transition:none !important;animation:none !important}</style>');
+```
+
+### Mai visto reso da nessuno — la priorità
+
+| # | Cosa | Dove | Larghezza | Che cosa cercare |
+|---|---|---|---|---|
+| 1 | **I colori delle venti liste** | emiciclo, legende, pastiglie, tabella per lista | 1265 e 380 | Le liste dello stesso blocco si distinguono a occhio? Il ΔE minimo è **7,88** ed è una misura, non una promessa: la banda 1 sta a L\* 17 e lì la formula sovrastima. **Otzma e Shas** sono il caso peggiore — a 12 di ΔE sulla carta, e forse due neri. Guardare anche il **verde arabo**, che nella banda scura si leggeva nero prima dello scambio |
+| 2 | **L'anello di evidenziazione degli istogrammi** | «Quanti seggi per ciascun blocco» | 1265 e 380 | La barra evidenziata si stacca senza competere con la codifica del riempimento. È la costruzione a due tinte: alone `--card` sotto, tratto `--ink` sopra |
+| 3 | **L'house effect a schede** | sezione House effect | **380 e 760** (sotto la soglia di 1075) | Le schede: una per istituto, gli scarti da 0,8 in su. Il pulsante escludi/reinserisci accanto al nome. Provare a **escludere un istituto** e guardare la scheda tratteggiata. E a **1265** la tabella, per confronto |
+| 4 | **Il simulatore ridisegnato** | «Costruisci una maggioranza» | tutte e tre | Pillole, barra, targhetta del 61. Provare le **tre scorciatoie del cambiamento** — 56, 61 e 68 seggi — e guardare l'etichetta a 68, dove cade a cavallo del bordo del riempimento |
+| 5 | **«Chi serve per governare»** | sezione del potere di coalizione | 1265 e 380 | Non è mai stata guardata resa da nessuno |
+| 6 | **I marcatori degli eventi** | «Come si è mossa la proiezione» | tutte e tre | Appena spostati dentro l'SVG: il disco deve sembrare **attaccato** alla sua verticale (3,57px a 1265, 1,88 a 380) e le due corsie devono leggersi come un insieme sfalsato, non come due serie |
+| 7 | **Il riquadro dell'evento isolato** | idem | **380** e 1265 | A 380 sta dentro l'elenco, sotto la voce premuta. Guardare i tre numeri della terna — erano tre macchie scure — e il pulsante «Torna alla vista piena» in fondo |
+| 8 | **Il tratto acceso** | idem | 1265 e 380 | Premere un evento a metà cronologia. Le tre linee attenuate a 0,26 **restano tre**? A 380 sono spesse 1,5px: è l'unica cosa di questo giro su cui la misura non può decidere |
+
+### Già guardato reso, ma non dopo le ultime modifiche
+
+| Cosa | Quando | Perché rifarci un giro |
+|---|---|---|
+| La targhetta dell'etichetta del 61 | 21 agosto | verificata prima che il simulatore cambiasse di nuovo |
+| Le schede dell'house effect | 21 agosto, alle tre larghezze | confermate; qui basta un'occhiata |
+| L'apertura da doppio clic (seme BASE) | 21 agosto | invariata, ma è la sola prova che il file sta in piedi da solo |
+| La linea della maggioranza nell'emiciclo | 21 agosto | chiusa con l'alone a due tinte |
+
+### Le due domande in sospeso: misurate, e una è un difetto
+
+**Il puntatore sui bersagli trasparenti dei marcatori: sì, cambia forma.** Misurato sulla
+pagina pubblicata: `cursor: pointer`, bersaglio 30×30px, focalizzabile da tastiera. Non
+c'è niente da riparare.
+
+**L'etichetta accessibile: no, e questo è un difetto.** Il nome accessibile del bersaglio è
+**«6»** — il solo numero. La data e il fatto stanno in `title`
+(«26.04 · Bennett e Lapid fondono le liste in B'Yachad»), che è una *descrizione*:
+qualche tecnologia assistiva la annuncia, altre no. Un lettore di schermo sente
+**«6, pulsante»** e non sa di che evento si tratti.
+
+Si ripara con `aria-label` sul bersaglio, con lo stesso testo del `title` — e allora il
+numero visibile dentro il bottone (oggi a `font-size:0`) va tolto dall'albero di
+accessibilità con `aria-hidden="true"`, o il nome diventa la somma dei due. **La stessa
+domanda va posta ai dischi dentro l'SVG sotto i 900**, dove il `<title>` è l'unica cosa
+che li descrive e il comando è la voce di cronologia: lì probabilmente va bene così, ma
+non l'ha guardato nessuno.
+
+### Come annotare quello che si trova
+
+Un difetto visivo trovato qui vale più di dieci prove verdi, e il modo di scriverlo conta:
+**la misura sbagliata è quasi sempre quella che non è stata presa** (vedi «misurare
+convince di aver guardato»). Quando qualcosa non convince, annotare *che cosa* si vede, a
+quale larghezza e in quale tema, prima di ipotizzare perché.
