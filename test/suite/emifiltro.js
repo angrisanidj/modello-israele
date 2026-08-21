@@ -157,6 +157,63 @@ setTimeout(function(){
     'cambiando vista il filtro si azzera invece di restare appeso a una chiave che non esiste',
     String(A.filtro()));
 
+  /* ══ la linea della maggioranza: due tinte, e il contrasto su TUTTI i fondi ══
+   *
+   * Era il difetto noto n. 1: tratto --ink nudo sopra i seggi, 1,22 in tema scuro. Qui si
+   * prova la costruzione che lo chiude — alone continuo --card sotto, tratto tratteggiato
+   * --ink sopra — e che senza alone il contrasto sul fondo peggiore sta sotto 3, così la
+   * mutazione che toglie l'alone cade. I fondi sono tutti quelli che la linea può
+   * attraversare: pannello, i 20 colori di lista, i 4 di blocco, e ciascuno attenuato a
+   * 0,22 dal filtro. I colori vengono dal CSS e dalle tabelle di index.html, nei due temi. */
+  function rgb(h){ h = h.replace('#',''); return [0,2,4].map(i => parseInt(h.substr(i,2),16)); }
+  function lin(v){ v /= 255; return v <= 0.03928 ? v/12.92 : Math.pow((v+0.055)/1.055, 2.4); }
+  function lum(t){ return 0.2126*lin(t[0]) + 0.7152*lin(t[1]) + 0.0722*lin(t[2]); }
+  function rap(a, b){ const A = lum(rgb(a)), B = lum(rgb(b)); return (Math.max(A,B)+0.05)/(Math.min(A,B)+0.05); }
+  function misc(fg, bg, a){ const F = rgb(fg), B = rgb(bg);
+    return '#' + [0,1,2].map(i => Math.round(F[i]*a + B[i]*(1-a)).toString(16).padStart(2,'0')).join(''); }
+  function vars(b){ const o = {}; for (const m of b.matchAll(/--([a-z0-9-]+)\s*:\s*(#[0-9A-Fa-f]{3,8})/g)) o[m[1]] = m[2]; return o; }
+  const CH = vars(html.match(/#kn26\{([\s\S]*?)\n\}/)[1]);
+  const SC = Object.assign({}, CH, vars(html.match(/#kn26\.scuro\{([\s\S]*?)\}/)[1]));
+  const colori = [...html.match(/var P=\{([\s\S]*?)\n\};/)[1].matchAll(/c:"(#[0-9a-fA-F]{6})"/g)].map(m => m[1]);
+  const PAL = {};
+  for (const m of html.match(/var PAL_SCURO=\{([\s\S]*?)\n\};/)[1].matchAll(/"(#[0-9A-Fa-f]{6})"\s*:\s*"(#[0-9A-Fa-f]{6})"/g)) PAL[m[1].toUpperCase()] = m[2];
+
+  const linee = [].slice.call($('k-emi').querySelectorAll('line'));
+  const alone = linee[0], tratto = linee[1];
+  const stesseCoord = !!alone && !!tratto && ['x1','y1','x2','y2'].every(a => alone.getAttribute(a) === tratto.getAttribute(a));
+  esito(linee.length >= 2 && stesseCoord,
+    'la soglia è disegnata con due linee sovrapposte, stesse coordinate', String(linee.length));
+  esito(!!alone && parseFloat(alone.getAttribute('stroke-width')) >= 3 && !alone.getAttribute('stroke-dasharray'),
+    'sotto c\'è l\'alone: continuo e più largo del tratto', alone && alone.outerHTML.slice(0, 120));
+  esito(!!tratto && !!tratto.getAttribute('stroke-dasharray') &&
+        parseFloat(tratto.getAttribute('stroke-width')) < parseFloat(alone.getAttribute('stroke-width')),
+    'sopra c\'è il tratto: tratteggiato e più sottile');
+
+  [['chiaro', CH, c => c], ['scuro', SC, c => PAL[c.toUpperCase()] || c]].forEach(function(t){
+    const nome = t[0], V = t[1], resolvi = t[2];
+    const fondi = [V.card].concat(colori.map(resolvi), ['coal','oppo','arab','inc'].map(b => resolvi(V[b])));
+    const tutti = fondi.concat(fondi.slice(1).map(c => misc(c, V.card, 0.22)));
+    const nudoMin = Math.min.apply(null, tutti.map(f => rap(V.ink, f)));
+    esito(nudoMin < 3,
+      'tema ' + nome + ': senza alone il tratto sul fondo peggiore sta sotto 3 — l\'alone è necessario',
+      nudoMin.toFixed(2));
+    /* la copertura con l'alone, se l'alone c'è davvero nel DOM: su ogni fondo o il tratto
+       contrasta col fondo, o l'alone si stacca dal fondo e il tratto dall'alone */
+    const conAlone = !!alone && parseFloat(alone.getAttribute('stroke-width')) >= 3;
+    const copertura = tutti.map(f => Math.max(rap(V.ink, f), conAlone ? Math.min(rap(V.card, f), rap(V.ink, V.card)) : 0));
+    const peggio = Math.min.apply(null, copertura);
+    esito(peggio >= 3,
+      'tema ' + nome + ': con l\'alone ogni fondo ha una coppia sopra 3 (peggiore ' + peggio.toFixed(2) + ' su ' + tutti.length + ' fondi)',
+      peggio.toFixed(2));
+  });
+
+  /* ── distinguibile dall'anello degli istogrammi, anch'esso a due tinte ── */
+  const anello = $('k-hist') && $('k-hist').querySelector('rect[id$="-hi"]');
+  esito(!!anello && anello.tagName.toLowerCase() === 'rect' && !anello.getAttribute('stroke-dasharray'),
+    'l\'anello degli istogrammi è un rettangolo a tratto continuo');
+  esito(!!tratto && tratto.tagName.toLowerCase() === 'line' && !!tratto.getAttribute('stroke-dasharray'),
+    'la soglia è una linea tratteggiata: forma e tratto diversi, non si leggono come la stessa cosa');
+
   console.log('\nemifiltro: ' + ok + '/' + (ok + ko));
   if (ko) process.exit(1);
 }, 3000);

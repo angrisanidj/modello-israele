@@ -29,7 +29,7 @@ alle prove.
 
 ```bash
 npm install          # solo la prima volta: installa jsdom per le prove
-npm test             # estrae il JS e lancia le 410 prove
+npm test             # estrae il JS e lancia le 440 prove
 npm run verifica     # prove + controlli strutturali
 ```
 
@@ -342,11 +342,12 @@ Nessuna scelta di colore li risolve: dipendono da come il modello disegna.
    tratto al 55% su fondo pieno non arriva a 3 con nessuna tinta ragionevole: il massimo
    ottenibile a α = 0,55 richiede una tinta piena con luminanza ≤ 0,048. La leva è
    l'opacità, non il colore.
-2. **La linea della maggioranza in `k-emi`**, disegnata in `--ink` sopra un seggio pieno.
-   In tema chiaro il riordino delle bande l'ha portata sopra soglia; in tema scuro sta a
-   **1,22**, il valore peggiore mai misurato, perché `--ink` è quasi bianco e i seggi
-   dell'opposizione sono la banda più chiara. Serve un contorno, o un colore proprio per
-   quella linea.
+2. ~~La linea della maggioranza in `k-emi`~~ — **chiusa il 21 agosto 2026** con la stessa
+   costruzione a due tinte dell'anello degli istogrammi e del tratto del simulatore: alone
+   continuo `--card` sotto, tratto tratteggiato `--ink` sopra. Misurata nuda contro tutti i
+   49 fondi che può attraversare (pannello, 24 pieni, 24 attenuati a 0,22): 1,17 in chiaro
+   e 1,05 in scuro sul peggiore, nessuna tinta singola bastava. Con l'alone, in ogni punto
+   una coppia sta sopra 3.
 
 ---
 
@@ -419,6 +420,16 @@ prossima cosa da fare dopo l'embed.**
     va a capo** nella colonna dei nomi da 104px e la sua riga è alta 95px contro i 78
     delle altre. È la colonna dei nomi, non quella dei seggi: servono o più larghezza a
     scapito della sparkline, o una sigla corta per l'etichetta stretta.
+11. **Il simulatore manuale è stato verificato a mano il 21 agosto 2026**, perché tre cose
+    sue jsdom non le misura: le altezze delle pillole (34px uniformi a 950, 760 e 380px,
+    su 3 e 6 righe), il totale dentro il riempimento nei due stati e nei due temi
+    (contrasti 6,35–9,07 dentro, 14,2–16,3 quando passa accanto in `--ink`), e la soglia
+    «dentro/accanto» che è misurata sul testo reso più 24px — a 380px con corpo 15 non ha
+    zona di collisione con l'etichetta «61 · maggioranza», controllato seggio per seggio
+    fra 28 e 46. **Chi tocca corpo, altezza della barra o posizione dell'etichetta
+    rimisura col browser**, nei due temi: il riquadro segue `prefers-color-scheme` e con
+    «auto» misura scuro anche quando si crede di misurare chiaro — il tema va forzato dal
+    selettore.
 
 ### Le due colonne «Seggi»: cosa è chiuso e cosa resta aperto
 
@@ -545,8 +556,6 @@ nessuno degli altri settori.
 
 - **Tre sparkline di `k-proj` a opacità 0,55** sotto 3:1. Di codice, non di tavolozza: a
   quell'opacità nessuna tinta arriva a 3. La leva è l'opacità.
-- **La linea della maggioranza in `k-emi`**, in tema scuro a **1,22**. Stessa natura:
-  `--ink` quasi bianco sopra un seggio pieno. Serve un contorno o un colore proprio.
 - **Il conto dei giorni al voto tronca le ore** invece di contare i giorni di calendario
   (punto 12).
 - **Sei suite usano un DOM ridotto** — `aff`, `emi`, `final`, `tema`, `testint`,
@@ -558,6 +567,6 @@ nessuno degli altri settori.
 trovati oggi — la stella della bandiera che sconfinava nelle bande, l'occhiello a filo del
 bordo sull'ombra, il vuoto di 372px sotto le ipotesi, l'evidenziazione che competeva con
 la codifica del riempimento, il verde arabo che si leggeva nero — sono stati trovati
-**guardando la pagina**, non dalla suite. Le 410 prove dicono che il modello non si è
+**guardando la pagina**, non dalla suite. Le 440 prove dicono che il modello non si è
 rotto; non dicono che la pagina si veda. Dopo ogni push, aprire
 <https://angrisanidj.github.io/modello-israele/> e guardarla nei due temi.

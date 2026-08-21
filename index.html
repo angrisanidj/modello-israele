@@ -208,21 +208,50 @@
 #kn26 .pwg .ri .cn{color:var(--mute);font-size:11.5px;white-space:nowrap;}
 #kn26 .co .why{font-size:11.5px;color:var(--mute);margin-top:11px;}
 
+/* ══ SIMULATORE: le pastiglie delle liste ══
+   Pillole, a riposo su --card con bordo --hair; selezionate col FONDO PIENO del colore
+   della lista e testo --on-color: la differenza si vede a colpo d'occhio, non cercando il
+   bordo. Il numero dei seggi è tenue (--mute) solo a riposo: sulla pastiglia selezionata
+   resta --on-color pieno, perché sui fondi di lista peggiori l'on-color pieno sta già a
+   4,66 (chiaro, I Democratici) e 4,78 (scuro, Otzma) e qualunque attenuazione lo porta
+   sotto 4,5 — al 90% è 4,13. Lì il tenue lo fa il peso del carattere, non l'opacità.
+   Misurato il 21 agosto 2026: pallino su --card minimo 4,66 / 4,41 (soglia 3). */
+#kn26 .chipl{font-size:10px;letter-spacing:.11em;text-transform:uppercase;font-weight:700;
+ color:var(--mute);margin-bottom:9px;}
+#kn26 #k-chips{display:flex;flex-wrap:wrap;gap:7px;}
 #kn26 .chip{display:inline-flex;align-items:center;gap:8px;border:1px solid var(--hair);background:var(--card);
- padding:8px 12px;font-size:12.5px;font-weight:600;margin:0 6px 6px 0;transition:.14s;border-radius:2px;}
-#kn26 .chip i{width:9px;height:9px;flex:none;border-radius:1px;}
-#kn26 .chip s{text-decoration:none;color:var(--mute);font-weight:700;}
-#kn26 .chip.on{background:var(--rule);color:var(--paper);border-color:var(--rule);}
-#kn26 .chip.on s{color:var(--paper);opacity:.7;}
+ color:var(--ink);padding:8px 14px 8px 12px;font-size:12.5px;font-weight:600;transition:.14s;
+ border-radius:99px;font-family:inherit;cursor:pointer;}
+#kn26 .chip i{width:9px;height:9px;flex:none;border-radius:50%;}
+#kn26 .chip s{text-decoration:none;color:var(--mute);font-weight:400;}
+#kn26 .chip.on{color:var(--on-color);border-color:transparent;}
+#kn26 .chip.on s{color:var(--on-color);font-weight:400;}
+#kn26 .chip.on i{background:var(--on-color) !important;}
 #kn26 .chip:hover{border-color:var(--ink);}
-#kn26 .gauge{height:46px;background:var(--wash);border:1px solid var(--hair);position:relative;
- margin-top:18px;overflow:hidden;}
-#kn26 .gauge i{display:block;height:100%;transition:width .45s cubic-bezier(.2,.9,.3,1);}
-#kn26 .gauge .th{position:absolute;top:0;bottom:0;left:50.83%;width:1.5px;background:var(--ink);}
-#kn26 .gauge .thl{position:absolute;left:calc(50.83% + 9px);top:0;line-height:46px;font-size:10px;
- font-weight:700;letter-spacing:.13em;text-transform:uppercase;color:var(--ink);}
-#kn26 .gauge .vv{position:absolute;left:14px;top:0;line-height:46px;font-size:17px;font-weight:700;
- color:#fff;text-shadow:0 1px 4px rgba(0,0,0,.45);font-family:var(--serif);}
+#kn26 .chip.on:hover{border-color:transparent;filter:brightness(1.08);}
+#kn26 .chip:focus-visible{outline:2px solid var(--acc);outline-offset:2px;}
+#kn26 .chip:focus:not(:focus-visible){outline:none;}
+/* ══ SIMULATORE: la barra ══
+   Riempimento in tinta piena — niente gradiente, non esiste altrove nella pagina — nei
+   due stati: --neg sotto quota, --pos da 61 compreso. Non i colori di blocco, che qui
+   rappresenterebbero una coalizione arbitraria. Il testo dentro il riempimento è
+   --on-color: il bianco fisso che c'era prima, sul --pos del tema scuro, starebbe a 2,14.
+   Il tratto della soglia porta un alone --wash: --ink nudo sopra il riempimento --pos
+   sta a 2,81 (chiaro) e 1,82 (scuro), con l'alone la coppia regge ovunque. Misurato:
+   on-color su --neg 6,36 / 9,07, su --pos 6,35 / 9,07; etichetta --mute su --wash
+   4,79 / 4,75 — è il token di tutte le note della pagina. */
+#kn26 .gauge{height:52px;background:var(--wash);border:1px solid var(--hair);position:relative;
+ margin-top:18px;overflow:hidden;border-radius:4px;}
+#kn26 .gauge i{display:block;height:100%;transition:width .45s cubic-bezier(.2,.9,.3,1);background:var(--neg);}
+#kn26 .gauge.ok i{background:var(--pos);}
+#kn26 .gauge .th{position:absolute;top:0;bottom:0;left:50.83%;width:2px;background:var(--ink);
+ box-shadow:0 0 0 1.5px var(--wash);}
+#kn26 .gauge .thl{position:absolute;left:calc(50.83% + 11px);top:0;line-height:52px;font-size:10px;
+ font-weight:700;letter-spacing:.13em;text-transform:uppercase;color:var(--mute);white-space:nowrap;}
+#kn26 .gauge .vv{position:absolute;left:16px;top:0;line-height:52px;font-size:21px;font-weight:400;
+ color:var(--on-color);font-family:var(--serif);letter-spacing:-.01em;white-space:nowrap;}
+/* a zero seggi il totale sta sul fondo --wash, non sul riempimento: va in --ink */
+#kn26 .gauge.vuota .vv{color:var(--ink);}
 
 /* Le pastiglie dei veti sono <button> veri. Prima erano <span> senza tabindex: da
    tastiera i veti non si potevano toccare affatto — non era un caso limite, era una
@@ -581,9 +610,11 @@
  #kn26 .cal .g{font-size:26px;}
  #kn26 .foot{font-size:12px;}
  #kn26 .prob{padding:17px 16px 15px;}
- #kn26 .gauge{height:40px;}
- #kn26 .gauge .vv{line-height:40px;font-size:15px;}
- #kn26 .gauge .thl{line-height:40px;}
+ #kn26 .gauge{height:44px;}
+ /* corpo 15, non 17: con 17 il totale «accanto» nella zona 29-34 seggi finiva sopra
+    l'etichetta del 61, che a questa larghezza sta a 168px dal bordo */
+ #kn26 .gauge .vv{line-height:44px;font-size:15px;}
+ #kn26 .gauge .thl{line-height:44px;font-size:9px;left:calc(50.83% + 8px);}
  #kn26 .tip{font-size:10.5px;padding:6px 9px;}
 }
 @media(max-width:400px){
@@ -877,8 +908,9 @@
    <button class="btn g xs" data-pre="unita">Grande coalizione</button>
    <button class="btn g xs" data-pre="clear">Azzera</button>
   </div>
-  <div id="k-chips"></div>
-  <div class="gauge"><i id="k-gb"></i><span class="vv" id="k-gv"></span><span class="th"></span><span class="thl">61</span></div>
+  <div class="chipl">Fai clic sulle liste per comporre una coalizione</div>
+  <div id="k-chips" role="group" aria-label="Liste della coalizione"></div>
+  <div class="gauge" id="k-gauge"><i id="k-gb"></i><span class="vv" id="k-gv"></span><span class="th"></span><span class="thl">61 · maggioranza</span></div>
   <p class="fn" id="k-gnote"></p>
  </div>
 </section>
@@ -2138,6 +2170,18 @@ function rEmi(){
  var ca=Math.cos(a61), sa=Math.sin(a61);
  s+='<line x1="'+(215+(r0-16)*ca).toFixed(2)+'" y1="'+(212-(r0-16)*sa).toFixed(2)+
     '" x2="'+(215+(r1+13)*ca).toFixed(2)+'" y2="'+(212-(r1+13)*sa).toFixed(2)+
+    '" stroke="'+C.card+'" stroke-width="4.5" stroke-linecap="round"/>';
+ /* Due tinte, come l'anello degli istogrammi e il tratto della barra del simulatore: sotto
+    un alone continuo del colore del pannello, sopra il tratto tratteggiato in --ink. Il
+    tratto nudo attraversa venti colori di lista e quattro di blocco, e sul peggiore sta a
+    1,17 (chiaro, Otzma) e 1,05 (scuro, I Democratici): nessuna tinta singola arriva a 3
+    su tutti. Con l'alone, misurato su 49 fondi nei due temi — pannello, 24 pieni, 24
+    attenuati a 0,22 dal filtro — in ogni punto una coppia regge: tratto su alone 17,8 e
+    15,3 dove l'alone si stacca dal fondo, tratto sul fondo almeno 8,2 dove non si stacca.
+    L'alone è continuo e il tratto tratteggiato, su una <line>: l'anello degli istogrammi
+    è un <rect> a doppio tratto continuo, e le due cose non devono leggersi come la stessa. */
+ s+='<line x1="'+(215+(r0-16)*ca).toFixed(2)+'" y1="'+(212-(r0-16)*sa).toFixed(2)+
+    '" x2="'+(215+(r1+13)*ca).toFixed(2)+'" y2="'+(212-(r1+13)*sa).toFixed(2)+
     '" stroke="'+C.ink+'" stroke-width="1.3" stroke-dasharray="4 3"/>';
  var xt=215+(r1+24)*ca, yt=212-(r1+24)*sa;
  s+='<text x="'+xt.toFixed(1)+'" y="'+Math.max(11,yt).toFixed(1)+'" text-anchor="middle" font-size="9.5" '+
@@ -2382,15 +2426,40 @@ function rPower(){
 }
 function rChips(){
  var h='';
+ /* Le pastiglie sono <button type="button"> con aria-pressed: erano già pulsanti, ma lo
+    stato passava solo dal colore. Selezionata = fondo pieno del colore della lista. */
  IDS.filter(function(i){return SEG[i];}).forEach(function(i){
-  h+='<button class="chip'+(COAL[i]?' on':'')+'" data-p="'+i+'"><i style="background:'+cp(P[i].c)+'"></i>'+
-     E(nm(i))+' <s>'+f(SEG[i])+'</s></button>';});
+  var on=!!COAL[i];
+  h+='<button type="button" class="chip'+(on?' on':'')+'" data-p="'+i+'" aria-pressed="'+on+'"'+
+     (on?' style="background:'+cp(P[i].c)+'"':'')+'>'+
+     '<i style="background:'+cp(P[i].c)+'"></i>'+E(nm(i))+' <s>'+f(SEG[i])+'</s></button>';});
  $('k-chips').innerHTML=h;
  var tot=0,sel=[];
  Object.keys(COAL).forEach(function(i){if(COAL[i]&&SEG[i]){tot+=SEG[i];sel.push(i);}});
- var col=tot>=61?'#1c6b45':'#a52a2a';
- $('k-gb').style.width=Math.min(100,100*tot/120)+'%';$('k-gb').style.background=col;
+ /* I due stati della barra passano dai token --neg/--pos via classe, non da esadecimali
+    cablati qui dentro: quei due colori la tavolozza non li aveva mai visti, ed erano la
+    stessa strada doppia dei token di blocco. Il confine è 61 compreso. */
+ var g=$('k-gauge');
+ if(g.classList&&g.classList.toggle){
+  g.classList.toggle('ok',tot>=61);
+ }
+ $('k-gb').style.width=Math.min(100,100*tot/120)+'%';
  $('k-gv').textContent=f(tot)+' seggi';
+ /* Se il riempimento è più stretto del testo «NN seggi», il totale sborderebbe sul fondo
+    --wash in --on-color: lì passa in --ink accanto al riempimento. La soglia si misura
+    sul TESTO RESO più 24px di margini, non su un numero fisso di pixel o di seggi: una
+    soglia in seggi è tarata sulla larghezza piena (a 380px il 12,5% di barra sono 42px),
+    e una in pixel fissi non sa che a 380px il testo è più corto e il tratto del 61 più
+    vicino — con 110px fissi, a 38 seggi il totale «accanto» finiva sopra l'etichetta
+    «61 · maggioranza». Con corpo 15 sotto i 400px e soglia testo+24 la zona di collisione
+    non esiste: verificato a mano fra 28 e 38 seggi. Dove non c'è layout (jsdom misura
+    zero) vale il ripiego in seggi. */
+ if(g.classList&&g.classList.toggle){
+  var px=g.clientWidth||0, tw=($('k-gv').getBoundingClientRect&&px)?$('k-gv').getBoundingClientRect().width:0;
+  var stretto=px?(px*tot/120<tw+24):(tot<14);
+  g.classList.toggle('vuota',stretto);
+ }
+ $('k-gv').style.left=(g.classList&&g.classList.contains('vuota'))?('calc('+(100*tot/120).toFixed(2)+'% + 14px)'):'';
  var confl=[];
  for(var x=0;x<sel.length;x++)for(var y=x+1;y<sel.length;y++){var r=vietato(sel[x],sel[y]);if(r)confl.push(r);}
  var t;

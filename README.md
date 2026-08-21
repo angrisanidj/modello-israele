@@ -16,7 +16,7 @@ alle elezioni del 2020, 2021 e 2022.
 
 ```bash
 npm install
-npm run verifica     # 410 prove + controlli strutturali
+npm run verifica     # 440 prove + controlli strutturali
 ```
 
 Le istruzioni di progetto sono in [CLAUDE.md](CLAUDE.md).
