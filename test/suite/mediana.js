@@ -172,6 +172,69 @@ setTimeout(function(){
     'nominate ' + JSON.stringify(nominate) + ' · tolte ' + JSON.stringify(sparite) +
     ' · in più ' + JSON.stringify(meno(nominate, sparite)));
 
+  /* ══ 3 · la colonna «Seggi» nei giorni a finestra pari: l'intervallo, mai il mezzo ══
+   *
+   * Con un numero pari di rilevazioni la mediana cade fra i due centrali, e in una
+   * colonna intitolata «Seggi» un 22,5 si legge come un difetto. La convenzione: con
+   * centrali distinti la cella mostra «22–23»; con centrali uguali il numero singolo,
+   * mai «22–22»; con finestra dispari il valore singolo com'è sempre stato. Le colonne
+   * dei movimenti restano frazionarie: sono differenze fra mediane, e la quadratura
+   * Seggi(oggi) − Seggi(7 gg fa) = «7 gg» è l'unica proprietà verificabile della
+   * tabella — arrotondare la romperebbe, ed è il motivo per cui non si arrotonda. */
+  function cellaSeggi(nome){
+    const righe = [].slice.call(D.getElementById('k-movers').querySelectorAll('.pr'));
+    for (var i = 0; i < righe.length; i++)
+      if (righe[i].querySelector('.nm').childNodes[0].textContent.trim() === nome)
+        return righe[i].querySelector('.sg').textContent.trim();
+    return null;
+  }
+  function cellaMovimenti(nome){
+    const righe = [].slice.call(D.getElementById('k-movers').querySelectorAll('.pr'));
+    for (var i = 0; i < righe.length; i++)
+      if (righe[i].querySelector('.nm').childNodes[0].textContent.trim() === nome)
+        return [].slice.call(righe[i].querySelectorAll('.dl')).map(function(n){return n.textContent.trim();});
+    return null;
+  }
+  /* quattro rilevazioni recenti (PARI): Likud spaccato 22/23, Yashar unanime a 24;
+     due rilevazioni a 9-10 giorni per la colonna «7 gg», con Likud a 22 → d7 = +0,5 */
+  function rilev(d, i, seggi){ return {data: d, istituto: 'Prova ' + i, campione: 600, seggi: seggi}; }
+  const BASE2 = {byachad: 14, democratici: 10, beitenu: 10, utj: 8, otzma: 8,
+                 shas: 7, hadash_taal: 6, raam: 5, sionismo_rel: 5};
+  const PARI = [
+    rilev('2026-08-19', 1, Object.assign({likud: 22, yashar: 24}, BASE2)),
+    rilev('2026-08-18', 2, Object.assign({likud: 22, yashar: 24}, BASE2)),
+    rilev('2026-08-17', 3, Object.assign({likud: 23, yashar: 24}, BASE2)),
+    rilev('2026-08-16', 4, Object.assign({likud: 23, yashar: 24}, BASE2)),
+    rilev('2026-08-10', 5, Object.assign({likud: 22, yashar: 24}, BASE2)),
+    rilev('2026-08-09', 6, Object.assign({likud: 22, yashar: 24}, BASE2))
+  ];
+  A.setPAR('listaunita', 0);
+  A.setSOND(PARI);
+  A.setSEG({likud:23, yashar:23, byachad:13, democratici:10, beitenu:10,
+            utj:8, otzma:8, shas:7, hadash_taal:6, raam:5, sionismo_rel:5});
+  A.rAnalisi();
+  esito(cellaSeggi('Likud') === '22–23',
+    'finestra pari e centrali distinti: la cella mostra l\'intervallo',
+    '"' + cellaSeggi('Likud') + '"');
+  esito(cellaSeggi('Yashar') === '24',
+    'finestra pari e centrali uguali: il numero singolo, non «24–24»',
+    '"' + cellaSeggi('Yashar') + '"');
+  const tutteLeCelle = [].slice.call(D.getElementById('k-movers').querySelectorAll('.sg'))
+    .map(function(n){ return n.textContent.trim(); });
+  esito(tutteLeCelle.every(function(c){ return !/,5|\.5/.test(c); }),
+    'nessun mezzo seggio nella colonna «Seggi», in nessuna riga',
+    JSON.stringify(tutteLeCelle));
+  esito((cellaMovimenti('Likud') || []).some(function(c){ return /0,5/.test(c); }),
+    'la colonna «7 gg» resta frazionaria: la quadratura con le mediane vere non si tocca',
+    JSON.stringify(cellaMovimenti('Likud')));
+
+  /* finestra DISPARI: si toglie una rilevazione recente, restano 3 → valore singolo */
+  A.setSOND([PARI[0], PARI[1], PARI[2], PARI[4], PARI[5]]);
+  A.rAnalisi();
+  esito(cellaSeggi('Likud') === '22' && !/–/.test(cellaSeggi('Likud')),
+    'finestra dispari: il valore singolo, senza trattini',
+    '"' + cellaSeggi('Likud') + '"');
+
   console.log('\nmediana: ' + ok + '/' + (ok + ko));
   if (ko) process.exit(1);
 }, 3000);

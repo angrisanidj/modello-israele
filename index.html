@@ -185,6 +185,22 @@
  display:inline-flex;align-items:center;gap:6px;white-space:nowrap;border-radius:2px;}
 #kn26 .tag i{width:7px;height:7px;display:inline-block;border-radius:1px;}
 #kn26 .co .wh{font-size:11.5px;color:var(--neg);margin-top:11px;}
+
+/* ══ CHI SERVE PER GOVERNARE ══
+   Niente barre in nessuno dei due regimi: con due coalizioni i valori possibili erano
+   solo 100, 50 e 0, e a novantasei stanno tutti fra il 45% e il 61% — una barra da 0 a
+   100 promette un continuo che non c'è e spreca la larghezza dove non discrimina. */
+#kn26 .pw{font-size:13.5px;line-height:1.65;color:var(--ink);}
+#kn26 .pw b{font-weight:700;}
+#kn26 .pw .num{font-family:var(--serif);font-size:16px;}
+#kn26 .pwg{margin-top:14px;padding-top:12px;border-top:1px solid var(--hair2);}
+#kn26 .pwg .et{font-size:10px;letter-spacing:.11em;text-transform:uppercase;font-weight:700;
+ color:var(--mute);margin-bottom:7px;}
+#kn26 .pwg .ri{display:flex;gap:10px;align-items:baseline;margin:5px 0;flex-wrap:wrap;
+ font-size:12.5px;line-height:1.55;}
+#kn26 .pwg .ri b{flex:none;}
+#kn26 .pwg .ri .pe{color:var(--ink2);}
+#kn26 .pwg .ri .cn{color:var(--mute);font-size:11.5px;white-space:nowrap;}
 #kn26 .co .why{font-size:11.5px;color:var(--mute);margin-top:11px;}
 
 #kn26 .chip{display:inline-flex;align-items:center;gap:8px;border:1px solid var(--hair);background:var(--card);
@@ -567,7 +583,12 @@
 @media(max-width:400px){
  #kn26{padding:0 11px 34px;}
  #kn26 .pr,#kn26 .prh{grid-template-columns:104px 36px 1fr 44px;gap:7px;font-size:11px;}
- #kn26 .prh.mv,#kn26 .pr.mv{grid-template-columns:104px 36px 1fr 42px;}
+ /* La colonna «Seggi» tiene l'intervallo dei giorni pari — «22–23», 52px a corpo 18 —
+    su una riga sola: a 36px andava a capo e la riga raddoppiava d'altezza. Il corpo
+    resta 18px, uniforme con i valori singoli: ridurlo solo per gli intervalli li
+    farebbe sembrare annotazioni minori, e compaiono due giorni su cinque. Gli 18px
+    li paga la sparkline, che scende a ~105: fa confronti di lunghezza, non misure. */
+ #kn26 .prh.mv,#kn26 .pr.mv{grid-template-columns:104px 54px 1fr 42px;}
  #kn26 .pr .sg{font-size:18px;}
  #kn26 .prob .v{font-size:42px;}
  #kn26 .dz .row{grid-template-columns:1fr;}
@@ -790,7 +811,7 @@
   <div class="prh mv"><span>Lista</span><span>Seggi</span><span>Ultimi 7 giorni</span><span>7 gg</span><span>30 gg</span></div>
   <div id="k-movers"></div>
  </div>
- <p class="fn">I dati indicano la mediana dei seggi assegnati a ciascuna lista dai sondaggi compresi nelle diverse finestre temporali: in questo modo una singola rilevazione anomala non altera il risultato. Le variazioni inferiori a un seggio vanno considerate rumore statistico.<span id="k-movscio"></span></p>
+ <p class="fn">I dati indicano la mediana dei seggi assegnati a ciascuna lista dai sondaggi compresi nelle diverse finestre temporali: in questo modo una singola rilevazione anomala non altera il risultato. Con un numero pari di rilevazioni la mediana cade fra i due valori centrali, e la colonna «Seggi» mostra l'intervallo: «22–23» significa che metà dei sondaggi dà 22 o meno, metà 23 o più. Le variazioni inferiori a un seggio vanno considerate rumore statistico.<span id="k-movscio"></span></p>
 </section>
 
 <section>
@@ -836,7 +857,7 @@
 </section>
 
 <section>
- <h2>Chi è indispensabile <em>presenza di ciascuna lista nelle coalizioni politicamente praticabili</em></h2>
+ <h2>Chi serve per governare <em>chi non può mancare, chi è alternativo, chi resta fuori e perché</em></h2>
  <div class="box"><div id="k-power"></div></div>
 </section>
 
@@ -1768,6 +1789,24 @@ function med(l,id){
  var v=l.map(function(s){return s.seggi[id]||0;}).sort(function(a,b){return a-b;});
  return v.length%2?v[(v.length-1)/2]:(v[v.length/2-1]+v[v.length/2])/2;
 }
+/* I due valori centrali della finestra. Con un numero pari di rilevazioni — il 43% dei
+   giorni, misurato sui novanta fino al 21 agosto — la mediana cade a metà fra loro, e
+   nella colonna «Seggi» un 22,5 si legge come un difetto: i seggi della Knesset sono
+   interi. La colonna mostra allora l'intervallo, «22–23».
+   Perché non le alternative: ARROTONDARE romperebbe la quadratura
+   Seggi(oggi) − Seggi(7 gg fa) = colonna «7 gg», che è l'unica proprietà verificabile
+   della tabella, e porterebbe un bias sistematico di mezzo seggio nella direzione
+   dell'arrotondamento; la MEDIANA BASSA darebbe interi sempre, ma con un bias verso il
+   basso attivo solo nei giorni pari — la serie di una lista oscillerebbe fra i due
+   regimi al cambiare della parità del conteggio, creando finti movimenti. Le colonne
+   «7 gg» e «30 gg» non si toccano: sono differenze fra mediane, frazionarie per natura,
+   e lì il mezzo punto è semanticamente giusto. */
+function centrali(l,id){
+ if(!l.length) return null;
+ var v=l.map(function(s){return s.seggi[id]||0;}).sort(function(a,b){return a-b;});
+ return v.length%2?{lo:v[(v.length-1)/2],hi:v[(v.length-1)/2]}
+                  :{lo:v[v.length/2-1],hi:v[v.length/2]};
+}
 /* Liste che lo scenario attivo ha sciolto dentro un'altra: la proiezione non le contiene
    più, e mostrarle qui accanto — sotto un'intestazione «Seggi» identica a quella di
    «Proiezione per lista» — fa dedurre al lettore che il modello ignori la fusione.
@@ -1793,7 +1832,8 @@ function movimenti(){
      Il filtro sta dopo la condizione di emissione proprio per questo: è l'unico punto in
      cui si sa se la riga ci sarebbe stata. */
   if(fuori.indexOf(i)>=0){omesse.push(i);return;}
-  r.push({id:i,ora:a,d7:b===null?null:a-b,d30:c===null?null:a-c,n:w0.length});
+  var ce=centrali(w0,i);
+  r.push({id:i,ora:a,lo:ce.lo,hi:ce.hi,d7:b===null?null:a-b,d30:c===null?null:a-c,n:w0.length});
  });
  r.sort(function(x,y){return y.ora-x.ora;});
  return {r:r,omesse:omesse,n0:w0.length,n1:w1.length,n2:w2.length,
@@ -1874,7 +1914,7 @@ function rAnalisi(){
   }
   hh+='<div class="pr mv"><div class="nm">'+E(nm(x.id))+
       '<i><b class="blq" style="background:'+BC(P0.b)+'"></b>'+E(BL[P0.b].n)+'</i></div>'+
-      '<div class="sg srf">'+f(x.ora,x.ora%1?1:0)+'</div>'+
+      '<div class="sg srf">'+(x.lo===x.hi?f(x.lo):f(x.lo)+'–'+f(x.hi))+'</div>'+
       '<div><svg viewBox="0 0 200 12" preserveAspectRatio="none" style="height:12px">'+
       '<rect x="0" y="3" width="200" height="6" fill="'+C.hair2+'"/>'+
       '<rect x="0" y="3" width="'+(200*x.ora/mx).toFixed(1)+'" height="6" fill="'+cp(P0.c)+'"/></svg></div>'+
@@ -2225,23 +2265,114 @@ function rCoal(){
   '</b> senza veti. Sono escluse dal governo le liste arabe non disponibili a entrarvi (Hadash–Ta\'al, Balad, Lista Unita), '+
   'che possono però garantire una maggioranza dall\'esterno. Ra\'am è considerato disponibile: guidò questa scelta nel 2021.';
 }
+/* «Chi serve per governare». Niente percentuali e niente barre: con due coalizioni i
+   valori possibili erano tre, e lo 0% faceva due mestieri — Likud, secondo partito del
+   paese, stava in fondo alla classifica con l'etichetta più debole perché escluso dai
+   veti, indistinguibile da una lista marginale; e la Lista Unita araba spariva del tutto,
+   senza didascalia, perché il filtro gov la toglieva prima ancora del calcolo.
+   Due regimi. Fino a quattro coalizioni praticabili la sezione È la risposta: il nucleo
+   comune a tutte le maggioranze, i completamenti alternativi nominati per esteso — senza
+   rimandi alla sezione delle coalizioni, che resta l'unica a mostrarle intere — e i due
+   gruppi degli esclusi, tenuti distinti perché sono cose diverse: fuori per veto altrui,
+   col veto nominato, e fuori per scelta propria, con la ragione. Sopra quattro il nucleo
+   si svuota presto (da dieci coalizioni in su nessuna lista è più indispensabile, misurato
+   il 21 agosto) e resta la forma a gruppi con il conteggio grezzo, «in 3 delle 6», che non
+   finge la precisione che una percentuale prometterebbe.
+   Ogni lista con seggi compare in ESATTAMENTE uno dei quattro stati — nucleo, alternativa,
+   veto, scelta — marcato con data-pw: è l'invariante che la prova tiene, perché il difetto
+   di prima era proprio una lista che spariva. */
 function rPower(){
  var ok=COALS.filter(function(c){return !c.c.length;});
- var cnt={};IDS.forEach(function(i){cnt[i]=0;});
- ok.forEach(function(c){c.m.forEach(function(i){cnt[i]++;});});
- var ord=IDS.filter(function(i){return SEG[i]&&P[i].gov;}).sort(function(a,b){return cnt[b]-cnt[a];});
- if(!ok.length){$('k-power').innerHTML='<p class="fn">Nessuna coalizione praticabile con i veti attivi: disattivane uno per esplorare le alternative.</p>';return;}
- var h='<p class="fn" style="margin:0 0 12px">Quota delle '+f(ok.length)+' coalizioni praticabili in cui ciascuna lista è presente. '+
-  'Chi sta al 100% non è aggirabile: senza di lui non esiste alcun governo.</p>';
- ord.forEach(function(i){
-  var v=cnt[i]/ok.length;
-  h+='<div class="pr" style="grid-template-columns:180px 46px 1fr;"><div class="nm">'+E(nm(i))+'<i>'+E(P[i].l)+'</i></div>'+
-     '<div class="sg srf" style="font-size:15px">'+pc(v)+'</div>'+
-     '<div><svg viewBox="0 0 200 12" preserveAspectRatio="none" style="height:12px">'+
-     '<rect x="0" y="3" width="200" height="6" fill="'+C.hair2+'"/>'+
-     '<rect x="0" y="3" width="'+(200*v).toFixed(1)+'" height="6" fill="'+cp(P[i].c)+'"/></svg></div></div>';
- });
- $('k-power').innerHTML=h;
+ var el=$('k-power');
+ var tutte=IDS.filter(function(i){return SEG[i];});
+ var pool=tutte.filter(function(i){return P[i].gov;});
+ var proprie=tutte.filter(function(i){return !P[i].gov;});
+ function nome(i,st){return '<b data-pw="'+st+'">'+E(nm(i))+'</b>';}
+ function elenco(ids,st){
+  var n=ids.map(function(i){return nome(i,st);});
+  if(n.length<=1) return n.join('');
+  return n.slice(0,-1).join(', ')+' e '+n[n.length-1];
+ }
+ function vetoCon(i){
+  var contro=VETI.filter(function(v){return v[0]===i||v[1]===i;})
+    .map(function(v){return nm(v[0]===i?v[1]:v[0]);})
+    .filter(function(x,k,a){return a.indexOf(x)===k;});
+  return contro.length?('veto con '+contro.join(', ')):'nessun veto dichiarato';
+ }
+ /* il gruppo «fuori per scelta propria» c'è in ogni regime: è l'undicesima lista che
+    prima spariva senza una parola — il criterio sta nella nota della sezione delle
+    coalizioni, ma il buco si vedeva qui, e qui va detto */
+ function gruppoScelta(){
+  if(!proprie.length) return '';
+  return '<div class="pwg"><div class="et">Fuori per scelta propria</div>'+
+   proprie.map(function(i){return '<div class="ri">'+nome(i,'scelta')+
+    '<span class="pe">non disponibile a entrare in un governo; può sostenerlo dall\'esterno ('+
+    f(SEG[i])+' seggi)</span></div>';}).join('')+'</div>';
+ }
+ function gruppoVeto(mai){
+  if(!mai.length) return '';
+  return '<div class="pwg"><div class="et">Fuori per veto altrui</div>'+
+   mai.map(function(i){return '<div class="ri">'+nome(i,'veto')+
+    '<span class="pe">'+f(SEG[i])+' seggi, in nessuna maggioranza possibile — '+E(vetoCon(i))+'</span></div>';}).join('')+
+   '</div>';
+ }
+ if(!ok.length){
+  el.innerHTML='<p class="fn">Nessuna coalizione praticabile con i veti attivi: disattivane uno per esplorare le alternative.</p>'+
+   gruppoScelta();
+  return;
+ }
+ var cnt={};pool.forEach(function(i){cnt[i]=0;});
+ ok.forEach(function(c){c.m.forEach(function(i){if(cnt[i]!==undefined)cnt[i]++;});});
+ var nucleo=pool.filter(function(i){return cnt[i]===ok.length;}).sort(function(a,b){return SEG[b]-SEG[a];});
+ var aVolte=pool.filter(function(i){return cnt[i]>0&&cnt[i]<ok.length;}).sort(function(a,b){return cnt[b]-cnt[a]||SEG[b]-SEG[a];});
+ var mai=pool.filter(function(i){return cnt[i]===0;}).sort(function(a,b){return SEG[b]-SEG[a];});
+ var nSeggi=nucleo.reduce(function(a,i){return a+SEG[i];},0);
+ var quante=ok.length===1?'nell\'unica maggioranza possibile'
+   :ok.length===2?'in entrambe le maggioranze possibili'
+   :'in tutte e '+f(ok.length)+' le maggioranze possibili';
+ var h='';
+ if(ok.length<=4){
+  /* ── la risposta in prosa: nucleo e completamenti, calcolati, mai scritti a mano ── */
+  var testa;
+  if(nucleo.length)
+   testa='Senza '+elenco(nucleo,'nucleo')+' non si governa: sono <span class="num">'+f(nSeggi)+
+    '</span> seggi, presenti '+quante+'.';
+  else
+   /* il soggetto c'è anche a nucleo vuoto: la frase non può cominciare da «Senza » e basta */
+   testa='Nessuna lista è presente '+quante+': nessuna, da sola, è indispensabile.';
+  var visti=[],compl=[];
+  ok.forEach(function(c){
+   var resto=c.m.filter(function(i){return nucleo.indexOf(i)<0;})
+     .sort(function(a,b){return SEG[b]-SEG[a];});
+   var kk=resto.join('+');
+   if(visti.indexOf(kk)>=0) return;
+   visti.push(kk);
+   if(resto.length) compl.push({ids:resto,s:resto.reduce(function(a,i){return a+SEG[i];},0)});
+  });
+  if(compl.length){
+   var stessi=compl.every(function(x){return x.s===compl[0].s;});
+   var vie=compl.map(function(x){return elenco(x.ids,'alt')+(stessi?'':' (<span class="num">'+f(x.s)+'</span> seggi)');})
+     .join(', oppure ');
+   testa+=compl.length===1
+    ?' I <span class="num">'+f(compl[0].s)+'</span> che mancano arrivano da '+vie+'.'
+    :(stessi?' I <span class="num">'+f(compl[0].s)+'</span> che mancano arrivano in '+f(compl.length)+' modi alternativi — '+vie+'.'
+            :' I seggi che mancano arrivano in '+f(compl.length)+' modi alternativi — '+vie+'.');
+  }
+  h='<p class="pw">'+testa+'</p>';
+ } else {
+  /* ── il ripiego a gruppi: conteggio grezzo, niente percentuali ── */
+  h='<p class="fn" style="margin:0 0 4px">Con '+f(ok.length)+' maggioranze praticabili il quadro si legge per gruppi: '+
+    'il conteggio dice in quante ciascuna lista compare.</p>';
+  if(nucleo.length) h+='<div class="pwg"><div class="et">Indispensabile — in tutte</div>'+
+   nucleo.map(function(i){return '<div class="ri">'+nome(i,'nucleo')+
+    '<span class="pe">'+f(SEG[i])+' seggi</span></div>';}).join('')+'</div>';
+  if(aVolte.length) h+='<div class="pwg"><div class="et">In alternativa</div>'+
+   aVolte.map(function(i){return '<div class="ri">'+nome(i,'alt')+
+    '<span class="pe">'+f(SEG[i])+' seggi</span><span class="cn">in '+f(cnt[i])+' delle '+f(ok.length)+'</span></div>';}).join('')+'</div>';
+ }
+ h+=gruppoVeto(mai);
+ h+=gruppoScelta();
+ el.innerHTML=h;
 }
 function rChips(){
  var h='';
