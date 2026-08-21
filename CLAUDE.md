@@ -29,7 +29,7 @@ alle prove.
 
 ```bash
 npm install          # solo la prima volta: installa jsdom per le prove
-npm test             # estrae il JS e lancia le 504 prove
+npm test             # estrae il JS e lancia le 569 prove
 npm run verifica     # prove + controlli strutturali
 ```
 
@@ -158,7 +158,15 @@ Messaggi di commit in italiano, all'infinito, con il perché e non solo il cosa.
 4. Incertezza sulla configurazione delle liste nel Monte Carlo
 5. Affluenza haredi (nessuna leva, ha oscillato meno di quella araba)
 6. Storico delle proiezioni salvate su disco invece che ricalcolate
-7. Esportazione PNG dei grafici
+7. **Esportazione PNG dei grafici — e attenzione a cosa si esporta.** Dal 21 agosto 2026
+   i marcatori numerati degli eventi non sono più dentro l'SVG: sopra i 660px sono
+   `<button>` veri in uno strato HTML (`#k-evlay`) sovrapposto al grafico, perché un
+   `<circle>` non ha fuoco né area di tocco. **Un'esportazione del solo SVG li
+   perderebbe**, e perderebbe con loro il rimando alla cronologia: resterebbero i
+   tratteggi verticali senza il numero che dice a quale fatto appartengono. Chi la
+   scrive deve o comporre le due cose (SVG più strato) o ridisegnare i dischi dentro
+   l'SVG al momento dell'esportazione. Sotto i 660 i dischi sono ancora nell'SVG, quindi
+   il difetto si vede solo sulla larghezza che si esporterebbe davvero.
 8. Aggiornamento automatico programmato, con avviso se l'archivio è vecchio
 9. Accessibilità: navigazione da tastiera, ruoli ARIA
 10. **Prova su browser veri.** Tutto è verificato in jsdom, che non fa layout. I difetti veri
@@ -169,6 +177,32 @@ Messaggi di commit in italiano, all'infinito, con il perché e non solo il cosa.
     Il 20 agosto la pagina dice «67 giorni», ma dal 20 agosto al 27 ottobre sono 68 giorni di
     calendario. Il lettore confronta col calendario, non con le ore: il conto va fatto sulle
     date a mezzanotte, non sulla differenza di millisecondi troncata.
+
+    **È la stessa famiglia del difetto dell'ora legale chiuso il 21 agosto 2026** nella
+    finestra dei 30 giorni dell'evento isolato, dove `setDate/getDate` in ora locale
+    scavallavano il cambio del 29 marzo e il riquadro annunciava «Nei 29 giorni
+    successivi». Entrambi contano giorni di calendario come differenze di millisecondi,
+    e il rimedio è lo stesso: portare le date a mezzanotte **UTC** e fare la sottrazione lì.
+
+    Cercato in tutto il file dopo quella riparazione: **`setDate/getDate` in ora locale non
+    compaiono altrove**. Restano però tre punti della stessa famiglia, e non sono
+    equivalenti:
+
+    | dove | com'è | verdetto |
+    |---|---|---|
+    | `gg(new Date(), VOTO)` — il conto alla rovescia | istante locale contro `new Date('2026-10-27T00:00:00')`, cioè mezzanotte **locale** | **è questo punto 12** |
+    | `gg(oggi, new Date(x.d+'T00:00:00'))` — le tappe del calendario | idem, per ognuna delle sei tappe | **stesso difetto, stesso rimedio** |
+    | la finestra a 7 giorni della mediana | `getTime()-7*864e5` su una data letta come UTC e riformattata con `toISOString` | **sano**: non tocca mai l'ora locale |
+
+    Una precisazione sul titolo di questo punto: `gg()` **arrotonda**, non tronca. Il
+    risultato per il lettore è lo stesso — un giorno di scarto — ma chi lo ripara deve
+    sapere che il conto scatta a mezzogiorno, non a mezzanotte.
+
+    E c'è un aggravante che il testo del punto non diceva: fra oggi e il voto cade il
+    **cambio d'ora del 25 ottobre**, due giorni prima delle urne. Da lì in poi la
+    differenza in millisecondi porta un'ora in più, e siccome `gg()` arrotonda invece di
+    troncare, il giorno in cui il conto scatta dipende dall'ora in cui si apre la pagina.
+    Chi lo ripara lo verifichi **a cavallo del 25 ottobre**, non solo a una data qualsiasi.
 13. **Sei suite usano un DOM ridotto invece di jsdom.** `aff`, `emi`, `final`, `tema`,
     `testint` e `verifica` sostituiscono `document` con oggetti finti in cui `innerHTML` è
     una semplice proprietà di testo: nessun albero viene mai analizzato, quindi
@@ -505,6 +539,39 @@ per tre commit e nessuna delle 211 prove di allora aveva niente da ridire. Le du
 del colore di blocco sono chiuse; **se ce ne sono altre nel modello vanno cercate, ed è la
 prossima cosa da fare dopo l'embed.**
 
+### E la regola gemella: misurare convince di aver guardato
+
+Scritta il 21 agosto 2026, dopo tre difetti trovati a occhio su schermate che la suite
+dichiarava sane. **Ogni proprietà che si sceglie di misurare convince di aver guardato, e
+ciò che non si è misurato resta invisibile esattamente come prima.** È la sorella della
+regola qui sopra: là due strade corrette divergono in silenzio, qui una misura corretta
+copre il posto di quella che serviva.
+
+I tre casi, tutti nello stesso schermo a 380px:
+
+| misurato, e vero | non misurato, e falso |
+|---|---|
+| il riquadro dell'evento è visibile, dista 12px dalla voce, la pagina non si muove | **che dentro ci fossero delle cifre**: i tre seggi erano macchie scure, testo `--ink` su fondo `--ink2`, 1,76:1 |
+| lo strato dei marcatori sparisce sotto i 660, i dischi tornano nell'SVG | **che i dischi si distinguessero**: sedici su una riga sola, passo minimo 2,4px, sette coppie sovrapposte |
+| il tratto acceso ha opacità 1 contro 0,26 e spessore 2,38 contro 1,50 | **quanto fosse lungo**: 36,8px su un asse da 274, e 1,2px sull'ultimo evento |
+
+**Le quaranta prove di `isola.js` erano tutte verdi**, e lo erano a ragione: verificavano
+che il riquadro fosse dove doveva, che lo strato fosse nascosto, che le opacità fossero
+quelle scelte. Nessuna guardava il risultato.
+
+Due conseguenze pratiche, e sono quelle da ricordare:
+
+- **quando si sposta un elemento nel DOM, si porta dietro i selettori discendenti del
+  posto in cui arriva.** `#k-evsel` è l'unico elemento che si sposta in tutto il file — le
+  sole tre `insertBefore` sono le sue — e finiva dentro `#k-crono`, dove `.crono b` e
+  `.crono button` lo hanno raggiunto. Le regole della cronologia sono ora sui **figli
+  diretti**, e `mob2.js` prende tutte le regole `.crono` dal foglio e verifica che nessuna
+  raggiunga qualcosa dentro il riquadro — così vale anche per quelle scritte domani. Se
+  un giorno si sposta un secondo elemento, questa è la prima trappola da ricontrollare;
+- **una misura di posizione non è una misura di leggibilità.** Dopo aver verificato che
+  una cosa sta dove deve, la domanda successiva è sempre se si legge — e quella, in
+  questo progetto, la risponde solo un occhio su un browser vero.
+
 ### Nell'ordine
 
 1. ~~La tabella dell'house effect che sfora~~ — **chiusa il 21 agosto 2026** con le
@@ -726,6 +793,6 @@ nessuno degli altri settori.
 trovati oggi — la stella della bandiera che sconfinava nelle bande, l'occhiello a filo del
 bordo sull'ombra, il vuoto di 372px sotto le ipotesi, l'evidenziazione che competeva con
 la codifica del riempimento, il verde arabo che si leggeva nero — sono stati trovati
-**guardando la pagina**, non dalla suite. Le 504 prove dicono che il modello non si è
+**guardando la pagina**, non dalla suite. Le 569 prove dicono che il modello non si è
 rotto; non dicono che la pagina si veda. Dopo ogni push, aprire
 <https://angrisanidj.github.io/modello-israele/> e guardarla nei due temi.

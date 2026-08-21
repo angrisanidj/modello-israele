@@ -157,11 +157,25 @@
 
 #kn26 .crono{margin-top:20px;padding-top:16px;border-top:1px solid var(--hair2);
  display:grid;grid-template-columns:repeat(auto-fill,minmax(265px,1fr));gap:9px 24px;}
-#kn26 .crono div{font-size:11.5px;color:var(--ink2);display:flex;gap:9px;line-height:1.45;align-items:flex-start;}
-#kn26 .crono b{font-family:var(--serif);font-size:10.5px;color:var(--paper);background:var(--ink2);
+/* FIGLI DIRETTI, e non è pignoleria di stile: sotto i 660 il riquadro dell'evento viene
+   spostato DENTRO questo elenco (vedi collocaEvSel), e un selettore discendente lo
+   raggiunge. È già successo: «.crono b» dava ai tre numeri della terna fondo --ink2 e
+   testo --ink, contrasto 1,76:1, dentro un cerchio da 17px — tre macchie scure al posto
+   dei seggi; «.crono button» dava a «chiudi», che è in posizione assoluta, width:100% e
+   44px di altezza, cioè 324x44px sopra il titolo; e il grassetto della nota finiva in una
+   pastiglia 294x17 con fondo e testo dello stesso colore. Nessuna delle 40 prove di
+   isola.js se n'è accorta, perché misuravano dove stava il riquadro e non che cosa
+   mostrasse. L'unico elemento che si sposta nel DOM in tutto il file è #k-evsel: se
+   domani se ne sposta un altro, questa è la trappola da ricontrollare per prima. */
+#kn26 .crono>button{font-size:11.5px;color:var(--ink2);display:flex;gap:9px;line-height:1.45;
+ align-items:flex-start;font-family:inherit;background:none;border:0;text-align:left;width:100%;
+ /* 44px di altezza minima: la voce È il comando, e a una riga misurava 18px. Il badge da
+    17px non è il bersaglio — lo è tutta la voce, larga 325-341px alle tre larghezze. */
+ min-height:44px;padding:8px 9px;align-content:center;}
+#kn26 .crono>button b{font-family:var(--serif);font-size:10.5px;color:var(--paper);background:var(--ink2);
  min-width:17px;height:17px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;
  flex:none;margin-top:1px;}
-#kn26 .crono em{font-style:normal;color:var(--mute);}
+#kn26 .crono>button em{font-style:normal;color:var(--mute);}
 
 #kn26 .cal{display:grid;grid-template-columns:repeat(6,1fr);gap:1px;background:var(--hair);}
 @media(max-width:1000px){#kn26 .cal{grid-template-columns:repeat(3,1fr);}}
@@ -572,10 +586,65 @@
 #kn26 .evsel .eb span{color:var(--ink2);}
 #kn26 .evsel .eb b{font-family:var(--serif);font-size:19px;color:var(--ink);}
 #kn26 .evsel .eb s{text-decoration:none;font-size:10.5px;color:var(--mute);}
+#kn26 .evsel .em2{font-size:12px;color:var(--ink2);margin-top:11px;padding-top:10px;
+ border-top:1px solid var(--hair);}
+#kn26 .evsel .nt2{color:var(--mute);}
 #kn26 .evsel .en{font-size:10.5px;color:var(--mute);margin-top:9px;}
-#kn26 .crono div[data-ev]{cursor:pointer;border-radius:7px;transition:.15s;}
-#kn26 .crono div[data-ev]:hover{background:var(--wash);}
-#kn26 .crono div.sel{background:var(--wash);box-shadow:inset 2px 0 0 var(--acc);}
+#kn26 .evsel .en b{color:var(--ink2);}
+#kn26 .crono>button[data-ev]{cursor:pointer;border-radius:7px;transition:.15s;}
+#kn26 .crono>button[data-ev]:hover{background:var(--wash);}
+#kn26 .crono>button[data-ev][aria-pressed="true"]{background:var(--wash);box-shadow:inset 2px 0 0 var(--acc);}
+#kn26 .crono>button[data-ev][aria-pressed="true"] b{background:var(--acc);}
+
+/* ══ GRAFICO: un evento isolato ══ */
+/* L'attenuazione è per opacità, e il numero NON è quello dell'emiciclo: là le 24 liste
+   spente dovevano collassare in una massa sola, qui le tre linee restano in scena e il
+   lettore deve continuare a distinguerle — l'isolamento è nel tempo, non fra le serie.
+   Quindi il vincolo è rovesciato: le tre attenuate devono restare distinte fra loro,
+   ΔE2000 >= 11, che è il pavimento che il progetto usa fra blocchi. Il tema chiaro è
+   quello che morde: a 0,22 il minimo è 10,5, sotto il pavimento; a 0,26 sale a 11,9
+   (20,5 in scuro) con contrasti 1,42-1,72 e 1,41-2,08, quindi la forma resta leggibile,
+   e la distanza dal pieno è 32-64 e 31-53, quindi il tratto acceso è inequivocabile.
+   I punti dei sondaggi stavano già a .28: lasciati lì finirebbero sul livello esatto
+   della linea attenuata e il grafico diventerebbe poltiglia. Nello stato isolato
+   scendono a .07. */
+#kn26 #k-trend.iso .ln{opacity:.26;}
+#kn26 #k-trend.iso .pt{opacity:.07 !important;}
+#kn26 #k-trend.iso .acc{opacity:1;}
+#kn26 #k-trend .ln,#kn26 #k-trend .pt{transition:opacity .18s;}
+#kn26 #k-trend.iso .evm{opacity:.3;}
+#kn26 #k-trend.iso .evm.on{opacity:1;}
+
+/* i marcatori cliccabili sono uno strato HTML sopra l'SVG: <button> veri, con il fuoco
+   e l'area di tocco che un <circle> non può avere. Esistono solo sopra i 660px — sotto,
+   il comando è la voce di cronologia, che è larga quanto il contenitore. */
+#kn26 .evlay{position:absolute;left:0;right:0;top:0;height:34px;pointer-events:none;}
+#kn26 .evlay button{position:absolute;transform:translateX(-50%);pointer-events:auto;
+ width:30px;height:30px;border-radius:50%;border:0;padding:0;cursor:pointer;
+ background:var(--ink2);color:var(--paper);font-family:var(--serif);font-size:11px;
+ display:flex;align-items:center;justify-content:center;transition:.15s;}
+#kn26 .evlay button:hover{background:var(--ink);}
+#kn26 .evlay button[aria-pressed="true"]{background:var(--acc);}
+#kn26 .evlay button:focus-visible{outline:2px solid var(--acc);outline-offset:2px;}
+/* Lo strato dei pulsanti costa una fascia sopra il grafico: a 760 servivano TRE corsie
+   per 102px su un grafico alto 224,7 — quasi metà. Sotto i 900 quel prezzo non si paga:
+   il comando è già la voce di cronologia, larga 325px, e i dischi restano nell'SVG con le
+   loro corsie. La media query è scritta al positivo, identica a quella che il JS
+   interroga con matchMedia, così le due non possono divergere: si confrontano tutte e due
+   con innerWidth, barra di scorrimento compresa. */
+#kn26 .evlay{display:none;}
+@media(min-width:900px){#kn26 .evlay{display:block;}}
+
+/* A 380 il riquadro stava SOPRA il grafico e la cronologia sotto: chi premeva in fondo
+   all'elenco riceveva la risposta fuori schermo. Spostarlo in blocco sotto il grafico non
+   bastava — con le voci portate a 44px l'elenco è alto 893px, e dalla sua coda il
+   riquadro resta lontano quanto prima. Quindi sotto i 660 il riquadro non ha un posto
+   fisso: si sposta SOTTO LA VOCE PREMUTA (vedi collocaEvSel). Comando e risposta nello
+   stesso punto, e la pagina non si muove sotto il dito — non c'è nessuno scorrimento da
+   fare, quindi non c'è nessun salto da subire. */
+@media(max-width:660px){
+ #kn26 .crono #k-evsel.on{grid-column:1/-1;margin:2px 0 6px;}
+}
 @media(max-width:660px){#kn26 .evsel .eb{gap:7px 14px;}#kn26 .evsel .eb b{font-size:17px;}}
 #kn26 .rng .sc{display:flex;justify-content:space-between;font-size:9.5px;color:var(--mute);
  margin-top:5px;letter-spacing:.03em;}
@@ -981,14 +1050,17 @@
 
 <section>
  <h2>Come si è mossa la proiezione <em>il risultato del modello ricalcolato giorno per giorno</em></h2>
- <div class="box">
+ <div class="box trend">
   <div class="evsel" id="k-evsel"></div>
-  <div class="wrapT" id="k-trendwrap"><div id="k-trend"></div><div class="tip" id="k-tip"></div></div>
+  <div class="wrapT" id="k-trendwrap"><div id="k-trend"></div><div class="evlay" id="k-evlay"></div><div class="tip" id="k-tip"></div></div>
   <div class="leg lint" id="k-trendleg"></div>
   <p class="fn">La linea spessa è la proiezione del modello ricalcolata a ogni data usando solo le rilevazioni
    disponibili quel giorno: non è la media dei sondaggi, è quello che il modello avrebbe detto allora.
    I puntini sono i singoli sondaggi. Le rilevazioni di gennaio-aprile sono armonizzate alla struttura di liste
-   attuale. Passa sopra una voce della legenda per isolare una linea.</p>
+   attuale. Passa sopra una voce della legenda per isolare una linea. I numeri sopra il grafico
+   e le voci qui sotto sono lo stesso comando: premendone uno il grafico isola quel momento e
+   accende i trenta giorni successivi. Si torna alla vista piena ripremendo lo stesso numero,
+   con «chiudi» o con il tasto Esc.</p>
   <div class="crono" id="k-crono"></div>
  </div>
 </section>
@@ -1113,12 +1185,14 @@ var VETO_OFF={};
 var BASE=[{"data": "2026-01-01", "istituto": "Direct Polls", "testata": "Canale 14", "seggi": {"likud": 35, "yesh_atid": 6, "sionismo_rel": 5, "otzma": 7, "shas": 11, "utj": 8, "beitenu": 9, "raam": 5, "hadash_taal": 5, "democratici": 10, "bennett26": 11, "yashar": 8}, "sotto": {"blue_white": 0.9, "balad": 2.1}, "campione": 736, "casa": 1, "pre": 1}, {"data": "2026-01-01", "istituto": "Lazar · Panel4All", "testata": "Maariv", "seggi": {"likud": 27, "yesh_atid": 9, "otzma": 10, "shas": 8, "utj": 7, "beitenu": 10, "raam": 5, "hadash_taal": 5, "democratici": 10, "bennett26": 19, "yashar": 10}, "sotto": {"sionismo_rel": 2.8, "blue_white": 2.0, "balad": 2.0, "casa_sionista": 3.0}, "pre": 1}, {"data": "2026-01-01", "istituto": "Midgam", "testata": "Canale 12", "seggi": {"likud": 26, "yesh_atid": 10, "otzma": 9, "shas": 9, "utj": 7, "beitenu": 9, "raam": 5, "hadash_taal": 5, "democratici": 11, "bennett26": 21, "yashar": 8}, "sotto": {"sionismo_rel": 2.9, "blue_white": 2.0, "balad": 1.8, "casa_sionista": 2.7}, "pre": 1}, {"data": "2026-01-01", "istituto": "Yossi Taktika", "testata": "Zman Israel", "seggi": {"likud": 28, "yesh_atid": 10, "otzma": 6, "shas": 10, "utj": 8, "beitenu": 10, "raam": 6, "hadash_taal": 5, "democratici": 8, "bennett26": 22, "yashar": 7}, "campione": 500, "pre": 1}, {"data": "2026-01-07", "istituto": "Maagar Mochot", "testata": "Canale 13", "seggi": {"likud": 26, "yesh_atid": 7, "otzma": 10, "shas": 10, "utj": 7, "beitenu": 10, "raam": 5, "hadash_taal": 5, "democratici": 8, "bennett26": 24, "yashar": 8}, "sotto": {"sionismo_rel": 2.3, "blue_white": 2.3, "balad": 2.3, "casa_sionista": 1.6}, "pre": 1}, {"data": "2026-01-08", "istituto": "Direct Polls", "testata": "Canale 14", "seggi": {"likud": 35, "yesh_atid": 6, "sionismo_rel": 4, "otzma": 7, "shas": 11, "utj": 9, "beitenu": 9, "raam": 5, "hadash_taal": 5, "democratici": 8, "bennett26": 13, "yashar": 8}, "sotto": {"blue_white": 1.4, "balad": 2.1}, "campione": 506, "casa": 1, "pre": 1}, {"data": "2026-01-08", "istituto": "Lazar · Panel4All", "testata": "Maariv", "seggi": {"likud": 27, "yesh_atid": 8, "otzma": 9, "shas": 8, "utj": 7, "beitenu": 9, "raam": 5, "hadash_taal": 5, "democratici": 10, "bennett26": 22, "yashar": 10}, "sotto": {"sionismo_rel": 2.2, "blue_white": 2.2, "balad": 1.8, "casa_sionista": 2.7}, "campione": 503, "pre": 1}, {"data": "2026-01-08", "istituto": "Midgam", "testata": "Canale 12", "seggi": {"likud": 25, "yesh_atid": 9, "sionismo_rel": 4, "otzma": 8, "shas": 8, "utj": 7, "beitenu": 8, "raam": 5, "hadash_taal": 5, "democratici": 12, "bennett26": 21, "yashar": 8}, "sotto": {"blue_white": 0.6, "balad": 1.3, "casa_sionista": 2.5}, "pre": 1}, {"data": "2026-01-08", "istituto": "Yossi Taktika", "testata": "Zman Israel", "seggi": {"likud": 28, "yesh_atid": 10, "otzma": 7, "shas": 10, "utj": 8, "beitenu": 10, "raam": 6, "hadash_taal": 5, "democratici": 9, "bennett26": 21, "yashar": 6}, "campione": 500, "pre": 1}, {"data": "2026-01-14", "istituto": "Kantar", "testata": "Israel Hayom", "seggi": {"likud": 27, "yesh_atid": 8, "otzma": 9, "shas": 10, "utj": 7, "beitenu": 8, "raam": 5, "hadash_taal": 5, "democratici": 9, "bennett26": 23, "yashar": 9}, "sotto": {"sionismo_rel": 2.9, "blue_white": 3.0, "balad": 1.9, "casa_sionista": 2.7}, "campione": 600, "pre": 1}, {"data": "2026-01-15", "istituto": "Direct Polls", "testata": "Canale 14", "seggi": {"likud": 35, "yesh_atid": 5, "sionismo_rel": 4, "otzma": 7, "shas": 11, "utj": 9, "beitenu": 10, "raam": 6, "hadash_taal": 5, "democratici": 11, "bennett26": 11, "yashar": 6}, "sotto": {"blue_white": 2.8, "balad": 2.1}, "campione": 604, "casa": 1, "pre": 1}, {"data": "2026-01-15", "istituto": "Lazar · Panel4All", "testata": "Maariv", "seggi": {"likud": 26, "yesh_atid": 9, "otzma": 10, "shas": 8, "utj": 7, "beitenu": 8, "raam": 4, "hadash_taal": 5, "democratici": 10, "bennett26": 22, "yashar": 11}, "sotto": {"sionismo_rel": 2.6, "blue_white": 2.3, "balad": 2.1, "casa_sionista": 2.6}, "campione": 501, "pre": 1}, {"data": "2026-01-15", "istituto": "Midgam", "testata": "Canale 12", "seggi": {"likud": 26, "yesh_atid": 9, "otzma": 9, "shas": 8, "utj": 8, "beitenu": 8, "raam": 5, "hadash_taal": 5, "democratici": 12, "bennett26": 22, "yashar": 8}, "sotto": {"sionismo_rel": 2.9, "blue_white": 2.4, "balad": 1.7, "casa_sionista": 1.4}, "campione": 504, "pre": 1}, {"data": "2026-01-15", "istituto": "Yossi Taktika", "testata": "Zman Israel", "seggi": {"likud": 27, "yesh_atid": 9, "otzma": 7, "blue_white": 4, "shas": 10, "utj": 8, "beitenu": 10, "raam": 6, "hadash_taal": 5, "democratici": 8, "bennett26": 19, "yashar": 7}, "campione": 500, "pre": 1}, {"data": "2026-01-20", "istituto": "Maagar Mochot", "testata": "Canale 13", "seggi": {"likud": 25, "yesh_atid": 7, "otzma": 9, "shas": 10, "utj": 7, "beitenu": 9, "raam": 4, "hadash_taal": 5, "balad": 4, "democratici": 10, "bennett26": 23, "yashar": 7}, "sotto": {"sionismo_rel": 2.6, "blue_white": 2.0, "casa_sionista": 2.0}, "pre": 1}, {"data": "2026-01-22", "istituto": "Lazar · Panel4All", "testata": "Maariv", "seggi": {"likud": 25, "yesh_atid": 9, "otzma": 9, "shas": 8, "utj": 7, "beitenu": 9, "raam": 5, "hadash_taal": 5, "democratici": 9, "bennett26": 23, "yashar": 11}, "sotto": {"sionismo_rel": 2.0, "blue_white": 2.8, "balad": 1.9, "casa_sionista": 2.8}, "campione": 501, "pre": 1}, {"data": "2026-01-22", "istituto": "Midgam", "testata": "Canale 12", "seggi": {"likud": 25, "yesh_atid": 8, "otzma": 9, "shas": 9, "utj": 8, "beitenu": 9, "raam": 5, "hadash_taal": 5, "democratici": 11, "bennett26": 22, "yashar": 9}, "sotto": {"sionismo_rel": 2.9, "blue_white": 1.7, "balad": 1.1, "casa_sionista": 2.7}, "campione": 501, "pre": 1}, {"data": "2026-01-22", "istituto": "Yossi Taktika", "testata": "Zman Israel", "seggi": {"likud": 25, "yesh_atid": 8, "sionismo_rel": 4, "otzma": 6, "blue_white": 4, "shas": 10, "utj": 8, "beitenu": 10, "raam": 6, "hadash_taal": 5, "democratici": 9, "bennett26": 18, "yashar": 7}, "campione": 500, "pre": 1}, {"data": "2026-01-29", "istituto": "Direct Polls", "testata": "Canale 14", "seggi": {"likud": 34, "yesh_atid": 6, "sionismo_rel": 4, "otzma": 7, "shas": 10, "utj": 9, "beitenu": 9, "lista_araba": 13, "democratici": 9, "bennett26": 12, "yashar": 7}, "sotto": {"blue_white": 3.0}, "campione": 952, "casa": 1, "pre": 1}, {"data": "2026-01-29", "istituto": "Lazar · Panel4All", "testata": "Maariv", "seggi": {"likud": 27, "yesh_atid": 7, "otzma": 8, "shas": 8, "utj": 7, "beitenu": 9, "lista_araba": 13, "democratici": 9, "bennett26": 22, "yashar": 10}, "sotto": {"sionismo_rel": 2.2, "blue_white": 2.7, "casa_sionista": 1.8}, "campione": 503, "pre": 1}, {"data": "2026-01-29", "istituto": "Midgam", "testata": "Canale 12", "seggi": {"likud": 27, "yesh_atid": 8, "otzma": 8, "shas": 9, "utj": 7, "beitenu": 8, "lista_araba": 12, "democratici": 11, "bennett26": 21, "yashar": 9}, "sotto": {"sionismo_rel": 2.9, "blue_white": 1.8, "casa_sionista": 1.0}, "campione": 501, "pre": 1}, {"data": "2026-02-04", "istituto": "Maagar Mochot", "testata": "Canale 13", "seggi": {"likud": 26, "yesh_atid": 8, "sionismo_rel": 4, "otzma": 9, "shas": 9, "utj": 6, "beitenu": 7, "lista_araba": 15, "democratici": 8, "bennett26": 22, "yashar": 6}, "pre": 1}, {"data": "2026-02-05", "istituto": "Direct Polls", "testata": "Canale 14", "seggi": {"likud": 34, "yesh_atid": 4, "sionismo_rel": 4, "otzma": 7, "blue_white": 4, "shas": 11, "utj": 9, "beitenu": 8, "lista_araba": 13, "democratici": 9, "bennett26": 11, "yashar": 6}, "campione": 952, "casa": 1, "pre": 1}, {"data": "2026-02-05", "istituto": "Yossi Taktika", "testata": "Times of Israel", "seggi": {"likud": 27, "yesh_atid": 8, "otzma": 7, "blue_white": 4, "shas": 10, "utj": 8, "beitenu": 10, "lista_araba": 14, "democratici": 8, "bennett26": 18, "yashar": 6}, "campione": 500, "pre": 1}, {"data": "2026-02-06", "istituto": "TrendZone", "testata": "", "seggi": {"likud": 33, "yesh_atid": 5, "otzma": 8, "shas": 7, "utj": 7, "beitenu": 8, "lista_araba": 15, "democratici": 9, "bennett26": 20, "yashar": 8}, "pre": 1}, {"data": "2026-02-12", "istituto": "Direct Polls", "testata": "Canale 14", "seggi": {"likud": 35, "yesh_atid": 5, "sionismo_rel": 5, "otzma": 7, "shas": 10, "utj": 9, "beitenu": 8, "lista_araba": 13, "democratici": 10, "bennett26": 10, "yashar": 8}, "campione": 532, "casa": 1, "pre": 1}, {"data": "2026-02-12", "istituto": "Lazar · Panel4All", "testata": "Maariv", "seggi": {"likud": 25, "yesh_atid": 9, "otzma": 10, "shas": 8, "utj": 7, "beitenu": 9, "raam": 5, "hadash_taal": 5, "democratici": 9, "bennett26": 21, "yashar": 12}, "sotto": {"sionismo_rel": 2.5, "blue_white": 2.5, "balad": 2.0, "casa_sionista": 2.3}, "campione": 593, "pre": 1}, {"data": "2026-02-17", "istituto": "Maagar Mochot", "testata": "Canale 13", "seggi": {"likud": 25, "yesh_atid": 9, "otzma": 8, "shas": 10, "utj": 7, "beitenu": 8, "lista_araba": 15, "democratici": 7, "bennett26": 22, "yashar": 9}, "sotto": {"sionismo_rel": 2.4, "blue_white": 1.6, "casa_sionista": 1.3}, "pre": 1}, {"data": "2026-02-18", "istituto": "Direct Polls", "testata": "i24NEWS", "seggi": {"likud": 34, "sionismo_rel": 4, "otzma": 8, "shas": 10, "utj": 8, "beitenu": 8, "lista_araba": 14, "democratici": 9, "bennett26": 14, "yashar": 11}, "sotto": {"yesh_atid": 2.9, "blue_white": 2.6, "casa_sionista": 2.4}, "campione": 535, "casa": 1, "pre": 1}, {"data": "2026-02-19", "istituto": "Direct Polls", "testata": "Canale 14", "seggi": {"likud": 34, "yesh_atid": 5, "sionismo_rel": 4, "otzma": 8, "shas": 10, "utj": 9, "beitenu": 8, "lista_araba": 13, "democratici": 9, "bennett26": 11, "yashar": 9}, "campione": 1024, "casa": 1, "pre": 1}, {"data": "2026-02-19", "istituto": "Lazar · Panel4All", "testata": "Maariv", "seggi": {"likud": 26, "yesh_atid": 8, "otzma": 9, "shas": 8, "utj": 7, "beitenu": 8, "raam": 5, "hadash_taal": 5, "democratici": 11, "bennett26": 20, "yashar": 13}, "sotto": {"sionismo_rel": 2.6, "blue_white": 2.9, "balad": 1.8, "casa_sionista": 1.3}, "campione": 501, "pre": 1}, {"data": "2026-02-19", "istituto": "Yossi Taktika", "testata": "Zman Israel", "seggi": {"likud": 27, "yesh_atid": 7, "otzma": 7, "blue_white": 4, "shas": 10, "utj": 8, "beitenu": 10, "raam": 6, "hadash_taal": 5, "democratici": 9, "bennett26": 18, "yashar": 9}, "campione": 500, "pre": 1}, {"data": "2026-02-26", "istituto": "Direct Polls", "testata": "Canale 14", "seggi": {"likud": 33, "yesh_atid": 4, "sionismo_rel": 5, "otzma": 8, "shas": 11, "utj": 8, "beitenu": 8, "lista_araba": 13, "democratici": 9, "bennett26": 10, "yashar": 11}, "campione": 579, "casa": 1, "pre": 1}, {"data": "2026-02-26", "istituto": "Midgam", "testata": "Canale 12", "seggi": {"likud": 26, "yesh_atid": 7, "otzma": 10, "shas": 9, "utj": 7, "beitenu": 8, "raam": 6, "hadash_taal": 4, "democratici": 11, "bennett26": 21, "yashar": 11}, "sotto": {"sionismo_rel": 2.6, "blue_white": 1.9, "balad": 1.6, "casa_sionista": 1.9}, "pre": 1}, {"data": "2026-02-26", "istituto": "Yossi Taktika", "testata": "Zman Israel", "seggi": {"likud": 27, "yesh_atid": 7, "otzma": 8, "shas": 10, "utj": 8, "beitenu": 10, "raam": 6, "hadash_taal": 5, "democratici": 9, "bennett26": 18, "yashar": 12}, "campione": 500, "pre": 1}, {"data": "2026-03-05", "istituto": "Direct Polls", "testata": "Canale 14", "seggi": {"likud": 34, "yesh_atid": 4, "sionismo_rel": 4, "otzma": 8, "shas": 11, "utj": 9, "beitenu": 7, "lista_araba": 13, "democratici": 9, "bennett26": 11, "yashar": 10}, "sotto": {"blue_white": 1.3}, "campione": 742, "casa": 1, "pre": 1}, {"data": "2026-03-05", "istituto": "Lazar · Panel4All", "testata": "Maariv", "seggi": {"likud": 27, "yesh_atid": 6, "otzma": 9, "shas": 8, "utj": 7, "beitenu": 8, "raam": 5, "hadash_taal": 5, "democratici": 10, "bennett26": 21, "yashar": 14}, "sotto": {"sionismo_rel": 2.8, "blue_white": 2.0, "balad": 1.6, "casa_sionista": 2.8}, "campione": 500, "pre": 1}, {"data": "2026-03-05", "istituto": "Yossi Taktika", "testata": "Zman Israel", "seggi": {"likud": 31, "yesh_atid": 6, "otzma": 6, "blue_white": 4, "shas": 9, "utj": 7, "beitenu": 10, "raam": 5, "hadash_taal": 5, "democratici": 8, "bennett26": 15, "yashar": 14}, "campione": 500, "pre": 1}, {"data": "2026-03-11", "istituto": "Midgam", "testata": "Canale 12", "seggi": {"likud": 26, "yesh_atid": 6, "otzma": 9, "shas": 9, "utj": 7, "beitenu": 9, "raam": 5, "hadash_taal": 5, "democratici": 12, "bennett26": 21, "yashar": 11}, "pre": 1}, {"data": "2026-03-12", "istituto": "Yossi Taktika", "testata": "Zman Israel", "seggi": {"likud": 29, "yesh_atid": 6, "sionismo_rel": 4, "otzma": 6, "shas": 8, "utj": 7, "beitenu": 10, "raam": 5, "hadash_taal": 5, "democratici": 8, "bennett26": 17, "yashar": 15}, "campione": 500, "pre": 1}, {"data": "2026-03-19", "istituto": "Midgam", "testata": "Canale 12", "seggi": {"likud": 28, "yesh_atid": 6, "otzma": 7, "shas": 9, "utj": 7, "beitenu": 9, "raam": 5, "hadash_taal": 5, "democratici": 12, "bennett26": 20, "yashar": 12}, "campione": 503, "pre": 1}, {"data": "2026-03-19", "istituto": "Yossi Taktika", "testata": "Zman Israel", "seggi": {"likud": 28, "yesh_atid": 5, "otzma": 7, "blue_white": 4, "shas": 8, "utj": 8, "beitenu": 10, "raam": 5, "hadash_taal": 5, "democratici": 9, "bennett26": 15, "yashar": 16}, "campione": 500, "pre": 1}, {"data": "2026-03-20", "istituto": "Lazar · Panel4All", "testata": "Maariv", "seggi": {"likud": 28, "yesh_atid": 8, "otzma": 7, "shas": 8, "utj": 7, "beitenu": 10, "raam": 5, "hadash_taal": 5, "democratici": 10, "bennett26": 21, "yashar": 11}, "pre": 1}, {"data": "2026-03-26", "istituto": "Direct Polls", "testata": "Canale 14", "seggi": {"likud": 35, "yesh_atid": 4, "sionismo_rel": 4, "otzma": 7, "shas": 10, "utj": 9, "beitenu": 8, "lista_araba": 12, "democratici": 10, "bennett26": 10, "yashar": 11}, "sotto": {"blue_white": 1.2}, "campione": 754, "casa": 1, "pre": 1}, {"data": "2026-03-26", "istituto": "Lazar · Panel4All", "testata": "Maariv", "seggi": {"likud": 26, "yesh_atid": 7, "otzma": 9, "shas": 8, "utj": 7, "beitenu": 9, "raam": 5, "hadash_taal": 5, "democratici": 10, "bennett26": 21, "yashar": 13}, "sotto": {"sionismo_rel": 2.3, "blue_white": 2.8, "balad": 1.3, "casa_sionista": 1.6}, "campione": 500, "pre": 1}, {"data": "2026-03-26", "istituto": "Yossi Taktika", "testata": "Zman Israel", "seggi": {"likud": 29, "yesh_atid": 6, "otzma": 7, "shas": 9, "utj": 8, "beitenu": 10, "raam": 5, "hadash_taal": 5, "democratici": 8, "bennett26": 16, "yashar": 17}, "campione": 500, "pre": 1}, {"data": "2026-03-31", "istituto": "Lazar · Panel4All", "testata": "Maariv", "seggi": {"likud": 25, "yesh_atid": 8, "otzma": 8, "shas": 9, "utj": 7, "beitenu": 8, "raam": 4, "hadash_taal": 6, "democratici": 9, "bennett26": 22, "yashar": 14}, "sotto": {"sionismo_rel": 2.0, "blue_white": 1.4, "balad": 1.2, "casa_sionista": 1.4}, "campione": 500, "pre": 1}, {"data": "2026-04-09", "istituto": "Direct Polls", "testata": "Canale 14", "seggi": {"likud": 35, "yesh_atid": 4, "sionismo_rel": 4, "otzma": 7, "shas": 10, "utj": 9, "beitenu": 8, "lista_araba": 11, "democratici": 10, "bennett26": 10, "yashar": 12}, "sotto": {"blue_white": 1.8}, "campione": 951, "casa": 1, "pre": 1}, {"data": "2026-04-09", "istituto": "Kantar", "testata": "Kan 11", "seggi": {"likud": 25, "yesh_atid": 6, "otzma": 10, "shas": 9, "utj": 7, "beitenu": 9, "raam": 5, "hadash_taal": 5, "democratici": 11, "bennett26": 19, "yashar": 14}, "sotto": {"sionismo_rel": 2.4, "blue_white": 1.7, "balad": 1.8, "casa_sionista": 2.7}, "campione": 552, "pre": 1}, {"data": "2026-04-09", "istituto": "Maagar Mochot", "testata": "Canale 13", "seggi": {"likud": 22, "yesh_atid": 6, "sionismo_rel": 5, "otzma": 10, "shas": 10, "utj": 7, "beitenu": 8, "raam": 5, "hadash_taal": 6, "democratici": 8, "bennett26": 21, "yashar": 12}, "pre": 1}, {"data": "2026-04-09", "istituto": "Midgam", "testata": "Canale 12", "seggi": {"likud": 25, "yesh_atid": 6, "otzma": 9, "shas": 9, "utj": 7, "beitenu": 9, "raam": 5, "hadash_taal": 5, "democratici": 10, "bennett26": 22, "yashar": 13}, "sotto": {"sionismo_rel": 2.9, "blue_white": 1.5, "balad": 0.9, "casa_sionista": 0.9}, "pre": 1}, {"data": "2026-04-10", "istituto": "Lazar · Panel4All", "testata": "Maariv", "seggi": {"likud": 25, "yesh_atid": 7, "otzma": 8, "shas": 9, "utj": 7, "beitenu": 9, "raam": 5, "hadash_taal": 5, "democratici": 8, "bennett26": 24, "yashar": 13}, "sotto": {"sionismo_rel": 1.8, "blue_white": 2.5, "balad": 1.4, "casa_sionista": 1.6}, "campione": 500, "pre": 1}, {"data": "2026-04-16", "istituto": "Direct Polls", "testata": "Canale 14", "seggi": {"likud": 35, "sionismo_rel": 4, "otzma": 7, "shas": 11, "utj": 8, "beitenu": 9, "lista_araba": 12, "democratici": 10, "bennett26": 11, "yashar": 13}, "sotto": {"yesh_atid": 2.9, "blue_white": 1.2}, "campione": 511, "casa": 1, "pre": 1}, {"data": "2026-04-16", "istituto": "Kantar", "testata": "Israel Hayom", "seggi": {"likud": 26, "yesh_atid": 6, "otzma": 10, "shas": 9, "utj": 7, "beitenu": 8, "raam": 5, "hadash_taal": 6, "democratici": 9, "bennett26": 20, "yashar": 14}, "sotto": {"sionismo_rel": 2.5}, "pre": 1}, {"data": "2026-04-16", "istituto": "Midgam", "testata": "Canale 12", "seggi": {"likud": 25, "yesh_atid": 6, "otzma": 10, "shas": 9, "utj": 7, "beitenu": 9, "raam": 5, "hadash_taal": 5, "democratici": 10, "bennett26": 20, "yashar": 14}, "sotto": {"sionismo_rel": 2.8, "blue_white": 2.0, "balad": 1.4, "casa_sionista": 2.8}, "pre": 1}, {"data": "2026-04-16", "istituto": "Yossi Taktika", "testata": "Zman Israel", "seggi": {"likud": 28, "yesh_atid": 5, "otzma": 6, "blue_white": 4, "shas": 9, "utj": 8, "beitenu": 10, "raam": 5, "hadash_taal": 4, "democratici": 9, "bennett26": 16, "yashar": 16}, "campione": 500, "pre": 1}, {"data": "2026-04-17", "istituto": "Lazar · Panel4All", "testata": "Maariv", "seggi": {"likud": 25, "yesh_atid": 7, "otzma": 8, "shas": 9, "utj": 7, "beitenu": 9, "raam": 5, "hadash_taal": 5, "democratici": 9, "bennett26": 24, "yashar": 12}, "sotto": {"sionismo_rel": 2.3, "blue_white": 2.1, "balad": 2.0, "casa_sionista": 2.3}, "campione": 500, "pre": 1}, {"data": "2026-04-23", "istituto": "Direct Polls", "testata": "Canale 14", "seggi": {"likud": 35, "yesh_atid": 4, "sionismo_rel": 4, "otzma": 8, "shas": 11, "utj": 8, "beitenu": 9, "lista_araba": 11, "democratici": 8, "bennett26": 10, "yashar": 12}, "sotto": {"blue_white": 1.2}, "campione": 958, "casa": 1, "pre": 1}, {"data": "2026-04-23", "istituto": "Midgam", "testata": "Canale 12", "seggi": {"likud": 25, "yesh_atid": 7, "otzma": 9, "shas": 9, "utj": 7, "beitenu": 8, "raam": 5, "hadash_taal": 5, "democratici": 10, "bennett26": 21, "yashar": 14}, "sotto": {"sionismo_rel": 2.7, "blue_white": 0.8, "balad": 0.4, "casa_sionista": 1.3}, "pre": 1}, {"data": "2026-04-24", "istituto": "Lazar · Panel4All", "testata": "Maariv", "seggi": {"likud": 24, "yesh_atid": 7, "otzma": 9, "shas": 9, "utj": 7, "beitenu": 9, "raam": 5, "hadash_taal": 5, "democratici": 9, "bennett26": 24, "yashar": 12}, "sotto": {"sionismo_rel": 2.8, "blue_white": 1.7, "balad": 1.4, "casa_sionista": 2.0}, "campione": 502, "pre": 1}, {"data": "2026-04-26", "istituto": "Direct Polls", "testata": "Canale 14", "seggi": {"likud": 34, "byachad": 20, "sionismo_rel": 4, "otzma": 7, "shas": 11, "utj": 8, "beitenu": 8, "lista_araba": 11, "democratici": 8, "yashar": 9}, "sotto": {"blue_white": 0.7}, "campione": 932, "casa": 1}, {"data": "2026-04-27", "istituto": "Direct Polls", "testata": "i24NEWS", "seggi": {"likud": 33, "byachad": 24, "sionismo_rel": 4, "otzma": 6, "shas": 11, "utj": 8, "beitenu": 6, "raam": 7, "hadash_taal": 4, "democratici": 9, "yashar": 8}, "campione": 578, "casa": 1}, {"data": "2026-04-27", "istituto": "Kantar", "testata": "Kan 11", "seggi": {"likud": 27, "byachad": 24, "otzma": 9, "shas": 9, "utj": 7, "beitenu": 8, "raam": 5, "hadash_taal": 5, "democratici": 11, "yashar": 15}, "sotto": {"sionismo_rel": 2.0, "blue_white": 2.6, "balad": 2.0, "casa_sionista": 2.3}, "campione": 555}, {"data": "2026-04-27", "istituto": "Lazar · Panel4All", "testata": "Maariv", "seggi": {"likud": 28, "byachad": 27, "otzma": 8, "shas": 8, "utj": 7, "beitenu": 8, "raam": 5, "hadash_taal": 5, "democratici": 9, "yashar": 15}, "campione": 500}, {"data": "2026-04-27", "istituto": "Maagar Mochot", "testata": "Canale 13", "seggi": {"likud": 26, "byachad": 26, "sionismo_rel": 4, "otzma": 10, "shas": 10, "utj": 7, "beitenu": 6, "raam": 5, "hadash_taal": 6, "democratici": 8, "yashar": 12}, "sotto": {"blue_white": 1.6, "balad": 2.1, "casa_sionista": 2.5}}, {"data": "2026-04-27", "istituto": "Midgam", "testata": "Canale 12", "seggi": {"likud": 25, "byachad": 26, "otzma": 9, "shas": 9, "utj": 7, "beitenu": 9, "raam": 5, "hadash_taal": 5, "democratici": 10, "yashar": 15}, "sotto": {"sionismo_rel": 2.9, "blue_white": 1.9, "balad": 1.8, "casa_sionista": 1.9}, "campione": 501}, {"data": "2026-04-30", "istituto": "Kantar", "testata": "Israel Hayom", "seggi": {"likud": 28, "byachad": 23, "otzma": 9, "shas": 8, "utj": 7, "beitenu": 9, "raam": 5, "hadash_taal": 6, "democratici": 9, "yashar": 16}, "sotto": {"sionismo_rel": 2.7, "blue_white": 1.6, "balad": 1.9, "casa_sionista": 2.6}}, {"data": "2026-04-30", "istituto": "Lazar · Panel4All", "testata": "Maariv", "seggi": {"likud": 26, "byachad": 28, "otzma": 9, "shas": 8, "utj": 7, "beitenu": 8, "raam": 5, "hadash_taal": 5, "democratici": 10, "yashar": 14}, "sotto": {"sionismo_rel": 1.5, "blue_white": 1.4, "balad": 1.4, "casa_sionista": 2.8}, "campione": 501}, {"data": "2026-04-30", "istituto": "Yossi Taktika", "testata": "Zman Israel", "seggi": {"likud": 26, "byachad": 28, "otzma": 7, "shas": 9, "utj": 8, "beitenu": 10, "raam": 5, "hadash_taal": 4, "democratici": 8, "yashar": 15}, "campione": 500}, {"data": "2026-05-07", "istituto": "Direct Polls", "testata": "Canale 14", "seggi": {"likud": 34, "byachad": 16, "sionismo_rel": 5, "otzma": 8, "shas": 10, "utj": 8, "beitenu": 8, "raam": 5, "hadash_taal": 5, "democratici": 8, "yashar": 13}, "sotto": {"blue_white": 1.8, "balad": 2.1}, "campione": 721, "casa": 1}, {"data": "2026-05-07", "istituto": "Lazar · Panel4All", "testata": "Maariv", "seggi": {"likud": 26, "byachad": 26, "otzma": 9, "shas": 8, "utj": 7, "beitenu": 9, "raam": 5, "hadash_taal": 5, "democratici": 10, "yashar": 15}, "sotto": {"sionismo_rel": 2.5, "blue_white": 1.9, "balad": 1.8, "casa_sionista": 2.6}, "campione": 503}, {"data": "2026-05-07", "istituto": "Midgam", "testata": "Canale 12", "seggi": {"likud": 25, "byachad": 25, "otzma": 9, "shas": 9, "utj": 8, "beitenu": 9, "raam": 5, "hadash_taal": 5, "democratici": 11, "yashar": 14}, "sotto": {"sionismo_rel": 2.9, "blue_white": 1.5, "balad": 0.8, "casa_sionista": 1.0}, "campione": 503}, {"data": "2026-05-07", "istituto": "Yossi Taktika", "testata": "Zman Israel", "seggi": {"likud": 26, "byachad": 26, "otzma": 7, "blue_white": 4, "shas": 9, "utj": 8, "beitenu": 9, "raam": 5, "hadash_taal": 4, "democratici": 8, "yashar": 14}, "campione": 500}, {"data": "2026-05-12", "istituto": "Kantar", "testata": "Kan 11", "seggi": {"likud": 26, "byachad": 25, "otzma": 9, "shas": 9, "utj": 7, "beitenu": 9, "raam": 5, "hadash_taal": 5, "democratici": 10, "yashar": 15}, "campione": 557}, {"data": "2026-05-13", "istituto": "Kantar", "testata": "Israel Hayom", "seggi": {"likud": 26, "byachad": 24, "otzma": 9, "shas": 9, "utj": 7, "beitenu": 8, "raam": 5, "hadash_taal": 6, "democratici": 10, "yashar": 16}, "sotto": {"sionismo_rel": 2.9, "blue_white": 2.7, "balad": 1.8, "casa_sionista": 3.0}}, {"data": "2026-05-13", "istituto": "Lazar · Panel4All", "testata": "Maariv", "seggi": {"likud": 25, "byachad": 26, "otzma": 8, "shas": 9, "utj": 7, "beitenu": 9, "raam": 5, "hadash_taal": 5, "democratici": 10, "yashar": 16}, "sotto": {"sionismo_rel": 2.1, "blue_white": 2.1, "balad": 1.4, "casa_sionista": 2.6}, "campione": 502}, {"data": "2026-05-13", "istituto": "Maagar Mochot", "testata": "Canale 13", "seggi": {"likud": 25, "byachad": 26, "sionismo_rel": 4, "otzma": 10, "shas": 10, "utj": 7, "beitenu": 7, "raam": 5, "hadash_taal": 5, "democratici": 9, "yashar": 12}}, {"data": "2026-05-14", "istituto": "Direct Polls", "testata": "Canale 14", "seggi": {"likud": 33, "byachad": 16, "sionismo_rel": 5, "otzma": 8, "shas": 10, "utj": 7, "beitenu": 7, "raam": 6, "hadash_taal": 5, "democratici": 9, "yashar": 14}, "sotto": {"blue_white": 2.3, "balad": 2.1}, "campione": 436, "casa": 1}, {"data": "2026-05-14", "istituto": "Midgam", "testata": "Canale 12", "seggi": {"likud": 26, "byachad": 24, "otzma": 9, "shas": 9, "utj": 8, "beitenu": 9, "raam": 5, "hadash_taal": 5, "democratici": 10, "yashar": 15}, "sotto": {"sionismo_rel": 2.8, "blue_white": 2.7, "balad": 1.9, "casa_sionista": 1.0}, "campione": 506}, {"data": "2026-05-14", "istituto": "Yossi Taktika", "testata": "Zman Israel", "seggi": {"likud": 24, "byachad": 24, "sionismo_rel": 4, "otzma": 8, "shas": 9, "utj": 8, "beitenu": 10, "raam": 6, "hadash_taal": 4, "democratici": 8, "yashar": 15}, "campione": 500}, {"data": "2026-05-19", "istituto": "Direct Polls", "testata": "i24NEWS", "seggi": {"likud": 30, "byachad": 15, "sionismo_rel": 4, "otzma": 8, "shas": 10, "utj": 8, "beitenu": 8, "raam": 6, "hadash_taal": 5, "democratici": 9, "yashar": 17}, "sotto": {"blue_white": 0.9, "balad": 1.8, "casa_sionista": 0.9}, "campione": 546, "casa": 1}, {"data": "2026-05-20", "istituto": "Kantar", "testata": "Kan 11", "seggi": {"likud": 27, "byachad": 23, "otzma": 9, "shas": 9, "utj": 8, "beitenu": 8, "raam": 5, "hadash_taal": 5, "democratici": 10, "yashar": 16}, "campione": 551}, {"data": "2026-05-20", "istituto": "Lazar · Panel4All", "testata": "Maariv", "seggi": {"likud": 24, "byachad": 25, "sionismo_rel": 4, "otzma": 8, "shas": 8, "utj": 7, "beitenu": 9, "raam": 5, "hadash_taal": 5, "democratici": 10, "yashar": 15}, "sotto": {"blue_white": 1.5, "balad": 1.5, "casa_sionista": 1.4}, "campione": 500}, {"data": "2026-05-20", "istituto": "Midgam", "testata": "Canale 12", "seggi": {"likud": 25, "byachad": 23, "sionismo_rel": 4, "otzma": 7, "shas": 9, "utj": 8, "beitenu": 8, "raam": 5, "hadash_taal": 5, "democratici": 10, "yashar": 16}, "sotto": {"blue_white": 1.4, "balad": 1.4, "casa_sionista": 2.4}, "campione": 501}, {"data": "2026-05-20", "istituto": "Yossi Taktika", "testata": "Zman Israel", "seggi": {"likud": 24, "byachad": 23, "sionismo_rel": 4, "otzma": 6, "blue_white": 4, "shas": 9, "utj": 8, "beitenu": 9, "raam": 5, "hadash_taal": 4, "democratici": 8, "yashar": 16}, "campione": 500}, {"data": "2026-05-21", "istituto": "Lazar · Panel4All", "testata": "Maariv", "seggi": {"likud": 24, "byachad": 25, "sionismo_rel": 4, "otzma": 8, "shas": 8, "utj": 7, "beitenu": 9, "raam": 5, "hadash_taal": 5, "democratici": 10, "yashar": 15}}, {"data": "2026-05-25", "istituto": "Maagar Mochot", "testata": "Canale 13", "seggi": {"likud": 25, "byachad": 23, "sionismo_rel": 4, "otzma": 10, "shas": 10, "utj": 7, "beitenu": 8, "raam": 4, "hadash_taal": 6, "democratici": 9, "yashar": 14}}, {"data": "2026-05-27", "istituto": "Kantar", "testata": "Israel Hayom", "seggi": {"likud": 25, "byachad": 22, "sionismo_rel": 4, "otzma": 8, "shas": 9, "utj": 7, "beitenu": 9, "raam": 5, "hadash_taal": 5, "democratici": 9, "yashar": 17}, "sotto": {"blue_white": 2.2, "balad": 1.9, "casa_sionista": 2.5}}, {"data": "2026-05-28", "istituto": "Direct Polls", "testata": "Canale 14", "seggi": {"likud": 33, "byachad": 15, "sionismo_rel": 5, "otzma": 7, "shas": 11, "utj": 7, "beitenu": 8, "raam": 5, "hadash_taal": 5, "democratici": 9, "yashar": 15}, "sotto": {"blue_white": 1.2, "balad": 2.1}, "campione": 615, "casa": 1}, {"data": "2026-05-28", "istituto": "Midgam", "testata": "Canale 12", "seggi": {"likud": 23, "byachad": 22, "sionismo_rel": 4, "otzma": 8, "shas": 8, "utj": 8, "beitenu": 9, "raam": 5, "hadash_taal": 5, "democratici": 11, "yashar": 17}, "sotto": {"blue_white": 1.8, "balad": 1.0, "casa_sionista": 0.7}, "campione": 504}, {"data": "2026-05-28", "istituto": "Yossi Taktika", "testata": "Zman Israel", "seggi": {"likud": 24, "byachad": 22, "sionismo_rel": 4, "otzma": 6, "shas": 10, "utj": 8, "beitenu": 10, "raam": 5, "hadash_taal": 5, "democratici": 8, "yashar": 18}, "campione": 500}, {"data": "2026-06-03", "istituto": "Direct Polls", "testata": "i24NEWS", "seggi": {"likud": 30, "byachad": 14, "sionismo_rel": 5, "otzma": 8, "shas": 9, "utj": 8, "beitenu": 9, "raam": 6, "hadash_taal": 5, "democratici": 10, "yashar": 16}, "sotto": {"blue_white": 1.4, "balad": 2.5, "casa_sionista": 0.8}, "campione": 515, "casa": 1}, {"data": "2026-06-04", "istituto": "Kantar", "testata": "Kan 11", "seggi": {"likud": 24, "byachad": 23, "sionismo_rel": 4, "otzma": 10, "shas": 8, "utj": 7, "beitenu": 8, "raam": 4, "hadash_taal": 6, "democratici": 9, "yashar": 17}, "sotto": {"blue_white": 2.3, "balad": 1.5, "casa_sionista": 2.1}, "campione": 551}, {"data": "2026-06-04", "istituto": "Lazar · Panel4All", "testata": "Maariv", "seggi": {"likud": 25, "byachad": 23, "otzma": 9, "shas": 9, "utj": 7, "beitenu": 10, "raam": 4, "hadash_taal": 6, "democratici": 10, "yashar": 17}, "sotto": {"sionismo_rel": 2.6, "blue_white": 2.2, "balad": 1.8, "casa_sionista": 1.7}, "campione": 500}, {"data": "2026-06-04", "istituto": "Midgam", "testata": "Canale 12", "seggi": {"likud": 23, "byachad": 21, "sionismo_rel": 4, "otzma": 8, "shas": 9, "utj": 7, "beitenu": 9, "raam": 5, "hadash_taal": 5, "democratici": 10, "yashar": 19}, "sotto": {"blue_white": 1.8, "balad": 0.8, "casa_sionista": 1.3}, "campione": 505}, {"data": "2026-06-04", "istituto": "Yossi Taktika", "testata": "Zman Israel", "seggi": {"likud": 23, "byachad": 21, "sionismo_rel": 4, "otzma": 6, "blue_white": 4, "shas": 9, "utj": 8, "beitenu": 10, "raam": 4, "hadash_taal": 4, "democratici": 8, "yashar": 19}, "campione": 500}, {"data": "2026-06-05", "istituto": "Direct Polls", "testata": "Canale 14", "seggi": {"likud": 32, "byachad": 14, "sionismo_rel": 5, "otzma": 9, "shas": 10, "utj": 7, "beitenu": 8, "raam": 5, "hadash_taal": 5, "democratici": 9, "yashar": 16}, "sotto": {"blue_white": 1.3, "balad": 2.0}, "casa": 1}, {"data": "2026-06-11", "istituto": "Direct Polls", "testata": "Canale 14", "seggi": {"likud": 33, "byachad": 13, "sionismo_rel": 5, "otzma": 8, "shas": 10, "utj": 7, "beitenu": 8, "raam": 5, "hadash_taal": 6, "democratici": 9, "yashar": 16}, "sotto": {"blue_white": 0.8}, "campione": 771, "casa": 1}, {"data": "2026-06-11", "istituto": "Kantar", "testata": "Israel Hayom", "seggi": {"likud": 24, "byachad": 19, "sionismo_rel": 4, "otzma": 9, "shas": 9, "utj": 7, "beitenu": 9, "raam": 4, "hadash_taal": 6, "democratici": 9, "yashar": 20}, "sotto": {"blue_white": 2.2, "balad": 1.8, "casa_sionista": 2.5}}, {"data": "2026-06-11", "istituto": "Midgam", "testata": "Canale 12", "seggi": {"likud": 22, "byachad": 20, "sionismo_rel": 4, "otzma": 9, "shas": 9, "utj": 7, "beitenu": 8, "raam": 5, "hadash_taal": 5, "democratici": 11, "yashar": 20}, "sotto": {"blue_white": 0.7, "balad": 1.1, "casa_sionista": 1.6}, "campione": 501}, {"data": "2026-06-11", "istituto": "Yossi Taktika", "testata": "Zman Israel", "seggi": {"likud": 24, "byachad": 21, "otzma": 8, "shas": 10, "utj": 8, "beitenu": 10, "raam": 5, "hadash_taal": 5, "democratici": 8, "yashar": 21}, "campione": 500}, {"data": "2026-06-16", "istituto": "Direct Polls", "testata": "i24NEWS", "seggi": {"likud": 28, "byachad": 12, "sionismo_rel": 4, "otzma": 9, "shas": 9, "utj": 8, "beitenu": 9, "raam": 5, "hadash_taal": 7, "democratici": 11, "yashar": 18}, "casa": 1}, {"data": "2026-06-16", "istituto": "Kantar", "testata": "Kan 11", "seggi": {"likud": 23, "byachad": 17, "sionismo_rel": 4, "otzma": 9, "shas": 9, "utj": 7, "beitenu": 10, "raam": 4, "hadash_taal": 7, "democratici": 9, "yashar": 21}, "sotto": {"blue_white": 1.6, "balad": 1.5, "casa_sionista": 2.6}, "campione": 555}, {"data": "2026-06-17", "istituto": "Hamidgam Project", "testata": "Canale 13", "seggi": {"likud": 22, "byachad": 17, "sionismo_rel": 4, "otzma": 8, "shas": 9, "utj": 8, "beitenu": 11, "raam": 4, "hadash_taal": 6, "democratici": 11, "yashar": 20}, "sotto": {"blue_white": 2.0, "balad": 2.4, "casa_sionista": 3.0}}, {"data": "2026-06-18", "istituto": "Direct Polls", "testata": "Canale 14", "seggi": {"likud": 33, "byachad": 10, "sionismo_rel": 4, "otzma": 7, "shas": 10, "utj": 8, "beitenu": 8, "raam": 5, "hadash_taal": 6, "democratici": 9, "yashar": 20}, "sotto": {"blue_white": 1.8}, "campione": 1552, "casa": 1}, {"data": "2026-06-18", "istituto": "Lazar · Panel4All", "testata": "Maariv", "seggi": {"likud": 21, "byachad": 20, "sionismo_rel": 4, "otzma": 8, "shas": 9, "utj": 7, "beitenu": 10, "raam": 4, "hadash_taal": 6, "democratici": 10, "yashar": 21}, "sotto": {"blue_white": 1.7, "balad": 1.8, "casa_sionista": 1.2}, "campione": 501}, {"data": "2026-06-18", "istituto": "Midgam", "testata": "Canale 12", "seggi": {"likud": 22, "byachad": 19, "sionismo_rel": 4, "otzma": 9, "shas": 9, "utj": 7, "beitenu": 9, "raam": 5, "hadash_taal": 5, "democratici": 10, "yashar": 21}, "sotto": {"blue_white": 1.9, "balad": 1.7, "casa_sionista": 1.9}}, {"data": "2026-06-18", "istituto": "Yossi Taktika", "testata": "Zman Israel", "seggi": {"likud": 23, "byachad": 19, "otzma": 9, "shas": 10, "utj": 8, "beitenu": 10, "raam": 5, "hadash_taal": 5, "democratici": 8, "yashar": 23}, "campione": 500}, {"data": "2026-06-24", "istituto": "Hamidgam Project", "testata": "Canale 13", "seggi": {"likud": 23, "byachad": 15, "sionismo_rel": 5, "otzma": 9, "shas": 8, "utj": 8, "beitenu": 12, "raam": 4, "hadash_taal": 6, "democratici": 10, "yashar": 20}, "sotto": {"blue_white": 1.8, "balad": 1.5, "casa_sionista": 1.3}}, {"data": "2026-06-24", "istituto": "Kantar", "testata": "Kan 11", "seggi": {"likud": 24, "byachad": 16, "sionismo_rel": 5, "otzma": 9, "shas": 8, "utj": 7, "beitenu": 10, "raam": 4, "hadash_taal": 6, "democratici": 9, "yashar": 22}, "sotto": {"blue_white": 2.2, "balad": 1.4, "casa_sionista": 2.4}, "campione": 553}, {"data": "2026-06-25", "istituto": "Direct Polls", "testata": "Canale 14", "seggi": {"likud": 33, "byachad": 9, "sionismo_rel": 4, "otzma": 7, "shas": 11, "utj": 8, "beitenu": 9, "raam": 5, "hadash_taal": 5, "democratici": 9, "yashar": 20}, "sotto": {"blue_white": 1.8}, "campione": 654, "casa": 1}, {"data": "2026-06-25", "istituto": "Direct Polls", "testata": "i24NEWS", "seggi": {"likud": 27, "byachad": 11, "sionismo_rel": 5, "otzma": 8, "shas": 9, "utj": 8, "beitenu": 10, "raam": 5, "hadash_taal": 7, "democratici": 10, "yashar": 20}, "sotto": {"blue_white": 1.2, "casa_sionista": 1.7}, "campione": 530, "casa": 1}, {"data": "2026-06-25", "istituto": "Kantar", "testata": "Israel Hayom", "seggi": {"likud": 24, "byachad": 16, "sionismo_rel": 4, "otzma": 9, "shas": 8, "utj": 8, "beitenu": 9, "raam": 4, "hadash_taal": 7, "democratici": 10, "yashar": 21}, "sotto": {"blue_white": 1.8, "balad": 1.7, "casa_sionista": 2.7}}, {"data": "2026-06-25", "istituto": "Lazar · Panel4All", "testata": "Maariv", "seggi": {"likud": 22, "byachad": 18, "sionismo_rel": 4, "otzma": 9, "shas": 8, "utj": 7, "beitenu": 11, "raam": 4, "hadash_taal": 6, "democratici": 10, "yashar": 21}, "sotto": {"blue_white": 1.7, "balad": 1.6, "casa_sionista": 1.2}, "campione": 500}, {"data": "2026-06-25", "istituto": "Midgam", "testata": "Canale 12", "seggi": {"likud": 23, "byachad": 18, "sionismo_rel": 4, "otzma": 9, "shas": 9, "utj": 7, "beitenu": 9, "raam": 4, "hadash_taal": 6, "democratici": 10, "yashar": 21}, "sotto": {"blue_white": 1.8, "balad": 1.7, "casa_sionista": 1.6}, "campione": 504}, {"data": "2026-06-25", "istituto": "Yossi Taktika", "testata": "Zman Israel", "seggi": {"likud": 21, "byachad": 17, "sionismo_rel": 4, "otzma": 8, "blue_white": 4, "shas": 10, "utj": 7, "beitenu": 11, "raam": 4, "hadash_taal": 4, "democratici": 7, "yashar": 23}, "campione": 500}, {"data": "2026-06-29", "istituto": "Midgam", "testata": "Canale 12", "seggi": {"likud": 24, "byachad": 17, "sionismo_rel": 4, "otzma": 8, "shas": 9, "utj": 7, "beitenu": 9, "raam": 5, "hadash_taal": 5, "democratici": 10, "yashar": 22}, "sotto": {"blue_white": 2.5, "balad": 1.4, "casa_sionista": 2.2}}, {"data": "2026-06-30", "istituto": "Direct Polls", "testata": "i24NEWS", "seggi": {"likud": 29, "byachad": 11, "sionismo_rel": 4, "otzma": 8, "shas": 9, "utj": 8, "beitenu": 9, "raam": 5, "hadash_taal": 7, "democratici": 11, "yashar": 19}, "casa": 1}, {"data": "2026-07-01", "istituto": "Hamidgam Project", "testata": "Canale 13", "seggi": {"likud": 21, "byachad": 17, "sionismo_rel": 5, "otzma": 8, "shas": 9, "utj": 8, "beitenu": 10, "raam": 5, "hadash_taal": 6, "democratici": 11, "yashar": 20}, "sotto": {"blue_white": 1.8, "balad": 1.3, "casa_sionista": 1.4}, "campione": 1108}, {"data": "2026-07-02", "istituto": "Direct Polls", "testata": "Canale 14", "seggi": {"likud": 33, "byachad": 9, "sionismo_rel": 5, "otzma": 7, "shas": 11, "utj": 7, "beitenu": 8, "raam": 5, "hadash_taal": 6, "democratici": 9, "yashar": 20}, "sotto": {"blue_white": 1.9}, "casa": 1}, {"data": "2026-07-02", "istituto": "Lazar · Panel4All", "testata": "Maariv", "seggi": {"likud": 21, "byachad": 19, "sionismo_rel": 5, "otzma": 8, "shas": 8, "utj": 8, "beitenu": 10, "raam": 5, "hadash_taal": 6, "democratici": 10, "yashar": 20}, "sotto": {"blue_white": 0.8, "balad": 1.6, "casa_sionista": 1.4}, "campione": 606}, {"data": "2026-07-02", "istituto": "Yossi Taktika", "testata": "Zman Israel", "seggi": {"likud": 22, "byachad": 16, "sionismo_rel": 5, "otzma": 8, "shas": 10, "utj": 8, "beitenu": 11, "raam": 4, "hadash_taal": 5, "democratici": 8, "yashar": 23}, "campione": 500}, {"data": "2026-07-05", "istituto": "Kantar", "testata": "Kan 11", "seggi": {"likud": 23, "byachad": 16, "sionismo_rel": 5, "otzma": 9, "shas": 8, "utj": 8, "beitenu": 9, "raam": 4, "hadash_taal": 6, "democratici": 9, "yashar": 23}, "sotto": {"blue_white": 1.9, "casa_sionista": 2.3}, "campione": 553}, {"data": "2026-07-06", "istituto": "Midgam", "testata": "Canale 12", "seggi": {"likud": 23, "byachad": 16, "sionismo_rel": 4, "otzma": 9, "shas": 8, "utj": 8, "beitenu": 9, "raam": 4, "hadash_taal": 6, "democratici": 10, "yashar": 23}, "sotto": {"blue_white": 1.0, "balad": 0.7, "casa_sionista": 1.0}, "campione": 503}, {"data": "2026-07-08", "istituto": "Hamidgam Project", "testata": "Canale 13", "seggi": {"likud": 22, "byachad": 15, "sionismo_rel": 5, "otzma": 8, "shas": 8, "utj": 8, "beitenu": 10, "raam": 5, "hadash_taal": 6, "democratici": 10, "yashar": 23}, "sotto": {"blue_white": 2.1, "casa_sionista": 2.2}}, {"data": "2026-07-09", "istituto": "Direct Polls", "testata": "Canale 14", "seggi": {"likud": 33, "byachad": 8, "sionismo_rel": 5, "otzma": 7, "shas": 10, "utj": 8, "beitenu": 8, "raam": 5, "lista_araba": 5, "democratici": 10, "yashar": 21}, "sotto": {"blue_white": 0.8, "casa_sionista": 1.6}, "campione": 752, "casa": 1}, {"data": "2026-07-09", "istituto": "Direct Polls", "testata": "i24NEWS", "seggi": {"likud": 29, "byachad": 9, "sionismo_rel": 5, "otzma": 8, "shas": 9, "utj": 8, "beitenu": 9, "raam": 5, "lista_araba": 7, "democratici": 10, "yashar": 21}, "campione": 527, "casa": 1}, {"data": "2026-07-09", "istituto": "Kantar", "testata": "Israel Hayom", "seggi": {"likud": 24, "byachad": 14, "sionismo_rel": 4, "otzma": 8, "shas": 8, "utj": 9, "beitenu": 8, "raam": 5, "hadash_taal": 5, "democratici": 8, "yashar": 23, "casa_sionista": 4}, "sotto": {"blue_white": 2.1, "balad": 2.2}}, {"data": "2026-07-09", "istituto": "Lazar · Panel4All", "testata": "Maariv", "seggi": {"likud": 21, "byachad": 18, "sionismo_rel": 4, "otzma": 8, "shas": 8, "utj": 8, "beitenu": 10, "raam": 5, "hadash_taal": 6, "democratici": 10, "yashar": 22}, "sotto": {"blue_white": 1.4, "balad": 1.8, "casa_sionista": 2.9}, "campione": 500}, {"data": "2026-07-12", "istituto": "Kantar", "testata": "Kan 11", "seggi": {"likud": 23, "byachad": 15, "sionismo_rel": 5, "otzma": 8, "shas": 8, "utj": 8, "beitenu": 10, "raam": 5, "hadash_taal": 5, "democratici": 9, "yashar": 24}, "sotto": {"blue_white": 2.7, "balad": 2.0, "casa_sionista": 3.1}, "campione": 551}, {"data": "2026-07-13", "istituto": "Midgam", "testata": "Canale 12", "seggi": {"likud": 22, "byachad": 16, "sionismo_rel": 5, "otzma": 8, "shas": 8, "utj": 8, "beitenu": 10, "raam": 5, "hadash_taal": 5, "democratici": 10, "yashar": 23}, "sotto": {"blue_white": 1.4, "balad": 0.9, "casa_sionista": 2.9}, "campione": 509}, {"data": "2026-07-15", "istituto": "Hamidgam Project", "testata": "Canale 13", "seggi": {"likud": 22, "byachad": 15, "sionismo_rel": 6, "otzma": 7, "shas": 7, "utj": 8, "beitenu": 10, "raam": 4, "hadash_taal": 5, "democratici": 11, "yashar": 21, "casa_sionista": 4}, "sotto": {"blue_white": 0.8, "balad": 2.0}}, {"data": "2026-07-16", "istituto": "Direct Polls", "testata": "Canale 14", "seggi": {"likud": 32, "byachad": 8, "sionismo_rel": 6, "otzma": 7, "shas": 10, "utj": 8, "beitenu": 7, "raam": 5, "hadash_taal": 5, "democratici": 11, "yashar": 21}, "sotto": {"blue_white": 0.9, "balad": 2.1, "casa_sionista": 2.5}, "casa": 1}, {"data": "2026-07-16", "istituto": "Direct Polls", "testata": "i24NEWS", "seggi": {"likud": 28, "byachad": 9, "sionismo_rel": 6, "otzma": 7, "shas": 9, "utj": 8, "beitenu": 8, "raam": 5, "lista_araba": 7, "democratici": 11, "yashar": 22}, "sotto": {"blue_white": 1.9, "casa_sionista": 2.1}, "campione": 550, "casa": 1}, {"data": "2026-07-16", "istituto": "Yossi Taktika", "testata": "Zman Israel", "seggi": {"likud": 21, "byachad": 15, "sionismo_rel": 5, "otzma": 7, "blue_white": 4, "shas": 9, "utj": 8, "beitenu": 10, "raam": 4, "lista_araba": 6, "democratici": 8, "yashar": 23}, "sotto": {"casa_sionista": 2.4}, "campione": 500}, {"data": "2026-07-17", "istituto": "Lazar · Panel4All", "testata": "Maariv", "seggi": {"likud": 22, "byachad": 16, "sionismo_rel": 4, "otzma": 7, "shas": 7, "utj": 8, "beitenu": 9, "raam": 5, "hadash_taal": 5, "democratici": 11, "yashar": 22, "casa_sionista": 4}, "sotto": {"blue_white": 1.7, "balad": 2.0}, "campione": 500}, {"data": "2026-07-19", "istituto": "Kantar", "testata": "Kan 11", "seggi": {"likud": 21, "byachad": 15, "sionismo_rel": 4, "otzma": 10, "shas": 8, "utj": 8, "beitenu": 9, "raam": 5, "hadash_taal": 5, "democratici": 9, "yashar": 22, "casa_sionista": 4}, "sotto": {"blue_white": 2.2, "balad": 1.9}, "campione": 551}, {"data": "2026-07-20", "istituto": "Midgam", "testata": "Canale 12", "seggi": {"likud": 23, "byachad": 15, "sionismo_rel": 4, "otzma": 8, "shas": 8, "utj": 8, "beitenu": 9, "raam": 5, "hadash_taal": 5, "democratici": 11, "yashar": 24}, "sotto": {"blue_white": 1.3, "balad": 1.7, "casa_sionista": 2.7}, "campione": 507}, {"data": "2026-07-23", "istituto": "Lazar · Panel4All", "testata": "Maariv", "seggi": {"likud": 20, "byachad": 17, "sionismo_rel": 5, "otzma": 8, "shas": 8, "utj": 8, "beitenu": 10, "raam": 5, "hadash_taal": 5, "democratici": 11, "yashar": 23}, "sotto": {"blue_white": 1.6, "balad": 1.7, "casa_sionista": 2.9}, "campione": 500}, {"data": "2026-07-23", "istituto": "Yossi Taktika", "testata": "Zman Israel", "seggi": {"likud": 21, "byachad": 13, "sionismo_rel": 5, "otzma": 8, "shas": 9, "utj": 8, "beitenu": 10, "raam": 5, "lista_araba": 6, "democratici": 10, "yashar": 25}, "sotto": {"blue_white": 2.0, "casa_sionista": 2.6}, "campione": 500}, {"data": "2026-07-26", "istituto": "Kantar", "testata": "Kan 11", "seggi": {"likud": 22, "byachad": 14, "sionismo_rel": 5, "otzma": 9, "shas": 8, "utj": 8, "beitenu": 9, "raam": 5, "hadash_taal": 5, "democratici": 10, "yashar": 21, "casa_sionista": 4}, "sotto": {"blue_white": 2.6, "balad": 2.1}, "campione": 551}, {"data": "2026-07-27", "istituto": "Direct Polls", "testata": "i24NEWS", "seggi": {"likud": 29, "byachad": 9, "sionismo_rel": 5, "otzma": 8, "shas": 9, "utj": 8, "beitenu": 9, "raam": 5, "lista_araba": 7, "democratici": 10, "yashar": 21}, "campione": 525, "casa": 1}, {"data": "2026-07-27", "istituto": "Midgam", "testata": "Canale 12", "seggi": {"likud": 22, "byachad": 14, "sionismo_rel": 4, "otzma": 8, "shas": 8, "utj": 8, "beitenu": 9, "raam": 5, "hadash_taal": 5, "democratici": 10, "yashar": 23, "casa_sionista": 4}, "sotto": {"blue_white": 1.6, "balad": 1.2}, "campione": 509}, {"data": "2026-07-29", "istituto": "Direct Polls", "testata": "Canale 14", "seggi": {"likud": 32, "byachad": 7, "sionismo_rel": 5, "otzma": 7, "shas": 10, "utj": 8, "beitenu": 8, "raam": 5, "hadash_taal": 6, "democratici": 10, "yashar": 22}, "sotto": {"blue_white": 1.1, "balad": 2.1, "casa_sionista": 2.1}, "campione": 539, "casa": 1}, {"data": "2026-07-29", "istituto": "Hamidgam Project", "testata": "Canale 13", "seggi": {"likud": 23, "byachad": 13, "sionismo_rel": 4, "otzma": 8, "shas": 7, "utj": 9, "beitenu": 10, "raam": 5, "hadash_taal": 4, "democratici": 9, "yashar": 23, "casa_sionista": 5}, "sotto": {"blue_white": 2.3, "balad": 1.8}, "campione": 956}, {"data": "2026-07-30", "istituto": "Lazar · Panel4All", "testata": "Maariv", "seggi": {"likud": 22, "byachad": 15, "sionismo_rel": 5, "otzma": 7, "shas": 7, "utj": 8, "beitenu": 10, "raam": 5, "hadash_taal": 5, "democratici": 9, "yashar": 23, "casa_sionista": 4}, "sotto": {"blue_white": 1.2, "balad": 1.8}, "campione": 501}, {"data": "2026-07-30", "istituto": "Yossi Taktika", "testata": "Zman Israel", "seggi": {"likud": 20, "byachad": 13, "sionismo_rel": 6, "otzma": 7, "blue_white": 4, "shas": 8, "utj": 8, "beitenu": 10, "raam": 5, "lista_araba": 6, "democratici": 8, "yashar": 21, "casa_sionista": 4}, "campione": 500}, {"data": "2026-08-02", "istituto": "Kantar", "testata": "Kan 11", "seggi": {"likud": 23, "byachad": 13, "sionismo_rel": 4, "otzma": 9, "shas": 8, "utj": 8, "beitenu": 9, "raam": 5, "hadash_taal": 6, "democratici": 8, "yashar": 23, "casa_sionista": 4}, "sotto": {"blue_white": 1.4, "balad": 2.2}, "campione": 551}, {"data": "2026-08-03", "istituto": "Midgam", "testata": "Canale 12", "seggi": {"likud": 23, "byachad": 14, "sionismo_rel": 5, "otzma": 7, "shas": 7, "utj": 8, "beitenu": 9, "raam": 5, "hadash_taal": 5, "democratici": 10, "yashar": 23, "casa_sionista": 4}, "sotto": {"blue_white": 1.4, "balad": 1.0}, "campione": 503}, {"data": "2026-08-04", "istituto": "Direct Polls", "testata": "Canale 14", "seggi": {"likud": 31, "byachad": 8, "sionismo_rel": 6, "otzma": 6, "shas": 11, "utj": 8, "beitenu": 8, "raam": 5, "hadash_taal": 5, "democratici": 10, "yashar": 22}, "sotto": {"blue_white": 0.5, "balad": 2.9, "casa_sionista": 1.9}, "campione": 588, "casa": 1}, {"data": "2026-08-04", "istituto": "Maagar Mochot", "testata": "Canale 16", "seggi": {"likud": 21, "byachad": 14, "sionismo_rel": 4, "otzma": 9, "shas": 9, "utj": 8, "beitenu": 9, "raam": 4, "hadash_taal": 5, "democratici": 11, "yashar": 22, "casa_sionista": 4}}, {"data": "2026-08-05", "istituto": "Hamidgam Project", "testata": "Canale 13", "seggi": {"likud": 22, "byachad": 13, "sionismo_rel": 5, "otzma": 9, "shas": 7, "utj": 8, "beitenu": 11, "raam": 5, "hadash_taal": 6, "democratici": 11, "yashar": 23}, "sotto": {"blue_white": 1.4, "balad": 1.2, "casa_sionista": 3.0}, "campione": 961}, {"data": "2026-08-06", "istituto": "Lazar · Panel4All", "testata": "Maariv", "seggi": {"likud": 22, "byachad": 15, "sionismo_rel": 4, "otzma": 8, "shas": 7, "utj": 8, "beitenu": 10, "raam": 5, "hadash_taal": 5, "democratici": 9, "yashar": 23, "casa_sionista": 4}, "sotto": {"blue_white": 1.2, "balad": 1.4}, "campione": 502}, {"data": "2026-08-06", "istituto": "Yossi Taktika", "testata": "Zman Israel", "seggi": {"likud": 21, "byachad": 15, "sionismo_rel": 6, "otzma": 8, "shas": 8, "utj": 8, "beitenu": 11, "raam": 6, "lista_araba": 6, "democratici": 8, "yashar": 23}, "campione": 500}, {"data": "2026-08-09", "istituto": "Direct Polls", "testata": "Canale 14", "seggi": {"likud": 33, "byachad": 7, "sionismo_rel": 6, "otzma": 6, "shas": 10, "utj": 7, "beitenu": 8, "raam": 5, "hadash_taal": 5, "democratici": 10, "yashar": 23}, "sotto": {"blue_white": 0.4, "balad": 2.3, "casa_sionista": 1.2, "unity_erdan": 0.9}, "campione": 741, "casa": 1}, {"data": "2026-08-09", "istituto": "Kantar", "testata": "Kan 11", "seggi": {"likud": 24, "byachad": 13, "sionismo_rel": 5, "otzma": 8, "shas": 8, "utj": 8, "beitenu": 10, "raam": 6, "hadash_taal": 5, "democratici": 10, "yashar": 23}, "sotto": {"blue_white": 1.3, "balad": 2.1, "casa_sionista": 3.0, "unity_erdan": 1.9}, "campione": 551}, {"data": "2026-08-10", "istituto": "Midgam", "testata": "Canale 12", "seggi": {"likud": 22, "byachad": 15, "sionismo_rel": 5, "otzma": 8, "shas": 7, "utj": 8, "beitenu": 10, "raam": 5, "hadash_taal": 5, "democratici": 11, "yashar": 24}, "sotto": {"blue_white": 0.8, "balad": 1.6, "casa_sionista": 2.7, "unity_erdan": 1.3}, "campione": 502}, {"data": "2026-08-12", "istituto": "Hamidgam Project", "testata": "Canale 13", "seggi": {"likud": 21, "byachad": 12, "sionismo_rel": 5, "otzma": 8, "shas": 7, "utj": 8, "beitenu": 10, "raam": 5, "hadash_taal": 6, "democratici": 11, "yashar": 23, "casa_sionista": 4}, "sotto": {"blue_white": 1.0, "balad": 1.2, "unity_erdan": 1.0}, "campione": 1240}, {"data": "2026-08-13", "istituto": "Direct Polls", "testata": "i24NEWS", "seggi": {"likud": 30, "byachad": 8, "sionismo_rel": 5, "otzma": 7, "shas": 8, "utj": 9, "beitenu": 9, "raam": 5, "hadash_taal": 6, "democratici": 10, "yashar": 23}, "sotto": {"blue_white": 0.9, "balad": 1.1, "casa_sionista": 2.0, "unity_erdan": 1.1}, "campione": 512, "casa": 1}, {"data": "2026-08-13", "istituto": "Lazar · Panel4All", "testata": "Maariv", "seggi": {"likud": 21, "byachad": 14, "sionismo_rel": 4, "otzma": 8, "shas": 7, "utj": 8, "beitenu": 10, "raam": 5, "hadash_taal": 6, "democratici": 10, "yashar": 23, "casa_sionista": 4}, "sotto": {"blue_white": 1.9, "balad": 1.5, "unity_erdan": 1.9}, "campione": 506}, {"data": "2026-08-13", "istituto": "Yossi Taktika", "testata": "Zman Israel", "seggi": {"likud": 21, "byachad": 13, "sionismo_rel": 6, "otzma": 7, "shas": 8, "utj": 8, "beitenu": 11, "raam": 6, "lista_araba": 6, "democratici": 9, "yashar": 25}, "sotto": {"blue_white": 2.0, "casa_sionista": 3.0, "unity_erdan": 1.0}, "campione": 500}, {"data": "2026-08-16", "istituto": "Kantar", "testata": "Kan 11", "seggi": {"likud": 23, "byachad": 14, "sionismo_rel": 4, "otzma": 10, "shas": 7, "utj": 8, "beitenu": 10, "raam": 5, "hadash_taal": 6, "democratici": 10, "yashar": 23}, "sotto": {"blue_white": 1.4, "balad": 1.9, "casa_sionista": 3.0, "unity_erdan": 1.3}, "campione": 1103}, {"data": "2026-08-17", "istituto": "Midgam", "testata": "Canale 12", "seggi": {"likud": 22, "byachad": 15, "sionismo_rel": 5, "otzma": 8, "shas": 7, "utj": 8, "beitenu": 10, "raam": 5, "hadash_taal": 5, "democratici": 11, "yashar": 24}, "sotto": {"blue_white": 1.4, "balad": 1.8, "casa_sionista": 1.5, "unity_erdan": 1.7}, "campione": 501}, {"data": "2026-08-18", "istituto": "Direct Polls", "testata": "Canale 14", "seggi": {"likud": 32, "byachad": 6, "sionismo_rel": 8, "otzma": 6, "shas": 10, "utj": 7, "beitenu": 7, "raam": 5, "hadash_taal": 6, "democratici": 9, "yashar": 24}, "sotto": {"blue_white": 0.4, "balad": 2.1, "casa_sionista": 1.2, "unity_erdan": 0.1}, "campione": 636, "casa": 1}, {"data": "2026-08-19", "istituto": "Kantar", "testata": "Kan 11", "seggi": {"likud": 23, "byachad": 14, "sionismo_rel": 5, "otzma": 9, "shas": 7, "utj": 8, "beitenu": 9, "raam": 5, "hadash_taal": 6, "democratici": 10, "yashar": 24}, "sotto": {"blue_white": 1.4, "balad": 2.1, "casa_sionista": 2.9, "unity_erdan": 1.6}, "campione": 558}];
 
 var EVENTI=[
+ {data:"2026-01-22",testo:"Ra'am, Hadash-Ta'al e Balad si impegnano a ricostituire la Lista Unita"},
  {data:"2026-02-28",testo:"Inizio degli attacchi israelo-statunitensi contro l'Iran"},
  {data:"2026-03-02",testo:"Inizio della guerra in Libano"},
  {data:"2026-03-30",testo:"Approvato il bilancio: elezioni anticipate evitate"},
  {data:"2026-04-16",testo:"Entra in vigore il cessate il fuoco con il Libano"},
  {data:"2026-04-26",testo:"Bennett e Lapid fondono le liste in B'Yachad"},
  {data:"2026-05-13",testo:"Coalizione e opposizione depositano mozioni di scioglimento"},
+ {data:"2026-05-16",testo:"Hadash sceglie Yousef Jabareen come capolista"},
  {data:"2026-06-10",testo:"Hadash-Ta'al e Balad ricostituiscono la Lista Unita senza Ra'am"},
  {data:"2026-06-17",testo:"Memorandum di Islamabad: finisce la guerra con l'Iran"},
  {data:"2026-07-07",testo:"Hendel e Tropper corrono insieme: nasce Casa Sionista"},
@@ -2104,36 +2178,112 @@ function rAnalisi(){
   f(L.length)+' rilevazioni, assegna i seggi con il metodo Bader-Ofer ed esegue '+f(SIM)+' simulazioni per tenere '+
   'conto dell\'errore dei sondaggi.';
 }
+/* Sotto i 660 il riquadro vive dentro l'elenco, sotto la voce premuta. Sopra, sta al
+   suo posto in cima al riquadro del grafico. Sono due collocazioni dello STESSO
+   elemento, non due copie: il contenuto lo scrive rEvSel una volta sola. */
+function collocaEvSel(){
+ var el=$('k-evsel'), cr=$('k-crono'), casa=$('k-trendwrap');
+ if(!el||!cr||!casa) return;
+ var mob=(window.matchMedia&&window.matchMedia('(max-width:660px)').matches);
+ if(mob&&EVSEL){
+  var b=cr.querySelector('[data-ev="'+EVSEL+'"]');
+  if(b&&b.nextSibling!==el) cr.insertBefore(el,b.nextSibling);
+ } else if(el.parentNode===cr){
+  casa.parentNode.insertBefore(el,casa);
+ }
+}
 function rCrono(){
+ /* il riquadro può essere dentro l'elenco: va riportato a casa PRIMA di riscrivere
+    innerHTML, altrimenti sparisce insieme alle voci e il render successivo scrive in un
+    elemento staccato dal documento */
+ var _e=$('k-evsel'), _c=$('k-trendwrap');
+ if(_e&&_c&&_e.parentNode===$('k-crono')) _c.parentNode.insertBefore(_e,_c);
  var l=EVENTI.slice().sort(function(a,b){return a.data<b.data?-1:1;});
  $('k-crono').innerHTML=l.map(function(e,i){
-  return '<div data-ev="'+E(e.data)+'"'+(EVSEL===e.data?' class="sel"':'')+'><b>'+(i+1)+
-   '</b><span><em>'+dc(e.data)+'</em> '+E(e.testo)+'</span></div>';}).join('');
+  return '<button type="button" data-ev="'+E(e.data)+'" aria-pressed="'+(EVSEL===e.data)+'"><b>'+(i+1)+
+   '</b><span><em>'+dc(e.data)+'</em> '+E(e.testo)+'</span></button>';}).join('');
  rEvSel();
 }
-/* Cliccando un fatto della cronologia si legge sopra il grafico la proiezione
-   del modello a quella data, con lo scostamento rispetto a oggi. */
+/* Il valore delle tre linee a una data qualunque.
+   Fra due punti la serie è DISEGNATA come una retta, quindi il valore interpolato è
+   esattamente quello che il lettore legge sul grafico in quel punto: non è una seconda
+   strada verso lo stesso numero, è la stessa. Prima si agganciava l'ultimo punto <= data
+   e il riquadro si contraddiceva da solo — titolo «10.06», riga sotto «Proiezione del
+   modello al 05.06». Con il tratto acceso quello scarto diventerebbe visibile, perché il
+   tratto non partirebbe dal marcatore. */
+function serieAl(S,d){
+ var i,pre=null,post=null;
+ for(i=0;i<S.length;i++){ if(S[i].d<=d) pre=S[i]; if(S[i].d>=d&&!post) post=S[i]; }
+ if(!pre&&!post) return null;
+ if(!pre) return {g:post.g,o:post.o,a:post.a,n:post.n};
+ if(!post||post.d===pre.d) return {g:pre.g,o:pre.o,a:pre.a,n:pre.n};
+ var t=(+new Date(d)-+new Date(pre.d))/((+new Date(post.d)-+new Date(pre.d))||1);
+ return {g:pre.g+(post.g-pre.g)*t, o:pre.o+(post.o-pre.o)*t, a:pre.a+(post.a-pre.a)*t, n:pre.n};
+}
+/* La finestra dei 30 giorni dopo l'evento, tagliata all'ultimo dato disponibile.
+   Il conto è in UTC, e non è pignoleria: con setDate/getDate, che lavorano in ora
+   locale, il 2 marzo più trenta giorni scavalca il cambio dell'ora legale del 29 e
+   toIsoString riporta indietro di un'ora, cioè di un giorno — il riquadro annunciava
+   «Nei 29 giorni successivi». È la stessa famiglia del punto 12 delle cose da fare:
+   giorni di calendario contati come differenze di millisecondi. */
+function finestraEv(S,d){
+ var fi=new Date(d+'T00:00:00Z'); fi.setUTCDate(fi.getUTCDate()+30);
+ var fd=fi.toISOString().slice(0,10), ultimo=S[S.length-1].d;
+ var a=fd>ultimo?ultimo:fd;
+ return {da:d, a:a, tronca:fd>ultimo,
+   gg:Math.round((+new Date(a+'T00:00:00Z')-+new Date(d+'T00:00:00Z'))/86400000)};
+}
+/* Cliccando un fatto della cronologia il grafico isola quel momento: il tratto dei 30
+   giorni successivi resta acceso, il resto si attenua, e il riquadro dà la terna a quella
+   data più il movimento a fine finestra. Il movimento è un'OSSERVAZIONE, non un effetto:
+   il modello misura i sondaggi, non le cause, e la pagina non deve suggerirle. */
 var EVSEL=null;
+/* Sotto una certa lunghezza il tratto acceso non è un segno: è un puntino. La soglia è in
+   PIXEL REALI e si ricalcola a ogni render, perché la stessa finestra di 30 giorni vale
+   lunghezze diverse alle tre larghezze e si accorcia da sola mentre l'asse si allunga
+   verso il voto — 36,8px oggi a 380, ~25,7 il 27 ottobre a parità di larghezza.
+   Il valore lo calcola rTrend, che è l'unico posto dove la geometria del disegno esiste
+   davvero; il riquadro lo legge da qui per dire PERCHÉ il tratto non c'è. Un tratto che
+   sparisce senza spiegazione è un difetto, non una scelta — e le due strade le lega una
+   prova, come vuole la regola del progetto. */
+var TRATTO_MIN=10, TRATTO=null;
 function rEvSel(){
  var el=$('k-evsel'); if(!el) return;
- if(!EVSEL){el.className='evsel';el.innerHTML='';return;}
+ if(!EVSEL){el.className='evsel';el.innerHTML='';collocaEvSel();return;}
  var S=serieModello(), ev=null, i;
  for(i=0;i<EVENTI.length;i++) if(EVENTI[i].data===EVSEL) ev=EVENTI[i];
- var p=null;
- for(i=0;i<S.length;i++){ if(S[i].d<=EVSEL) p=S[i]; }
+ var p=serieAl(S,EVSEL);
  if(!p||!ev){el.className='evsel';el.innerHTML='';return;}
- var u=S[S.length-1];
- function d(a,b){var x=a-b;return x===0?'invariato':((x>0?'+':'')+f(x)+' rispetto a oggi');}
+ var fin=finestraEv(S,EVSEL), q=serieAl(S,fin.a);
+ /* Le soglie e i movimenti si calcolano sul numero ARROTONDATO, quello che il lettore
+    vede: «52» che diventa «54» deve dire +2, non +1,6. È la stessa regola già applicata
+    agli scarti dell'house effect. */
+ function ar(v){return Math.round(v);}
+ function mv(k){var x=ar(q[k])-ar(p[k]);return x===0?'invariato':(x>0?'+':'−')+f(Math.abs(x));}
+ var righe=[['coalizione','Blocco Netanyahu','g'],['opposizione','Opposizione sionista','o'],
+            ['arabo','Partiti arabi','a']];
  el.className='evsel on';
- el.innerHTML='<button class="x" data-ev="">chiudi</button>'+
+ el.innerHTML='<button type="button" class="x" data-ev="">chiudi</button>'+
   '<div class="ed"><em>'+dc(ev.data)+'</em> '+E(ev.testo)+'</div>'+
   '<div class="eb">'+
-   [['coalizione','Blocco Netanyahu',p.g,u.g],['opposizione','Opposizione sionista',p.o,u.o],
-    ['arabo','Partiti arabi',p.a,u.a]].map(function(x){
+   righe.map(function(x){
     return '<div><i style="background:'+BC(x[0])+'"></i><span>'+E(x[1])+'</span>'+
-     '<b>'+f(x[2])+'</b><s>'+E(d(x[2],x[3]))+'</s></div>';}).join('')+
-  '</div><p class="en">Proiezione del modello al '+dc(p.d)+', calcolata su '+f(p.n)+
-  ' rilevazioni disponibili quel giorno.</p>';
+     '<b>'+f(ar(p[x[2]]))+'</b></div>';}).join('')+
+  '</div>'+(fin.gg>0?'<p class="em2">'+(fin.gg===1?'Nel giorno successivo':'Nei '+f(fin.gg)+' giorni successivi')+': '+
+   righe.map(function(x){return E(x[1])+' '+mv(x[2]);}).join(' · ')+'.'+
+   (TRATTO&&TRATTO.da===EVSEL&&!TRATTO.mostrato?
+     ' <span class="nt2">Sul grafico il tratto non è disegnato: dopo questa data l\'archivio '+
+     /* la concordanza segue il numero: «un giorno solo, troppo poco» al singolare */
+     'copre '+(fin.gg===1?'un giorno solo, troppo poco':'appena '+f(fin.gg)+' giorni, troppo pochi')+
+     ' perché il segno si distingua.</span>':'')+'</p>':
+   '<p class="em2">Dopo questa data l\'archivio non ha ancora rilevazioni: non c\'è movimento '+
+   'da misurare, e sul grafico non c\'è tratto da accendere.</p>')+
+  '<p class="en">Proiezione del modello al '+dc(EVSEL)+', letta sulla linea fra i due '+
+  'punti che circondano quella data; alla data erano disponibili '+f(p.n)+' rilevazioni. '+
+  (fin.tronca?'La finestra si ferma all\'ultimo dato disponibile. ':'')+
+  '<b>È quello che è successo dopo, non l\'effetto di questo fatto</b>: il modello misura '+
+  'i sondaggi, non le cause.</p>';
+ collocaEvSel();
 }
 function rCalendario(){
  var oggi=new Date();
@@ -2644,7 +2794,12 @@ function rTrend(){
     l'SVG scala alla larghezza del contenitore, quindi un viewBox più stretto
     rende il testo proporzionalmente più grande. */
  var MOB=(window.matchMedia&&window.matchMedia('(max-width:660px)').matches);
- var W=MOB?520:900, H=MOB?310:300, Lm=MOB?28:34, Rm=MOB?54:76, T=MOB?34:30, B=MOB?32:34;
+ /* MOB governa la geometria del disegno (viewBox più stretto, caratteri più grandi).
+    STRATO è un'altra cosa: dice se i marcatori sono <button> in uno strato HTML sopra il
+    grafico — che è comodo ma costa corsie in verticale — o dischi dentro l'SVG. Fra 660 e
+    900 il disegno è quello desktop ma i marcatori restano nell'SVG. */
+ var STRATO=(window.matchMedia&&window.matchMedia('(min-width:900px)').matches);
+ var W=MOB?520:900, H0=MOB?310:300, Lm=MOB?28:34, Rm=MOB?54:76, T0=MOB?34:30, B=MOB?32:34;
  var FS=MOB?1.55:1;                       /* ingrandimento dei caratteri su mobile */
  var t0=+new Date(S[0].d),t1=+new Date(S[S.length-1].d);
  var vals=[];S.forEach(function(x){vals.push(x.g,x.o,x.a);});
@@ -2652,7 +2807,41 @@ function rTrend(){
  var lo=Math.min(38,Math.floor(Math.min.apply(null,vals)/4)*4);
  var hi=Math.max(64,Math.ceil(Math.max.apply(null,vals)/4)*4);
  function X(d){return Lm+(W-Lm-Rm)*((+new Date(d)-t0)/(t1-t0||1));}
+ /* Le corsie dei dischi si assegnano PRIMA di fissare T, perché è il numero di corsie a
+    dire quanto spazio serve sopra il grafico. Sotto i 660 i dischi restavano tutti su una
+    riga sola: sedici segni da 12,5px con passo medio 17,1 e minimo 2,4 — sette coppie
+    sovrapposte su quindici, che non è un segno ma una macchia. Non diventano bersagli
+    (il comando resta la voce di cronologia, larga quanto il contenitore): diventano
+    leggibili. Misurato a 380: con passo minimo 14px bastano DUE corsie; ne servirebbero
+    tre solo da 16px in su. */
+ var ORD=EVENTI.slice().sort(function(a,b){return a.data<b.data?-1:1;});
+ var LAR=($('k-trend')&&$('k-trend').clientWidth)||(MOB?326:1070);
+ /* il passo minimo si ragiona in PIXEL REALI e si converte in unità di viewBox: il
+    bersaglio dello strato è largo 30px, il disco nell'SVG 12,5 a 380 e 12 fra 660 e 900 */
+ var PASSO=(STRATO?36:(MOB?15:14))*W/LAR;
+ var DYVB=MOB?21:18;          /* passo fra corsie nell'SVG, in unità di viewBox */
+ var DYPX=32;                 /* passo fra corsie nello strato HTML, in pixel reali */
+ var ult=[], corsie=1;
+ ORD.forEach(function(e){
+  var xe=X(e.data);
+  if(xe<Lm-1||xe>W-Rm+1){e._c=-1;return;}
+  var c=0; while(c<3&&ult[c]!==undefined&&xe-ult[c]<PASSO) c++;
+  if(c>2) c=2;
+  e._c=c; ult[c]=xe; if(c+1>corsie) corsie=c+1;
+ });
+ /* con più di una corsia il margine superiore cresce, e con lui l'altezza: così l'area
+    del grafico resta la stessa e non è la proiezione a pagare le corsie */
+ var CRE=STRATO?0:(corsie-1)*DYVB, T=T0+CRE, H=H0+CRE;
  function Y(v){return T+(H-T-B)*(1-(v-lo)/(hi-lo));}
+ var ISO=EVSEL?finestraEv(S,EVSEL):null;
+ /* quanto sarebbe lungo il tratto, in pixel reali, con la geometria di QUESTO render */
+ TRATTO=null;
+ if(ISO){
+  var _lar=($('k-trend')&&$('k-trend').clientWidth)||(MOB?326:1070);
+  var _q=(W-Lm-Rm)*(_lar/W)/((t1-t0)||1);
+  var _px=(+new Date(ISO.a+'T00:00:00Z')-+new Date(ISO.da+'T00:00:00Z'))*_q;
+  TRATTO={da:ISO.da, px:+_px.toFixed(1), gg:ISO.gg, mostrato:_px>=TRATTO_MIN};
+ }
  var s='<svg viewBox="0 0 '+W+' '+H+'" role="img" aria-label="Proiezione del modello nel tempo">';
  for(var v=lo;v<=hi;v+=4){
   s+='<line x1="'+Lm+'" y1="'+Y(v).toFixed(1)+'" x2="'+(W-Rm)+'" y2="'+Y(v).toFixed(1)+
@@ -2686,6 +2875,19 @@ function rTrend(){
   s+='<path class="ln ln-'+z[0]+'" d="'+d.map(function(p,i){
     return (i?'L':'M')+X(p.d).toFixed(1)+' '+Y(p.v).toFixed(1);}).join(' ')+
     '" fill="none" stroke="'+C[z[1]]+'" stroke-width="'+(MOB?2.4:2.8)+'" stroke-linejoin="round" stroke-linecap="round"/>';
+  /* il tratto acceso parte ESATTAMENTE dal marcatore e non dal punto che lo precede:
+     il primo e l'ultimo vertice sono interpolati, come fa la linea sotto. Più spesso del
+     tratto attenuato, perché a 380 la linea è 2,4 unità di viewBox = 1,5px reali e
+     l'opacità da sola su un pixel e mezzo non basta a separarli. */
+  if(ISO&&TRATTO&&TRATTO.mostrato){
+   var seg=[{d:ISO.da,v:serieAl(S,ISO.da)[z[0]]}];
+   S.forEach(function(x){ if(x.d>ISO.da&&x.d<ISO.a) seg.push({d:x.d,v:x[z[0]]}); });
+   seg.push({d:ISO.a,v:serieAl(S,ISO.a)[z[0]]});
+   s+='<path class="acc acc-'+z[0]+'" d="'+seg.map(function(pt,i3){
+     return (i3?'L':'M')+X(pt.d).toFixed(1)+' '+Y(pt.v).toFixed(1);}).join(' ')+
+     '" fill="none" stroke="'+C[z[1]]+'" stroke-width="'+(MOB?3.8:3.6)+
+     '" stroke-linejoin="round" stroke-linecap="round"/>';
+  }
   fine.push({y:Y(d[d.length-1].v),v:d[d.length-1].v,c:C[z[1]],k:z[0],nome:z[2]});
  });
  /* etichette finali, scostate se troppo vicine */
@@ -2698,17 +2900,41 @@ function rTrend(){
      '<text x="'+(W-Rm+4+(MOB?21:17))+'" y="'+(f.y+5).toFixed(1)+'" text-anchor="middle" font-size="'+(14.5*(MOB?1.35:1)).toFixed(1)+'" '+
      'font-weight="700" fill="'+C['on-color']+'" font-family="Georgia,serif">'+f.v+'</text></g>';
  });
- /* cronologia: un segno numerato per ogni fatto politico rilevante */
- EVENTI.slice().sort(function(a,b){return a.data<b.data?-1:1;}).forEach(function(e,ix){
+ /* cronologia: un segno numerato per ogni fatto politico rilevante.
+    Il tratteggio resta sempre nell'SVG, perché è un segno. Il COMANDO invece è uno strato
+    HTML sopra il grafico — <button> veri, con fuoco e area di tocco che un <circle> non
+    può avere — e vive solo sopra i 660px. Sotto, il disco numerato torna a essere un
+    segno muto e il comando è la voce di cronologia, larga quanto il contenitore: a 380 i
+    dischi distano in media 17px e quattordici coppie su quindici stanno sotto il
+    polpastrello, quindi un bersaglio nel grafico lì non è costruibile. E l'8 settembre
+    gli eventi aumentano: qualunque soluzione appesa allo spazio orizzontale peggiora da
+    sola, la voce di cronologia no. */
+ var lay='';
+ ORD.forEach(function(e,ix){
   var xe=X(e.data);
-  if(xe<Lm-1||xe>W-Rm+1) return;
-  s+='<line x1="'+xe.toFixed(1)+'" y1="'+(T-4)+'" x2="'+xe.toFixed(1)+'" y2="'+(H-B)+
-     '" stroke="'+C.inc+'" stroke-width="1" stroke-dasharray="2 3" opacity=".55"/>'+
-     '<circle cx="'+xe.toFixed(1)+'" cy="'+(T-13)+'" r="'+(MOB?10:8)+'" fill="'+C.ink2+'"/>'+
-     '<text x="'+xe.toFixed(1)+'" y="'+(T-9.2)+'" text-anchor="middle" font-size="'+(MOB?13:10.5)+'" '+
-     'font-family="Georgia,serif" fill="'+C.paper+'">'+(ix+1)+'<title>'+dc(e.data)+' · '+E(e.testo)+'</title></text>';
+  if(e._c<0) return;
+  /* il tratteggio parte sotto la corsia più bassa, non sotto la prima */
+  s+='<line x1="'+xe.toFixed(1)+'" y1="'+(T-2)+'" x2="'+xe.toFixed(1)+'" y2="'+(H-B)+
+     '" stroke="'+C.inc+'" stroke-width="1" stroke-dasharray="2 3" opacity="'+
+     (ISO?(e.data===ISO.da?'.9':'.2'):'.55')+'"/>';
+  if(!STRATO){
+   var rr=MOB?10:8, cy=T-(rr+3)-e._c*DYVB;
+   s+='<g class="evm'+(ISO&&e.data===ISO.da?' on':'')+'">'+
+      '<circle cx="'+xe.toFixed(1)+'" cy="'+cy.toFixed(1)+'" r="'+rr+'" fill="'+
+      (ISO&&e.data===ISO.da?C.acc:C.ink2)+'"/>'+
+      '<text x="'+xe.toFixed(1)+'" y="'+(cy+(MOB?3.8:3.5)).toFixed(1)+'" text-anchor="middle" font-size="'+
+      (MOB?13:10.5)+'" font-family="Georgia,serif" fill="'+C.paper+'">'+(ix+1)+
+      '<title>'+dc(e.data)+' · '+E(e.testo)+'</title></text></g>';
+  } else {
+   lay+='<button type="button" data-ev="'+E(e.data)+'" aria-pressed="'+(!!ISO&&e.data===ISO.da)+'"'+
+        ' style="left:'+(xe/W*100).toFixed(3)+'%;top:'+(e._c*DYPX)+'px"'+
+        ' title="'+dc(e.data)+' · '+E(e.testo)+'">'+(ix+1)+'</button>';
+  }
  });
  $('k-trend').innerHTML=s+'</svg>';
+ $('k-trend').className=ISO?'iso':'';
+ if($('k-evlay')){ $('k-evlay').innerHTML=lay; $('k-evlay').style.height=(corsie*DYPX+2)+'px'; }
+ if($('k-trendwrap')) $('k-trendwrap').style.paddingTop=(lay?(corsie*DYPX+6)+'px':'');
  TRENDPTS=S.map(function(x){return {x:X(x.d),d:x.d,g:x.g,o:x.o,a:x.a,n:x.n};});
  TRENDGEO={W:W,H:H,Lm:Lm,Rm:Rm};
  attaccaTip();legendaInterattiva();
@@ -3547,7 +3773,16 @@ R.addEventListener('input',function(e){
    d'uscita che funziona solo a fuoco piazzato bene non è una via d'uscita. Fuori da un
    filtro attivo il gestore non fa niente e non sottrae Esc alla pagina che ci ospita. */
 document.addEventListener('keydown',function(e){
- if(e.key!=='Escape'||EMIFILT===null) return;
+ if(e.key!=='Escape') return;
+ /* seconda via d'uscita dall'evento isolato. La cautela resta quella scritta sopra e ora
+    vale per due stati invece che per uno: se NESSUNO dei due è attivo il gestore non fa
+    niente e non sottrae Esc alla pagina che ci ospita. */
+ if(EVSEL!==null){
+  var d=EVSEL; EVSEL=null; rTrend(); rCrono();
+  var rc=R.querySelector('#k-crono [data-ev="'+d+'"]'); if(rc&&rc.focus) rc.focus();
+  return;
+ }
+ if(EMIFILT===null) return;
  var a=document.activeElement, id=a&&a.dataset?a.dataset.emig:null;
  EMIFILT=null; rEmi();
  if(id&&id!=='*'){ var ri=R.querySelector('#k-emileg [data-emig="'+id+'"]'); if(ri&&ri.focus) ri.focus(); }
@@ -3555,10 +3790,28 @@ document.addEventListener('keydown',function(e){
 R.addEventListener('click',function(e){
  var t;
  if((t=e.target.closest('[data-ev]'))){
-  var v=t.dataset.ev;
+  var v=t.dataset.ev, prima=EVSEL;
+  /* prima via d'uscita: lo stesso numero premuto due volte sgancia */
   EVSEL=(v&&v!==EVSEL)?v:null;
-  rCrono();
-  if(EVSEL) $('k-evsel').scrollIntoView({behavior:'smooth',block:'nearest'});
+  /* dove stava il comando che è stato premuto: il fuoco va rimesso lì, perché rCrono e
+     rTrend riscrivono innerHTML e l'elemento che aveva il fuoco sparisce — chi naviga da
+     tastiera si ritroverebbe sul body, a metà pagina. Il pulsante «chiudi» non ha una
+     casa dove tornare: il fuoco va sulla voce di cronologia che era selezionata. */
+  /* il pulsante «chiudi» porta data-ev vuoto, ed è l'unico: va riconosciuto da lì e non
+     da dove si trova, perché sotto i 660 il riquadro VIVE DENTRO l'elenco e un
+     closest('#k-crono') risponderebbe di sì anche per lui — mandando il fuoco su un
+     selettore che dopo il render non esiste più */
+  var dove=v?(t.closest('#k-evlay')?'#k-evlay':'#k-crono'):null;
+  var mira=dove?dove+' [data-ev="'+v+'"]':'#k-crono [data-ev="'+prima+'"]';
+  /* prima il grafico, poi l'elenco: è rTrend a calcolare se il tratto si disegna, e
+     rEvSel — che rCrono richiama — deve poterlo leggere già deciso */
+  rTrend();rCrono();
+  var ri=R.querySelector(mira); if(ri&&ri.focus) ri.focus();
+  /* Sotto i 660 il riquadro è già comparso sotto la voce premuta: scorrere sarebbe
+     muovere la pagina sotto il dito per portarlo dove è già. Sopra, il riquadro sta in
+     cima al grafico e «nearest» lo avvicina del minimo indispensabile. */
+  var mob=(window.matchMedia&&window.matchMedia('(max-width:660px)').matches);
+  if(EVSEL&&!mob) $('k-evsel').scrollIntoView({behavior:'smooth',block:'nearest'});
   return;}
  if((t=e.target.closest('[data-sw]'))){
   SW=+t.dataset.sw;$('k-sw').value=SW;

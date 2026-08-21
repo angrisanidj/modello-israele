@@ -18,7 +18,9 @@ const A=global.A;A.render();
 const $=i=>D.getElementById(i);
 const tx=s=>String(s||'').replace(/<[^>]+>/g,' ').replace(/\s+/g,' ').trim();
 const click=el=>el.dispatchEvent(new W.MouseEvent('click',{bubbles:true}));
-const voci=()=>[...D.querySelectorAll('.crono div[data-ev]')];
+/* le voci di cronologia sono <button>: erano <div>, e un div non si raggiunge col
+   tabulatore né dichiara lo stato. Il selettore cambia con loro. */
+const voci=()=>[...D.querySelectorAll('.crono button[data-ev]')];
 const apri=i=>click(voci()[i]);
 const chiudi=()=>{const x=D.querySelector('#k-evsel .x'); if(x) click(x);};
 console.log("CRONOLOGIA CLICCABILE — "+voci().length+" fatti\n");
@@ -27,7 +29,7 @@ console.log("CRONOLOGIA CLICCABILE — "+voci().length+" fatti\n");
   console.log("  ["+(i+1)+"] "+tx($('k-evsel').innerHTML).replace('chiudi ','').slice(0,132));
 });
 chiudi(); apri(2);
-const sel=[...D.querySelectorAll('.crono div.sel')].length;
+const sel=[...D.querySelectorAll('.crono button[data-ev][aria-pressed="true"]')].length;
 const aperto=/on/.test($('k-evsel').className);
 const testo=tx($('k-evsel').innerHTML);
 chiudi();
@@ -71,8 +73,21 @@ const ck={
  "il click apre il riquadro": aperto,
  "il fatto scelto si evidenzia": sel===1,
  "mostra i tre blocchi": /Blocco Netanyahu/.test(testo)&&/Opposizione sionista/.test(testo)&&/Partiti arabi/.test(testo),
- "mostra lo scostamento rispetto a oggi": /rispetto a oggi|invariato/.test(testo),
- "dice su quante rilevazioni": /rilevazioni disponibili quel giorno/.test(testo),
+ /* Lo scostamento «rispetto a oggi» è stato TOLTO di proposito, e l'attesa cambia con
+    lui. Non misurava l'evento, misurava la distanza dal presente: sulla fusione di
+    B'Yachad del 26 aprile il riquadro diceva «invariato» su tutti e tre i blocchi, cioè
+    dichiarava che il fatto più importante dell'anno non aveva mosso niente. Al suo posto
+    c'è il movimento nella finestra dei 30 giorni successivi, dichiarato come osservazione
+    e non come effetto — il modello misura i sondaggi, non le cause. */
+ "mostra il movimento nella finestra dei 30 giorni": /giorni successivi/.test(testo),
+ "e lo dichiara osservazione, non effetto": /non l.effetto di questo fatto/.test(testo),
+ "dice su quante rilevazioni": /erano disponibili \d+ rilevazioni/.test(testo),
+ /* La finestra è di 30 giorni di CALENDARIO. Il conto va fatto in UTC: con le date
+    interpretate in ora locale, il 2 marzo + 30 giorni scavallava il cambio dell'ora
+    legale del 29 marzo e il riquadro annunciava «29 giorni». È la stessa famiglia del
+    punto 12 delle cose da fare — differenze di millisecondi al posto di giorni di
+    calendario — e qui il numero sbagliato lo legge il lettore. */
+ "la finestra è di 30 giorni pieni quando i dati ci sono": /Nei 30 giorni successivi/.test(testo),
  "il pulsante chiudi lo richiude": chiuso,
  "riclickando lo stesso si richiude": a1 && !a2,
 };

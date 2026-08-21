@@ -38,7 +38,13 @@ const checks={
  "analisi non vuota": txt(store['k-analisi'].innerHTML).length>120,
  "movers popolati": store['k-movers'].innerHTML.includes('class="pr mv"'),
  "cronologia popolata": store['k-crono'].innerHTML.includes('<b>1</b>'),
- "eventi sul grafico": store['k-trend'].innerHTML.includes('Georgia,serif" fill="#FCFBF8"'),
+ /* I numeri degli eventi non stanno più dentro l'SVG sopra i 660px: sono <button> veri
+    in uno strato HTML sopra il grafico, perché un <circle> non ha fuoco né area di tocco.
+    L'attesa segue il numero degli eventi, non una stringa di stile. */
+ /* Questo banco non ha matchMedia, quindi STRATO è falso: i marcatori sono i dischi
+    dentro l'SVG, che è il ramo attivo sotto i 900px. L'attesa segue il numero degli
+    eventi, non una stringa di stile. */
+ "eventi sul grafico": (store['k-trend'].innerHTML.match(/<title>/g)||[]).length===EVENTI.length,
  "calendario 6 tappe": (store['k-calend'].innerHTML.match(/class="dt"/g)||[]).length===6,
  "totale 120": Object.values(SEG).reduce((a,b)=>a+b,0)===120,
 };
