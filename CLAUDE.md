@@ -29,7 +29,7 @@ alle prove.
 
 ```bash
 npm install          # solo la prima volta: installa jsdom per le prove
-npm test             # estrae il JS e lancia le 458 prove
+npm test             # estrae il JS e lancia le 504 prove
 npm run verifica     # prove + controlli strutturali
 ```
 
@@ -191,12 +191,125 @@ Messaggi di commit in italiano, all'infinito, con il perché e non solo il cosa.
     | archivio `#k-tab` | 1288,9px, 22 colonne | `.scroll` | `auto` | no, scorre da sé |
 
     L'archivio è **il doppio più largo** e non sfora, perché sta già dentro `.scroll`.
-    Era chiuso da prima; non c'è niente da fare lì. Sull'house effect serve un contenitore
-    che scorra per conto suo, oppure una forma che non abbia bisogno di scorrere. Misurato
-    che togliendogli lo sforamento il documento a 380 passa da 588,8 a **35px**: i 35 che
-    restano non sono suoi, sono `#k-upd` nell'intestazione (85,8px) e, dietro, quattro
-    tabelle dentro `#k-metodo` che sforano di 28,8 · 35,4 · 74,9 · **175**px. Tre
-    sorgenti indipendenti, non una.
+    Era chiuso da prima; non c'è niente da fare lì.
+
+    **Chiuso il 21 agosto 2026** con le schede, non con uno scorrevole: vedi la sezione
+    «L'house effect: due forme». Il documento a 380 passa da 588,8 a **35px** di
+    sforamento, e a 760 da 225 a **zero**. I 35 che restano non sono suoi: sono i punti
+    15 e 16 qui sotto. Tre sorgenti indipendenti, non una — chiuderne una non chiude le
+    altre.
+15. **Quattro tabelle dentro `#k-metodo` sforano**, di 28,8 · 35,4 · 74,9 e **175**px a
+    380. Oggi non si vedono perché il `<details>` è chiuso, ma contano già nella larghezza
+    di scorrimento del documento, e il primo che lo apre le trova. Annotato, non riparato:
+    è lo stesso caso dell'house effect, e la scelta fra scorrevole e cambio di forma va
+    fatta guardandole, non per analogia.
+16. **`#k-upd` sfora di 35px a 380.** È l'`<em>` «aggiornato al 20 agosto 2026»
+    nell'intestazione, largo 85,8px in un contenitore che a quella larghezza non lo
+    contiene. Piccolo e isolato, ma è ciò che resta fra la pagina e lo sforamento zero.
+17. **Le righe degli istituti esclusi stanno a `opacity:.42`, e lì nessun token arriva a
+    4,5.** Misurato nei due temi: il migliore è `--ink` a **2,70** in chiaro e **3,65** in
+    scuro, `--mute` sta a 1,79 e 1,91, `--neg` a 2,03 e 2,44. Nessuna scelta di colore
+    lo risolve — **la leva è l'opacità**, esattamente come per le tre sparkline di
+    `k-proj` a 0,55. Ed è la riga che il lettore deve poter rileggere per decidere se
+    reinserire l'istituto. Le schede non copiano il difetto: l'escluso lo segnano col
+    tratteggio e col pulsante.
+
+## L'house effect: due forme, e un colore che non giudica
+
+Applicato il 21 agosto 2026. Due cose insieme, perché toccavano lo stesso codice.
+
+### La forma: schede sotto la soglia, tabella sopra
+
+La tabella ha **941,8px** di larghezza minima — tredici colonne con `white-space:nowrap`,
+di cui 241,9 la sola «Istituto» — e il contenitore vale `clientWidth − 110`. Sotto i
+~1052px spingeva l'intero documento fuori dalla finestra: 588,8px a 380, 225 a 760.
+
+**Non si è messa a scorrere: ha cambiato forma.** Sotto la soglia una scheda per istituto,
+larga quanto il contenitore, con i soli scarti da 0,8 in su — 48 celle su 88, cioè da tre
+a nove voci per istituto. Sopra, la tabella di prima.
+
+Perché non lo scorrevole, che pure sarebbe stato meno codice:
+
+- **L'8 settembre.** Due liste in più portano il minimo della tabella a ~1060px contro un
+  contenitore che il `max-width:1180` blocca a **1070**: dieci pixel, che il primo
+  deposito si mangia. Le schede non crescono in larghezza — due liste in più sono due voci
+  dentro un elenco che va a capo.
+- **La tastiera.** Chrome rende gli scroller raggiungibili col tabulatore **solo se non
+  contengono elementi focalizzabili**. Misurato: `#k-tab` ne ha zero e lo è gratis;
+  `#k-house` ne ha **otto**, un pulsante per riga, quindi sarebbe stato escluso. E
+  tabulare sui pulsanti non aiuta: stanno tutti nella prima colonna, sempre visibile, così
+  il fuoco non fa mai scorrere niente. Sarebbe servito un `tabindex="0"` esplicito.
+- **A 380 lo scorrevole lascia fuori il 65%** — 616px su 942 — dietro un contenitore che
+  quel lettore non sa di poter scorrere.
+
+Con le schede il pulsante di esclusione sta **accanto al nome a cui si riferisce**. Nella
+tabella a 380 era visibile e i dati su cui decidere erano fuori schermo: si decideva senza
+vedere su cosa.
+
+### Il confine è 1075, e dentro quel numero c'è una trappola
+
+1052 sarebbe il confine esatto, ma lascia due decimi di pixel, che non è un margine.
+
+E poi la trappola, misurata su browser e da non ridimenticare: **la media query si
+confronta con `innerWidth`, cioè con la finestra COMPRESA la barra di scorrimento, mentre
+il contenitore vive dentro il `clientWidth`.** Misurato: la media query rispondeva 1070
+dove il `clientWidth` era 1055, quindici pixel di barra. Con la soglia a 1060 il
+contenitore vale `1060 − 15 − 110 = 935` e **la tabella sarebbe ricomparsa sforando di
+sette pixel** — cioè il difetto che la regola esiste per chiudere, ricreato dalla regola
+stessa. Il conto va fatto sulla barra più larga: `1075 − 17 − 110 = 948` contro 941,8.
+
+Verificato su browser al confine: a media query 1075 il contenitore è 950 e la tabella
+950, sforamento zero; a 1070 compaiono le schede. A 1265 tabella, contenitore 1070,
+sforamento zero. A 760 schede e **sforamento del documento zero**. A 380 schede,
+sforamento della sezione zero e del documento 35, che sono i punti 15 e 16.
+
+**Da rimisurare l'8 settembre**: con quindici colonne la soglia sale a ~1190.
+
+### Il colore: il segno non è un giudizio, quindi il colore non lo dice
+
+I valori erano `--coal` in eccesso e `--neg` in difetto. Nell'house effect «+6,1 al
+Likud» vuol dire che quell'istituto gli dà sei seggi più della media degli altri: è uno
+scarto, non un miglioramento.
+
+**Tutti e due i token significavano altro**, ed erano la sesta e la settima strada per gli
+stessi valori: `--coal` è il Blocco Netanyahu in cinque punti — `BL{}` per emiciclo e
+legende, `C.coal` per la barra di probabilità, l'istogramma con la sua pastiglia e una
+colonna del backtest — e `--neg` è «ha perso seggi» nelle colonne 7 GG e 30 GG, oltre
+che errore, veto violato e somma che non fa 120. Il blu diceva la cosa più falsa:
+**«B'Yachad +4,4» finiva dipinto nel colore del blocco avversario.**
+
+**Nella tavolozza non esiste una coppia libera**: quattro token sono di blocco, due sono
+`--pos`/`--neg`, uno è la bandiera. `--acc`/`--inc` sarebbe stata la coppia divergente
+migliore — contrasti 9,30 e 7,22 in chiaro, 5,94 e 9,35 in scuro, ΔE per protanopia 61,6
+contro i 43,8 di oggi e i **10,0** di verde-rosso, che è la ragione numerica per cui
+`--pos`/`--neg` non era comunque un'opzione — ma scambiava un significato sbagliato con
+due presi in prestito.
+
+Quindi: **la direzione la porta il segno**, che era già scritto, **e l'intensità il peso**,
+che scatta a 1,5 e c'era già. Al colore resta la sola distinzione fra scarto che conta e
+rumore: `--ink` da 0,8 in su, `--mute` sotto. Contrasti nelle schede, nei due temi: il
+valore `--ink` sulla pastiglia `--card` 17,82 e 15,25; il nome della lista `--ink2`
+10,04 e 8,39; testata e conteggio `--mute` su `--wash` 4,79 e 4,75. **Righe alternate non
+ce ne sono**: nessun `nth-child` in tutto il file.
+
+E il meno è quello tipografico, `−` (U+2212), lo stesso delle colonne 7 GG e 30 GG:
+`f()` da sola dà il trattino d'unione, e due punti della stessa pagina che mostrano la
+stessa grandezza non possono usare due segni diversi. Chi legge quei numeri dal DOM in
+una prova deve normalizzarlo, o `parseFloat` restituisce `NaN` e ogni scarto negativo
+sparisce dal conto senza far cadere niente.
+
+### Le soglie si decidono sul numero che il lettore vede
+
+Le tre soglie — trattino a 0,1, grigio a 0,8, grassetto a 1,5 — si applicano al valore
+**arrotondato a un decimale**, non a quello grezzo. Sul grezzo due celle che dicevano
+entrambe «−0,8» finivano una in `--ink` e una in `--mute`, e la scheda ne prendeva una
+e lasciava fuori l'altra.
+
+**L'ha trovato la prova che lega le due forme, al primo giro.** È la regola generale del
+progetto applicata a una strada doppia nuova: tabella e schede sono due percorsi per lo
+stesso valore, e `test/suite/house.js` verifica che per ogni istituto gli scarti da 0,8
+in su siano gli stessi nelle due. Senza quella prova il difetto sarebbe stato invisibile,
+perché ciascuna forma era corretta rispetto a sé stessa.
 
 ## Calendario
 
@@ -394,10 +507,11 @@ prossima cosa da fare dopo l'embed.**
 
 ### Nell'ordine
 
-1. **La tabella dell'house effect che sfora** (punto 14 delle cose da fare, dove per tre
-   commit è stata chiamata «tabella dell'archivio»: l'archivio scorre già da sé).
-   Prima dell'embed, non dopo: dentro `?embed=1`, in una colonna stretta, una tabella che
-   spinge il documento oltre la finestra peggiora invece di restare com'è.
+1. ~~La tabella dell'house effect che sfora~~ — **chiusa il 21 agosto 2026** con le
+   schede sotto la soglia. Restano gli altri due sforamenti, punti 15 e 16, che a 380
+   valgono in tutto 35px: vanno fatti **prima dell'embed, non dopo**, perché dentro
+   `?embed=1`, in una colonna stretta, un documento che scorre in orizzontale peggiora
+   invece di restare com'è.
 2. **Modalità `?embed=1`** per l'inserimento in FocusAmerica (punto 1).
 3. **Cercare le altre strade doppie.** Ogni valore che raggiunge lo schermo per più di un
    percorso e non ha una prova che li leghi è il prossimo colore di blocco. Vedi sopra.
@@ -612,6 +726,6 @@ nessuno degli altri settori.
 trovati oggi — la stella della bandiera che sconfinava nelle bande, l'occhiello a filo del
 bordo sull'ombra, il vuoto di 372px sotto le ipotesi, l'evidenziazione che competeva con
 la codifica del riempimento, il verde arabo che si leggeva nero — sono stati trovati
-**guardando la pagina**, non dalla suite. Le 458 prove dicono che il modello non si è
+**guardando la pagina**, non dalla suite. Le 504 prove dicono che il modello non si è
 rotto; non dicono che la pagina si veda. Dopo ogni push, aprire
 <https://angrisanidj.github.io/modello-israele/> e guardarla nei due temi.

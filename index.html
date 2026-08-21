@@ -301,6 +301,54 @@
 #kn26 td.s{font-weight:700;}
 #kn26 tbody tr:hover{background:var(--wash);}
 
+/* ══ HOUSE EFFECT: due forme, e il confine è misurato ══ */
+/* La tabella ha 941,8px di larghezza minima: tredici colonne con white-space:nowrap, di
+   cui 241,9 la sola «Istituto». Il contenitore vale viewport − 110 fino a max-width:1180,
+   poi resta fisso a 1070. Quindi la tabella entra solo sopra i 1051,8px di viewport, e
+   sotto spingeva l'INTERO DOCUMENTO fuori dalla finestra — 588,8px a 380, cioè il corpo
+   della pagina che scorre in orizzontale.
+   Sotto la soglia non si scorre: si cambia forma. Una scheda per istituto, larga quanto
+   il contenitore, con i soli scarti che contano. Non è una preferenza fra le due — è
+   l'unica delle due che regge l'8 settembre: due liste in più sono due voci dentro un
+   elenco che va a capo, mentre la tabella passerebbe a ~1060px di minimo contro un
+   contenitore che il max-width blocca a 1070, e sforerebbe anche su schermo largo.
+   La soglia è 1075, e ci sono due correzioni dentro quel numero.
+   La prima: 1052 sarebbe il confine esatto, ma lascia due decimi di pixel di margine, che
+   non è un margine.
+   La seconda, misurata su browser e non ovvia: **la media query si confronta con
+   innerWidth, non con il clientWidth** — cioè con la finestra COMPRESA la barra di
+   scorrimento. Con una barra classica da 15px la differenza è tutta lì: a min-width:1060
+   il contenitore vale 1060 − 15 − 110 = 935, e la tabella sarebbe ricomparsa sforando di
+   sette pixel, esattamente il difetto che questa regola esiste per chiudere. Il conto va
+   quindi fatto sulla barra più larga: 1075 − 17 − 110 = 948 contro 941,8, sei pixel; e
+   dove la barra è in sovrimpressione il contenitore è 965.
+   Da rimisurare l'8 settembre: se le colonne diventano quindici, la soglia sale a ~1190. */
+#kn26 .hstab{display:none;}
+#kn26 .hsch{display:flex;flex-direction:column;gap:10px;}
+@media(min-width:1075px){
+ #kn26 .hstab{display:block;}
+ #kn26 .hsch{display:none;}
+}
+#kn26 .hs{border:1px solid var(--hair);background:var(--wash);padding:11px 13px;}
+/* l'istituto escluso si segna con il tratteggio e col pulsante, non con l'opacità: la
+   riga esclusa della tabella usa opacity:.42 e lì nessun token arriva a 4,5 — difetto
+   noto e annotato, non si copia nel codice nuovo */
+#kn26 .hs.off{border-style:dashed;}
+#kn26 .hsh{display:flex;align-items:center;flex-wrap:wrap;gap:4px 8px;margin-bottom:9px;}
+#kn26 .hsh .mini{margin-right:0;}
+#kn26 .hs.off .mini{background:var(--neg);border-color:var(--neg);color:#fff;}
+#kn26 .hsh b{font-size:13px;font-weight:700;color:var(--ink);}
+#kn26 .hsh span{font-size:11px;color:var(--mute);}
+#kn26 .hsh i{font-size:9.5px;letter-spacing:.09em;text-transform:uppercase;color:var(--mute);
+ font-style:normal;margin-left:auto;white-space:nowrap;}
+#kn26 .hsv{display:flex;flex-wrap:wrap;gap:5px 7px;}
+#kn26 .hsv span{display:inline-flex;align-items:baseline;gap:6px;font-size:11.5px;
+ border:1px solid var(--hair);background:var(--card);padding:3px 9px;border-radius:99px;}
+#kn26 .hsv em{font-style:normal;color:var(--ink2);}
+#kn26 .hsv s{text-decoration:none;color:var(--ink);font-variant-numeric:tabular-nums lining-nums;}
+#kn26 .hsv s.f{font-weight:700;}
+#kn26 .hsv .nq{color:var(--mute);}
+
 #kn26 .form{display:grid;grid-template-columns:repeat(6,1fr);gap:11px;margin-top:14px;}
 #kn26 .form label{font-size:9.5px;font-weight:700;color:var(--mute);text-transform:uppercase;
  letter-spacing:.08em;display:block;margin-bottom:4px;}
@@ -2485,24 +2533,71 @@ function rChips(){
 function rHouse(){
  var e=effettiCasa(),ist=Object.keys(e.by);
  var cols=IDS.filter(function(i){return e.cons[i]>=3;});
- var h='<table><thead><tr><th class="l">Istituto</th><th>Rilev.</th>';
+ /* Il colore dei valori NON dice la direzione, e non è una svista.
+    Prima erano --coal in eccesso e --neg in difetto, e tutti e due significano altro:
+    --coal è il Blocco Netanyahu in cinque punti della pagina — emiciclo, legende, barra
+    di probabilità, istogramma, backtest — e --neg è «ha perso seggi» nelle colonne 7 GG
+    e 30 GG, oltre che errore, veto violato e somma che non fa 120. Nell'house effect il
+    segno non è un giudizio: «+6,1 al Likud» vuol dire che quell'istituto gli dà sei
+    seggi più della media degli altri, non che il Likud stia meglio. Il blu del blocco lo
+    diceva anche più forte del rosso — «B'Yachad +4,4» finiva dipinto nel colore del
+    blocco avversario, e lì l'indizio è proprio falso.
+    Nella tavolozza non esiste una coppia libera: quattro token sono di blocco, due sono
+    --pos/--neg, uno è la bandiera. Quindi la direzione la porta il segno, che è già
+    scritto, e l'intensità il salto di peso a 1,5, che già c'era. Al colore resta la sola
+    distinzione fra scarto che conta e rumore: --ink da 0,8 in su, --mute sotto. */
+ /* Tutte e tre le soglie — il trattino a 0,1, il grigio a 0,8, il grassetto a 1,5 — si
+    decidono sul valore ARROTONDATO a un decimale, cioè su quello che il lettore vede.
+    Sul valore grezzo due celle che dicevano entrambe «−0,8» finivano una in --ink e una
+    in --mute, e la scheda ne prendeva una e lasciava fuori l'altra: chi confrontava le
+    due forme trovava uno scarto che compariva di qua e non di là. L'ha trovato al primo
+    giro la prova che lega le due strade. */
+ function ar(v){return Math.round(v*10)/10;}
+ function tinta(v){return Math.abs(ar(v))<0.8?'var(--mute)':'var(--ink)';}
+ function grosso(v){return Math.abs(ar(v))>=1.5;}
+ function forte(v){return Math.abs(ar(v))>=0.8;}
+ /* il meno è quello tipografico, lo stesso delle colonne 7 GG e 30 GG: sono due punti
+    della stessa pagina che mostrano la stessa grandezza, e f() da sola darebbe il
+    trattino d'unione */
+ function segno(v){return Math.abs(ar(v))<0.1?'—':(ar(v)>0?'+':'−')+f(Math.abs(ar(v)),1);}
+ function bott(k){return '<button class="mini" data-escl="'+E(k)+'" title="'+
+   (ESCL[k]?'Reinserisci nel modello':'Escludi dal modello')+'">'+(ESCL[k]?'escluso':'incluso')+'</button>';}
+ var h='<div class="hstab"><table><thead><tr><th class="l">Istituto</th><th>Rilev.</th>';
  cols.forEach(function(i){h+='<th title="'+E(nm(i))+'">'+E(nm(i).split(/[ –]/)[0].slice(0,8))+'</th>';});
  h+='</tr></thead><tbody>';
  ist.forEach(function(k){
   var b=e.by[k];
-  h+='<tr'+(ESCL[k]?' style="opacity:.42"':'')+'><td class="l">'+
-     '<button class="mini" data-escl="'+E(k)+'" title="'+(ESCL[k]?'Reinserisci nel modello':'Escludi dal modello')+'">'+
-     (ESCL[k]?'escluso':'incluso')+'</button> '+E(k)+
+  h+='<tr'+(ESCL[k]?' style="opacity:.42"':'')+'><td class="l">'+bott(k)+' '+E(k)+
      ' <span style="color:var(--mute)">'+E(b.test||'')+'</span></td><td>'+b.n+'</td>';
   cols.forEach(function(i){
-   var v=b.d[i],col=Math.abs(v)<0.8?'var(--mute)':(v>0?'var(--coal)':'var(--neg)');
-   h+='<td class="s" style="color:'+col+';font-weight:'+(Math.abs(v)>=1.5?700:400)+'">'+
-      (Math.abs(v)<0.1?'—':(v>0?'+':'')+f(v,1))+'</td>';});
+   var v=b.d[i];
+   h+='<td class="s" style="color:'+tinta(v)+';font-weight:'+(grosso(v)?700:400)+'">'+
+      segno(v)+'</td>';});
   h+='</tr>';
  });
- h+='</tbody></table>';
+ h+='</tbody></table></div>';
+ /* La stessa misura, sotto la soglia, in forma di schede: una per istituto, il pulsante
+    che la esclude accanto al nome a cui si riferisce. La tabella a quella larghezza aveva
+    il pulsante visibile e i dati fuori schermo — si decideva senza vedere su cosa.
+    Nella scheda entrano i soli scarti da 0,8 in su: sono 48 celle su 88, cioè da tre a
+    nove voci per istituto, misurato. Sotto 0,8 il valore è rumore e nella tabella è già
+    in --mute; qui semplicemente non compare. */
+ h+='<div class="hsch">';
+ ist.forEach(function(k){
+  var b=e.by[k];
+  var forti=cols.map(function(i){return {i:i,v:b.d[i]};})
+    .filter(function(x){return forte(x.v);})
+    .sort(function(a,c){return Math.abs(ar(c.v))-Math.abs(ar(a.v));});
+  h+='<div class="hs'+(ESCL[k]?' off':'')+'"><div class="hsh">'+bott(k)+'<b>'+E(k)+'</b>'+
+     (b.test?'<span>'+E(b.test)+'</span>':'')+'<i>'+b.n+' rilev.</i></div><div class="hsv">';
+  if(!forti.length) h+='<span class="nq">nessuno scarto oltre 0,8 seggi</span>';
+  else forti.forEach(function(x){
+   h+='<span><em>'+E(nm(x.i))+'</em><s'+(grosso(x.v)?' class="f"':'')+'>'+segno(x.v)+'</s></span>';});
+  h+='</div></div>';
+ });
+ h+='</div>';
  var d=e.by['Direct Polls'];
- $('k-house').innerHTML=h+'<p class="fn">La tabella mostra, in seggi, lo scostamento medio di ciascun istituto dalla '+
+ $('k-house').innerHTML=h+'<p class="fn">Qui sopra, in seggi, lo scostamento medio di ciascun istituto dalla '+
   'media delle altre rilevazioni presenti in archivio. Il calcolo usa <b>tutte e '+f(SOND.length)+'</b> le '+
   'rilevazioni: quelle di gennaio-aprile vengono riportate alla struttura attuale sommando Yesh Atid e '+
   'Bennett 2026 in B\'Yachad, mentre il consenso di riferimento resta calcolato per epoca — fra gennaio '+
