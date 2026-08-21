@@ -146,7 +146,12 @@
 #kn26 .pr .sg{font-family:var(--serif);font-size:22px;text-align:right;letter-spacing:-.02em;}
 #kn26 .pr .rk{font-size:11.5px;text-align:right;}
 #kn26 .pr .d22{font-size:11.5px;text-align:right;color:var(--mute);}
-#kn26 .prh.mv,#kn26 .pr.mv{grid-template-columns:190px 48px 1fr 60px 60px;}
+/* La colonna «Seggi» tiene su una riga sola l'intervallo dei giorni pari, nel caso
+   peggiore: due cifre da entrambi i lati con le cifre più larghe del font — «20–29»,
+   63px a corpo 22. A 48px «22–23» andava a capo e la riga diventava alta il doppio
+   delle vicine, mentre «8–9» stava su una riga: altezze diverse a seconda delle cifre.
+   I 18px li paga la sparkline, che fa confronti di lunghezza, non misure. */
+#kn26 .prh.mv,#kn26 .pr.mv{grid-template-columns:190px 66px 1fr 60px 60px;}
 #kn26 .pr .dl{font-size:12.5px;text-align:right;font-weight:600;}
 #kn26 .pr .dl.up{color:var(--pos);}#kn26 .pr .dl.dn{color:var(--neg);}#kn26 .pr .dl.fl{color:var(--mute);font-weight:400;}
 
@@ -285,7 +290,8 @@
  #kn26 .prob .d,#kn26 .prob .t{min-height:0;}
  #kn26 .pr,#kn26 .prh{grid-template-columns:120px 42px 1fr 50px;gap:9px;font-size:12px;}
  #kn26 .pr .d22,#kn26 .prh span:nth-child(5){display:none;}
- #kn26 .prh.mv,#kn26 .pr.mv{grid-template-columns:120px 42px 1fr 48px;}
+ /* il corpo di .sg qui è ancora 22px: vale lo stesso caso peggiore da 63px della base */
+ #kn26 .prh.mv,#kn26 .pr.mv{grid-template-columns:120px 66px 1fr 48px;}
  #kn26 .form{grid-template-columns:repeat(2,1fr);}
  #kn26 .meta>span{padding:0 10px;}
  }

@@ -409,6 +409,16 @@ prossima cosa da fare dopo l'embed.**
    le date già presenti, quindi oggi non entra niente di nuovo, ma il primo evento inglese
    nuovo si mescolerà alle quattordici voci italiane. Serve una traduzione manuale al
    momento dell'ingresso, o una coda di revisione prima che finiscano in cronologia.
+9. **L'altezza uniforme delle righe della tabella dell'analisi non è provabile in jsdom**,
+   che non fa layout: dipende dal font, e si vede solo su browser vero. Il 21 agosto la
+   colonna «Seggi» è stata dimensionata sul caso peggiore misurato («20–29», 63px a corpo
+   22) alle tre larghezze — 66px in base e a 660, 54px sotto i 400 dove il corpo è 18 —
+   e le altezze verificate a mano a 1265, 760 e 380px. Se si tocca il corpo, la colonna o
+   il font, va rimisurato con il browser, non con le prove.
+10. Preesistente, visto durante quella misura: a 380px **il nome «Giudaismo Unito Torah»
+    va a capo** nella colonna dei nomi da 104px e la sua riga è alta 95px contro i 78
+    delle altre. È la colonna dei nomi, non quella dei seggi: servono o più larghezza a
+    scapito della sparkline, o una sigla corta per l'etichetta stretta.
 
 ### Le due colonne «Seggi»: cosa è chiuso e cosa resta aperto
 
