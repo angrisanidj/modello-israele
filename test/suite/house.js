@@ -127,10 +127,17 @@ setTimeout(function(){
     (soglia - BARRA - 110 - 941.8).toFixed(1) + 'px');
   esito(soglia - 110 - 941.8 < 941.8,
     'ma non tanto largo da nascondere la tabella dove ci starebbe comodamente');
-  /* una sola coppia di regole: se qualcuno ne aggiunge un'altra, il confine si sdoppia */
-  esito((css.match(/\.hstab/g) || []).length === 2 && (css.match(/\.hsch/g) || []).length === 2,
+  /* Una sola coppia di regole: se qualcuno ne aggiunge un'altra, il confine si sdoppia.
+     Si contano le regole che COMMUTANO, cioè quelle che dichiarano display — non ogni
+     citazione delle due classi. Fino al 22 agosto 2026 questa prova contava le citazioni,
+     e cadeva appena una delle due forme riceveva una regola di aspetto: è successo con
+     «#kn26 .hstab tr.off .ist{text-decoration:line-through}», che con la commutazione non
+     c'entra niente. L'attesa era troppo larga rispetto a ciò che voleva difendere. */
+  const commuta = (cl) => (css.replace(/\/\*[\s\S]*?\*\//g,'').match(/[^{}]+\{[^{}]*\}/g) || [])
+    .filter(r => r.indexOf(cl) >= 0 && /display\s*:/.test(r.split('{')[1])).length;
+  esito(commuta('.hstab') === 2 && commuta('.hsch') === 2,
     'la commutazione avviene in un punto solo, non in due',
-    'hstab ' + (css.match(/\.hstab/g)||[]).length + ' · hsch ' + (css.match(/\.hsch/g)||[]).length);
+    'hstab ' + commuta('.hstab') + ' · hsch ' + commuta('.hsch'));
 
   /* ══ 3 · ogni istituto ha la sua scheda, col pulsante accanto ══ */
   const e = A.effettiCasa();

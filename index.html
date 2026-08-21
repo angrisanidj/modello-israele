@@ -202,12 +202,20 @@
 #kn26 .cal .g small{font-size:10.5px;font-family:var(--sans);color:var(--mute);letter-spacing:.08em;
  text-transform:uppercase;margin-left:6px;font-weight:700;}
 #kn26 .cal .ds{font-size:11.5px;color:var(--mute);margin-top:9px;line-height:1.5;}
-#kn26 .cal>div.past{opacity:.42;}
+/* La tappa passata NON si attenua: al posto del conto alla rovescia scrive «passato», ed è
+   una parola, cioè un canale che regge dove l'opacità non regge. A .42 la descrizione in
+   --mute scendeva a 1,79 in chiaro e 1,91 in scuro, e nessun token arriva a 4,5 sotto
+   quell'alfa: perché --mute ci arrivi servirebbe alfa 0,93, dove l'attenuazione non si
+   vede più. Vedi l'invariante dell'opacità, provata da test/suite/opacita.js. */
 
 #kn26 .co{border:1px solid var(--hair);background:var(--card);padding:15px 17px;margin-top:11px;
  transition:.18s;box-shadow:var(--sh);}
 #kn26 .co:hover{border-color:var(--ink2);}
-#kn26 .co.ko{opacity:.5;background:var(--wash);box-shadow:none;}
+/* La scheda bloccata ha già due canali di testo — l'intestazione dice «Bloccata» e la
+   riga in fondo dice quale veto — più il fondo --wash e l'ombra tolta. L'opacità .5 non
+   aggiungeva niente e portava «seggi» a 1,97 in chiaro: è la riga che spiega PERCHÉ la
+   coalizione non si può fare, cioè quella che va letta. */
+#kn26 .co.ko{background:var(--wash);box-shadow:none;}
 #kn26 .co .h{display:flex;justify-content:space-between;align-items:baseline;gap:14px;}
 #kn26 .co .h b{font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.11em;}
 #kn26 .co .h s{text-decoration:none;font-family:var(--serif);font-size:25px;letter-spacing:-.02em;}
@@ -300,7 +308,10 @@
  display:inline-block;background:var(--card);border-radius:2px;transition:.14s;cursor:pointer;
  font-family:inherit;color:inherit;text-align:left;}
 #kn26 .veto:hover{border-color:var(--ink);}
-#kn26 .veto.off{opacity:.38;text-decoration:line-through;}
+/* Il barrato basta da solo, e l'opacità toglieva soltanto leggibilità: a .38 il nome
+   della coppia scendeva a 2,42 in chiaro e 3,21 in scuro. Il line-through è il canale, e
+   aria-pressed lo dice alle tecnologie assistive. */
+#kn26 .veto.off{text-decoration:line-through;color:var(--mute);}
 #kn26 .veto:focus-visible{outline:2px solid var(--acc);outline-offset:2px;}
 #kn26 .veto:focus:not(:focus-visible){outline:none;}
 /* L'altezza della riga è riservata anche quando è vuota, o il riquadro sobbalza a ogni
@@ -364,7 +375,14 @@
 #kn26 .hs.off{border-style:dashed;}
 #kn26 .hsh{display:flex;align-items:center;flex-wrap:wrap;gap:4px 8px;margin-bottom:9px;}
 #kn26 .hsh .mini{margin-right:0;}
-#kn26 .hs.off .mini{background:var(--neg);border-color:var(--neg);color:#fff;}
+/* Le due forme segnano l'esclusione allo stesso modo: è la regola delle due strade, e
+   qui vale anche per il segno, non solo per i valori. */
+#kn26 .hs.off .mini,#kn26 .hstab tr.off .mini{background:var(--neg);border-color:var(--neg);color:#fff;}
+/* La riga esclusa era a opacity:.42, e lì il nome dell'istituto in --mute scendeva a 1,79
+   in chiaro e 1,92 in scuro. È proprio la riga che il lettore deve poter rileggere per
+   decidere se reinserirla, quindi il segno passa al barrato — la grammatica dei veti — che
+   sta sul NOME e lascia intatti i numeri su cui si decide. */
+#kn26 .hstab tr.off .ist{text-decoration:line-through;}
 #kn26 .hsh b{font-size:13px;font-weight:700;color:var(--ink);}
 #kn26 .hsh span{font-size:11px;color:var(--mute);}
 #kn26 .hsh i{font-size:9.5px;letter-spacing:.09em;text-transform:uppercase;color:var(--mute);
@@ -489,7 +507,14 @@
  text-decoration:none;padding:6px 11px;border-radius:99px;white-space:nowrap;transition:.15s;border:1px solid transparent;}
 #kn26 .idx a:hover{color:var(--ink);background:var(--wash);}
 #kn26 .idx a.on{color:var(--paper);background:var(--acc);border-color:var(--acc);}
-#kn26 .idx a i{font-style:normal;opacity:.55;margin-right:5px;}
+/* Il numero della sezione NON si attenua. A .55 stava a 1,81 in chiaro e 2,45 in scuro, e
+   il candidato ovvio — font-weight 400 contro il 700 della pastiglia — è stato misurato e
+   NON regge: su una cifra a 11px la differenza resa è 0,38px su 6,47, cioè il 5,9%, che
+   non è una distinzione, è rumore. Ma la domanda giusta era un'altra: il numero non ha
+   bisogno di essere attenuato. Non è subordinato all'etichetta, ne fa parte, e a
+   separarlo bastano la posizione e i 5px di margine che c'erano già. Tolta l'opacità sta
+   a 4,93 in chiaro e 5,54 in scuro. */
+#kn26 .idx a i{font-style:normal;margin-right:5px;}
 
 /* ══ COMPARSA ══ */
 #kn26 .rv{opacity:0;transform:translateY(14px);transition:opacity .55s ease,transform .55s cubic-bezier(.2,.9,.3,1);}
@@ -518,7 +543,13 @@
  padding:3px 7px;border:1px solid var(--hair);background:var(--card);color:var(--mute);
  border-radius:99px;margin-right:7px;transition:.14s;}
 #kn26 .mini:hover{border-color:var(--ink);color:var(--ink);}
-#kn26 tr[style] .mini{background:var(--neg);border-color:var(--neg);color:#fff;}
+/* Il pulsante dell'istituto escluso era agganciato a tr[style], cioè alla PRESENZA
+   dell'attributo di stile in linea — che fino al 22 agosto 2026 conteneva l'opacity:.42.
+   Tolta quella, la regola non raggiungeva più niente e il pulsante restava grigio: una
+   riparazione che ne rompeva un'altra in silenzio, e nessuna prova se ne accorgeva perché
+   per impostazione predefinita non c'è nessun istituto escluso. Ora l'aggancio è la classe
+   .off, che dichiara lo STATO invece di indovinarlo da un residuo di stile; la regola vive
+   accanto a quella delle schede, così le due forme non possono divergere. */
 
 /* ══ DIAGNOSTICA AMBIENTE ══ */
 #kn26 .diag{border:1px solid var(--hair);background:var(--wash);padding:14px 16px;margin-top:14px;}
@@ -894,7 +925,24 @@
 #kn26 .leg.lint b[data-ln]{cursor:pointer;padding:3px 8px;border-radius:99px;transition:.15s;}
 #kn26 .leg.lint b[data-ln]:hover{background:var(--wash);}
 #kn26 .leg.lint b s{text-decoration:none;font-family:var(--serif);font-size:15px;color:var(--ink);margin-left:7px;}
-#kn26 .leg.lint b.spenta{opacity:.35;}
+/* La voce spenta perde il riempimento della pastiglia e passa a --mute, e sono due canali
+   veri al posto di uno finto. La pastiglia vuota è la grammatica giusta qui: la legenda
+   dichiara un COLORE, e il barrato avrebbe detto un'esclusione. Il bordo colorato regge —
+   4,30 il minimo sulle tre serie, nei due temi e su tutti e due i fondi possibili.
+   Onestamente: da sola la pastiglia vuota è un segnale più debole di quello che dava
+   l'opacità — su 9×9px un bordo da 2 toglie il 31% dell'inchiostro dove l'alfa .35 ne
+   toglieva il 65% — e per questo si accompagna al --mute sul nome, che è un colore e non
+   un'alfa (5,24 in chiaro, 5,10 in scuro). Il valore resta in --ink: è un numero, e i
+   numeri si leggono sempre.
+   Marcare invece la voce ACCESA col fondo --wash è stato misurato e scartato: --wash
+   contro --card sta a 1,09 in chiaro e 1,07 in scuro, cioè la marcatura non si vedrebbe.
+   Va bene come risposta al puntatore, che è transitoria e ha il dito sopra; non va bene
+   come stato.
+   Il colore della serie arriva alla pastiglia come proprietà --c, così la regola dello
+   spento può svuotarla senza conoscerlo: box-shadow inset e non border, o il riquadro
+   crescerebbe di 4px. */
+#kn26 .leg.lint b.spenta{color:var(--mute);}
+#kn26 .leg.lint b.spenta i{background:transparent;box-shadow:inset 0 0 0 2px var(--c);}
 #kn26 #k-trend .ln,#kn26 #k-trend .pt{transition:opacity .18s;}
 #kn26 #k-trendwrap.solo .ln,#kn26 #k-trendwrap.solo .pt{opacity:.10;}
 #kn26 #k-trendwrap.solo-g .ln-g,#kn26 #k-trendwrap.solo-g .pt-g,
@@ -1358,9 +1406,32 @@ function cp(hex){
 
 /* ══════════ 3b · UTILITY ══════════ */
 function f(n,d){return Number(n).toLocaleString('it-IT',{minimumFractionDigits:d||0,maximumFractionDigits:d||0});}
-function seg(n){return f(Math.abs(n))+(Math.abs(n)===1?' seggio':' seggi');}
+/* L'accordo di numero sta in un posto solo. Era scritto a mano in tre punti, e uno dei tre
+   sbagliava: il calendario diceva «1 giorni» il giorno prima di ogni tappa — sei giorni in
+   tutta la campagna, ma uno dei sei è la vigilia del voto, cioè il giorno in cui quella
+   scheda la guardano tutti. Tre copie della stessa regola, e una divergente: è la forma di
+   sempre. */
+function acc(n,s,p){return Math.abs(n)===1?s:p;}
+function seg(n){return f(Math.abs(n))+' '+acc(n,'seggio','seggi');}
 function pc(x,d){return f(100*x,d===undefined?0:d)+'%';}
+/* gg() misura la distanza fra due DATE già allineate a mezzanotte — le rilevazioni
+   dell'archivio, che arrivano tutte da new Date('AAAA-MM-GG') e quindi da mezzanotte UTC.
+   Lì la differenza è un multiplo esatto di 86.400.000 e l'arrotondamento non fa niente.
+   Non va usata per contare i giorni fra ADESSO e una data: vedi ggCal() qui sotto. */
 function gg(a,b){return Math.round((b-a)/864e5);}
+/* Il giorno di calendario di un istante, portato a mezzanotte UTC. Prende i componenti
+   LOCALI — l'oggi del lettore è quello del suo calendario, non quello di Greenwich — e li
+   rimonta in UTC, dove l'ora legale non esiste. */
+function giornoUTC(d){return Date.UTC(d.getFullYear(),d.getMonth(),d.getDate());}
+/* Quanti giorni di CALENDARIO separano due istanti. Il lettore conta sul calendario, non
+   sulle ore: fra il 20 agosto e il 27 ottobre ci sono 68 giorni a qualunque ora si apra la
+   pagina. Con la sola differenza in millisecondi il conto scattava a MEZZOGIORNO, perché
+   gg() arrotonda invece di troncare — la pagina diceva 67 il pomeriggio del 20 agosto e 68
+   la mattina — e fra oggi e il voto cade il cambio d'ora del 25 ottobre, due giorni prima
+   delle urne, che aggiunge un'ora e sposta di nuovo il punto in cui il numero cambia.
+   Portando le due date a mezzanotte UTC la sottrazione è esatta e nessuna delle due cose
+   può più succedere. */
+function ggCal(a,b){return Math.round((giornoUTC(b)-giornoUTC(a))/864e5);}
 function dc(s){var p=s.split('-');return p[2]+'.'+p[1];}
 function dl(s){var m=['gennaio','febbraio','marzo','aprile','maggio','giugno','luglio','agosto','settembre','ottobre','novembre','dicembre'];
  var p=s.split('-');return parseInt(p[2],10)+' '+m[+p[1]-1]+' '+p[0];}
@@ -1749,7 +1820,7 @@ function calcola(){
  /* 6 · swing: sposta punti dal blocco di opposizione a quello della coalizione */
  if(SW) QUO=applicaSwing(QUO,SW);
  SEG=dhondt(QUO);
- GIORNI=Math.max(0,gg(new Date(),VOTO));
+ GIORNI=Math.max(0,ggCal(new Date(),VOTO));
  /* proiezione com'era una settimana fa, con gli stessi parametri: misura
     quanto si è mosso il modello, non i singoli sondaggi */
  PREC=null;
@@ -1988,10 +2059,26 @@ function rProj(){
      '<i><b class="blq" style="background:'+BC(P[i].b)+'"></b>'+E(BL[P[i].b].n)+
      ' · '+E(P[i].l)+'</i></div>'+
      '<div class="sg srf">'+(md||'—')+'</div>'+
+     /* I tre marcatori stavano a tre opacità — barra .30, estremi .55, mediana piena — e
+        l'alfa era la codifica: più debole vuol dire più periferico. Costava troppo: sotto
+        3:1 contro il fondo stavano 12 liste su 21 in chiaro e 9 in scuro agli estremi, e
+        TUTTE E VENTUNO in tutti e due i temi sulla barra, che è l'elemento che porta
+        l'intervallo. A opacità piena reggono tutte e ventuno.
+        La distinzione la fa la geometria, che c'era già e che l'alfa nascondeva: misurato
+        sul reso, con preserveAspectRatio="none" e fattore x 3,1, la barra è orizzontale e
+        spessa 3px, gli estremi sono verticali, spessi 3,72 — PIÙ della barra, non meno —
+        e sporgono 2,5px sopra e sotto. È la figura della barra d'errore.
+        Resta un punto che l'alfa teneva insieme da sola: a opacità piena il disco della
+        mediana e la barra sono LO STESSO COLORE, contrasto 1,00, separati da soli 5,4px
+        di estensione. Da qui l'alone --card sotto il disco — la stessa costruzione della
+        linea della maggioranza nell'emiciclo, dell'anello degli istogrammi e del tratto
+        del simulatore, e nessun token nuovo perché --card è il fondo. Minimo misurato
+        4,66 in chiaro e 4,41 in scuro sulle ventuno liste. */
      '<div><svg viewBox="0 0 200 16" preserveAspectRatio="none" style="height:16px">'+
-       '<line x1="'+(2*x(lo))+'" y1="8" x2="'+(2*x(hi))+'" y2="8" stroke="'+cp(P[i].c)+'" stroke-width="3" opacity=".3"/>'+
-       '<line x1="'+(2*x(lo))+'" y1="4" x2="'+(2*x(lo))+'" y2="12" stroke="'+cp(P[i].c)+'" stroke-width="1.2" opacity=".55"/>'+
-       '<line x1="'+(2*x(hi))+'" y1="4" x2="'+(2*x(hi))+'" y2="12" stroke="'+cp(P[i].c)+'" stroke-width="1.2" opacity=".55"/>'+
+       '<line x1="'+(2*x(lo))+'" y1="8" x2="'+(2*x(hi))+'" y2="8" stroke="'+cp(P[i].c)+'" stroke-width="3"/>'+
+       '<line x1="'+(2*x(lo))+'" y1="4" x2="'+(2*x(lo))+'" y2="12" stroke="'+cp(P[i].c)+'" stroke-width="1.2"/>'+
+       '<line x1="'+(2*x(hi))+'" y1="4" x2="'+(2*x(hi))+'" y2="12" stroke="'+cp(P[i].c)+'" stroke-width="1.2"/>'+
+       '<circle class="alone" cx="'+(2*x(md))+'" cy="8" r="5.4" fill="'+C.card+'"/>'+
        '<circle cx="'+(2*x(md))+'" cy="8" r="4.2" fill="'+cp(P[i].c)+'"/></svg>'+
        '<span style="font-size:10px;color:var(--mute)">'+lo+'–'+hi+'</span></div>'+
      '<div class="rk" style="color:'+(ps>.35?'var(--neg)':(ps>.12?C.acc:'var(--mute)'))+
@@ -2358,9 +2445,11 @@ function rCalendario(){
   {d:'2026-11-18',t:'Termine per i ricorsi',s:'Scade il termine per presentare ricorso contro i risultati davanti alla Corte suprema.'}
  ];
  $('k-calend').innerHTML=tappe.map(function(x){
-  var d=gg(oggi,new Date(x.d+'T00:00:00'));
+  /* la stessa famiglia del conto alla rovescia, e lo stesso rimedio: la tappa è passata
+     quando è passato il suo GIORNO, non quando sono passate ventiquattr'ore */
+  var d=ggCal(oggi,new Date(x.d+'T00:00:00'));
   return '<div'+(d<0?' class="past"':'')+'><div class="dt">'+dl(x.d)+'</div>'+
-   '<div class="g">'+(d>0?f(d)+'<small>giorni</small>':(d===0?'oggi':'passato'))+'</div>'+
+   '<div class="g">'+(d>0?f(d)+'<small>'+acc(d,'giorno','giorni')+'</small>':(d===0?'oggi':'passato'))+'</div>'+
    '<div class="ds">'+x.t+'. '+x.s+'</div></div>';}).join('');
 }
 function rEmi(){
@@ -2569,7 +2658,7 @@ function rCoal(){
      c.m.map(function(i){return '<span class="tag"><i style="background:'+cp(P[i].c)+'"></i>'+E(nm(i))+' '+f(SEG[i])+'</span>';}).join('')+
      '</div>';
   if(c.c.length) h+='<div class="wh">Veto: '+c.c.map(function(x){return E(x[2]);}).join(' · ')+'</div>';
-  else h+='<div class="why">Nessun veto dichiarato fra questi partiti. Margine sulla soglia: '+f(c.t-60)+' '+(c.t-60===1?'seggio':'seggi')+'.</div>';
+  else h+='<div class="why">Nessun veto dichiarato fra questi partiti. Margine sulla soglia: '+seg(c.t-60)+'.</div>';
   h+='</div>';
  });
  $('k-coal').innerHTML=h;
@@ -2779,8 +2868,8 @@ function rHouse(){
  h+='</tr></thead><tbody>';
  ist.forEach(function(k){
   var b=e.by[k];
-  h+='<tr'+(ESCL[k]?' style="opacity:.42"':'')+'><td class="l">'+bott(k)+' '+E(k)+
-     ' <span style="color:var(--mute)">'+E(b.test||'')+'</span></td><td>'+b.n+'</td>';
+  h+='<tr'+(ESCL[k]?' class="off"':'')+'><td class="l">'+bott(k)+' <span class="ist">'+E(k)+
+     '</span> <span style="color:var(--mute)">'+E(b.test||'')+'</span></td><td>'+b.n+'</td>';
   cols.forEach(function(i){
    var v=b.d[i];
    h+='<td class="s" style="color:'+tinta(v)+';font-weight:'+(grosso(v)?700:400)+'">'+
@@ -3014,7 +3103,7 @@ function rTrend(){
  /* legenda interattiva */
  $('k-trendleg').innerHTML=SER.map(function(z){
   var u=S[S.length-1][z[0]];
-  return '<b data-ln="'+z[0]+'"><i style="background:'+C[z[1]]+'"></i>'+z[2]+
+  return '<b data-ln="'+z[0]+'"><i style="--c:'+C[z[1]]+';background:var(--c)"></i>'+z[2]+
    '<s>'+u+'</s></b>';}).join('')+
   '<b class="nolink"><i style="background:'+C.ink+';height:2px;width:16px"></i>Maggioranza 61</b>';
 }
@@ -3118,7 +3207,10 @@ function rTab(){
   var b=blocchi(s.seggi);
   if(s.pre&&!eraShown){eraShown=true;
    h+='<tr><td colspan="'+(cols.length+5)+'" class="l" style="background:var(--wash);font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:var(--mute);font-weight:700">Era pre-fusione — Yesh Atid e Bennett 2026 corrono separati · esclusi dal modello</td></tr>';}
-  h+='<tr'+(s.pre?' style="opacity:.62"':'')+'><td class="l">'+dc(s.data)+'</td><td class="l">'+E(s.istituto)+
+  /* Non si attenuano: il canale è la riga di separazione qui sopra, che dice a parole di
+     che era si tratta e che sono escluse dal modello. A .62 una cifra in --mute scendeva a
+     2,37, e sono cifre che si leggono. */
+  h+='<tr'+(s.pre?' class="pre"':'')+'><td class="l">'+dc(s.data)+'</td><td class="l">'+E(s.istituto)+
      ' <span style="color:var(--mute)">'+E(s.testata||'')+'</span></td><td>'+(s.campione?f(s.campione):'—')+'</td>';
   cols.forEach(function(i){var v=s.seggi[i];
    h+='<td'+(v?' class="s" style="color:'+cp(P[i].c)+'"':'')+'>'+(v?f(v):'')+'</td>';});
@@ -3276,7 +3368,7 @@ function rFoot(){
  'tracciati compatibili e adotta quello che supera la validazione.</p>'+
  '<p><b>Le due ere.</b> Il 26 aprile 2026 Bennett e Lapid hanno fuso le liste in B\'Yachad. Le '+
  f(SOND.filter(function(s){return s.pre;}).length)+' rilevazioni precedenti misurano una mappa che non esiste più: restano in '+
- 'archivio per il grafico di tendenza e per la tabella, dove compaiono attenuate sotto un separatore, ma sono escluse dal modello. '+
+ 'archivio per il grafico di tendenza e per la tabella, dove compaiono sotto un separatore che le dichiara, ma sono escluse dal modello. '+
  'Delle '+f(SOND.filter(function(s){return !s.pre;}).length)+' successive, la proiezione ne usa <b>'+f(L.length)+'</b>, quelle degli ultimi 60 giorni. '+
  'Nel grafico di tendenza la linea è la mediana mobile su cinque rilevazioni, i punti sono i singoli sondaggi.</p>'+
  '<p><b>Copertura.</b> '+(function(){var m={},k;

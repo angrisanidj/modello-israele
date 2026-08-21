@@ -29,7 +29,7 @@ alle prove.
 
 ```bash
 npm install          # solo la prima volta: installa jsdom per le prove
-npm test             # estrae il JS e lancia le 611 prove
+npm test             # estrae il JS e lancia le 718 prove
 npm run verifica     # prove + controlli strutturali
 ```
 
@@ -54,6 +54,13 @@ commit* spiegando perché nel messaggio.
    viene rimosso dal JavaScript al primo render riuscito. Serve a chi apre il file in anteprima.
 7. **Contrasto leggibile** nei due temi, chiaro e scuro.
 8. **Su schermo stretto** (viewport 380 px) nessun testo negli SVG scende sotto i 5 px reali.
+9. **L'opacità non è un canale.** Può ridurre l'enfasi, ma non può essere l'unico portatore
+   di una distinzione, e non si applica a testo che in quello stato va letto. Ogni
+   `opacity` sotto 1 che raggiunge del testo deve comparire nell'inventario di
+   `test/suite/opacita.js` con una ragione scritta: la prova risolve quali elementi
+   ciascuna regola raggiunge davvero, e cade se ne compare una non dichiarata — anche
+   scritta domani. Il numero che regge l'invariante: perché `--mute` arrivi a 4,5 servirebbe
+   **α ≥ 0,93**, e a 0,93 l'attenuazione non si vede più. Vedi il punto 17.
 
 ## Trappole già incontrate, da non ripetere
 
@@ -70,6 +77,21 @@ commit* spiegando perché nel messaggio.
   le parole che precedono l'espressione e controllarle.
 - **Ricostruire angoli da coordinate SVG arrotondate**: le prove sull'emiciclo leggono coordinate a
   due decimali. Non ridurre la precisione.
+- **Riscrivere a mano una regola di lingua invece di chiamarla.** L'accordo singolare
+  o plurale era scritto tre volte — `seg()`, il margine della coalizione, il calendario —
+  e **la terza copia sbagliava**: «1 giorni». Si vedeva un giorno per tappa, sei giorni in
+  tutta la campagna, e uno dei sei è la vigilia del voto. Ora c'è `acc(n, singolare,
+  plurale)` e le tre strade passano di lì. È la regola generale del progetto applicata
+  alla lingua: tre copie corrette oggi divergono domani, e divergono in silenzio.
+- **Agganciare una regola a un residuo di stile invece che allo stato.** Il pulsante
+  dell'istituto escluso era colorato da `#kn26 tr[style] .mini`, cioè dalla PRESENZA
+  dell'attributo di stile in linea — che conteneva l'`opacity:.42`. Togliendo l'opacità,
+  la regola ha smesso di raggiungere qualunque cosa e il pulsante è tornato grigio: una
+  riparazione che ne rompeva un'altra **in silenzio**. E nessuna prova se ne accorgeva,
+  perché per impostazione predefinita **non c'è nessun istituto escluso** e lo stato non
+  esiste nel DOM finché qualcuno non preme. Due lezioni: un selettore dichiara lo stato con
+  una classe, mai deducendolo da un effetto collaterale; e **una prova su uno stato
+  interattivo deve accendere quello stato**, o passa a vuoto e sembra verde.
 
 ## Struttura
 
@@ -166,7 +188,13 @@ Messaggi di commit in italiano, all'infinito, con il perché e non solo il cosa.
 4. Incertezza sulla configurazione delle liste nel Monte Carlo
 5. Affluenza haredi (nessuna leva, ha oscillato meno di quella araba)
 6. Storico delle proiezioni salvate su disco invece che ricalcolate
-7. **Esportazione PNG dei grafici.** Il vincolo annotato il 21 agosto — i marcatori
+7. **Esportazione PNG dei grafici — VIENE DOPO LA REVISIONE VISIVA, non prima.** Deciso il
+   22 agosto 2026. Non cambia come si legge la pagina: aggiunge quattro pulsanti e produce
+   file. La revisione, invece, può dare da riparare cose che cambiano l'aspetto dei
+   grafici — e l'esportazione disegna una targa attorno a quei grafici, con i loro colori e
+   la loro geometria. Scriverla prima significherebbe scriverla due volte.
+
+   Il vincolo annotato il 21 agosto — i marcatori
    numerati fuori dall'SVG, che un'esportazione del solo disegno avrebbe perso — **non
    esiste più dal 22 agosto 2026**: i dischi si disegnano dentro l'SVG a **tutte** le
    larghezze, e lo strato HTML (`#k-evlay`) porta soltanto bersagli trasparenti da 30px
@@ -292,10 +320,31 @@ Messaggi di commit in italiano, all'infinito, con il perché e non solo il cosa.
     segnalati finora — testo nero su fondo nero, anteprima senza JavaScript, didascalia sopra i
     seggi — erano tutti di quel tipo e nessuna prova automatica li avrebbe visti.
 11. Settembre 2019 ricalcolato riga per riga (oggi è dato di seconda mano, da titoli di stampa)
-12. **Il conto dei giorni al voto tronca le ore invece di contare i giorni di calendario.**
-    Il 20 agosto la pagina dice «67 giorni», ma dal 20 agosto al 27 ottobre sono 68 giorni di
-    calendario. Il lettore confronta col calendario, non con le ore: il conto va fatto sulle
-    date a mezzanotte, non sulla differenza di millisecondi troncata.
+12. ~~Il conto dei giorni al voto tronca le ore~~ — **chiuso il 22 agosto 2026**, insieme
+    alle sei tappe del calendario, che condividevano `gg()` e quindi il difetto.
+
+    Il rimedio è in due funzioni nuove accanto a `gg()`, che resta invariata:
+    `giornoUTC(d)` prende i componenti **locali** di un istante — l'oggi del lettore è
+    quello del suo calendario, non quello di Greenwich — e li rimonta a mezzanotte **UTC**,
+    dove l'ora legale non esiste; `ggCal(a,b)` sottrae lì, e la differenza è un multiplo
+    esatto di 86.400.000. Due sole chiamate: il conto alla rovescia e le sei tappe.
+
+    **`gg()` non è stata toccata, ed è giusto così**: fra due date dell'archivio, che
+    nascono tutte da `new Date('AAAA-MM-GG')` cioè da mezzanotte UTC, la differenza è già
+    esatta e l'arrotondamento non fa niente. `test/suite/giorni.js` lo dichiara e lo
+    prova, così nessuno «ripara» anche quelle.
+
+    **Il banco di prova impone `TZ=Europe/Rome` prima di qualunque `Date`**, e non è un
+    dettaglio: con `TZ=UTC` — che è quello che la CI userebbe — il difetto **non si
+    manifesta affatto**, e una suite che girasse solo lì direbbe che va tutto bene. Le
+    trentasei prove stanno a cavallo del **25 ottobre**, dove il fuso passa da UTC+2 a
+    UTC+1: verificato che ci passi davvero, o metà delle prove non misurerebbe niente.
+
+    Mutata in tre modi, e il terzo è quello che valeva la pena scrivere:
+    rimettendo `gg()` nel conto alla rovescia cadono 2 prove; rimettendolo nel calendario
+    ne cadono 6, fra cui «la mattina dice 1 giorno e la sera dice oggi»; e facendo usare a
+    `giornoUTC()` i getter **UTC** invece di quelli locali — l'errore più facile da
+    commettere riscrivendola — ne cadono 6, fra cui tutti i casi di ottobre.
 
     **È la stessa famiglia del difetto dell'ora legale chiuso il 21 agosto 2026** nella
     finestra dei 30 giorni dell'evento isolato, dove `setDate/getDate` in ora locale
@@ -309,9 +358,10 @@ Messaggi di commit in italiano, all'infinito, con il perché e non solo il cosa.
 
     | dove | com'è | verdetto |
     |---|---|---|
-    | `gg(new Date(), VOTO)` — il conto alla rovescia | istante locale contro `new Date('2026-10-27T00:00:00')`, cioè mezzanotte **locale** | **è questo punto 12** |
-    | `gg(oggi, new Date(x.d+'T00:00:00'))` — le tappe del calendario | idem, per ognuna delle sei tappe | **stesso difetto, stesso rimedio** |
+    | `gg(new Date(), VOTO)` — il conto alla rovescia | istante locale contro mezzanotte **locale** | **riparato**: usa `ggCal` |
+    | `gg(oggi, new Date(x.d+'T00:00:00'))` — le tappe del calendario | idem, per ognuna delle sei | **riparato**: usa `ggCal` |
     | la finestra a 7 giorni della mediana | `getTime()-7*864e5` su una data letta come UTC e riformattata con `toISOString` | **sano**: non tocca mai l'ora locale |
+    | le altre sei chiamate di `gg()` — finestre a 60 e 7 giorni, peso per recenza, filtro dell'archivio, grappolo di istituto | due date dell'archivio, tutte mezzanotte UTC | **sane**: la differenza è già esatta, e vanno lasciate stare |
 
     Una precisazione sul titolo di questo punto: `gg()` **arrotonda**, non tronca. Il
     risultato per il lettore è lo stesso — un giorno di scarto — ma chi lo ripara deve
@@ -433,13 +483,85 @@ Messaggi di commit in italiano, all'infinito, con il perché e non solo il cosa.
     **Con i punti 15 e 16 chiusi, a 380 il documento non scorre più in orizzontale — né
     con la nota chiusa né con la nota aperta.** È la prima volta, ed è il prerequisito che
     l'embed chiedeva.
-17. **Le righe degli istituti esclusi stanno a `opacity:.42`, e lì nessun token arriva a
-    4,5.** Misurato nei due temi: il migliore è `--ink` a **2,70** in chiaro e **3,65** in
-    scuro, `--mute` sta a 1,79 e 1,91, `--neg` a 2,03 e 2,44. Nessuna scelta di colore
-    lo risolve — **la leva è l'opacità**, esattamente come per le tre sparkline di
-    `k-proj` a 0,55. Ed è la riga che il lettore deve poter rileggere per decidere se
-    reinserire l'istituto. Le schede non copiano il difetto: l'escluso lo segnano col
-    tratteggio e col pulsante.
+17. ~~Le righe degli istituti esclusi stanno a `opacity:.42`~~ — **chiuso il 22 agosto
+    2026, e la frase che diceva «la leva è l'opacità» era sbagliata.**
+
+    **La leva non è l'opacità: è non usarla sul testo.** Ecco il numero che lo dimostra.
+    L'alfa minima perché ciascun token arrivi a 4,5 sul proprio fondo:
+
+    | token | chiaro | scuro |
+    |---|---|---|
+    | `--ink` | 0,59 | 0,49 |
+    | `--ink2` | 0,72 | 0,68 |
+    | `--acc` | 0,70 | 0,83 |
+    | `--neg` | 0,82 | 0,68 |
+    | **`--mute`** | **0,93** | **0,92** |
+
+    Una riga attenuata contiene tutti questi token insieme, quindi comanda il peggiore:
+    **`--mute` vuole α ≥ 0,93, e a 0,93 l'attenuazione non si vede più.** Non esiste
+    un'alfa che attenui e lasci leggere — «alzare l'opacità» non è una riparazione, è una
+    contraddizione.
+
+    **E non era un difetto, erano sette.** Cercate tutte le opacità della pagina e
+    misurate sul contrasto vero, sulla pagina pubblicata, nei due temi. Nessuno l'aveva
+    mai fatto:
+
+    | dove | α | testo peggiore | scuro | chiaro |
+    |---|---|---|---|---|
+    | riga dell'istituto escluso, `#k-house` | .42 | «Canale 14», `--mute` | **1,92** | **1,79** |
+    | numero dell'indice, `.idx a i` | .55 | il numero, `--mute` | 2,45 | **1,81** |
+    | coalizione bloccata, `.co.ko` | .5 | «seggi», `--mute` | 2,08 | **1,97** |
+    | rilevazione pre-fusione, `#k-tab` | .62 | una cifra, `--mute` | 2,47 | 2,37 |
+    | veto disattivato, `.veto.off` | .38 | il nome della coppia, `--ink` | 3,21 | **2,42** |
+    | voce spenta della legenda, `.leg.lint b.spenta` | .35 | il nome della serie | — | — |
+    | tappa passata del calendario, `.cal>div.past` | .42 | la descrizione | — | — |
+
+    **La distinzione che decide la riparazione è che cosa DICE l'opacità.** Dove dice uno
+    **stato** (tutte queste), è binaria e c'è già un altro canale che lo dice: si toglie
+    l'opacità e parla quello. Dove è una **codifica** — la sparkline, il filtro
+    dell'emiciclo — toglierla perde informazione, e serve un canale sostitutivo.
+
+    **Cinque riparate**, ciascuna col canale che aveva già:
+
+    | dove | il canale che parla adesso |
+    |---|---|
+    | istituto escluso | il **barrato sul nome** (la grammatica dei veti) più il pulsante `--neg`. Il barrato sta sul nome e **lascia intatti i numeri**, che sono quelli su cui si decide se reinserirlo |
+    | veto disattivato | il `line-through` che c'era già, più `aria-pressed` |
+    | coalizione bloccata | l'intestazione dice **«Bloccata»**, la riga in fondo dice quale veto, il fondo è `--wash` |
+    | rilevazione pre-fusione | la **riga di separazione** che dichiara l'era e che sono escluse dal modello |
+    | tappa passata | al posto del conto alla rovescia c'è la parola **«passato»** |
+
+    **Le due che erano rimaste in sospeso sono chiuse anche loro**, e in tutti e due i
+    casi la misura ha scartato il candidato più ovvio:
+
+    - **`.idx a i`, il numero della sezione.** Il candidato era `font-weight:400` contro
+      il 700 della pastiglia. **Misurato: non regge.** Su una cifra a 11px la differenza
+      resa fra 700 e 400 è **0,38px su 6,47, il 5,9%** — non è una distinzione, è rumore.
+      Ma la domanda giusta era un'altra: **il numero non ha bisogno di essere attenuato.**
+      Non è subordinato all'etichetta, ne fa parte, e a separarlo bastano la posizione e i
+      5px di margine che c'erano già. Tolta l'opacità sta a 4,93 in chiaro e 5,54 in scuro.
+    - **`.leg.lint b.spenta`, la voce spenta della legenda.** Pastiglia vuota col solo
+      bordo, che è la grammatica giusta — la legenda dichiara un **colore**, e il barrato
+      avrebbe detto un'esclusione. Il bordo regge: **4,30** il minimo sulle tre serie, nei
+      due temi e su tutti e due i fondi possibili. Ma da sola è un segnale **più debole**
+      dell'opacità: su 9×9px un bordo da 2 toglie il **31%** dell'inchiostro dove l'alfa
+      .35 ne toglieva il **65%**. Per questo si accompagna al nome in `--mute`, che è un
+      colore e non un'alfa (5,24 e 5,10). Il valore resta in `--ink`: è un numero.
+      **Scartato dopo averlo misurato**: marcare invece la voce *accesa* col fondo
+      `--wash`. `--wash` contro `--card` sta a **1,09** in chiaro e **1,07** in scuro —
+      la marcatura non si vedrebbe. Va bene come risposta al puntatore, che è transitoria e
+      ha il dito sopra; non va bene come stato.
+
+    Il colore della serie arriva alla pastiglia come proprietà `--c`, così la regola dello
+    spento può svuotarla senza conoscerlo, e con `box-shadow:inset` invece di `border`,
+    o il riquadro crescerebbe di 4px.
+
+    **L'inventario di `test/suite/opacita.js` è tornato a zero voci pendenti**, e il
+    numero è scritto nella prova: chi ne aggiunge una deve alzarlo.
+
+    **Due sono esenti, con la ragione scritta**: `.btn:disabled`, perché WCAG 1.4.3
+    esenta il testo dei comandi inattivi; e `#k-emi.filtra text[data-g]`, dove l'opacità
+    È il filtro e in quello stato quelle etichette non vanno lette.
 
 ## L'house effect: due forme, e un colore che non giudica
 
@@ -537,6 +659,54 @@ progetto applicata a una strada doppia nuova: tabella e schede sono due percorsi
 stesso valore, e `test/suite/house.js` verifica che per ogni istituto gli scarti da 0,8
 in su siano gli stessi nelle due. Senza quella prova il difetto sarebbe stato invisibile,
 perché ciascuna forma era corretta rispetto a sé stessa.
+
+## Le sparkline: la geometria al posto dell'alfa, e l'alone
+
+Misurato e **applicato il 22 agosto 2026**.
+
+La sparkline di `k-proj` ha tre marcatori: la barra della forbice (α .30, spessore 3), i
+due estremi (α .55, spessore 1,2) e il disco della mediana (pieno, r 4,2). L'alfa era la
+codifica: più debole vuol dire più periferico.
+
+**Che a opacità piena barra ed estremi si distinguano, è vero — e non per lo spessore.**
+Misurato sul reso a 1265, dove l'SVG è 620×16 con `preserveAspectRatio="none"`, cioè
+fattore x 3,1 e fattore y 1:
+
+| marcatore | com'è reso davvero |
+|---|---|
+| barra | orizzontale, **3px** di spessore, 160,7px di lunghezza |
+| estremi | verticali, **3,72px** di spessore (1,2 × 3,1: l'allungamento li ingrassa), alti 8px, **sporgono 2,5px** sopra e sotto la barra |
+| mediana | **ellisse 26 × 8,4px** — non un cerchio: lo stiramento la deforma |
+
+Quindi gli estremi sono **più spessi** della barra, non più sottili: lo spessore non li
+ordinava, lo faceva solo l'alfa. Ma si distinguono lo stesso, per **orientamento** e per
+**sporgenza**, ed è la figura standard della barra d'errore. **Nessuna tinta serve lì.**
+
+**Il problema è un altro, e non era stato previsto: il disco contro la barra.**
+
+| | minimo | sotto 3:1 |
+|---|---|---|
+| oggi, disco pieno contro barra al 30% (chiaro) | **3,12** | 0 su 21 |
+| oggi, in scuro | **2,97** | 1 su 21 |
+| **a opacità piena, disco contro barra** | **1,00** | **21 su 21** — stesso colore |
+| con un alone `--card` fra i due (chiaro) | **4,66** | 0 su 21 |
+| idem in scuro | **4,41** | 0 su 21 |
+
+A opacità piena disco e barra diventano **lo stesso colore**, e a separarli resterebbero
+5,4px di estensione verticale. Sarebbe chiudere un difetto aprendone un altro.
+
+**Applicato: alone `--card` sotto il disco**, quarto uso dello stesso idioma nel file —
+la linea della maggioranza nell'emiciclo, l'anello degli istogrammi, il tratto del
+simulatore. **Non aggiunge nessun token**: `--card` è il fondo. Minimo 4,41.
+
+È un cerchio in più nell'SVG, r 5,4 contro i 4,2 del disco, disegnato **prima** del disco
+perché nell'SVG l'ordine è la pila. `test/suite/opacita.js` verifica che sia sotto, che
+sia concentrico e che sia più largo — un alone scentrato o sopra è un errore che a occhio
+si vede subito e in una prova di posizione no.
+
+**Resta da guardare a occhio**, ed è nella lista della revisione: la barra al 30% era anche
+quello che rendeva il disco un centro. A opacità piena l'intervallo è un'asta piena con una
+lente in mezzo, ed è la figura giusta — ma è una figura diversa da quella di ieri.
 
 ## Calendario
 
@@ -691,10 +861,16 @@ costa niente, anzi: il blocco sale da 11,85 a 12,40 e la distanza fra blocchi da
 
 Nessuna scelta di colore li risolve: dipendono da come il modello disegna.
 
-1. **Tre sparkline di `k-proj` a opacità 0,55** stanno sotto 3:1 contro il fondo. Un
-   tratto al 55% su fondo pieno non arriva a 3 con nessuna tinta ragionevole: il massimo
-   ottenibile a α = 0,55 richiede una tinta piena con luminanza ≤ 0,048. La leva è
-   l'opacità, non il colore.
+1. ~~Le sparkline di `k-proj`~~ — **chiuse il 22 agosto 2026**, e per la cronaca erano
+   peggio di come erano scritte qui. Non «tre»:
+   misurato su tutte e ventuno le liste nei due temi, sotto 3:1 stanno **12 su 21** in
+   chiaro e **9 su 21** in scuro agli estremi della forbice (α .55), e **21 su 21 in tutti
+   e due i temi** sulla barra (α .30) — che è l'elemento che porta l'intervallo, cioè
+   quello che il lettore deve vedere, e che non era mai stato contato.
+   **A α = 1 tutte e ventuno reggono 3:1 in tutti e due i temi**: la tavolozza non c'entra
+   niente. La leva non era l'opacità e non era il colore: era **smettere di usare l'alfa
+   come codifica** e affidare la distinzione alla geometria, che c'era già. Vedi «Le
+   sparkline: la geometria al posto dell'alfa, e l'alone» più sotto.
 2. ~~La linea della maggioranza in `k-emi`~~ — **chiusa il 21 agosto 2026** con la stessa
    costruzione a due tinte dell'anello degli istogrammi e del tratto del simulatore: alone
    continuo `--card` sotto, tratto tratteggiato `--ink` sopra. Misurata nuda contro tutti i
@@ -784,32 +960,36 @@ Due conseguenze pratiche, e sono quelle da ricordare:
    Non è un elenco di difetti noti da spuntare: è **revisione editoriale**, e si fa
    guardando, non misurando. Le prove dicono che il modello non si è rotto; non dicono che
    la pagina si veda. Da fare a mente fresca, con il file aperto davanti, senza fretta.
-6. Minore, dal filtro dell'emiciclo: **il ritorno alla vista piena è annunciato con Esc**,
+6. **L'esportazione PNG (punto 7), e solo adesso.** Inventario e decisioni sono già
+   scritti; il codice no, di proposito. Viene dopo la revisione perché non cambia come si
+   legge la pagina, mentre la revisione può cambiare l'aspetto dei grafici che
+   l'esportazione incornicia: scriverla prima vuol dire scriverla due volte.
+7. Minore, dal filtro dell'emiciclo: **il ritorno alla vista piena è annunciato con Esc**,
    che al tocco non esiste; e il pulsante «Mostra tutti i seggi» sta sotto la legenda,
    lontano dal punto in cui il dito ha appena premuto. Chi filtra da telefono ha la via
    d'uscita più scomoda delle tre, ed è l'unico che non può usare quella dichiarata.
-7. Dal parser Wikipedia, dopo la riparazione del 21 agosto: **24 righe di gennaio-aprile
+8. Dal parser Wikipedia, dopo la riparazione del 21 agosto: **24 righe di gennaio-aprile
    hanno una cella unica che copre Ra'am, Hadash–Ta'al e Balad** — la Joint List larga di
    gennaio, una configurazione che non ha contenitore in anagrafica. Il parser le respinge
    dichiarandolo, ed è giusto così: **vanno mappate a mano**, decidendo se aggiungere il
    contenitore a `P{}` (con `dentro` su tutte e tre le componenti, Ra'am compresa) o
    lasciarle fuori. Sessanta rilevazioni circa di storia in più, se si decide di volerle.
-8. Sempre dal parser: **le righe-evento arrivano in inglese** («Hadash, Ta'al and Balad
+9. Sempre dal parser: **le righe-evento arrivano in inglese** («Hadash, Ta'al and Balad
    re-form the Joint List») **in una cronologia che è in italiano.** `unisciEventi` salta
    le date già presenti, quindi oggi non entra niente di nuovo, ma il primo evento inglese
    nuovo si mescolerà alle quattordici voci italiane. Serve una traduzione manuale al
    momento dell'ingresso, o una coda di revisione prima che finiscano in cronologia.
-9. **L'altezza uniforme delle righe della tabella dell'analisi non è provabile in jsdom**,
+10. **L'altezza uniforme delle righe della tabella dell'analisi non è provabile in jsdom**,
    che non fa layout: dipende dal font, e si vede solo su browser vero. Il 21 agosto la
    colonna «Seggi» è stata dimensionata sul caso peggiore misurato («20–29», 63px a corpo
    22) alle tre larghezze — 66px in base e a 660, 54px sotto i 400 dove il corpo è 18 —
    e le altezze verificate a mano a 1265, 760 e 380px. Se si tocca il corpo, la colonna o
    il font, va rimisurato con il browser, non con le prove.
-10. Preesistente, visto durante quella misura: a 380px **il nome «Giudaismo Unito Torah»
+11. Preesistente, visto durante quella misura: a 380px **il nome «Giudaismo Unito Torah»
     va a capo** nella colonna dei nomi da 104px e la sua riga è alta 95px contro i 78
     delle altre. È la colonna dei nomi, non quella dei seggi: servono o più larghezza a
     scapito della sparkline, o una sigla corta per l'etichetta stretta.
-11. **Il simulatore manuale è stato verificato a mano il 21 agosto 2026**, perché tre cose
+12. **Il simulatore manuale è stato verificato a mano il 21 agosto 2026**, perché tre cose
     sue jsdom non le misura: le altezze delle pillole (34px uniformi a 950, 760 e 380px,
     su 3 e 6 righe), il totale dentro il riempimento nei due stati e nei due temi
     (contrasti 6,35–9,07 dentro, 14,2–16,3 quando passa accanto in `--ink`), e la soglia
@@ -974,8 +1154,8 @@ nessuno degli altri settori.
 
 ### I difetti noti che restano
 
-- **Tre sparkline di `k-proj` a opacità 0,55** sotto 3:1. Di codice, non di tavolozza: a
-  quell'opacità nessuna tinta arriva a 3. La leva è l'opacità.
+- ~~Le sparkline di `k-proj`~~ — chiuse il 22 agosto 2026: opacità piena e alone `--card`
+  sotto il disco. Minimo 4,66 in chiaro e 4,41 in scuro sulle ventuno liste.
 - **Il conto dei giorni al voto tronca le ore** invece di contare i giorni di calendario
   (punto 12).
 - **Sei suite usano un DOM ridotto** — `aff`, `emi`, `final`, `tema`, `testint`,
@@ -987,7 +1167,7 @@ nessuno degli altri settori.
 trovati oggi — la stella della bandiera che sconfinava nelle bande, l'occhiello a filo del
 bordo sull'ombra, il vuoto di 372px sotto le ipotesi, l'evidenziazione che competeva con
 la codifica del riempimento, il verde arabo che si leggeva nero — sono stati trovati
-**guardando la pagina**, non dalla suite. Le 611 prove dicono che il modello non si è
+**guardando la pagina**, non dalla suite. Le 718 prove dicono che il modello non si è
 rotto; non dicono che la pagina si veda. Dopo ogni push, aprire
 <https://angrisanidj.github.io/modello-israele/> e guardarla nei due temi.
 
@@ -998,7 +1178,7 @@ rotto; non dicono che la pagina si veda. Dopo ogni push, aprire
 Scritta il 22 agosto 2026 per una passata sola, sezione per sezione. Serve a distinguere
 **quello che qualcuno ha già guardato reso** da **quello che nessuno ha mai visto**: in due
 giorni sono entrate parecchie cose che le prove dichiarano sane e che nessun occhio ha
-ancora confermato. Le 611 prove dicono che il modello non si è rotto; non dicono che la
+ancora confermato. Le 718 prove dicono che il modello non si è rotto; non dicono che la
 pagina si veda.
 
 Si guarda su <https://angrisanidj.github.io/modello-israele/>, **nei due temi forzati dal
