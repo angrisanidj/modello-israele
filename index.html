@@ -1273,8 +1273,9 @@
    <button class="btn g xs" data-escl="Direct Polls">Escludi Direct&nbsp;Polls</button>
    <button class="btn g xs" data-par="recenti">Solo ultimi 7 giorni</button>
    <button class="btn g xs" data-par="listaunita">Lista Unita araba</button>
+   <button class="btn g xs" data-par="apparentamenti">Apparentamenti proposti</button>
   </div>
-  <p class="pgn">Modificano quali sondaggi entrano nel calcolo, o come sono composte le liste. Ogni istituto può essere escluso singolarmente dalla tabella <i>House effect</i>.</p>
+  <p class="pgn">Modificano quali sondaggi entrano nel calcolo, come sono composte le liste, o quali accordi di apparentamento entrano nel riparto. Ogni istituto può essere escluso singolarmente dalla tabella <i>House effect</i>.</p>
  </div>
  <div class="pg">
   <div class="pgt">Parametri del modello <button class="lnk" id="k-reset-par">azzera</button></div>
@@ -1314,6 +1315,7 @@
  <div><b>Escludere un istituto</b><span>Ogni sondaggista può essere tolto dal calcolo dalla sua riga nella tabella <i>House effect</i>, o da qui per Direct Polls, che pubblica per Canale 14 e i24 e sopravvaluta sistematicamente il Likud. Nel modello pesa già la metà: escluderlo lo azzera del tutto.</span></div>
  <div><b>Affluenza araba</b><span>Non sposta voti fra blocchi: cambia quanti elettori arabi votano, moltiplicando le loro quote e diluendo tutte le altre. È la variabile che ha oscillato di più — dal 44,6% del 2021 al 64,8% del 2020 — e i sondaggi non la misurano, la assumono. I pulsanti sotto il cursore ancorano lo scenario alle sei elezioni dal 2015. <b>Attenzione al 2021:</b> aveva la stessa configurazione di oggi, tutti uniti tranne Ra'am, e produsse il minimo storico.</span></div>
    <div><b>Solo ultimi 7 giorni</b><span>Restringe la media alla settimana in corso: reagisce prima agli scossoni della campagna, ma su meno rilevazioni e quindi con più rumore.</span></div>
+ <div><b>Apparentamenti proposti</b><span>Due liste apparentate si presentano al riparto come una lista sola e si dividono poi i seggi fra loro: è l&rsquo;accordo di eccedenza previsto da Bader-Ofer, e sposta uno o due seggi. La soglia del 3,25% resta individuale. Gli accordi <i>depositati</i> entrano sempre; questo pulsante aggiunge quelli soltanto <i>annunciati</i>, che diventano vincolanti solo con il deposito delle liste.</span></div>
  <div><b>Lista Unita araba</b><span>Attivo per impostazione predefinita: il 19 agosto Hadash, Ta'al e Balad hanno firmato l'accordo per correre insieme, mentre Ra'am resta separata. Il modello somma le loro quote di voto rilevazione per rilevazione, così i voti di Balad — sotto soglia da soli — smettono di disperdersi. Disattivandolo si vede il controfattuale: quanto costerebbe loro correre divisi.</span></div></div></div></details>
 
 <!-- L'ARCHIVIO E' UNA LINGUETTA, NON UN PULSANTE CON UN PANNELLO ALTROVE.
@@ -1686,7 +1688,13 @@ var EVENTI=[
 var GAP_VERIFICA=2, GAP_SONDAGGI=7;
 var ESCL={}, AFF=0;
 var EMIMODE='blocchi', EMIFILT=null, TRENDPTS=[], TRENDGEO=null, FILTRI={ist:'',per:'0',txt:''};
-var SOND=BASE.slice(), PAR={recenti:0,listaunita:1}, DISP=8, SW=0, SIG=1, SIM=20000, COAL={};
+/* I VALORI PREDEFINITI STANNO SCRITTI QUI E IN NESSUN ALTRO POSTO. Erano due copie —
+   una qui e una dentro il gestore di «azzera» — e la seconda si è scoperta aggiungendo
+   il terzo parametro: azzerando, PAR tornava a un oggetto SENZA la chiave nuova. Il
+   comportamento sarebbe stato giusto per caso (undefined è falso), ma la forma
+   dell'oggetto no, e _serieKey ne fa il JSON. Due copie corrette oggi divergono domani. */
+var PAR_DEF={recenti:0,listaunita:1,apparentamenti:0};
+var SOND=BASE.slice(), PAR=Object.assign({},PAR_DEF), DISP=8, SW=0, SIG=1, SIM=20000, COAL={};
 
 /* ══════════ 2b · DIAGNOSTICA DI AVVIO ══════════ */
 var AVVIATO=false;
@@ -1844,15 +1852,108 @@ function gauss(){if(_g!==null){var v=_g;_g=null;return v;}
  var r=Math.sqrt(-2*Math.log(u));_g=r*Math.sin(2*Math.PI*w);return r*Math.cos(2*Math.PI*w);}
 
 /* ══════════ 4 · MOTORE ══════════ */
-function dhondt(sh){
- var ids=[],k;for(k in sh) if(sh[k]>=SOGLIA) ids.push(k);
- if(!ids.length) return {};
- var out={},dv={},i,n=ids.length;
- for(i=0;i<n;i++){out[ids[i]]=0;dv[ids[i]]=sh[ids[i]];}
- for(var s=0;s<120;s++){
+/* GLI ACCORDI DI APPARENTAMENTO — heskem odafim.
+   Due liste apparentate si presentano al riparto COME UNA LISTA SOLA, con la somma delle
+   quote; i seggi che la lista virtuale ottiene si dividono poi fra le due con lo stesso
+   d'Hondt applicato alla sola coppia. La soglia del 3,25% resta INDIVIDUALE:
+   l'apparentamento non aiuta nessuno a superarla, e se un membro resta sotto l'accordo
+   non esiste. Sono due passaggi, non un algoritmo nuovo — divisori() si riusa per
+   tutti e due.
+
+   PERCHÉ CONTA. Bader-Ofer ha fatto due cose insieme: sostituire i resti più alti col
+   metodo d'Hondt E introdurre l'accordo di eccedenza. Il modello ne implementava una
+   sola. Sul banco di prova storico, 174 coppie su 362 spostano un seggio — il 48% — e in
+   112 casi su 174 il seggio viene dall'ALTRO blocco, cioè cambia il conto che il grafico
+   esiste per mostrare. Vale uno su un errore dichiarato di 1,7 seggi nell'ultima
+   settimana: più della metà dell'incertezza residua, nel momento in cui la pagina viene
+   letta di più.
+
+   OGNI ACCORDO È UN FATTO DICHIARATO, non un dato di sondaggio: ha una data e una fonte,
+   come i veti. La data serve perché la serie storica ricalcola il passato — una coppia
+   annunciata il 22 agosto non deve retroagire su una proiezione di luglio — e lo `stato`
+   separa quello che è stato PROPOSTO da quello che è stato DEPOSITATO.
+
+   I DEPOSITATI ENTRANO SEMPRE, I PROPOSTI SOLO CON LA LEVA ACCESA. Oggi non ce n'è
+   nessuno depositato — il termine è l'8 settembre — quindi a leva spenta il riparto è
+   ESATTAMENTE quello di prima, e c'è una prova che lo verifica invece di darlo per
+   scontato. La leva è `PAR.apparentamenti`, e si comporta come `PAR.listaunita`: mostra
+   il controfattuale. L'8 settembre non si scrive codice nuovo, si cambia uno `stato`.
+
+   MAPPARNE META' E' PEGGIO CHE NON MAPPARNE NESSUNO, e va detto qui perché è la ragione
+   per cui la leva esiste: oggi il modello sbaglia in modo simmetrico rispetto agli
+   apparentamenti, perché non ne vede nessuno; con metà della mappa sbaglierebbe SEMPRE
+   nella stessa direzione, quella dei blocchi le cui coppie sono state annotate. Un errore
+   casuale si dichiara nell'intervallo, uno sistematico no. Se all'8 settembre la mappa è
+   incompleta, si pubblica senza e lo si dichiara. */
+var APPARENTAMENTI=[
+ {a:'raam', b:'lista_araba', data:'2026-08-22', stato:'proposto',
+  fonte:"Mansour Abbas propone alla Lista Unita un accordo di cooperazione e di condivisione dei voti in eccesso"}
+];
+/* Gli accordi che valgono a una certa data: i depositati sempre, i proposti solo se la
+   leva è accesa. `al` è la data della proiezione che si sta calcolando — null per oggi —
+   e serve alla serie storica, che ricalcola il passato. */
+function coppieAttive(al){
+ return APPARENTAMENTI.filter(function(x){
+  if(al&&x.data>al) return false;
+  return x.stato==='depositato'||!!PAR.apparentamenti;
+ });
+}
+/* Gli accordi che entrano DAVVERO nel riparto. Due filtri oltre a coppieAttive:
+   · una lista che non è in gioco — sotto soglia, o assente dalle quote — scioglie il suo
+     accordo, perché l'apparentamento è fra due liste che siedono;
+   · UNA LISTA STA IN UN ACCORDO SOLO. In Israele l'heskem odafim è fra due liste, non
+     fra tre: se l'anagrafica ne portasse due che condividono una lista, la seconda viene
+     scartata invece di fondere una catena. Il filtro sta qui e in nessun altro posto —
+     la proiezione e il Monte Carlo lo chiedono a questa funzione. */
+function coppieRiparto(sopra,al){
+ var visti={},out=[];
+ coppieAttive(al).forEach(function(x){
+  if(sopra&&(sopra[x.a]===undefined||sopra[x.b]===undefined)) return;
+  if(visti[x.a]||visti[x.b]) return;
+  visti[x.a]=1;visti[x.b]=1;out.push(x);
+ });
+ return out;
+}
+/* riparto d'Hondt puro: `seggi` seggi fra le quote date, senza soglia e senza accordi */
+function divisori(sh,seggi){
+ var ids=Object.keys(sh),out={},dv={},i,n=ids.length;
+ for(i=0;i<n;i++) out[ids[i]]=0;
+ if(!n||seggi<=0) return out;
+ for(i=0;i<n;i++) dv[ids[i]]=sh[ids[i]];
+ for(var s=0;s<seggi;s++){
   var b=ids[0];for(i=1;i<n;i++) if(dv[ids[i]]>dv[b]) b=ids[i];
   out[b]++;dv[b]=sh[b]/(out[b]+1);
  }
+ return out;
+}
+/* Il riparto SENZA accordi: soglia individuale, poi 120 seggi coi divisori.
+   Non è un ripiego, ha un consumatore suo: invD() inverte i seggi PUBBLICATI da un
+   sondaggio, e quelli sono calcolati senza apparentamenti — un istituto non può
+   conoscerli. Invertire con una mappa diversa da quella che ha prodotto i numeri
+   darebbe quote sbagliate, in silenzio. Le due strade esistono di proposito e una prova
+   le lega: senza coppie attive devono dare lo stesso identico riparto. */
+function ripartoSoglia(sh){
+ var sopra={},k,n=0;
+ for(k in sh) if(sh[k]>=SOGLIA){sopra[k]=sh[k];n++;}
+ if(!n) return {};
+ return divisori(sopra,120);
+}
+function dhondt(sh,al){
+ var sopra={},k,n=0;
+ for(k in sh) if(sh[k]>=SOGLIA){sopra[k]=sh[k];n++;}   /* la soglia resta individuale */
+ if(!n) return {};
+ var cp=coppieRiparto(sopra,al);
+ if(!cp.length) return divisori(sopra,120);
+ var di={},virt={},out={};
+ cp.forEach(function(x){di[x.a]=x.a+'+'+x.b;di[x.b]=x.a+'+'+x.b;});
+ for(k in sopra){var g=di[k]||k;virt[g]=(virt[g]||0)+sopra[k];out[k]=0;}
+ var sv=divisori(virt,120);
+ for(k in sopra) if(!di[k]) out[k]=sv[k];
+ cp.forEach(function(x){
+  var sub={};sub[x.a]=sopra[x.a];sub[x.b]=sopra[x.b];
+  var r=divisori(sub,sv[x.a+'+'+x.b]);
+  out[x.a]=r[x.a];out[x.b]=r[x.b];
+ });
  return out;
 }
 function tutti(){return SOND.slice().sort(function(a,b){return a.data<b.data?1:-1;});}
@@ -1860,27 +1961,82 @@ function tutti(){return SOND.slice().sort(function(a,b){return a.data<b.data?1:-
    120 seggi uno alla volta, si cerca per bisezione il divisore d per cui
    somma(floor(quota_i / d)) = 120. Usato solo nel Monte Carlo, dove va eseguito
    decine di migliaia di volte; il riparto per oggetti resta per la proiezione. */
-function ripartoVeloce(sh,n,out){
+/* La bisezione, estratta perché adesso serve DUE VOLTE: una per il riparto vero e una
+   sulle quote sommate per gruppo quando ci sono accordi. Assegna `seggi` seggi fra le
+   quote di q[0..m), senza applicare nessuna soglia — quella è già stata applicata da chi
+   chiama. */
+function bisezione(q,m,o,seggi){
  var i,d,tot,lo=1e-9,hi=0;
- for(i=0;i<n;i++){if(sh[i]<SOGLIA)sh[i]=0;if(sh[i]>hi)hi=sh[i];}
- if(hi<=0){for(i=0;i<n;i++)out[i]=0;return;}
+ for(i=0;i<m;i++) if(q[i]>hi) hi=q[i];
+ if(hi<=0||seggi<=0){for(i=0;i<m;i++)o[i]=0;return;}
  for(var it=0;it<44;it++){
   d=(lo+hi)/2;tot=0;
-  for(i=0;i<n;i++) tot+=(sh[i]/d)|0;
-  if(tot>120) lo=d; else hi=d;
+  for(i=0;i<m;i++) tot+=(q[i]/d)|0;
+  if(tot>seggi) lo=d; else hi=d;
  }
  d=hi;tot=0;
- for(i=0;i<n;i++){out[i]=(sh[i]/d)|0;tot+=out[i];}
+ for(i=0;i<m;i++){o[i]=(q[i]/d)|0;tot+=o[i];}
  var g=0;
- while(tot>120&&g++<200){
+ while(tot>seggi&&g++<200){
   var w=-1,wq=Infinity;
-  for(i=0;i<n;i++) if(out[i]>0){var q=sh[i]/out[i];if(q<wq){wq=q;w=i;}}
-  if(w<0)break;out[w]--;tot--;
+  for(i=0;i<m;i++) if(o[i]>0){var qq=q[i]/o[i];if(qq<wq){wq=qq;w=i;}}
+  if(w<0)break;o[w]--;tot--;
  }
- while(tot<120&&g++<200){
+ while(tot<seggi&&g++<200){
   var b=-1,bq=-1;
-  for(i=0;i<n;i++){if(sh[i]<=0)continue;var q2=sh[i]/(out[i]+1);if(q2>bq){bq=q2;b=i;}}
-  if(b<0)break;out[b]++;tot++;
+  for(i=0;i<m;i++){if(q[i]<=0)continue;var q2=q[i]/(o[i]+1);if(q2>bq){bq=q2;b=i;}}
+  if(b<0)break;o[b]++;tot++;
+ }
+}
+/* La struttura che ripartoVeloce usa per gli accordi, costruita UNA VOLTA per esecuzione
+   del Monte Carlo e non a ogni simulazione: i buffer sono preallocati perché qui si passa
+   ventimila volte. Restituisce null quando non c'è nessun accordo, e in quel caso il
+   riparto veloce prende esattamente la strada di prima. */
+function strutturaApp(ids,al){
+ var cp=coppieRiparto(null,al),idx={},i,n=ids.length;
+ for(i=0;i<n;i++) idx[ids[i]]=i;
+ var pos=new Int32Array(n),membri=[],usate=[];
+ for(i=0;i<n;i++) pos[i]=-1;
+ cp.forEach(function(x){
+  var ia=idx[x.a],ib=idx[x.b];
+  if(ia===undefined||ib===undefined) return;
+  pos[ia]=membri.length;pos[ib]=membri.length;membri.push([ia,ib]);usate.push(x);
+ });
+ if(!usate.length) return null;
+ for(i=0;i<n;i++) if(pos[i]<0){pos[i]=membri.length;membri.push([i]);}
+ return {pos:pos,membri:membri,usate:usate,
+         qg:new Float64Array(membri.length),og:new Int32Array(membri.length),
+         cnt:new Int32Array(4)};
+}
+/* LA SOGLIA SI APPLICA PRIMA DEL RAGGRUPPAMENTO, qui come in dhondt(): un membro che
+   resta sotto va a quota zero, la coppia vale quanto l'altro da solo e la divisione
+   interna gli assegna zero seggi. È lo stesso esito del ramo lento, che quella coppia la
+   scarta — e il fatto che i due modi coincidano è quello che permette di provarli l'uno
+   contro l'altro. */
+function ripartoVeloce(sh,n,out,ap){
+ var i,j,x;
+ for(i=0;i<n;i++) if(sh[i]<SOGLIA) sh[i]=0;
+ if(!ap){ bisezione(sh,n,out,120); return; }
+ var k=ap.membri.length;
+ for(j=0;j<k;j++) ap.qg[j]=0;
+ for(i=0;i<n;i++) ap.qg[ap.pos[i]]+=sh[i];
+ bisezione(ap.qg,k,ap.og,120);
+ for(j=0;j<k;j++){
+  var m=ap.membri[j];
+  if(m.length===1){out[m[0]]=ap.og[j];continue;}
+  var s2=ap.og[j];
+  for(x=0;x<m.length;x++) ap.cnt[x]=0;
+  for(var t=0;t<s2;t++){
+   var best=-1,bq=-1;
+   for(x=0;x<m.length;x++){
+    if(sh[m[x]]<=0) continue;
+    var q=sh[m[x]]/(ap.cnt[x]+1);
+    if(q>bq){bq=q;best=x;}
+   }
+   if(best<0) break;
+   ap.cnt[best]++;
+  }
+  for(x=0;x<m.length;x++) out[m[x]]=ap.cnt[x];
  }
 }
 /* Selezione delle rilevazioni che alimentano il modello.
@@ -1913,7 +2069,11 @@ function invD(seggi,sotto,q){
  function fit(mult){
   var sh={};sopra.forEach(function(i){sh[i]=q*seggi[i]/120*mult;});
   for(var it=0;it<200;it++){
-   var got=dhondt(Object.assign({},sh,sotto)),err=0,t=0;
+   /* ripartoSoglia e non dhondt: i seggi che questo passo inverte sono quelli PUBBLICATI
+      da un sondaggio, calcolati senza apparentamenti perché un istituto non può
+      conoscerli. Invertire con una mappa diversa da quella che ha prodotto i numeri
+      darebbe quote sbagliate, e in silenzio. */
+   var got=ripartoSoglia(Object.assign({},sh,sotto)),err=0,t=0;
    sopra.forEach(function(i){
     var g=got[i]||0.4;
     if(Math.abs(g-seggi[i])>err) err=Math.abs(g-seggi[i]);
@@ -2177,8 +2337,13 @@ function titoloCorto(fo,dopo){
  var d=datiTitolo(fo,null);
  return (dopo?TIT_CORTO_DOPO:TIT_CORTO_PRIMA)[d.cella](d.X)+TIT_CODA;
 }
-function montecarlo(base,N,giorni){
+function montecarlo(base,N,giorni,al){
  var ids=Object.keys(base),n=ids.length,i,j;
+ /* GLI ACCORDI VANNO NEL MONTE CARLO INSIEME ALLA PROIEZIONE, non dopo. Toccarne uno
+    solo farebbe dire due cose diverse alla stessa pagina: la proiezione con gli
+    apparentamenti e le probabilità senza. È la strada doppia di sempre, e qui nasce
+    insieme alla funzionalità. */
+ var AP=strutturaApp(ids,al);
  var dir=new Int8Array(n),bs=new Float64Array(n),sim=new Float64Array(n),seg=new Int32Array(n);
  var isCo=new Uint8Array(n),isOp=new Uint8Array(n),isAr=new Uint8Array(n);
  for(i=0;i<n;i++){
@@ -2224,7 +2389,7 @@ function montecarlo(base,N,giorni){
   for(j=0;j<n;j++){sim[j]=bs[j]*Math.exp(sim[j]*sg*vol[j]+dir[j]*sw);tot+=sim[j];}
   var sc=QSUM/tot;
   for(j=0;j<n;j++){sim[j]*=sc;if(sim[j]<SOGLIA)sotto[j]++;}
-  ripartoVeloce(sim,n,seg);
+  ripartoVeloce(sim,n,seg,AP);
   var bc=0,bo=0,ba=0,mx=0,mk=-1;
   for(j=0;j<n;j++){
    var v=seg[j];dist[j][s]=v;
@@ -2499,8 +2664,10 @@ function calcola(){
   var Lp=attiviAl(taglio);
   if(Lp.length>=3&&Lp[0].data!==L[0].data){
    var qp=quoteDa(Lp); if(SW) qp=applicaSwing(qp,SW);
-   PREC={seg:dhondt(qp),n:Lp.length,taglio:taglio,data:Lp[0].data,
-         mc:montecarlo(qp,Math.max(4000,Math.round(SIM/4)),ORIZZONTE+7)};
+   /* la data del taglio, non oggi: un accordo annunciato ieri non deve comparire nella
+      proiezione di sette giorni fa, o il confronto misurerebbe anche l'annuncio */
+   PREC={seg:dhondt(qp,taglio),n:Lp.length,taglio:taglio,data:Lp[0].data,
+         mc:montecarlo(qp,Math.max(4000,Math.round(SIM/4)),ORIZZONTE+7,taglio)};
   }
  }catch(e){PREC=null;}
  MC=montecarlo(QUO,SIM,ORIZZONTE);
@@ -3961,7 +4128,9 @@ function serieModello(){
   if(l.length<6) return;
   var qq=quoteDa(l); if(!qq) return;
   if(SW) qq=applicaSwing(qq,SW);
-  var sg=dhondt(qq),b=blocchi(sg);
+  /* `d` e non oggi: una coppia annunciata il 22 agosto non deve comparire nella
+     proiezione di luglio. È la ragione per cui APPARENTAMENTI porta una data. */
+  var sg=dhondt(qq,d),b=blocchi(sg);
   out.push({d:d,g:b.coalizione,o:b.opposizione,a:b.arabo,n:l.length});
  });
  _serie=out;_serieKey=key;
@@ -4355,6 +4524,32 @@ function rTab(){
  });
  $('k-tab').innerHTML=h+'</tbody></table>';
 }
+/* Che cosa la pagina dice degli accordi, ricavato dalla tabella e dalla leva invece che
+   scritto. Prima diceva «non sono simulati», e quella frase è diventata falsa nel momento
+   in cui lo sono: e' l'invariante 10 applicata a un fatto invece che a una data. */
+function notaApparentamenti(){
+ var dep=APPARENTAMENTI.filter(function(x){return x.stato==='depositato';});
+ var pro=APPARENTAMENTI.filter(function(x){return x.stato==='proposto';});
+ var nomi=function(x){return nm(x.a)+' e '+nm(x.b);};
+ var t='Gli accordi di apparentamento — <i>heskem odafim</i> — sono simulati: due liste apparentate '+
+  'si presentano al riparto come una lista sola e si dividono poi fra loro i seggi che ottengono, '+
+  'con lo stesso metodo. La soglia del 3,25% resta individuale, quindi l\'accordo non aiuta nessuno '+
+  'a superarla. Spostano uno o due seggi, e spesso da un blocco all\'altro. ';
+ if(dep.length) t+='Accordi depositati, e quindi sempre nel riparto: '+dep.map(nomi).join('; ')+'. ';
+ else t+='Nessun accordo risulta ancora depositato: il termine è quello del deposito delle liste. ';
+ if(pro.length){
+  t+='Annunciati ma non ancora depositati: '+pro.map(function(x){return nomi(x)+', '+dl(x.data);}).join('; ')+'. '+
+   (PAR.apparentamenti
+    ? 'Il pulsante <i>Apparentamenti proposti</i> è acceso, quindi entrano nel riparto: quello che si legge è un controfattuale, non un dato.'
+    : 'Non entrano nel riparto: il pulsante <i>Apparentamenti proposti</i> in cima li aggiunge, per mostrare quanto peserebbero.');
+ } else t+='Non ne risulta annunciato nessuno.';
+ /* La ragione per cui una mappa incompleta è peggio di nessuna mappa va detta al lettore,
+    non solo a chi scrive il codice: senza accordi l'errore è simmetrico, con metà degli
+    accordi diventa sistematico in una direzione sola. */
+ t+=' Una mappa incompleta sarebbe peggio di nessuna mappa: senza accordi il modello sbaglia '+
+  'in modo simmetrico, con solo una parte di essi sbaglierebbe sempre nella stessa direzione.';
+ return t;
+}
 function rFoot(){
  $('k-foot').innerHTML=
  '<h3>Come funziona il modello</h3>'+
@@ -4377,7 +4572,7 @@ function rFoot(){
  'Poiché più quote producono gli stessi seggi, si prende il centro geometrico dell\'intervallo. Solo dopo si fa la media: '+
  'mediare i seggi anziché i voti gonfierebbe le liste al limite della soglia.</p>'+
  '<p><b>3. Riparto.</b> I seggi sono assegnati col metodo Bader-Ofer, cioè il d\'Hondt in uso in Israele, dopo aver escluso '+
- 'le liste sotto il 3,25%. Non sono simulati gli accordi di apparentamento fra liste affini, che nella realtà spostano uno o due seggi.</p>'+
+ 'le liste sotto il 3,25%. '+notaApparentamenti()+'</p>'+
  '<p><b>4. Incertezza.</b> '+f(SIM)+' simulazioni con due componenti di errore: una specifica di ogni lista e una sistematica '+
  'di blocco, entrambe crescenti con la distanza dal voto. La taratura riproduce l\'errore storico degli istituti israeliani: '+
  'a '+f(ORIZZONTE)+' giorni dalle urne — la distanza a cui si trova la rilevazione più recente, che non è '+
@@ -5060,7 +5255,7 @@ $('k-refresh').addEventListener('click',function(){
  });
 })();
 $('k-reset-par').addEventListener('click',function(){
- PAR={recenti:0,listaunita:1};ESCL={};SW=0;SIG=1;AFF=0;
+ PAR=Object.assign({},PAR_DEF);ESCL={};SW=0;SIG=1;AFF=0;
  $('k-aff').value=0;mostraAff();
  $('k-sw').value=0;$('k-swv').textContent='0,0';
  $('k-sig').value=100;$('k-sigv').textContent='100%';

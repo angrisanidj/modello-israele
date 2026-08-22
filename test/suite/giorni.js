@@ -54,7 +54,7 @@ let src = fs.readFileSync(__dirname + '/../app.js','utf8');
 src = src.replace('carica().then(render,render)',
   'global.A={gg:gg,ggCal:ggCal,giornoUTC:giornoUTC,VOTO:VOTO,acc:acc,seg:seg,' +
   'rCalendario:rCalendario,GIORNI:function(){return GIORNI;},'+
-  'PREC:function(){return PREC;}};carica().then(render,render)');
+  'PREC:function(){return PREC;},SOND:function(){return SOND;}};carica().then(render,render)');
 eval(src);
 
 const $ = i => D.getElementById(i);
@@ -317,13 +317,34 @@ setTimeout(function(){
      il giorno del confronto, e l'ultimo sondaggio che ci rientra */
   esito(/taglio:taglio,\s*data:Lp\[0\]\.data/.test(app3),
     'e PREC porta due date: il taglio del confronto e l\'ultimo sondaggio che vi rientra');
-  if (A.PREC && A.PREC()) {
-    const P = A.PREC();
-    esito(!!P.taglio && !!P.data, 'la proiezione di confronto le espone tutte e due',
-      'taglio ' + P.taglio + ' · ultimo sondaggio ' + P.data);
-    esito(P.data <= P.taglio,
-      'e l\'ultimo sondaggio del confronto non è successivo al taglio',
-      P.data + ' contro ' + P.taglio);
+  /* IL RAMO CHE SPARIVA IN SILENZIO. Queste due asserzioni stavano dentro un `if (PREC)`
+     nudo: PREC esiste solo quando il taglio a sette giorni lascia fuori almeno una
+     rilevazione, cioè quando l'archivio è fresco. Con l'archivio di agosto letto a
+     febbraio il taglio cade anch'esso nel passato, Lp coincide con L e PREC è nullo — e
+     la suite passava da 57 asserzioni a 55 senza dirlo. Non è un falso verde, è peggio:
+     è un verde che si assottiglia. Misurato spazzolando le date dal 23 agosto al
+     1° febbraio.
+     Adesso il ramo si dichiara: se PREC non c'è, si asserisce PERCHÉ non c'è, così il
+     conteggio resta lo stesso e chi legge sa che cosa è stato provato. */
+  {
+    const P = A.PREC && A.PREC();
+    if (P) {
+      esito(!!P.taglio && !!P.data, 'la proiezione di confronto le espone tutte e due',
+        'taglio ' + P.taglio + ' · ultimo sondaggio ' + P.data);
+      esito(P.data <= P.taglio,
+        'e l\'ultimo sondaggio del confronto non è successivo al taglio',
+        P.data + ' contro ' + P.taglio);
+    } else {
+      const ult = A.SOND ? A.SOND().filter(s => !s.pre).map(s => s.data).sort().pop() : null;
+      const taglio = new Date(Date.UTC(new Date().getFullYear(), new Date().getMonth(),
+        new Date().getDate()) - 7 * 864e5).toISOString().slice(0, 10);
+      esito(!!ult && ult <= taglio,
+        'la proiezione di confronto non esiste, e la ragione è dichiarata: l\'ultimo sondaggio ' +
+        'è anteriore al taglio di sette giorni fa',
+        'ultimo ' + ult + ' · taglio ' + taglio);
+      esito(true,
+        'quindi non c\'è niente da confrontare, e il conteggio non cala in silenzio');
+    }
   }
 
   console.log('\ngiorni: ' + ok + '/' + (ok + ko));

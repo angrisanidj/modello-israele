@@ -6,7 +6,8 @@
   "scripts": {
     "test": "node test/esegui.mjs",
     "estrai": "node test/estrai.mjs",
-    "verifica": "node test/esegui.mjs && node test/struttura.mjs"
+    "verifica": "node test/esegui.mjs && node test/struttura.mjs",
+    "spazzola": "node test/spazzola.mjs"
   },
   "devDependencies": {
     "jsdom": "^24.1.3"

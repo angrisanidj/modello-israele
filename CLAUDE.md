@@ -29,8 +29,11 @@ alle prove.
 
 ```bash
 npm install          # solo la prima volta: installa jsdom per le prove
-npm test             # estrae il JS e lancia le 1172 prove
+npm test             # estrae il JS e lancia le 1223 prove
 npm run verifica     # prove + controlli strutturali
+npm run spazzola     # rilancia il banco con l'orologio al 23 ottobre: dice quali prove
+                     #   danno per scontato un archivio fresco. Da rifare dopo ogni
+                     #   modifica a un'àncora temporale — vedi l'invariante 10
 ```
 
 `npm test` rigenera `test/app.js` da `index.html`. Non modificare `test/app.js` a mano: è un
@@ -57,7 +60,7 @@ secondo argomento (aff.js, due su due); e un'asserzione tautologica —
 ## Il banco di misura su browser vero
 
 Le prove girano in jsdom, che **non fa layout**: larghezze, altezze, contrasti resi e
-sovrapposizioni non le vede nessuna delle 1172. Per quelle c'è un server statico da otto
+sovrapposizioni non le vede nessuna delle 1223. Per quelle c'è un server statico da otto
 righe, `.claude/serve.mjs`, dichiarato in `.claude/launch.json` come configurazione
 `misure`. **È sotto controllo di versione apposta: chi apre il progetto domani lo trova
 invece di rimontarlo.** Non è una dipendenza del modello — `index.html` resta un file
@@ -159,6 +162,50 @@ commit* spiegando perché nel messaggio.
     Se una grandezza non è ricavabile, va scritta **una volta sola** in una costante con
     accanto la data in cui è stata misurata, e non ripetuta nella prosa.
 
+    **E vale anche nelle prove: una data letterale in una fixture è una costante
+    temporale, e vale finché non vale più.** Scritto il 23 agosto 2026, dopo che
+    `mediana.js` è caduta al primo giorno in cui il calendario è girato. Le sue quattro
+    rilevazioni «recenti» erano datate 16–19 agosto, e reggevano solo perché
+    `finestra()` si ancorava alla rilevazione più recente: la finestra dei sette giorni
+    le conteneva sempre, a qualunque data si eseguisse la suite. Spostata l'ancora a
+    oggi, il 23 agosto le quattro erano diventate tre e la mediana cadeva su un valore
+    solo invece che fra due. Non era un difetto del modello: era una fixture che dava per
+    scontato di essere eseguita ad agosto.
+    La forma buona è `giorniFa(k)`, che costruisce le date **da oggi**: la fixture
+    dichiara «quattro rilevazioni dentro la finestra e due fuori» invece di «quattro
+    rilevazioni del 16, 17, 18 e 19 agosto», che è la stessa cosa solo finché è agosto.
+    Una data letterale resta legittima quando è **il fatto che si prova** — l'8 settembre
+    del deposito, il 27 ottobre del voto, l'orologio congelato di `deposito.js` e
+    `date.js` — e non quando è soltanto un modo di dire «adesso».
+
+    **Come si verifica, invece di ragionarci.** Il banco si esegue con l'orologio spostato
+    avanti e si guarda che cosa cade:
+
+    ```bash
+    npm run spazzola
+    ```
+
+    che esegue **tutto** il banco con l'orologio portato al 23 ottobre — il silenzio
+    demoscopico, il primo giorno in cui la finestra dei sette giorni si svuota da sola — e
+    dice che cosa cade. Altre date si passano come argomenti:
+    `npm run spazzola 2026-11-20 2027-02-01`. Una prova sola, a mano, si esegue così, e
+    il `cd` non è facoltativo perché le suite leggono `../../index.html`:
+
+    ```bash
+    cd test/suite && FINTO_OGGI=2027-02-01 TZ=Europe/Rome node --require ../orologio.cjs mediana.js
+    ```
+
+    dove `orologio.cjs` è cinque righe che sostituiscono `Date` prima che la suite parta.
+    **Va rifatta dopo ogni modifica a un'àncora temporale**, ed è il solo strumento che
+    trova questa famiglia: il grep delle date letterali, da solo, guarda dalla parte
+    sbagliata — vedi qui sotto.
+    Spazzolando 23 agosto · 15 settembre · 15 e 28 ottobre · 20 novembre · 1º febbraio,
+    **nessuna delle fixture con date letterali è stagionale**: le date d'archivio non
+    scadono perché `attiviAl()` àncora la finestra dei 60 giorni alla rilevazione più
+    recente, non a oggi. **La stagionalità sta altrove**, ed è la cosa che il conteggio
+    delle date letterali non avrebbe mai trovato: vedi «Le sei suite che scadono con la
+    finestra vuota» in fondo.
+
 ## Trappole già incontrate, da non ripetere
 
 - **Tagliare il file usando come confine una funzione che sta *prima***: duplica un blocco e la
@@ -210,6 +257,7 @@ index.html            il modello, pubblicato così com'è come GitHub Pages
 test/
   estrai.mjs          estrae il JS da index.html in test/app.js
   esegui.mjs          lancia tutta la suite e riassume
+  spazzola.mjs        rilancia tutto il banco con l'orologio portato avanti: npm run spazzola
   struttura.mjs       controlli strutturali sul file, compresi i due sulle composizioni
   css.js              il foglio letto come dato: quali regole sono attive a una data
                       larghezza. Sta FUORI da suite/ perché è una libreria, non una prova.
@@ -217,7 +265,11 @@ test/
                       regola commentata comprendeva il commento e prop() non la trovava
                       mai — la regola c'era e la prova riceveva «non dichiarata»
   esito.js            stampa un blocco di controlli e fa fallire il processo se uno cade
+  orologio.cjs        congela l'orologio a FINTO_OGGI: si carica con node --require e serve
+                      a spazzolare le prove nel futuro
   suite/*.js          le prove, una per area
+  suite/apparentamenti.js  gli accordi di eccedenza: il riparto senza coppie identico a
+                      prima, le due strade che concordano, la soglia individuale
   suite/date.js       le due date, l'orizzonte congelato, la fascia del dopo-voto e il
                       sommario a una riga: rende la pagina con l'orologio fermo e il
                       registro del lavoro notturno finto
@@ -328,7 +380,33 @@ leva alla volta, quella lista le esercita insieme.
    (punto 7), che è tutta costruita su quello: o l'embed chiede `allow-downloads`
    all'ospite, o dentro l'embed il pulsante di esportazione non va messo. **Non è una
    cosa da scoprire quando il PNG è già scritto.**
-2. **Accordi di apparentamento — *heskem odafim*. Non «dall'8 settembre»: il primo è
+2. ~~Accordi di apparentamento~~ — **IMPLEMENTATI IL 23 AGOSTO 2026, e nati spenti.**
+   `APPARENTAMENTI` sta nell'anagrafica: coppie di id, con la **data** dell'annuncio e lo
+   **stato**. I depositati entrano sempre nel riparto; i proposti solo con la leva
+   `PAR.apparentamenti`, che si comporta come `PAR.listaunita` e mostra il controfattuale.
+   Oggi non c'è nessun depositato, quindi **a leva spenta ogni numero in pagina è identico
+   a prima**, ed è la prima cosa che `test/suite/apparentamenti.js` verifica invece di
+   darla per scontata. **L'8 settembre si cambia uno `stato`, non il codice.**
+   `dhondt()` e `ripartoVeloce()` sono stati toccati nello stesso commit, e una prova li
+   confronta su 300 vettori di quote generati: erano la strada doppia che sarebbe nata
+   insieme alla funzionalità.
+   **Una terza strada c'era già e va lasciata separata**: `invD()` inverte i seggi
+   PUBBLICATI da un sondaggio, che un istituto calcola senza apparentamenti perché non può
+   conoscerli. Usa `ripartoSoglia()`, il riparto senza accordi, e invertire con una mappa
+   diversa da quella che ha prodotto i numeri darebbe quote sbagliate in silenzio.
+
+   **QUANTO VALE OGGI, e la risposta è cambiata in ventiquattro ore.** Il 22 agosto la
+   coppia Ra'am + Lista Unita valeva **zero seggi**. Misurata il 23 sull'archivio
+   pubblicato, con una rilevazione in più: **Likud 23 → 22, Lista Unita araba 7 → 8**,
+   cioè blocco Netanyahu **51 → 50** e partiti arabi **12 → 13**. Il seggio attraversa il
+   confine fra i blocchi, che è il caso in cui conta. Non è una correzione della misura di
+   ieri: è il margine del 120° seggio a **0,0012 di divisore** che si vede in azione, e la
+   ragione per cui questo punto era il secondo della coda.
+
+   Quello che segue è l'analisi che ha portato all'implementazione, e resta perché i suoi
+   numeri servono a leggere la tabella.
+
+   **Non «dall'8 settembre»: il primo è
    stato proposto il 22 agosto 2026**, quando Abbas ha offerto alla Lista Unita araba un
    accordo di cooperazione e di condivisione dei voti in eccesso. Il primo caso concreto
    è arrivato con **quindici giorni di anticipo sul deposito**, e questo cambia il modo
@@ -1762,7 +1840,7 @@ Due conseguenze pratiche, e sono quelle da ricordare:
 ### Lo stato al 22 agosto 2026, sera
 
 Scritto per ripartire senza la conversazione. Ultimo commit spinto: **`c71d6ea`**, CI e
-Pages verdi, **1172 prove**.
+Pages verdi, **1223 prove**.
 
 #### Prima di toccare qualunque cosa
 
@@ -1916,7 +1994,12 @@ il 37% del costo totale. Oggi i bersagli sotto i 44 sono **76 su 99**.
    **Restano senza prosa** verdetto, pastiglie, istogrammi e simulatore, e restano da
    rileggere i **sei testi delle tre celle nuove** del titolo, che sono gli unici non
    dettati dall'autore.
-2. **Gli apparentamenti** (punto 2 di «Ancora da fare»), e sale qui perché **non è più
+2. ~~Gli apparentamenti~~ — **fatti il 23 agosto 2026**: vedi il punto 2 di «Ancora da
+   fare». Resta da riempire la tabella mano a mano che gli accordi vengono annunciati, e
+   da portarli a `depositato` l'8 settembre. Quello che segue è la misura che li aveva
+   messi al secondo posto.
+
+   ~~Sale qui perché **non è più
    ipotetico**: il 22 agosto 2026 Abbas ha proposto alla Lista Unita araba un accordo di
    eccedenza, quindici giorni prima del deposito. Il modello oggi tratta ogni lista come
    NON apparentata, e il confine del 120° seggio è a **0,0012 di divisore**: quasi ogni
@@ -2127,7 +2210,7 @@ la regola della consegna 6».
 trovati oggi — la stella della bandiera che sconfinava nelle bande, l'occhiello a filo del
 bordo sull'ombra, il vuoto di 372px sotto le ipotesi, l'evidenziazione che competeva con
 la codifica del riempimento, il verde arabo che si leggeva nero — sono stati trovati
-**guardando la pagina**, non dalla suite. Le 1172 prove dicono che il modello non si è
+**guardando la pagina**, non dalla suite. Le 1223 prove dicono che il modello non si è
 rotto; non dicono che la pagina si veda. Dopo ogni push, aprire
 <https://angrisanidj.github.io/modello-israele/> e guardarla nei due temi.
 
@@ -2138,7 +2221,7 @@ rotto; non dicono che la pagina si veda. Dopo ogni push, aprire
 Scritta il 22 agosto 2026 per una passata sola, sezione per sezione. Serve a distinguere
 **quello che qualcuno ha già guardato reso** da **quello che nessuno ha mai visto**: in due
 giorni sono entrate parecchie cose che le prove dichiarano sane e che nessun occhio ha
-ancora confermato. Le 1172 prove dicono che il modello non si è rotto; non dicono che la
+ancora confermato. Le 1223 prove dicono che il modello non si è rotto; non dicono che la
 pagina si veda.
 
 Si guarda su <https://angrisanidj.github.io/modello-israele/>, **nei due temi forzati dal
@@ -2360,3 +2443,65 @@ La verifica a scenari è fatta quando **ogni riga di queste sei tabelle è stata
 annotata**, non quando «sembra a posto». Quello che si trova va scritto nella forma della
 sezione «Come annotare quello che si trova»; quello che si ripara va provato con una prova
 nuova, e la prova va **mutata**, o non si sa se coglierebbe il difetto una seconda volta.
+
+---
+
+## Le sei suite che scadono con la finestra vuota
+
+Trovato il 23 agosto 2026 cercando le fixture stagionali, e non è quello che si cercava.
+Il conteggio delle date letterali nelle prove dà dieci file; spazzolando l'orologio dal
+23 agosto al 1º febbraio **nessuna di quelle dieci cade**. Cadono sei suite che di date
+letterali non ne hanno nessuna:
+
+| suite | che cosa dice |
+|---|---|
+| `colonne.js` | «la tabella dell'analisi è resa» — riga assente, poi solleva su `children` |
+| `crono.js` | «la voce di cronologia arriva in *L'analisi* invariata» |
+| `graf.js` | «affiliazione nei movers» |
+| `final.js` | solleva alla prima riga, **zero asserzioni** |
+| `verifica.js` | idem |
+| `v4.js` | «pannello direzione popolato», «PREC calcolato», «PREC usa meno rilevazioni di oggi» |
+
+**Una causa sola, e l'ha creata la riparazione del 22 agosto.** Da quando `finestra()` si
+ancora a oggi invece che all'ultimo sondaggio, la finestra dei sette giorni **può essere
+vuota**: la tabella dell'analisi si svuota — dichiarandolo, ed è giusto così — e `PREC`
+non esiste, perché il taglio a sette giorni non lascia fuori niente. Le sei suite leggono
+righe che non ci sono più.
+
+**E non è un problema di ottobre.** Bastano sette giorni senza una rilevazione nuova:
+durante il silenzio demoscopico del 23 ottobre, o il primo giorno in cui il lavoro
+notturno si ferma. Da lì `npm run verifica` diventa rosso su qualunque push, e il rosso
+non è un difetto del modello ma una prova che dava per scontato un archivio fresco.
+
+**Il rimedio proposto, non ancora applicato**, e sono due mosse diverse per due famiglie:
+
+- le quattro suite che parlano **della tabella dell'analisi** — `colonne`, `crono`,
+  `graf`, e le due che vi si appoggiano — devono **portarsi la fixture**, con le date da
+  `giorniFa(k)` come `mediana.js`: sono prove su come la tabella è fatta, non su quanti
+  sondaggi ci siano oggi, e non hanno ragione di dipendere dall'archivio vero;
+- `v4.js` parla di `PREC`, che per esistere ha bisogno di due proiezioni distinte: lì la
+  forma giusta è quella di `giorni.js`, cioè **dichiarare il ramo** — se `PREC` non c'è,
+  si asserisce *perché* non c'è, così il conteggio non cala in silenzio.
+
+Vale la pena farlo **prima** del 23 ottobre, non dopo: quel giorno il silenzio demoscopico
+comincia e la finestra si svuota da sola.
+
+---
+
+## Il file è a 398 KB su un tetto di 400
+
+Misurato il 23 agosto 2026, dopo gli apparentamenti. `test/struttura.mjs` fa cadere la
+verifica sopra i **400 KB**, e ne restano **due**. Il tetto non è arbitrario: `index.html`
+è un file autonomo che deve poter essere salvato, riaperto con un doppio clic e
+incorporato altrove, e ottanta per cento del peso è `BASE`, il seme dell'archivio.
+
+Le tre strade, in ordine di quanto costano a chi legge:
+
+1. **Alzare il tetto**, che è la cosa da non fare senza dire perché: il numero esiste per
+   ricordare che ogni KB viaggia con la pagina.
+2. **Potare `BASE`.** Il seme serve a chi apre il file da disco, dove `dati/archivio.json`
+   non si carica; ma non gli serve tutto l'archivio da gennaio — le rilevazioni
+   pre-fusione entrano solo nel banco di prova e nella serie storica, che da disco è
+   comunque parziale. Va misurato che cosa si perde prima di tagliare.
+3. **Accorciare i commenti**, che è l'ultima: sono la ragione per cui questo file si può
+   ancora modificare senza rileggerlo tutto.
