@@ -53,7 +53,8 @@ global.fetch = () => Promise.reject(0);
 let src = fs.readFileSync(__dirname + '/../app.js','utf8');
 src = src.replace('carica().then(render,render)',
   'global.A={gg:gg,ggCal:ggCal,giornoUTC:giornoUTC,VOTO:VOTO,acc:acc,seg:seg,' +
-  'rCalendario:rCalendario,GIORNI:function(){return GIORNI;}};carica().then(render,render)');
+  'rCalendario:rCalendario,GIORNI:function(){return GIORNI;},'+
+  'PREC:function(){return PREC;}};carica().then(render,render)');
 eval(src);
 
 const $ = i => D.getElementById(i);
@@ -249,6 +250,33 @@ setTimeout(function(){
   });
   scongela();
   A.rCalendario();
+
+  /* ══ 8 · l'ancora del confronto a sette giorni ══
+   *
+   * Il verdetto confronta la proiezione di oggi con quella di sette giorni fa. Il taglio
+   * partiva dall'ULTIMO SONDAGGIO in archivio invece che da oggi: la frase diceva «sette
+   * giorni fa» e ne confrontava nove — misurato il 22 agosto, ultimo sondaggio del 20,
+   * taglio al 13 invece che al 15. Due giorni, e la deriva cresce in silenzio se il lavoro
+   * notturno si ferma, perché l'ancora si allontana da oggi insieme all'archivio.
+   * È lo stesso difetto di «aggiornato al» e la stessa invariante 10: un «sette» che non
+   * nasce dalla data corrente. */
+  const app3 = fs.readFileSync(__dirname + '/../app.js','utf8');
+  esito(/var taglio=new Date\(giornoUTC\(new Date\(\)\)-7\*864e5\)/.test(app3),
+    'il taglio del confronto parte da OGGI e passa da giornoUTC, come il conto alla rovescia');
+  esito(!/sett=new Date\(new Date\(ult\)/.test(app3),
+    'e non dall\'ultimo sondaggio in archivio: quell\'ancora derivava senza dirlo');
+  /* due date distinte, perché sono due fatti e nessuno è deducibile dall'altro:
+     il giorno del confronto, e l'ultimo sondaggio che ci rientra */
+  esito(/taglio:taglio,\s*data:Lp\[0\]\.data/.test(app3),
+    'e PREC porta due date: il taglio del confronto e l\'ultimo sondaggio che vi rientra');
+  if (A.PREC && A.PREC()) {
+    const P = A.PREC();
+    esito(!!P.taglio && !!P.data, 'la proiezione di confronto le espone tutte e due',
+      'taglio ' + P.taglio + ' · ultimo sondaggio ' + P.data);
+    esito(P.data <= P.taglio,
+      'e l\'ultimo sondaggio del confronto non è successivo al taglio',
+      P.data + ' contro ' + P.taglio);
+  }
 
   console.log('\ngiorni: ' + ok + '/' + (ok + ko));
   if (ko) process.exit(1);

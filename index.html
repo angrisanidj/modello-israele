@@ -1763,6 +1763,57 @@ function blocchi(s){
  for(var k in s) if(P[k]) b[P[k].b]+=s[k];
  return b;
 }
+/* LA FORMA DEL TITOLO, e perché non è un elenco di if.
+   Il titolo ha quattro forme di base più una quinta, e la quinta NON È UNO STATO: è una
+   formulazione che prende il posto di una delle quattro quando un blocco è a un seggio
+   dalla soglia. Se si scrivessero come cinque if in fila il titolo dipenderebbe
+   dall'ORDINE in cui sono scritti — la quinta si sovrappone alla prima a coal 62, alla
+   seconda a oppo 62 e alla terza a oppo 60 — ed è esattamente il difetto del «primo
+   posto» chiuso il 20 agosto: due condizioni vere insieme, e vince quella scritta prima.
+   Quindi: le quattro di base sono una PARTIZIONE, e la precedenza della quinta è
+   dichiarata qui e provata in test/suite/titolo.js su tutte le configurazioni possibili.
+
+   Che le quattro siano una partizione discende dall'invariante 1, la somma fa 120:
+     · coal ≥ 61  → la coalizione ha la maggioranza, e nessun altro può averla;
+     · coal = 60  → opposizione e arabi fanno 60, quindi NESSUNA somma arriva a 61;
+     · coal ≤ 59  → opposizione più arabi fanno almeno 61, e allora o ce la fa da sola
+                    l'opposizione, o serve il sostegno arabo.
+   Non si sovrappongono e non lasciano scoperto niente: è una catena, non un elenco.
+
+   La quinta vince quando il margine è ≤ 1, dove il margine è la distanza dalla soglia
+   del blocco che ci sta più vicino. Un solo caso ha due blocchi in gioco insieme —
+   coal 60 e oppo 60, cioè zero seggi arabi — e lì «blocco» vale 'entrambi' invece di
+   nominarne uno: è l'unico punto in cui una precedenza sarebbe arbitraria, e infatti
+   non c'è.
+   E LA QUINTA È TRE, non una. Una frase sola non copre i tre versi, e non perché suoni
+   male: sono tre notizie politiche diverse.
+     · scarto −1 — il blocco si ferma a un seggio dalla soglia: NON ce l'ha fatta;
+     · scarto  0 — 61 esatti, la maggioranza minima: ce l'ha fatta, e non ha margine;
+     · scarto +1 — 62, la supera di uno.
+   Una formulazione costruita per reggere tutti e tre uscirebbe tiepida su tutte e tre.
+   Da qui le forme 5, 6 e 7. La «base» resta accessibile sotto, perché la stessa distanza
+   dalla soglia vuol dire cose diverse secondo chi la tocca: opposizione a 60 significa che
+   le servono gli arabi (base 3), coalizione a 60 significa che non c'è maggioranza per
+   nessuno (base 4).
+
+   Una conseguenza misurata, da sapere prima di scrivere i testi: LA FORMA 4 NON SI VEDE
+   MAI. coal = 60 rende |coal − 61| = 1, quindi la quinta la prende sempre: su 20.000
+   simulazioni la 4 pura esce zero volte. Sopravvive come «base» sotto la forma 5, ed è
+   lì che serve il suo testo. Zero volte anche il caso 60/60 — l'unico con due blocchi in
+   gioco — che richiede esattamente zero seggi arabi. Il flag 'entrambi' resta perché
+   costa niente e impedisce una scelta arbitraria se un giorno capitasse. */
+function formaTitolo(b){
+ var c=b.coalizione, o=b.opposizione;
+ var base = c>=61 ? 1 : (c===60 ? 4 : (o>=61 ? 2 : 3));
+ var dc=Math.abs(c-61), don=Math.abs(o-61);
+ var qc=dc<=1, qo=don<=1;
+ var scarto = qc ? c-61 : (qo ? o-61 : null);
+ return { forma: scarto===null ? base : (scarto<0 ? 5 : (scarto===0 ? 6 : 7)),
+          base: base,
+          blocco: (qc&&qo) ? 'entrambi' : (qc ? 'coalizione' : (qo ? 'opposizione' : null)),
+          scarto: scarto,
+          coalizione:c, opposizione:o, arabo:b.arabo };
+}
 function montecarlo(base,N,giorni){
  var ids=Object.keys(base),n=ids.length,i,j;
  var dir=new Int8Array(n),bs=new Float64Array(n),sim=new Float64Array(n),seg=new Int32Array(n);
@@ -2042,13 +2093,29 @@ function calcola(){
  GIORNI=Math.max(0,ggCal(new Date(),VOTO));
  /* proiezione com'era una settimana fa, con gli stessi parametri: misura
     quanto si è mosso il modello, non i singoli sondaggi */
+ /* L'ANCORA DEL CONFRONTO È OGGI, NON L'ULTIMO SONDAGGIO.
+    Prima il taglio era «sette giorni prima di L[0].data», cioè della rilevazione più
+    recente in archivio. La frase diceva «rispetto a sette giorni fa» e ne confrontava
+    nove: misurato il 22 agosto, ultimo sondaggio del 20, taglio al 13 invece che al 15.
+    Due giorni di deriva — e la deriva CRESCE IN SILENZIO se il lavoro notturno si ferma,
+    perché l'ancora si allontana da oggi insieme all'archivio. È lo stesso difetto di
+    «aggiornato al», che àncora al sondaggio invece che al presente, ed è l'invariante 10:
+    un «sette» che non nasce dalla data corrente.
+    Il taglio passa da giornoUTC() come il conto alla rovescia: fra oggi e sette giorni fa
+    ci sono sette giorni di calendario a qualunque ora si apra la pagina.
+
+    E SERVONO DUE DATE, non una. «taglio» è la data del confronto — sette giorni fa — e
+    «data» è l'ultimo sondaggio che ci rientra, che può essere giorni prima. Oggi
+    coincidono per caso, il 13 agosto, e chi legge una data sola non sa quale delle due
+    sta guardando. La frase può dire «rispetto al 15 agosto, quando l'ultima rilevazione
+    era del 13»: sono due fatti diversi e nessuno dei due è deducibile dall'altro. */
  PREC=null;
  try{
-  var ult=L[0].data, sett=new Date(new Date(ult).getTime()-7*864e5).toISOString().slice(0,10);
-  var Lp=attiviAl(sett);
+  var taglio=new Date(giornoUTC(new Date())-7*864e5).toISOString().slice(0,10);
+  var Lp=attiviAl(taglio);
   if(Lp.length>=3&&Lp[0].data!==L[0].data){
    var qp=quoteDa(Lp); if(SW) qp=applicaSwing(qp,SW);
-   PREC={seg:dhondt(qp),n:Lp.length,data:Lp[0].data,
+   PREC={seg:dhondt(qp),n:Lp.length,taglio:taglio,data:Lp[0].data,
          mc:montecarlo(qp,Math.max(4000,Math.round(SIM/4)),GIORNI+7)};
   }
  }catch(e){PREC=null;}
