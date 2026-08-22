@@ -26,6 +26,11 @@
  --on-color:#FFFFFF;     /* testo sopra qualsiasi fondo pieno colorato */
  --coal:#00226E; --oppo:#018279; --arab:#374100; --inc:#8E4107;
  --pos:#066E3E; --neg:#AE3232;
+ /* i quattro gradini della scala divergente dell'house effect: fondo di cella, mai testo.
+    Non vengono dalla regola generativa dei colori di lista — non sono colori di lista,
+    sono tinte di superficie, della stessa famiglia di --wash e --hair. La ragione delle
+    due tinte sta accanto alla regola, in fondo alla sezione dell'house effect. */
+ --sc-p1:#F4ECDD; --sc-p2:#EAD6AD; --sc-m1:#EFEAF7; --sc-m2:#DED1F4;
  --sans:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;
  --serif:'Iowan Old Style',Georgia,'Times New Roman',serif;
  --sh:0 1px 2px rgba(14,16,19,.04),0 8px 24px -14px rgba(14,16,19,.12);
@@ -46,6 +51,7 @@
   --on-color:#070D18;
   --coal:#3A7CFE; --oppo:#3FFFF0; --arab:#8AA20A; --inc:#FFA673;
   --pos:#59C58D; --neg:#FE9390;
+  --sc-p1:#302A1F; --sc-p2:#4C3D1C; --sc-m1:#2D2932; --sc-m2:#443955;
   --sh:0 1px 2px rgba(0,0,0,.3),0 8px 24px -14px rgba(0,0,0,.55);}
 }
 #kn26.scuro{
@@ -56,8 +62,16 @@
   --on-color:#070D18;
   --coal:#3A7CFE; --oppo:#3FFFF0; --arab:#8AA20A; --inc:#FFA673;
   --pos:#59C58D; --neg:#FE9390;
+  --sc-p1:#302A1F; --sc-p2:#4C3D1C; --sc-m1:#2D2932; --sc-m2:#443955;
   --sh:0 1px 2px rgba(0,0,0,.3),0 8px 24px -14px rgba(0,0,0,.55);}
 #kn26 *{box-sizing:inherit;}
+/* Testo che esiste solo per chi ascolta. Serve a due cose che sullo schermo sono dette da
+   un segno grafico e a un lettore di schermo non arrivano: lo stato «escluso», che a occhio
+   è il barrato sul nome — e il barrato non viene annunciato da quasi nessun lettore — e
+   l'annuncio del ricalcolo. Non display:none e non visibility:hidden, che tolgono anche
+   dall'albero di accessibilità. */
+#kn26 .via{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;
+ clip-path:inset(50%);white-space:nowrap;border:0;}
 #kn26 h1,#kn26 h2,#kn26 h3,#kn26 p,#kn26 ul,#kn26 figure,#kn26 figcaption{margin:0;}
 #kn26 button{font-family:inherit;cursor:pointer;color:inherit;-webkit-appearance:none;appearance:none;}
 #kn26 .srf{font-family:var(--serif);font-weight:400;}
@@ -368,6 +382,142 @@
  #kn26 .hstab{display:block;}
  #kn26 .hsch{display:none;}
 }
+/* IL SECONDO CANALE DELLA DIREZIONE: una scala divergente sul FONDO della cella.
+   Prima qui c'era un trattino di lunghezza fissa spostato a sinistra o a destra del
+   centro. Non funzionava, e il modo in cui non funzionava vale più della regola nuova:
+   lungo 6px, alto 2, stava SOTTO il numero — e i valori sotto 0,1 scrivono «—» DENTRO
+   la cella. Due segni orizzontali della stessa famiglia a tredici pixel di distanza:
+   l'occhio leggeva un secondo trattino, non una direzione. Trovato guardando lo scatto,
+   non dalle prove, che erano tutte verdi: è ancora «misurare convince di aver guardato».
+
+   PERCHÉ UNA DIVERGENTE, e non due tinte opposte. L'obiezione contro la coppia di tinte
+   resta vera e non è stata ignorata: due tinte opposte dicono DUE CATEGORIE, mentre qui
+   c'è una grandezza continua che attraversa lo zero, e +0,3 e −0,3 devono somigliarsi.
+   Una divergente è proprio la risposta a quell'obiezione: è un continuo che passa per un
+   NEUTRO, e i valori vicini allo zero finiscono entrambi accanto al neutro, cioè
+   adiacenti. Il neutro è il fondo della cella, così le celle che non contano sembrano
+   non toccate — e sono 42 su 88, misurate sui dati veri.
+
+   PERCHÉ ORO E VIOLA, che è la parte da non ridimenticare. Non è che nella tavolozza non
+   restino tinte libere: è che **le superfici neutre della pagina sono già il blu della
+   coalizione**. --wash chiaro sta a H 261,8°, --card scuro a H 263,4° con croma 0,034,
+   --coal a H 262,2°, --acc a 262,9°. L'azzurro è occupato DUE VOLTE, dal blocco e dalla
+   carta: un gradino azzurro in chiaro verrebbe #E5EDFD, che dista ΔE 3,91 da --wash,
+   cioè MENO di quanto --wash disti da --card (4,08). Non sarebbe un colore, sarebbe la
+   superficie secondaria della pagina.
+   Tolto l'azzurro, il cerchio è pieno: --oppo 186°, --pos 155°, --arab 119°, --inc 49°,
+   --neg 25°. Non esiste nessun DIAMETRO libero — ogni coppia di tinte opposte ha almeno
+   un capo addosso a un significato. I due soli archi larghi sono 262°→385° (123° di
+   viola-magenta) e 50°→119° (69° di oro). Da lì le due estremità: oro 85° per l'eccesso,
+   viola 303° per il difetto. Caldo/freddo è l'unica convenzione che non porta dentro un
+   giudizio, ed è la PuOr di ColorBrewer ruotata via dal blu.
+   Provato anche 318°, margini più bilanciati sulla ruota, e SCARTATO su misura: lì la
+   tritanopia scende da ΔE 5,48 a 3,23 e deuteranopia/protanopia da 93-96% a 86-92%.
+
+   COSTRUZIONE: pari L e pari ΔE2000 dal grigio di quella L (bersagli 7 e 15), così i due
+   lati hanno la stessa chiarezza e la stessa colorosità. Contrasto di --ink sui quattro
+   gradini: 15,18 · 12,49 · 15,09 · 12,34 in chiaro, 12,11 · 8,98 · 12,12 · 9,11 in
+   scuro. Il minimo è 8,98 contro un pavimento di 4,5.
+
+   TRE COSE MISURATE, e sono dichiarate perché nessuna si scopra dopo:
+   1. LA SCALA GRIGIA COLLASSA. In bianco e nero la direzione sparisce: ΔE 0,14 e 0,31 in
+      chiaro, 0,03 e 0,32 in scuro — #F4ECDD e #EFEAF7 diventano lo stesso grigio. È
+      accettabile perché il SEGNO resta scritto nella cella, e perché quel che resta è
+      corretto: la magnitudine sopravvive intera (ΔE 3,74 e 4,60 in chiaro, 6,17 e 6,53
+      in scuro), cioè la divergente diventa una sequenziale, non un pasticcio.
+   2. LA DICROMAZIA REGGE. Deuteranopia e protanopia conservano il 93-96% della distanza
+      fra i due versi (ΔE 12,1-12,8 al gradino 1, 28,3-29,4 al gradino 2). La tritanopia
+      la taglia al 36-40% — è la sua linea di confusione — ma resta ΔE 5,1 e 10,9, sopra
+      3. E «la cella è toccata?» regge anche lì: il peggiore è −1 in scuro per un
+      protanope, ΔE 7,25 dal neutro.
+   3. I CANALI. Il fondo dice direzione e peso; la cifra dice il valore; il segno dice la
+      direzione ed è l'unico che regge il grigio. Via l'attenuazione --mute sotto 0,8:
+      diceva «questa non conta» nella STESSA modalità in cui lo dice il neutro, ed era il
+      duplicato vero — toglierla porta 42 celle da 5,24 a 17,82 in chiaro. Il grassetto
+      da 1,5 RESTA: è tipografico e non cromatico, quindi non è una quarta copia dello
+      stesso canale, sopravvive al grigio e alla stampa (i browser scartano i
+      background-color in stampa), e soprattutto le SCHEDE lo usano già — è l'unico
+      canale di magnitudine che le due forme condividono.
+
+   E le schede sotto i 1075 prendono la stessa scala, con una pastiglia neutra in coda che
+   le dà il centro: la regola sta accanto a .hsv, e lì c'è anche il perché la prima
+   risposta — «le schede restano invariate» — fosse mezza sbagliata. La metà giusta: senza
+   la pastiglia sarebbero 46 voci su 46 colorate, zero neutre, e la divergente
+   collasserebbe nelle due categorie che abbiamo scartato. La metà sbagliata, che era un
+   fatto verificabile e non verificato: la pastiglia della scheda sta su --card, non su
+   --wash come la scheda che la contiene, quindi le tinte sono le stesse e non serve una
+   seconda serie.
+
+   COSTO: zero in larghezza e zero in verticale — un background non occupa spazio, e i
+   13px di padding del trattino tornano indietro, 28,8px in tutto. La soglia dei 1075
+   non si muove di un pixel.
+
+   DUE VARIANTI TENUTE PRONTE, misurate e NON applicate. Si scambiano i quattro token e
+   basta; se una viene scelta, va aggiornato anche il minimo dichiarato in opacita.js/
+   house.js e rimisurato tutto con test/misura-consegna.mjs.
+   B · VIOLA PIÙ STACCATO (solo tema scuro), se a occhio il lato − pende. In scuro la
+     carta È blu, quindi il viola parte già dentro di essa: ΔE dalla carta 8,87 e 15,60
+     contro 18,07 e 28,46 dell'oro. Portandolo a metà strada —
+       --sc-m1:#322146; --sc-m2:#540E8B;
+     — il ΔE dalla carta diventa 13,57 e 21,96, --ink resta a 12,40 e 9,86, e la
+     dicromazia sale (deuteranopia 22,5 e 44,1). IL PREZZO: la colorosità smette di
+     essere pari — ΔE dal grigio 18,6 e 27,9 contro i 7,0 e 15,0 dell'oro — cioè si
+     scambia l'asimmetria della distanza con l'asimmetria della saturazione. Portandolo
+     fino in fondo l'oro diventerebbe #2B2B2B, un grigio esatto: quello no.
+   C · PIÙ DECISA, se le tinte risultano timide. Il pavimento di 4,5 lascia scendere fino
+     a L 0,600 in chiaro e salire fino a L 0,532 in scuro; qui i gradini stanno a 0,882 e
+     0,368. A L 0,905/0,800 e 0,320/0,440 —
+       chiaro  --sc-p1:#EBDEC4; --sc-p2:#E7B643; --sc-m1:#E4DBF2; --sc-m2:#CEAAFF;
+       scuro   --sc-p1:#3B321D; --sc-p2:#694E00; --sc-m1:#362F40; --sc-m2:#653596;
+     — il contrasto di --ink scende a 13,39 · 9,48 · 13,34 · 9,18 in chiaro e 10,77 ·
+     6,64 · 10,92 · 7,14 in scuro: il minimo è 6,64, ancora sopra 4,5. In grigio la
+     direzione comincia appena a trapelare (ΔE 0,78 e 1,59 al gradino 2) e la magnitudine
+     raddoppia il passo. */
+#kn26 .hstab td.s{font-weight:400;}
+#kn26 .hstab td.p1{background:var(--sc-p1);}
+#kn26 .hstab td.p2{background:var(--sc-p2);font-weight:700;}
+#kn26 .hstab td.m1{background:var(--sc-m1);}
+#kn26 .hstab td.m2{background:var(--sc-m2);font-weight:700;}
+/* IL PASSAGGIO DEL PUNTATORE, che il fondo colorato coprirebbe. La regola generale è
+   «#kn26 tbody tr:hover{background:var(--wash)}», cioè un fondo sulla RIGA: i fondi della
+   scala stanno sulle CELLE e ci vanno sopra. Su 46 celle di 88 il passaggio non lascerebbe
+   traccia e la riga si accenderebbe a strisce.
+   Quindi qui il passaggio cambia canale: due filetti orizzontali invece di una velatura —
+   che per seguire una riga su tredici colonne funziona anche meglio. --ink2 sta a 10,04 in
+   chiaro e 8,39 in scuro sul neutro, e il minimo è 4,94 sul gradino 2 scuro.
+   La riga con .sep ha bisogno della regola combinata, o il filetto verticale del blocco
+   verrebbe cancellato dal box-shadow del passaggio: sono la stessa proprietà. */
+#kn26 .hstab tbody tr:hover{background:transparent;}
+#kn26 .hstab tbody tr:hover td{box-shadow:inset 0 1px 0 var(--ink2),inset 0 -1px 0 var(--ink2);}
+#kn26 .hstab tbody tr:hover td.sep{box-shadow:inset 0 1px 0 var(--ink2),inset 0 -1px 0 var(--ink2),
+ inset 1px 0 0 var(--hair),inset 2px 0 0 var(--card);}
+/* I filetti fra i quattro blocchi. Le colonne erano GIÀ in ordine di blocco — arabo,
+   opposizione, incerto, coalizione — e nessuno lo diceva: un istituto che sopravvaluta
+   la destra si legge come una fascia di segni concordi nell'ultimo gruppo, che è la
+   domanda per cui questa tabella esiste. Tre linee da 1px, +3px in tutto.
+   Il confine lo decide l'anagrafica, non una posizione cablata: se l'8 settembre le liste
+   cambiano, i filetti si spostano da soli.
+   E il filetto è un'OMBRA INTERNA, non un bordo, per la stessa ragione della pastiglia
+   svuotata della legenda: box-shadow non partecipa al layout. Misurato: con border-left la
+   larghezza minima della tabella passa da 941,8 a 943,8, e il margine sulla soglia dei
+   1075 scende da 6,2 a 4,2px — due pixel che non valgono la pena di rimettere in
+   discussione un confine misurato. Con l'ombra la larghezza minima resta 941,8 esatti,
+   cioè la soglia non si muove di un pixel.
+   --hair e non --hair2 perché le righe usano già --hair2: il confine fra blocchi deve
+   leggersi più della riga, o non è un confine.
+   E il filetto è a DUE TINTE, come l'alone della sparkline, la linea della maggioranza
+   nell'emiciclo e l'anello degli istogrammi — quarto uso dello stesso idioma. Non è un
+   vezzo: la scala divergente qui sopra SPEGNE il filetto a una tinta sola. Misurato, il
+   contrasto di luminanza di --hair sopra i cinque fondi: 1,24 sul neutro, ma 1,06 e 1,05
+   sui gradini 1 in chiaro e **1,00 e 1,00** in scuro, cioè la stessa identica luminanza
+   del fondo — resterebbe solo una differenza di tinta, su 27 celle. Sarebbe una
+   riparazione che ne rompe un'altra in silenzio, ed è già successo con il pulsante
+   dell'istituto escluso.
+   Con --card sotto, su ogni fondo almeno una delle due si stacca: il minimo del migliore
+   dei due è 1,17 in chiaro e 1,26 in scuro, contro l'1,24 e 1,26 che il filetto ha oggi
+   sul neutro. Non perde niente da nessuna parte. E restano due ombre interne, quindi la
+   larghezza minima della tabella resta 941,8 esatti. */
+#kn26 .hstab .sep{box-shadow:inset 1px 0 0 var(--hair),inset 2px 0 0 var(--card);}
 #kn26 .hs{border:1px solid var(--hair);background:var(--wash);padding:11px 13px;}
 /* l'istituto escluso si segna con il tratteggio e col pulsante, non con l'opacità: la
    riga esclusa della tabella usa opacity:.42 e lì nessun token arriva a 4,5 — difetto
@@ -388,12 +538,52 @@
 #kn26 .hsh i{font-size:9.5px;letter-spacing:.09em;text-transform:uppercase;color:var(--mute);
  font-style:normal;margin-left:auto;white-space:nowrap;}
 #kn26 .hsv{display:flex;flex-wrap:wrap;gap:5px 7px;}
+/* lo spazio fra <em> e <s> nel sorgente non si vede — in un contenitore flessibile il
+   testo di sola spaziatura fra due elementi non viene reso, e il distacco lo fa il gap —
+   ma un lettore di schermo senza di esso legge «Likud+6,2» e «altre 4sotto 0,8» */
 #kn26 .hsv span{display:inline-flex;align-items:baseline;gap:6px;font-size:11.5px;
  border:1px solid var(--hair);background:var(--card);padding:3px 9px;border-radius:99px;}
 #kn26 .hsv em{font-style:normal;color:var(--ink2);}
 #kn26 .hsv s{text-decoration:none;color:var(--ink);font-variant-numeric:tabular-nums lining-nums;}
-#kn26 .hsv s.f{font-weight:700;}
 #kn26 .hsv .nq{color:var(--mute);}
+/* LA SCALA ANCHE NELLE SCHEDE, e la pastiglia che le dà lo zero.
+   La prima obiezione era giusta e il rimedio è quello che la scioglie: dentro una scheda
+   entrano SOLO gli scarti da 0,8 in su, quindi non ci sarebbe nemmeno una voce neutra, e
+   una divergente senza centro torna a essere due tinte su due categorie. Il centro glielo
+   dà una pastiglia in coda — «altre 4 · sotto 0,8» — che è il posto giusto perché l'elenco
+   è già ordinato per grandezza decrescente e quella è la coda.
+   Costo misurato su browser a 380px: le schede passano da 1225,4 a 1317,9px, +92,5px,
+   il 7,5%. Le due alternative costavano molto di più: abbassare la soglia e far entrare
+   tutte le voci porta a 1780,1px (+45%) e cancella il filtro che definisce la scheda;
+   abbassarla a 0,1 invece che a zero non compra niente, perché solo 2 celle su 88 stanno
+   sotto 0,1, e costa lo stesso (1749,3px).
+   E la pastiglia dice due cose che la scheda oggi non dice: quante liste quell'istituto
+   tratta come tutti gli altri — che è la sua taratura, e va da 3 a 8 su 11 — e che il
+   filtro esiste. Oggi una scheda con tre voci non dice se le altre otto sono state omesse
+   o non esistono.
+   IL FONDO È LO STESSO DELLA TABELLA, e non per comodità: la pastiglia sta su --card,
+   non su --wash come la scheda che la contiene. Le due forme usano quindi le stesse
+   quattro tinte e lo stesso neutro — una strada sola, non due.
+   IL BORDO DELLA PASTIGLIA È IL GRADINO 2 DEL SUO STESSO LATO, e questo sì è nuovo. Sul
+   gradino 1 il bordo --hair sparisce esattamente come spariva il filetto fra i blocchi:
+   1,06 e 1,05 di contrasto in chiaro, 1,00 e 1,00 in scuro. E lì il bordo serve davvero,
+   perché il riempimento non delimita: una pastiglia p1 sul fondo --wash della scheda sta
+   a 1,07, cioè quanto la neutra (1,09). Col gradino 2 il bordo risale a 1,22 in chiaro e
+   1,33-1,35 in scuro, sopra l'1,24/1,26 che il bordo ha oggi sulla pastiglia neutra, e
+   dice la stessa cosa del riempimento invece di una cosa in più.
+   Sui gradini 2 il bordo resta --hair: lì è il riempimento a delimitare (1,30 e 1,32 in
+   chiaro, 1,56 e 1,58 in scuro, contro l'1,09 della neutra), quindi il filo è decorativo.
+   Il grassetto viene dalle classi .p2/.m2 come nella tabella, non più da una classe .f
+   sua: era la stessa soglia dell'1,5 scritta in due posti. */
+#kn26 .hsv .p1{background:var(--sc-p1);border-color:var(--sc-p2);}
+#kn26 .hsv .p2{background:var(--sc-p2);}
+#kn26 .hsv .m1{background:var(--sc-m1);border-color:var(--sc-m2);}
+#kn26 .hsv .m2{background:var(--sc-m2);}
+#kn26 .hsv .p2 s,#kn26 .hsv .m2 s{font-weight:700;}
+/* la pastiglia neutra non è un valore, è un conto di omissioni: --mute come .nq, che è il
+   suo caso gemello (5,24 in chiaro e 5,10 in scuro, sopra 4,5). Untinta, quindi resta lo
+   zero della scala anche mentre si legge come etichetta. */
+#kn26 .hsv .neu,#kn26 .hsv .neu em,#kn26 .hsv .neu s{color:var(--mute);}
 
 #kn26 .form{display:grid;grid-template-columns:repeat(6,1fr);gap:11px;margin-top:14px;}
 #kn26 .form label{font-size:9.5px;font-weight:700;color:var(--mute);text-transform:uppercase;
@@ -1151,7 +1341,13 @@
 
 <section>
  <h2>House effect <em>scostamento medio di ciascun istituto rispetto agli altri sondaggisti</em></h2>
- <div class="box"><div id="k-house"></div></div>
+ <div class="box"><div id="k-house"></div>
+  <!-- L'annuncio del ricalcolo. Sta FISSO qui e non dentro #k-house, che viene riscritto
+       per intero a ogni render: una regione viva sostituita in blocco non annuncia in modo
+       affidabile. È lo stesso schema di #k-vetol e #k-emist, che sono anch'essi elementi
+       fissi aggiornati con textContent. Nascosto alla vista perché lo stato visibile è già
+       nella nota in fondo alla sezione: qui si dichiara il CAMBIAMENTO, non lo stato. -->
+  <p class="via" id="k-housel" aria-live="polite"></p></div>
 </section>
 
 <section>
@@ -1870,7 +2066,13 @@ function rTesta(){
  $('k-upd').textContent='aggiornato al '+dl(u);
  $('k-fresh').innerHTML='ultimo sondaggio <b>'+dl(u)+'</b>';
  Array.prototype.forEach.call(R.querySelectorAll('[data-escl]'),function(b){
-  b.classList.toggle('on',!!ESCL[b.dataset.escl]);});
+  b.classList.toggle('on',!!ESCL[b.dataset.escl]);
+  /* La scorciatoia nelle ipotesi è un interruttore con l'etichetta FISSA — «Escludi Direct
+     Polls» resta tale anche quando è premuta — quindi lì aria-pressed è la cosa giusta, ed
+     è il caso opposto del pulsante nella tabella, dove il nome cambia e aria-pressed
+     direbbe il contrario di quello che si legge. Stessa famiglia di comandi, due grammatiche
+     diverse, e la differenza è se il nome dice l'azione o la cosa. */
+  if(!b.classList.contains('mini')) b.setAttribute('aria-pressed',ESCL[b.dataset.escl]?'true':'false');});
  Array.prototype.forEach.call(R.querySelectorAll('[data-par]'),function(b){
   b.classList.toggle('on',!!PAR[b.dataset.par]);});
  $('k-n').innerHTML='<b>'+L.length+'</b> rilevazioni nel modello · <b>'+f(SOND.length)+'</b> in archivio dal 1º gennaio';
@@ -2831,10 +3033,14 @@ function rChips(){
  if(ar.length) t+=' Include liste arabe che hanno escluso l\'ingresso al governo: la maggioranza reggerebbe solo con appoggio esterno.';
  $('k-gnote').innerHTML=t;
 }
+/* quanti istituti conosce l'house effect: serve all'annuncio del ricalcolo, che vive nel
+   gestore del clic e non qui — vedi il commento accanto a #k-housel */
+var NIST=0;
 function rHouse(){
  var e=effettiCasa(),ist=Object.keys(e.by);
+ NIST=ist.length;
  var cols=IDS.filter(function(i){return e.cons[i]>=3;});
- /* Il colore dei valori NON dice la direzione, e non è una svista.
+ /* Il colore dei valori NON dice la direzione con una COPPIA DI TINTE, e non è una svista.
     Prima erano --coal in eccesso e --neg in difetto, e tutti e due significano altro:
     --coal è il Blocco Netanyahu in cinque punti della pagina — emiciclo, legende, barra
     di probabilità, istogramma, backtest — e --neg è «ha perso seggi» nelle colonne 7 GG
@@ -2844,9 +3050,14 @@ function rHouse(){
     diceva anche più forte del rosso — «B'Yachad +4,4» finiva dipinto nel colore del
     blocco avversario, e lì l'indizio è proprio falso.
     Nella tavolozza non esiste una coppia libera: quattro token sono di blocco, due sono
-    --pos/--neg, uno è la bandiera. Quindi la direzione la porta il segno, che è già
-    scritto, e l'intensità il salto di peso a 1,5, che già c'era. Al colore resta la sola
-    distinzione fra scarto che conta e rumore: --ink da 0,8 in su, --mute sotto. */
+    --pos/--neg, uno è la bandiera. Il segno resta il portatore della direzione — è
+    l'unico canale che regge la scala grigia — e l'intensità il salto di peso a 1,5.
+    Quello che il colore fa adesso è un'altra cosa, ed è sul FONDO e non sul testo: una
+    scala divergente a quattro gradini, che passa per il neutro. La ragione delle due
+    tinte, oro e viola, sta nel foglio accanto alla regola: le superfici neutre della
+    pagina sono già il blu della coalizione, quindi l'azzurro è occupato due volte.
+    Il testo dei valori è tutto --ink: l'attenuazione --mute sotto 0,8 diceva «questa non
+    conta» nella stessa modalità in cui adesso lo dice il neutro, ed era il duplicato. */
  /* Tutte e tre le soglie — il trattino a 0,1, il grigio a 0,8, il grassetto a 1,5 — si
     decidono sul valore ARROTONDATO a un decimale, cioè su quello che il lettore vede.
     Sul valore grezzo due celle che dicevano entrambe «−0,8» finivano una in --ink e una
@@ -2854,46 +3065,98 @@ function rHouse(){
     due forme trovava uno scarto che compariva di qua e non di là. L'ha trovato al primo
     giro la prova che lega le due strade. */
  function ar(v){return Math.round(v*10)/10;}
- function tinta(v){return Math.abs(ar(v))<0.8?'var(--mute)':'var(--ink)';}
  function grosso(v){return Math.abs(ar(v))>=1.5;}
  function forte(v){return Math.abs(ar(v))>=0.8;}
+ /* Il gradino della scala divergente: '' sotto 0,8 — il neutro, cioè il fondo della
+    cella — poi p1/p2 in eccesso e m1/m2 in difetto.
+    NON riscrive nessuna soglia: chiama forte() e grosso(), le stesse due funzioni che
+    decidono l'ingresso nella scheda e il grassetto. È la regola di acc() applicata qui —
+    tre copie corrette oggi divergono domani, e divergono in silenzio. Da qui discende
+    che il grassetto può stare sulle classi .p2/.m2 nel foglio invece che in linea: sono
+    la stessa soglia, e averla in due posti sarebbe la strada doppia. */
+ function grad(v){return !forte(v)?'':(ar(v)>0?'p':'m')+(grosso(v)?2:1);}
  /* il meno è quello tipografico, lo stesso delle colonne 7 GG e 30 GG: sono due punti
     della stessa pagina che mostrano la stessa grandezza, e f() da sola darebbe il
     trattino d'unione */
  function segno(v){return Math.abs(ar(v))<0.1?'—':(ar(v)>0?'+':'−')+f(Math.abs(ar(v)),1);}
- function bott(k){return '<button class="mini" data-escl="'+E(k)+'" title="'+
-   (ESCL[k]?'Reinserisci nel modello':'Escludi dal modello')+'">'+(ESCL[k]?'escluso':'incluso')+'</button>';}
+ /* IL PULSANTE DICE L'AZIONE, NON LO STATO. Diceva «incluso», cioè lo stato — che è già
+    detto due volte, dal barrato sul nome e dal pulsante in --neg — e non diceva a nessuno
+    che cosa sarebbe successo premendolo. Otto pulsanti con lo stesso nome accessibile
+    «incluso» sono poi indistinguibili in un elenco di comandi: è la stessa lezione dei
+    quattro «Scarica PNG» e dei bersagli dei marcatori.
+    «Includi» e non «Reinserisci», ed è una misura, non un gusto: la tabella ha 941,8px di
+    minimo contro un contenitore che alla soglia dei 1075 vale 948, cioè 6,2px di margine.
+    Misurato clonando la tabella DENTRO #kn26 in un contenitore da 1px — fuori non eredita
+    niente e la misura è falsa: con «Escludi/Reinserisci» il minimo sale a 959,3, undici
+    pixel OLTRE il contenitore, e la soglia andrebbe rifatta a ~1090 con tutta la sua
+    derivazione. Con «Escludi/Includi» scende a 939,4, cioè 2,4px MENO di oggi.
+    Una stringa sola per il nome accessibile e per il suggerimento: erano due strade per lo
+    stesso testo, ed è la lezione di ETI nei marcatori. Il testo visibile è la prima parola
+    del nome accessibile, come chiede WCAG 2.5.3 «Label in Name»: chi comanda a voce dice
+    «Escludi» e il comando risponde.
+    NIENTE aria-pressed qui: quando il nome dichiara l'azione, aria-pressed direbbe il
+    contrario di quello che si legge. Il cambio di nome dopo la pressione È il riscontro. */
+ function bott(k){
+  var az=ESCL[k]?'Includi':'Escludi';
+  var ETI=az+' '+k+(ESCL[k]?' nel modello':' dal modello');
+  return '<button class="mini" data-escl="'+E(k)+'" title="'+E(ETI)+'" aria-label="'+E(ETI)+
+    '">'+az+'</button>';}
+ /* Lo stato, per chi non vede il barrato: text-decoration:line-through non viene
+    annunciato da quasi nessun lettore di schermo, quindi oggi l'esclusione esisteva solo
+    dentro il nome del pulsante. Una parola nascosta accanto al nome, nelle due forme. */
+ function via(k){return ESCL[k]?'<span class="via"> (escluso)</span>':'';}
+ /* dove cambia il blocco cade un filetto: la fonte è P[i].b, cioè l'anagrafica */
+ var confine={};
+ cols.forEach(function(i,n){ if(n && P[i].b!==P[cols[n-1]].b) confine[i]=1; });
  var h='<div class="hstab"><table><thead><tr><th class="l">Istituto</th><th>Rilev.</th>';
- cols.forEach(function(i){h+='<th title="'+E(nm(i))+'">'+E(nm(i).split(/[ –]/)[0].slice(0,8))+'</th>';});
+ cols.forEach(function(i){h+='<th'+(confine[i]?' class="sep"':'')+' title="'+E(nm(i))+'">'+
+   E(nm(i).split(/[ –]/)[0].slice(0,8))+'</th>';});
  h+='</tr></thead><tbody>';
  ist.forEach(function(k){
   var b=e.by[k];
   h+='<tr'+(ESCL[k]?' class="off"':'')+'><td class="l">'+bott(k)+' <span class="ist">'+E(k)+
-     '</span> <span style="color:var(--mute)">'+E(b.test||'')+'</span></td><td>'+b.n+'</td>';
+     '</span>'+via(k)+' <span style="color:var(--mute)">'+E(b.test||'')+'</span></td><td>'+b.n+'</td>';
   cols.forEach(function(i){
-   var v=b.d[i];
-   h+='<td class="s" style="color:'+tinta(v)+';font-weight:'+(grosso(v)?700:400)+'">'+
-      segno(v)+'</td>';});
+   var v=b.d[i], g=grad(v);
+   /* nessuno stile in linea: la cella dichiara il suo gradino con una classe e il foglio
+      fa il resto — fondo e peso. È la lezione del pulsante dell'istituto escluso, dove
+      una regola agganciata alla PRESENZA di uno stile in linea smise di raggiungere
+      qualcosa il giorno in cui quello stile sparì. */
+   h+='<td class="s'+(confine[i]?' sep':'')+(g?' '+g:'')+'">'+segno(v)+'</td>';});
   h+='</tr>';
  });
  h+='</tbody></table></div>';
  /* La stessa misura, sotto la soglia, in forma di schede: una per istituto, il pulsante
     che la esclude accanto al nome a cui si riferisce. La tabella a quella larghezza aveva
     il pulsante visibile e i dati fuori schermo — si decideva senza vedere su cosa.
-    Nella scheda entrano i soli scarti da 0,8 in su: sono 48 celle su 88, cioè da tre a
-    nove voci per istituto, misurato. Sotto 0,8 il valore è rumore e nella tabella è già
-    in --mute; qui semplicemente non compare. */
+    Nella scheda entrano i soli scarti da 0,8 in su: sono 46 celle su 88, cioè da tre a
+    nove voci per istituto, misurato. Sotto 0,8 il valore è rumore e nella tabella è il
+    fondo neutro a dirlo; qui non compare voce per voce.
+    E PROPRIO PER QUESTO la scheda chiude con una pastiglia neutra che conta le omesse.
+    Senza, la scala divergente qui dentro non avrebbe nemmeno una voce al centro — tutte
+    e 46 colorate — e tornerebbe a essere due tinte su due categorie, cioè la cosa che la
+    divergente esiste per non essere. La pastiglia va in CODA perché l'elenco è ordinato
+    per grandezza decrescente e lo zero è la sua continuazione naturale.
+    Quando non c'è nessuno scarto forte resta il messaggio di prima: lì «altre 11» non
+    vorrebbe dire niente, perché non ci sono le altre. */
  h+='<div class="hsch">';
  ist.forEach(function(k){
   var b=e.by[k];
   var forti=cols.map(function(i){return {i:i,v:b.d[i]};})
     .filter(function(x){return forte(x.v);})
     .sort(function(a,c){return Math.abs(ar(c.v))-Math.abs(ar(a.v));});
-  h+='<div class="hs'+(ESCL[k]?' off':'')+'"><div class="hsh">'+bott(k)+'<b>'+E(k)+'</b>'+
+  h+='<div class="hs'+(ESCL[k]?' off':'')+'"><div class="hsh">'+bott(k)+'<b>'+E(k)+'</b>'+via(k)+
      (b.test?'<span>'+E(b.test)+'</span>':'')+'<i>'+b.n+' rilev.</i></div><div class="hsv">';
   if(!forti.length) h+='<span class="nq">nessuno scarto oltre 0,8 seggi</span>';
-  else forti.forEach(function(x){
-   h+='<span><em>'+E(nm(x.i))+'</em><s'+(grosso(x.v)?' class="f"':'')+'>'+segno(x.v)+'</s></span>';});
+  else {
+   forti.forEach(function(x){var g=grad(x.v);
+    h+='<span'+(g?' class="'+g+'"':'')+'><em>'+E(nm(x.i))+'</em> <s>'+segno(x.v)+'</s></span>';});
+   /* l'accordo passa da acc(), come il calendario e il margine di coalizione: scriverlo
+      a mano è la strada che ha già prodotto «1 giorni» */
+   var deb=cols.length-forti.length;
+   if(deb) h+='<span class="neu"><em>'+acc(deb,'altra','altre')+' '+f(deb)+
+     '</em> <s>sotto 0,8</s></span>';
+  }
   h+='</div></div>';
  });
  h+='</div>';
@@ -3990,7 +4253,15 @@ R.addEventListener('click',function(e){
  if((t=e.target.closest('[data-escl]'))){
   var ist=t.dataset.escl;
   if(ESCL[ist]) delete ESCL[ist]; else ESCL[ist]=1;
-  render();return;}
+  render();
+  /* Premere ricalcola tutta la pagina e finora nessuno lo diceva. L'annuncio si scrive
+     QUI e non in rHouse, così al primo render la regione resta muta: un lettore di schermo
+     che apre la pagina non deve sentirsi leggere uno stato che nessuno ha cambiato.
+     L'accordo passa da acc(), non da una terza copia scritta a mano. */
+  var dentro=NIST-Object.keys(ESCL).length;
+  $('k-housel').textContent=ist+(ESCL[ist]?' escluso':' incluso')+'. Il modello usa '+
+    f(dentro)+' '+acc(dentro,'istituto','istituti')+' su '+f(NIST)+'.';
+  return;}
  if((t=e.target.closest('[data-emi]'))){
   EMIMODE=t.dataset.emi;EMIFILT=null;
   Array.prototype.forEach.call(R.querySelectorAll('[data-emi]'),function(b){b.classList.toggle('on',b===t);});

@@ -29,7 +29,7 @@ alle prove.
 
 ```bash
 npm install          # solo la prima volta: installa jsdom per le prove
-npm test             # estrae il JS e lancia le 718 prove
+npm test             # estrae il JS e lancia le 814 prove
 npm run verifica     # prove + controlli strutturali
 ```
 
@@ -37,6 +37,51 @@ npm run verifica     # prove + controlli strutturali
 prodotto, viene sovrascritto.
 
 **Nessuna modifica a `index.html` è finita finché `npm run verifica` non passa per intero.**
+
+## Il banco di misura su browser vero
+
+Le prove girano in jsdom, che **non fa layout**: larghezze, altezze, contrasti resi e
+sovrapposizioni non le vede nessuna delle 814. Per quelle c'è un server statico da otto
+righe, `.claude/serve.mjs`, dichiarato in `.claude/launch.json` come configurazione
+`misure`. **È sotto controllo di versione apposta: chi apre il progetto domani lo trova
+invece di rimontarlo.** Non è una dipendenza del modello — `index.html` resta un file
+autonomo che si apre con un doppio clic — è un attrezzo del banco.
+
+```bash
+node .claude/serve.mjs      # http://localhost:8788, serve la cartella così com'è
+```
+
+Serve la radice, quindi `dati/archivio.json` si carica con il fetch relativo e si misura
+**la pagina vera**, non il seme BASE. Con questo sono state prese le misure che la suite
+non può prendere: la larghezza minima della tabella dell'house effect (941,8px, poi 939,3
+col comando nuovo), l'altezza delle schede a 380 (1225,4 → 1317,9), il diametro reso del
+seggio dell'emiciclo (15,07px a 1265 e 8,19 a 380).
+
+**Tre trappole del banco, e la terza è la più cattiva.**
+
+1. **Il riquadro segue `prefers-color-scheme`.** Con il tema su «auto» si misura quello
+   che decide il sistema, non quello che si crede di misurare: capita di credere di essere
+   in chiaro e leggere i numeri dello scuro. Il tema va **forzato dal selettore** —
+   `document.getElementById('kn26').className = 'chiaro'` — prima di ogni misura, e
+   riletto da `getComputedStyle(...).getPropertyValue('--card')` per conferma.
+2. **Con la pagina non composta le transizioni CSS si congelano a metà**, e le geometrie
+   lette in quello stato sono **stabili e false**: ripetere la lettura dà lo stesso numero
+   sbagliato. È così che le prime misure sul simulatore negavano esattamente il difetto
+   che si stava chiudendo. Il rimedio va messo **prima** di qualunque misura di geometria:
+   ```js
+   document.head.insertAdjacentHTML('beforeend',
+     '<style>#kn26 *{transition:none !important;animation:none !important}</style>');
+   ```
+3. **Un clone misurato fuori da `#kn26` non eredita niente.** Tutte le regole del foglio
+   sono `#kn26 …`, quindi corpo, `font-size`, `padding` e `white-space:nowrap` non si
+   applicano. Misurato: la larghezza minima della tabella dava **701,7px** col clone
+   appeso al `body` e **941,8** appeso a `#kn26`. Il clone va dentro `#kn26`, e la
+   conferma che la misura è buona è che riproduca un numero già noto.
+
+E una del DOM, non del banco: **`$('k-house').innerHTML` viene riscritto per intero a ogni
+`render()`**, quindi un riferimento preso prima di un `click()` è morto subito dopo. Due
+misure di fila sullo stesso elemento vanno rifatte con una query nuova, o la seconda non
+tocca la pagina e lo stato resta acceso senza che nessuno se ne accorga.
 
 ## Invarianti che non si toccano
 
@@ -83,6 +128,13 @@ commit* spiegando perché nel messaggio.
   tutta la campagna, e uno dei sei è la vigilia del voto. Ora c'è `acc(n, singolare,
   plurale)` e le tre strade passano di lì. È la regola generale del progetto applicata
   alla lingua: tre copie corrette oggi divergono domani, e divergono in silenzio.
+- **Misurare un clone fuori da `#kn26`.** Per leggere la larghezza *minima* di una tabella
+  si clona e si mette in un contenitore da 1px. Ma se il clone finisce in `document.body`
+  non eredita niente: tutte le regole del foglio sono `#kn26 …`, quindi corpo, `font-size`,
+  `padding` e `white-space:nowrap` non si applicano. Misurato il 22 agosto 2026: il clone
+  fuori dava **701,7px**, dentro `#kn26` dà **941,8** — cioè esattamente il numero
+  registrato qui. Il clone va appeso a `#kn26`, non al `body`, e la conferma che la misura
+  è buona è che riproduca un numero già noto.
 - **Agganciare una regola a un residuo di stile invece che allo stato.** Il pulsante
   dell'istituto escluso era colorato da `#kn26 tr[style] .mini`, cioè dalla PRESENZA
   dell'attributo di stile in linea — che conteneva l'`opacity:.42`. Togliendo l'opacità,
@@ -97,6 +149,9 @@ commit* spiegando perché nel messaggio.
 
 ```
 index.html            il modello, pubblicato così com'è come GitHub Pages
+.claude/
+  serve.mjs           server statico per le misure su browser: node .claude/serve.mjs
+  launch.json         la configurazione «misure», porta 8788
 .github/
   workflows/aggiorna.yml   lavoro notturno: parser, guardie, commit dei soli file dati
   scripts/aggiorna.mjs     le guardie (valuta) e il registro, funzioni pure provate da job.js
@@ -120,6 +175,7 @@ dati/
 docs/
   regola-colore.md    la specifica dei colori: bande, settori, punti, distanze
   pubblicare.md       note di lavoro
+  richiesta-design-consegna-5.md  i vincoli in ORDINE, non in parallelo: vedi in fondo
 ```
 
 ## Il modello in breve
@@ -174,7 +230,26 @@ Messaggi di commit in italiano, all'infinito, con il perché e non solo il cosa.
 
 ## Ancora da fare
 
-1. **Modalità `?embed=1`** per l'inserimento in FocusAmerica.
+1. **Modalità `?embed=1`.** Non è per FocusAmerica: è pubblica, e chiunque deve poterla
+   incorporare su un sito che non controlliamo — larghezza, tema, CMS, dominio.
+
+   **L'incorporabilità tecnica è verificata, il 22 agosto 2026, e non per deduzione.** Un
+   server locale su `http://localhost:8787` — un'origine vera e diversa, non `file:` né
+   `data:`, che hanno origine opaca e non direbbero niente — ha inquadrato
+   `angrisanidj.github.io` in tre modi: iframe semplice, `sandbox="allow-scripts"` e
+   `sandbox="allow-scripts allow-same-origin"`. **Tutti e tre caricano, nessuno produce un
+   errore in console.** Le intestazioni lo confermano: **nessun `X-Frame-Options`, nessun
+   `Content-Security-Policy`**, e `access-control-allow-origin: *`.
+
+   **Con un controllo che sa fallire**, che è la parte che rende la prova una prova: nella
+   stessa pagina un quarto iframe verso `https://github.com/` produce
+   «*Framing 'https://github.com/' violates … frame-ancestors 'none'*». Il canale di
+   rilevazione funziona, e i nostri tre non lo accendono.
+
+   E `dati/archivio.json` risponde **200 con 172 voci in 4ms a una richiesta cross-origin
+   da un'origine terza**: anche l'iframe con la sola `allow-scripts`, che ha origine
+   opaca, riesce a caricare l'archivio. Da mettere in conto: `cache-control: max-age=600`,
+   cioè un embed può mostrare una copia vecchia fino a dieci minuti.
 
    **Da sapere prima di scriverlo, non dopo: dentro un `<iframe>` con `sandbox`, un
    `<a download>` non scarica niente** se la sandbox non dichiara `allow-downloads`, e
@@ -659,6 +734,231 @@ progetto applicata a una strada doppia nuova: tabella e schede sono due percorsi
 stesso valore, e `test/suite/house.js` verifica che per ogni istituto gli scarti da 0,8
 in su siano gli stessi nelle due. Senza quella prova il difetto sarebbe stato invisibile,
 perché ciascuna forma era corretta rispetto a sé stessa.
+
+### La direzione: una scala divergente sul fondo, e perché oro e viola
+
+Applicata il 22 agosto 2026. **Non ancora guardata resa da nessuno**: è la prima voce
+della revisione visiva.
+
+Il segno da solo si legge, ma su 88 celle scandirlo è faticoso. Il primo tentativo — un
+**trattino di lunghezza fissa** spostato a sinistra o a destra del centro della cella —
+è stato scritto, guardato e **buttato**, e il modo in cui falliva vale più della regola
+che l'ha sostituito: lungo 6px, alto 2, stava **sotto** il numero, e i valori sotto 0,1
+scrivono `—` **dentro** la cella. Due segni orizzontali della stessa famiglia a tredici
+pixel di distanza. Le prove erano tutte verdi, ed erano verdi a ragione: verificavano che
+il trattino fosse speculare, fuori flusso, della stessa larghezza dalle due parti.
+Nessuna guardava se si distinguesse da quello che c'era già. È ancora **«misurare
+convince di aver guardato»**.
+
+**Una coppia di tinte contrapposte non era la risposta, e la ragione dell'ultima volta
+resta vera**: due tinte opposte dicono **due categorie**, mentre qui c'è una grandezza
+continua che attraversa lo zero, e +0,3 e −0,3 devono somigliarsi. Ma una **divergente
+non è due categorie**: è un continuo che passa per un **neutro**, e i valori vicini allo
+zero finiscono entrambi accanto al neutro, cioè adiacenti. È l'obiezione risolta, non
+ignorata. Il neutro è il fondo della cella — `--card` — così le celle che non contano
+sembrano non toccate: sono **42 su 88**.
+
+#### L'azzurro è occupato due volte, e da qui vengono l'oro e il viola
+
+Non «nella tavolozza non restano tinte libere», che è una conseguenza. **Le superfici
+neutre della pagina sono già il blu della coalizione**: `--wash` chiaro sta a H
+**261,8°**, `--card` scuro a **263,4°** con croma 0,034, `--coal` a **262,2°**,
+`--acc` a **262,9°**. Un gradino azzurro in chiaro verrebbe `#E5EDFD`, che dista
+**ΔE 3,91 da `--wash`** — cioè **meno** di quanto `--wash` disti da `--card` (4,08).
+Non sarebbe un colore: sarebbe la superficie secondaria della pagina.
+
+Tolto l'azzurro, **il cerchio è pieno**: `--oppo` 186°, `--pos` 155°, `--arab` 119°,
+`--inc` 49°, `--neg` 25°. **Non esiste nessun diametro libero** — ogni coppia di tinte
+opposte ha almeno un capo addosso a un significato. Restano due archi larghi: 262°→385°
+(123° di viola-magenta) e 50°→119° (69° di oro). Da lì le estremità: **oro 85°**
+l'eccesso, **viola 303°** il difetto. Caldo/freddo è l'unica convenzione che non porta
+dentro un giudizio, ed è la PuOr di ColorBrewer ruotata via dal blu.
+
+Provato anche **318°**, che sulla ruota ha margini più bilanciati, e **scartato su
+misura**: lì la tritanopia scende da ΔE 5,48 a 3,23 e deuteranopia/protanopia da 93-96%
+a 86-92%.
+
+#### I quattro gradini
+
+Costruzione: **pari L e pari ΔE2000 dal grigio di quella L** (bersagli 7 e 15), così i
+due lati hanno la stessa chiarezza e la stessa colorosità.
+
+| gradino | chiaro | `--ink` | scuro | `--ink` |
+|---|---|---|---|---|
+| **−** ≥1,5 | `#DED1F4` | 12,34 | `#443955` | **9,11** |
+| **−** 0,8–1,5 | `#EFEAF7` | 15,09 | `#2D2932` | 12,12 |
+| neutro <0,8 | `--card` | 17,82 | `--card` | 15,25 |
+| **+** 0,8–1,5 | `#F4ECDD` | 15,18 | `#302A1F` | 12,11 |
+| **+** ≥1,5 | `#EAD6AD` | 12,49 | `#4C3D1C` | **8,98** |
+
+Il minimo è **8,98** contro un pavimento di 4,5. Costo: **zero** in larghezza e **zero**
+in verticale — un fondo non occupa spazio, e i 13px di `padding-bottom` del trattino
+tornano indietro, 28,8px in tutto. **La soglia dei 1075 non si muove di un pixel.**
+
+#### Tre cose misurate, dichiarate perché non si scoprano dopo
+
+1. **La scala grigia collassa, e collassa del tutto.** In bianco e nero la direzione
+   sparisce: ΔE **0,14** e **0,31** in chiaro, **0,03** e **0,32** in scuro — `#F4ECDD`
+   e `#EFEAF7` diventano lo stesso grigio. È accettabile perché il **segno resta scritto
+   nella cella**, e perché quel che sopravvive è corretto: la **magnitudine resta intera**
+   (ΔE 3,74 e 4,60 in chiaro, 6,17 e 6,53 in scuro). La divergente diventa una
+   **sequenziale**, non un pasticcio.
+2. **La dicromazia regge dove pesa.** Deuteranopia e protanopia conservano il **93-96%**
+   della distanza fra i due versi (ΔE 12,1-12,8 al gradino 1, 28,3-29,4 al gradino 2). La
+   tritanopia la taglia al 36-40% — è la sua linea di confusione — ma resta ΔE 5,1 e
+   10,9, sopra 3. E «la cella è toccata?» regge anche lì: il peggiore è −1 in scuro per un
+   protanope, **ΔE 7,25** dal neutro.
+3. **I canali.** Il fondo dice direzione e peso; la cifra dice il valore; il segno dice la
+   direzione ed è l'unico che regge il grigio. **Via l'attenuazione `--mute` sotto 0,8**:
+   diceva «questa non conta» nella *stessa modalità* in cui adesso lo dice il neutro, ed
+   era il duplicato vero — toglierla porta 42 celle da **5,24 a 17,82** in chiaro. **Il
+   grassetto da 1,5 resta**: è tipografico e non cromatico, quindi non è una quarta copia
+   dello stesso canale; sopravvive al grigio e alla **stampa**, dove i browser scartano i
+   `background-color`; e soprattutto **le schede lo usano già** — è l'unico canale di
+   magnitudine che le due forme condividono.
+
+E **nessuna soglia nuova**: `grad()` chiama `forte()` e `grosso()`, le stesse due che
+decidono l'ingresso nella scheda e il grassetto. Da qui il grassetto può stare sulle
+classi `.p2`/`.m2` nel foglio invece che in linea, e la cella perde **tutto** lo stile
+in linea: una classe sola.
+
+#### Le schede prendono la scala, e la pastiglia neutra le dà il centro
+
+La prima risposta era «le schede restano invariate», ed era **mezza sbagliata**. Vale la
+pena tenere tutte e due le metà, perché la metà sbagliata è la solita: un fatto
+verificabile che nessuno aveva verificato.
+
+**La metà giusta.** Dentro una scheda entrano **solo** gli scarti da 0,8 in su — è il
+filtro che la definisce. Quindi le voci neutre lì sarebbero **zero**: 46 su 46 colorate, e
+una divergente senza centro non è più una divergente, sono due tinte contrapposte su due
+categorie. Cioè esattamente la cosa scartata.
+
+**La metà sbagliata.** Era scritto che il fondo della scheda è `--wash`, quindi servirebbe
+una seconda serie di tinte. **La scheda sta su `--wash`, ma la pastiglia del valore sta su
+`--card`** — `getComputedStyle` sulla pagina resa dice `rgb(15,23,39)`, cioè `--card`. Le
+due forme usano le stesse quattro tinte e lo stesso neutro: **una strada sola, non due.**
+
+**Il rimedio è la pastiglia neutra in coda**: «altre 4 · sotto 0,8». In coda perché
+l'elenco è ordinato per grandezza decrescente e lo zero ne è la continuazione naturale.
+
+Costo misurato su browser a 380px, con le tre vie a confronto:
+
+| via | `.hsch` | costo | che ne è del filtro |
+|---|---|---|---|
+| prima | 1225,4px | — | è il filtro |
+| soglia via, tutte le voci | 1780,1px | **+45%** | sparisce: la scheda diventa la tabella impilata |
+| soglia a 0,1 | 1749,3px | +43% | quasi identico: solo **2 celle su 88** stanno sotto 0,1 |
+| **pastiglia neutra** | **1317,9px** | **+7,5%** | intatto |
+
+E la pastiglia dice due cose che la scheda non diceva: **quante liste quell'istituto
+tratta come tutti gli altri** — la sua taratura, da 2 a 8 su 11 — e che il filtro esiste.
+Prima, una scheda con tre voci non diceva se le altre otto fossero omesse o inesistenti.
+
+**Il bordo della pastiglia del gradino 1 è il gradino 2 del suo stesso lato**, ed è la
+stessa trappola del filetto: `--hair` sopra un gradino 1 sta a 1,06 e 1,05 in chiaro e a
+**1,00 e 1,00** in scuro. E lì il bordo serve davvero, perché il riempimento non delimita —
+una pastiglia `p1` sul fondo `--wash` della scheda sta a **1,07**, cioè quanto la neutra
+(1,09). Col gradino 2 il bordo risale a **1,22** in chiaro e **1,33–1,35** in scuro, sopra
+l'1,24/1,26 che ha sulla pastiglia neutra, e dice la stessa cosa del riempimento invece di
+una cosa in più. Sui gradini 2 resta `--hair`: lì delimita il riempimento (1,30 e 1,32 in
+chiaro, 1,56 e 1,58 in scuro).
+
+**Una misura che ha smentito l'ipotesi**, e va tenuta perché eviterebbe di rifarla: si
+pensava che l'ordinamento per grandezza spezzasse le fasce di colore. Falso — corse di
+segno concorde **3,38 in tabella contro 3,13 in scheda**: la scheda ne ha *meno*, perché
+gli scarti grandi tendono a condividere il segno. Quel che la scheda non ha è il
+**raggruppamento per blocco**, che in tabella vale l'**85% di concordanza media** ed è ciò
+che fa leggere una riga come una fascia. Per questo le schede non portano i filetti: lì i
+blocchi non sono raggruppati, quindi non c'è confine da segnare.
+
+#### Il comando dice l'azione, e «Includi» è una misura
+
+Il pulsante diceva «incluso», cioè lo **stato** — già detto dal barrato sul nome e dal
+pulsante in `--neg` — e non diceva a nessuno che cosa sarebbe successo premendolo. E otto
+pulsanti con lo stesso nome accessibile sono indistinguibili in un elenco di comandi: è la
+lezione dei quattro «Scarica PNG» e dei bersagli dei marcatori.
+
+**«Includi» e non «Reinserisci», e la ragione è un numero.** La tabella ha 941,8px di
+minimo contro un contenitore che alla soglia dei 1075 vale 948: 6,2px di margine.
+
+| testo | larghezza minima | effetto sulla soglia |
+|---|---|---|
+| `incluso` / `escluso` | 941,8 | — |
+| `Escludi` / **`Reinserisci`** | **959,3** | +17,5px: la soglia andrebbe rifatta a ~1090 |
+| `Escludi` / **`Includi`** *(applicato)* | **939,3** | −2,5px: il margine sale a **8,7** |
+
+`aria-label` e `title` sono **la stessa stringa, nata una volta sola** — «Escludi Direct
+Polls dal modello» — ed è l'idioma di `ETI` nei marcatori. Il testo visibile è la prima
+parola del nome accessibile, come chiede WCAG 2.5.3: chi comanda a voce dice «Escludi».
+
+**Niente `aria-pressed` qui**: quando il nome dichiara l'azione, direbbe il contrario di
+quello che si legge, e il cambio di nome dopo la pressione **è** il riscontro. La
+scorciatoia nelle ipotesi è il caso opposto — etichetta fissa «Escludi Direct Polls» —
+quindi lì `aria-pressed` è la grammatica giusta e ora ce l'ha. Stessa famiglia di comandi,
+due grammatiche, e la differenza è se il nome dice l'azione o la cosa.
+
+Due cose che allo schermo sono dette da un segno e a un lettore di schermo non arrivavano:
+**`(escluso)` nascosto** accanto al nome barrato — `text-decoration:line-through` non viene
+annunciato da quasi nessun lettore, quindi lo stato esisteva solo dentro il nome del
+pulsante — e **la regione viva `#k-housel`**, fissa nel markup perché `#k-house` viene
+riscritto per intero e una regione sostituita in blocco non annuncia in modo affidabile.
+Si aggiorna nel gestore del clic e non in `rHouse`, così al primo render resta muta.
+
+E uno spazio fra `<em>` e `<s>` dentro le pastiglie: in un contenitore flessibile non si
+vede — la larghezza resta 95,4px — ma senza, un lettore di schermo leggeva «Likud+6,2» e
+«altre 4sotto 0,8».
+
+#### Due trappole trovate misurando, non dopo
+
+- **Il fondo colorato spegne i filetti fra i blocchi.** Il contrasto di luminanza di
+  `--hair` sopra i cinque fondi: 1,24 sul neutro, ma **1,06 e 1,05** sui gradini 1 in
+  chiaro e **1,00 e 1,00** in scuro — la stessa identica luminanza del fondo, su 27
+  celle. Sarebbe una riparazione che ne rompe un'altra **in silenzio**, come il pulsante
+  dell'istituto escluso. Rimedio: **filetto a due tinte**, `inset 1px 0 0 var(--hair),
+  inset 2px 0 0 var(--card)` — quarto uso dell'idioma dell'alone. Su ogni fondo almeno
+  una delle due si stacca: il minimo del migliore dei due è **1,17** in chiaro e **1,26**
+  in scuro, contro l'1,24 e 1,26 che il filetto ha sul neutro. Restano due ombre interne,
+  quindi la larghezza minima resta 941,8 esatti. **`--hair` va scritto per primo**: nel
+  `box-shadow` la prima ombra sta sopra.
+- **Il passaggio del puntatore verrebbe coperto.** `tbody tr:hover` mette un fondo sulla
+  **riga**; i fondi della scala stanno sulle **celle** e ci vanno sopra: su 46 celle di 88
+  il passaggio non lascerebbe traccia e la riga si accenderebbe a strisce. Qui cambia
+  canale: **due filetti orizzontali** in `--ink2` invece di una velatura, che per
+  seguire una riga su tredici colonne funziona anche meglio (10,04 in chiaro, 8,39 in
+  scuro sul neutro, minimo 4,94 sul gradino 2 scuro). La cella di confine ha bisogno
+  della **regola combinata**, o il filetto verticale del blocco viene cancellato:
+  `box-shadow` è la stessa proprietà.
+
+#### Le due varianti tenute pronte, misurate e NON applicate
+
+Si scambiano i quattro token e basta. Stanno anche nel commento accanto alla regola.
+
+**B · viola più staccato, solo tema scuro.** In scuro la carta *è* blu, quindi il viola
+parte già dentro di essa: ΔE dalla carta **8,87 e 15,60** contro **18,07 e 28,46**
+dell'oro. È l'unica asimmetria residua, e non è riparabile senza prezzo. Portando il
+viola a metà strada — `--sc-m1:#322146; --sc-m2:#540E8B;` — il ΔE dalla carta diventa
+13,57 e 21,96, `--ink` resta a 12,40 e 9,86, la dicromazia sale (deuteranopia 22,5 e
+44,1). **Il prezzo**: la colorosità smette di essere pari — ΔE dal grigio 18,6 e 27,9
+contro i 7,0 e 15,0 dell'oro — cioè si scambia l'asimmetria della distanza con
+l'asimmetria della saturazione. Portandolo fino in fondo l'oro diventerebbe `#2B2B2B`,
+un grigio esatto: quello no.
+
+**C · più decisa**, se le tinte risultano timide. Il pavimento di 4,5 lascia scendere
+fino a **L 0,600** in chiaro e salire fino a **L 0,532** in scuro; i gradini 2 stanno a
+0,882 e 0,368.
+
+```css
+/* chiaro */ --sc-p1:#EBDEC4; --sc-p2:#E7B643; --sc-m1:#E4DBF2; --sc-m2:#CEAAFF;
+/* scuro  */ --sc-p1:#3B321D; --sc-p2:#694E00; --sc-m1:#362F40; --sc-m2:#653596;
+```
+
+Contrasto di `--ink`: 13,39 · 9,48 · 13,34 · 9,18 in chiaro, 10,77 · 6,64 · 10,92 ·
+7,14 in scuro — minimo **6,64**, ancora sopra 4,5. In grigio la direzione comincia appena
+a trapelare (ΔE 0,78 e 1,59 al gradino 2) e la magnitudine raddoppia il passo.
+
+Se una delle due viene scelta, va rimisurato tutto: `test/suite/house.js` prova i
+contrasti e la pari luminanza dei gradini speculari, e i numeri scritti qui e nel
+commento vanno rifatti, non ritoccati.
 
 ## Le sparkline: la geometria al posto dell'alfa, e l'alone
 
@@ -1167,7 +1467,7 @@ nessuno degli altri settori.
 trovati oggi — la stella della bandiera che sconfinava nelle bande, l'occhiello a filo del
 bordo sull'ombra, il vuoto di 372px sotto le ipotesi, l'evidenziazione che competeva con
 la codifica del riempimento, il verde arabo che si leggeva nero — sono stati trovati
-**guardando la pagina**, non dalla suite. Le 718 prove dicono che il modello non si è
+**guardando la pagina**, non dalla suite. Le 814 prove dicono che il modello non si è
 rotto; non dicono che la pagina si veda. Dopo ogni push, aprire
 <https://angrisanidj.github.io/modello-israele/> e guardarla nei due temi.
 
@@ -1178,7 +1478,7 @@ rotto; non dicono che la pagina si veda. Dopo ogni push, aprire
 Scritta il 22 agosto 2026 per una passata sola, sezione per sezione. Serve a distinguere
 **quello che qualcuno ha già guardato reso** da **quello che nessuno ha mai visto**: in due
 giorni sono entrate parecchie cose che le prove dichiarano sane e che nessun occhio ha
-ancora confermato. Le 718 prove dicono che il modello non si è rotto; non dicono che la
+ancora confermato. Le 814 prove dicono che il modello non si è rotto; non dicono che la
 pagina si veda.
 
 Si guarda su <https://angrisanidj.github.io/modello-israele/>, **nei due temi forzati dal
@@ -1205,6 +1505,8 @@ document.head.insertAdjacentHTML('beforeend',
 | 6 | **I marcatori degli eventi** | «Come si è mossa la proiezione» | tutte e tre | Appena spostati dentro l'SVG: il disco deve sembrare **attaccato** alla sua verticale (3,57px a 1265, 1,88 a 380) e le due corsie devono leggersi come un insieme sfalsato, non come due serie |
 | 7 | **Il riquadro dell'evento isolato** | idem | **380** e 1265 | A 380 sta dentro l'elenco, sotto la voce premuta. Guardare i tre numeri della terna — erano tre macchie scure — e il pulsante «Torna alla vista piena» in fondo |
 | 8 | **Il tratto acceso** | idem | 1265 e 380 | Premere un evento a metà cronologia. Le tre linee attenuate a 0,26 **restano tre**? A 380 sono spesse 1,5px: è l'unica cosa di questo giro su cui la misura non può decidere |
+| 10 | **La scala divergente dell'house effect** — *la più nuova, e una decisione editoriale, non tecnica* | tabella House effect | **1265**, nei due temi | Oro per l'eccesso, viola per il difetto, quattro gradini più il neutro. Tre domande, in quest'ordine: **(a)** la tabella si legge come una misura o come una tabella colorata? È il colore di una tabella pubblica, e la scelta è editoriale. **(b)** In **tema scuro** il lato − pende? La carta è blu, quindi il viola parte già dentro di essa — ΔE dalla carta 8,87/15,60 contro 18,07/28,46 dell'oro. Se pende, c'è la **variante B** pronta. **(c)** Le tinte sono timide? C'è la **variante C**. Le due varianti stanno nel commento accanto alla regola e in «La direzione: una scala divergente sul fondo». E guardare i **filetti fra i blocchi** sopra le celle colorate, e il **passaggio del puntatore**, che adesso è a filetti orizzontali |
+| 9 | **Il fondo attorno alla pagina** | tutta la pagina, ai lati | **1385 e oltre** | Il `<body>` porta `style="margin:0;background:#e8e6e0"` scritto a mano, e `#kn26` ha `max-width:1180px`. A 1385 restano **103px per lato**, e il fondo non cambia col tema: misurato, in **tema scuro** sono 103px di beige contro `#070D18`. In chiaro è più sottile ma sbagliato lo stesso, `#e8e6e0` contro `#F7F8FA`. Da guardare a schermo largo nei due temi |
 
 ### Già guardato reso, ma non dopo le ultime modifiche
 
@@ -1214,6 +1516,42 @@ document.head.insertAdjacentHTML('beforeend',
 | Le schede dell'house effect | 21 agosto, alle tre larghezze | confermate; qui basta un'occhiata |
 | L'apertura da doppio clic (seme BASE) | 21 agosto | invariata, ma è la sola prova che il file sta in piedi da solo |
 | La linea della maggioranza nell'emiciclo | 21 agosto | chiusa con l'alone a due tinte |
+
+### «Aggiornato al» non dice quello che sembra
+
+Trovato il 22 agosto 2026 preparando l'embed, e non è un difetto dell'embed: è un difetto
+della pagina che l'embed renderebbe pubblico.
+
+```js
+var u = SOND.map(function(s){return s.data;}).sort().pop();
+$('k-upd').textContent   = 'aggiornato al ' + dl(u);
+$('k-fresh').innerHTML   = 'ultimo sondaggio <b>' + dl(u) + '</b>';
+```
+
+`u` è **la data dell'ultimo sondaggio in archivio**, non la data dell'ultimo
+aggiornamento riuscito. Quindi «aggiornato al 20 agosto» vuol dire «l'ultimo sondaggio è
+del 20 agosto», che è un'altra cosa. **Se il lavoro notturno si ferma dietro una guardia —
+colonne ignote l'8 settembre, per esempio — quella data si congela e la pagina non dice
+niente.** Un lettore non può distinguere «ha girato stanotte e non c'era niente di nuovo»
+da «è fermo da dieci giorni».
+
+**Il dato per ripararlo c'è già, ed è pubblicato.** `dati/stato-job.json` porta
+`"data": "2026-08-21"`, e quando una guardia ferma il job quel file **non viene
+aggiornato**: è esattamente ciò che rende lo stallo misurabile. Verificato il 22 agosto che
+sia raggiungibile dalla pagina: `200`, `access-control-allow-origin: *`,
+`cache-control: max-age=600`. Oggi la pagina fa `fetch` del solo `archivio.json`.
+
+**E la stessa ancora sbagliata è in un secondo punto**, che è la solita strada doppia:
+`finestra()` prende come riferimento `t0 = new Date(l[0].data)`, cioè di nuovo il
+sondaggio più recente, e il sottotitolo della sezione 2 scrive «**N rilevazioni pubblicate
+negli ultimi 7 giorni**». Con l'archivio fresco le due date coincidono e la frase è vera;
+col job fermo, o dopo il voto, dice una cosa falsa sul presente. Misurato al 5 novembre
+2026: «7 rilevazioni pubblicate negli ultimi 7 giorni», con l'ultimo sondaggio del 19
+agosto.
+
+Le due grandezze sono diverse e vanno dette tutte e due: **la data dell'ultimo sondaggio**
+e **la data dell'ultima verifica riuscita**. Vale per la pagina e, dentro l'embed, è la
+differenza fra un dato fresco e un dato fermo nell'articolo di qualcun altro.
 
 ### Le due domande in sospeso: misurate, e una è un difetto
 
