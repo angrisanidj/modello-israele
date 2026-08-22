@@ -6,7 +6,8 @@
  *
  * Le proprietà:
  *   · puntatore e fuoco portano alla STESSA riga, con lo stesso testo;
- *   · la riga si svuota all'uscita, per entrambe le strade;
+ *   · la riga NON si svuota all'uscita, e dal 22 agosto 2026 e' cosi' di proposito:
+ *     vedi la prova sulla sequenza del tocco piu' sotto;
  *   · la riga dice motivazione, fonte quando c'è, e stato — lo stato fin qui passava solo
  *     dal barrato, che a un lettore di schermo non arriva;
  *   · nessun `title` residuo: una strada sola, non due che dicono la stessa cosa in tempi
@@ -54,6 +55,7 @@ global.fetch = () => Promise.reject(0);
 let src = fs.readFileSync(__dirname + '/../app.js','utf8');
 src = src.replace('carica().then(render,render)',
   'global.A={render:render,sim:function(v){SIM=v;},VETI:function(){return VETI;},' +
+  'invito:function(){return VETO_INVITO;},' +
   'off:function(){return VETO_OFF;}};carica().then(render,render)');
 eval(src);
 
@@ -67,6 +69,7 @@ setTimeout(function(){
   const A = global.A;
   A.sim(1000);
   const VETI = A.VETI();
+  const VETO_INVITO = A.invito();
 
   /* ── la struttura del dato ── */
   esito(VETI.length === 14, 'quattordici veti in archivio', String(VETI.length));
@@ -106,7 +109,10 @@ setTimeout(function(){
     JSON.stringify(p.filter(b => b.hasAttribute('title')).map(b => b.dataset.v)));
   esito(p.every(b => b.getAttribute('aria-pressed') === 'true'),
     'a riposo tutti i veti risultano attivi, e lo dichiarano');
-  esito(riga() === '', 'a riposo la riga di lettura è vuota', '"' + riga() + '"');
+  esito(riga() === VETO_INVITO,
+    'a riposo la riga porta l’invito, non il vuoto: sta sopra le pastiglie e un blocco ' +
+    'vuoto da 4,4em fra il titolo e i veti sarebbe una lacuna, non una riserva',
+    '"' + riga() + '"');
 
   /* ── il puntatore riempie la riga ── */
   const b0 = p[0];
@@ -117,7 +123,9 @@ setTimeout(function(){
   esito(/veto attivo/.test(daPuntatore),
     'la riga dichiara lo stato, che dal solo barrato non arrivava', '"' + daPuntatore + '"');
   evento(b0, 'pointerleave');
-  esito(riga() === '', 'uscendo col puntatore la riga si svuota', '"' + riga() + '"');
+  esito(riga() === daPuntatore,
+    'uscendo col puntatore la riga RESTA: è una didascalia, non uno stato transitorio',
+    '"' + riga() + '"');
 
   /* ── il fuoco riempie LA STESSA riga, con lo stesso testo ── */
   b0.focus();
@@ -127,7 +135,7 @@ setTimeout(function(){
     'il fuoco porta alla stessa riga lo stesso testo del puntatore',
     'puntatore "' + daPuntatore + '" · fuoco "' + daFuoco + '"');
   b0.blur();
-  esito(riga() === '', 'perdendo il fuoco la riga si svuota', '"' + riga() + '"');
+  esito(riga() === daFuoco, 'e resta anche perdendo il fuoco', '"' + riga() + '"');
 
   /* ── testi diversi per pastiglie diverse: la riga segue davvero la pastiglia ── */
   evento(p[0], 'pointerenter'); const t0 = riga();
@@ -176,6 +184,93 @@ setTimeout(function(){
 
   click(pastiglie()[0]);
   esito(A.off()[0] === false, 'un secondo click riattiva il veto', JSON.stringify(A.off()));
+
+  /* ══ LA SEQUENZA VERA DI UN TOCCO ═══════════════════════════════════════════
+     Il difetto stava nell'ORDINE, non in nessun evento preso da solo: ciascuno dei
+     quattro gestori era corretto rispetto a se stesso, ed erano proprio quelli che le
+     prove qui sopra verificavano una alla volta.
+     Un dito in Chrome produce: pointerover, pointerenter, pointerdown, pointerup,
+     click, pointerout, pointerleave — e il click, in mezzo, ricostruisce le pastiglie
+     e rimette il fuoco. Tracciata il 22 agosto 2026 su browser: la riga si riempiva al
+     primo evento, il focus() la riscriveva con lo stato NUOVO al quinto, e il
+     pointerleave la cancellava al settimo. Chi tocca otteneva un veto commutato e una
+     riga vuota, 367px piu' in basso di dove aveva premuto.
+     Questa prova non guarda i gestori: guarda che cosa resta scritto dopo l'intera
+     sequenza. E il pointerleave si manda al nodo VECCHIO e al nuovo, perche' il click
+     ha ricostruito le pastiglie in mezzo e il browser puo' consegnarlo all'uno o
+     all'altro: la proprieta' deve reggere in tutti e due i casi. */
+  const tocco = function(indice){
+    const passi = [];
+    const q = function(){ return pastiglie()[indice]; };
+    const segna = function(t){ passi.push({passo:t, riga:riga(),
+      premuto:q() ? q().getAttribute('aria-pressed') : null}); };
+    /* jsdom non implementa PointerEvent, e qui non serve: nessuno dei gestori guarda
+       dentro l'evento — non c'è nessun ramo su pointerType, ed è il punto. Quel che si
+       riproduce è la SEQUENZA, che è dove stava il difetto. */
+    const tocca = function(el,t){ el.dispatchEvent(new W.Event(t,{bubbles:true, cancelable:true})); };
+    let b = q();
+    segna('0 · a riposo');
+    tocca(b,'pointerover'); b.dispatchEvent(new W.Event('pointerenter',{bubbles:false}));
+    segna('1 · dito appoggiato');
+    tocca(b,'pointerdown'); segna('2 · premuto');
+    tocca(b,'pointerup');   segna('3 · rilasciato');
+    click(b);               segna('4 · click: il veto commuta');
+    const nuovo = q();
+    b.dispatchEvent(new W.Event('pointerleave',{bubbles:false}));
+    if (nuovo && nuovo !== b) nuovo.dispatchEvent(new W.Event('pointerleave',{bubbles:false}));
+    segna('5 · dito sollevato');
+    return {passi, nuovo:nuovo, vecchio:b};
+  };
+
+  const T = tocco(3);
+  const motivo = VETI[3][2];
+  esito(T.passi[1].riga.indexOf(motivo) >= 0,
+    'al tocco la spiegazione compare PRIMA che il veto commuti',
+    '"' + T.passi[1].riga.slice(0,60) + '"');
+  esito(T.passi[4].premuto === 'false' && /veto disattivato/.test(T.passi[4].riga),
+    'al click la riga si riscrive con lo stato nuovo',
+    T.passi[4].premuto + ' · "' + T.passi[4].riga.slice(0,60) + '"');
+  esito(T.passi[5].riga === T.passi[4].riga,
+    'e QUANDO IL DITO SI SOLLEVA la spiegazione resta: è il difetto che questa prova tiene chiuso',
+    '"' + T.passi[5].riga.slice(0,60) + '"');
+  esito(T.passi[5].riga.indexOf(motivo) >= 0 && T.passi[5].riga !== VETO_INVITO,
+    'alla fine della sequenza resta la motivazione del veto toccato, non l’invito',
+    '"' + T.passi[5].riga.slice(0,60) + '"');
+  esito(T.vecchio !== T.nuovo,
+    'la pastiglia viene davvero ricostruita in mezzo alla sequenza: è la ragione per cui ' +
+    'i singoli eventi non bastano a provarla');
+  /* e un secondo tocco sulla stessa pastiglia riporta il veto com'era, senza vuoti */
+  const T2 = tocco(3);
+  esito(T2.passi[5].riga.indexOf(motivo) >= 0 && /veto attivo/.test(T2.passi[5].riga),
+    'un secondo tocco riattiva e la riga lo dice, sempre senza svuotarsi',
+    '"' + T2.passi[5].riga.slice(0,60) + '"');
+
+  /* ── l'invito non deve mai sovrascrivere una spiegazione ──
+     rVeti() gira a OGNI render — basta muovere un cursore — e scrivere l'invito senza
+     guardare cancellerebbe la spiegazione che il lettore sta leggendo: sarebbe il
+     difetto appena chiuso, rientrato dalla finestra. Per questo si scrive solo se la
+     riga è vuota, e per questo la prova esercita un render vero in mezzo. */
+  evento(pastiglie()[7], 'pointerenter');
+  const primaDelRender = riga();
+  esito(primaDelRender.indexOf(VETI[7][2]) >= 0, 'la settima pastiglia scrive la sua riga',
+    '"' + primaDelRender.slice(0,60) + '"');
+  A.render();
+  esito(riga() === primaDelRender,
+    'un render completo non cancella la spiegazione rimettendo l’invito',
+    '"' + riga().slice(0,60) + '"');
+  esito(riga() !== VETO_INVITO,
+    'e in particolare non è tornata a essere l’invito', '"' + riga().slice(0,40) + '"');
+
+  /* ── e la riga sta SOPRA le pastiglie ──
+     Misurato su browser: quattordici pastiglie su nove righe per 360px, e la riga
+     stava 367px sotto la prima fila. Sopra, ne dista 9. jsdom non fa layout: quello
+     che si prova qui e' l'ORDINE nel documento, che e' la causa di quella distanza. */
+  const rigaEl = $('k-vetol'), contEl = $('k-veti');
+  esito(!!(rigaEl.compareDocumentPosition(contEl) & 4),
+    'la riga di lettura precede le pastiglie nel documento',
+    'posizione ' + rigaEl.compareDocumentPosition(contEl));
+  esito(rigaEl.parentNode === contEl.parentNode,
+    'e le sta accanto, nello stesso riquadro');
 
   console.log('\nveti: ' + ok + '/' + (ok + ko));
   if (ko) process.exit(1);

@@ -42,6 +42,7 @@ const dom = new JSDOM('<!doctype html><html><body><div id="kn26"></div></body></
 const W = dom.window, D = W.document;
 global.DOMParser = W.DOMParser;
 const html = fs.readFileSync('../../index.html','utf8');
+const css = html.match(/<style>([\s\S]*?)<\/style>/)[1];
 D.body.innerHTML = html.replace(/<script>[\s\S]*?<\/script>/g,'')
   .match(/<body[^>]*>([\s\S]*)<\/body>/)[1];
 global.document = D; global.window = W;
@@ -242,6 +243,49 @@ setTimeout(function(){
   esito(SL === 0, 'alla prima voce la sbirciata non chiede niente a sinistra', 'scrollLeft=' + SL);
   accendi(10);
   esito(Math.abs(SL - (nastro - finestra)) < 0.01, 'e all\'ultima non chiede niente a destra', 'scrollLeft=' + SL);
+
+  /* ══ LA NUMERAZIONE: DUE MECCANISMI, UNA SORGENTE ═══════════════════════════
+     Le sezioni sono numerate in due modi — il nastro le numera in JavaScript con i+1
+     iterando le <section>, la pastiglia accanto al titolo è un contatore CSS
+     incrementato sulle <section>. Non è una strada doppia: la sorgente è la stessa, gli
+     elementi section, quindi i due non possono discordare su che cosa si numera né in
+     che ordine. Ma il ::before raggiungeva OGNI h2, compreso quello dentro la linguetta
+     dell'archivio — che sezione non è e che sta prima della prima, dove il contatore
+     vale ancora zero: una pastiglia con scritto «0» accanto ad «Archivio sondaggi».
+     Il difetto era anteriore al 22 agosto 2026: stava dietro un riquadro display:none
+     che si apriva con un pulsante lontano, ed è venuto fuori quando la linguetta è
+     diventata adiacente al suo comando. */
+  const sezioni = [].slice.call(D.querySelectorAll('#kn26 section'));
+  const h2fuori = [].slice.call(D.querySelectorAll('#kn26 h2')).filter(h => !h.closest('section'));
+  esito(sezioni.length === 11 && voci.length === 11,
+    'le sezioni sono undici e le voci d\'indice altrettante',
+    sezioni.length + ' sezioni, ' + voci.length + ' voci');
+  esito(sezioni.every((s,i) => s.id === 'sez-' + (i+1)),
+    'e sono numerate da 1 a 11 senza salti', JSON.stringify(sezioni.map(s => s.id)));
+  esito(voci.every((a,i) => a.getAttribute('href') === '#sez-' + (i+1)),
+    'ogni voce del nastro punta alla sezione del suo numero',
+    JSON.stringify(voci.map(a => a.getAttribute('href'))));
+  /* la linguetta dell'archivio non è una sezione e non deve comparire da nessuna parte */
+  const linguetta = D.getElementById('k-datapanel');
+  esito(!!linguetta && linguetta.tagName === 'DETAILS' && !linguetta.closest('section'),
+    'la linguetta dell\'archivio non è una sezione',
+    linguetta ? linguetta.tagName : 'assente');
+  esito(!voci.some(a => linguetta && linguetta.contains(D.querySelector(a.getAttribute('href')))),
+    'e non è finita nel nastro');
+  /* IL PUNTO: la pastiglia numerata è scoperta ai soli titoli di sezione */
+  esito(/#kn26 section h2::before\{content:counter\(sec\)/.test(css),
+    'la pastiglia numerata è ancorata ai titoli di SEZIONE, non a ogni h2',
+    (/#kn26[^{]*h2::before\{/.exec(css) || ['non trovata'])[0]);
+  esito(!/#kn26 h2::before\{/.test(css),
+    'e il selettore largo, quello che dava lo «0» all\'archivio, non c\'è più');
+  /* E nessun h2 vive fuori da una sezione. Lo scoping del ::before basta a togliere lo
+     «0», ma la condizione che l'aveva reso possibile è questa: un titolo di quel livello
+     che non appartiene a nessuna sezione. Finché non ce ne sono, il difetto non può
+     nemmeno ripresentarsi in una forma nuova — e se un giorno ne servisse uno davvero,
+     questa asserzione obbliga a dichiararlo qui invece di scoprirlo su una schermata. */
+  esito(h2fuori.length === 0,
+    'nessun h2 vive fuori da una sezione: è la condizione che rendeva possibile lo «0»',
+    h2fuori.map(h => '«' + h.textContent.slice(0,30) + '»').join(', '));
 
   /* ── il nastro non è un punto di tabulazione suo: le voci lo sono ──
      Chrome rende raggiungibile col tabulatore uno scorrevole SOLO se non contiene

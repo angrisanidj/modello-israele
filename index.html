@@ -129,7 +129,19 @@
 #kn26 section{padding-top:52px;counter-increment:sec;}
 #kn26 h2{font-size:13px;letter-spacing:.13em;text-transform:uppercase;font-weight:700;color:var(--ink);
  padding-bottom:11px;border-bottom:2px solid var(--acc);display:flex;align-items:center;gap:13px;}
-#kn26 h2::before{content:counter(sec);font-family:var(--serif);font-size:12.5px;line-height:1;
+/* La pastiglia numerata sta sui titoli di SEZIONE, e il selettore deve dirlo.
+   Senza «section» davanti, il ::before raggiungeva OGNI h2 della pagina — compreso
+   quello dentro la linguetta dell'archivio, che sezione non e' e che sta PRIMA della
+   prima: li' il contatore vale ancora zero, e il titolo portava una pastiglia con
+   scritto «0». Il difetto c'era gia' da prima del 22 agosto 2026: era nascosto dietro
+   un riquadro display:none che si apriva con un pulsante lontano, ed e' venuto fuori
+   quando la linguetta e' diventata adiacente al suo comando.
+   NON e' una strada doppia col nastro dell'indice: quello numera in JavaScript con i+1
+   iterando le <section>, questo incrementa un contatore CSS sulle <section>. Due
+   meccanismi, ma UNA sorgente — gli elementi section — quindi non possono discordare su
+   che cosa si numera ne' in che ordine. Verificato: le sezioni restano sez-1..sez-11 e
+   il nastro ha undici voci, nessuna delle quali e' la linguetta. */
+#kn26 section h2::before{content:counter(sec);font-family:var(--serif);font-size:12.5px;line-height:1;
  color:var(--paper);background:var(--acc);letter-spacing:0;font-weight:400;
  min-width:22px;height:22px;border-radius:50%;display:inline-flex;align-items:center;
  justify-content:center;flex:none;transform:translateY(3px);}
@@ -339,6 +351,12 @@
    rottura che esiste già e non sulla lunghezza delle stringhe di oggi, che sono in
    revisione editoriale e cambieranno. */
 @media(max-width:660px){#kn26 .lett.vetol{min-height:4.4em;}}
+/* La riga di lettura dei veti sta SOPRA le pastiglie, non sotto, e il margine segue.
+   Misurato a 380: quattordici pastiglie su NOVE righe per 360px, e la riga stava 367px
+   sotto la prima fila. Al tocco la spiegazione compariva mezzo schermo piu' in basso di
+   dove il dito stava premendo — cioe' fuori dal campo in cui si guarda. Sopra, dista
+   meno di 34px da qualunque pastiglia della prima fila. */
+#kn26 .lett.vetol{margin-top:0;margin-bottom:10px;}
 @media(max-width:820px){
  /* quattordici pastiglie in colonne strette: il bersaglio del dito non scende sotto i 34px */
  #kn26 .veto{min-height:34px;padding:8px 11px;}
@@ -634,7 +652,23 @@
  #kn26 .pr,#kn26 .prh{grid-template-columns:120px 42px 1fr 50px;gap:9px;font-size:12px;}
  #kn26 .pr .d22,#kn26 .prh span:nth-child(5){display:none;}
  /* il corpo di .sg qui è ancora 22px: vale lo stesso caso peggiore da 63px della base */
- #kn26 .prh.mv,#kn26 .pr.mv{grid-template-columns:120px 66px 1fr 48px;}
+ /* LA TABELLA DELL'ANALISI PERDE LA SPARKLINE E RITROVA LA QUARTA COLONNA.
+    La riga emette CINQUE figli — nome, seggi, sparkline, 7 gg, 30 gg — e la griglia
+    stretta ne dichiarava QUATTRO. La regola che nasconde il quinto nascondeva la
+    TESTATA e non il DATO — .prh span:nth-child(5) prende solo gli span della testata
+    — quindi il quinto div finiva in una riga IMPLICITA: misurato a 380, il valore a
+    30 giorni compariva a x=27 largo 104px, cioe' sotto la colonna «Lista», 34px piu'
+    in basso e senza nessuna intestazione sopra. Non era un a-capo: era una colonna
+    ORFANA. Ogni riga era alta 77,7px invece di 51,3 e il blocco 792,9 invece di 512,1.
+    Rimedio: sotto i 660 la sparkline esce e le quattro colonne diventano quelle vere
+    — lista, seggi, 7 gg, 30 gg — con la testata che torna a dichiararle tutte.
+    Il prezzo e' la sparkline, che a 380 vale 105px e fa confronti di lunghezza; il
+    guadagno e' che il nome ha 159px invece di 104, e «Giudaismo Unito Torah» misura
+    146,6px su una riga sola: la sua riga passa da 94,7px a 51,3, cioe' cade anche il
+    difetto che stava fra le quattro cose aperte sul mobile. */
+ #kn26 .prh.mv,#kn26 .pr.mv{grid-template-columns:1fr 66px 52px 52px;}
+ #kn26 .prh.mv span:nth-child(3),#kn26 .pr.mv>div:nth-child(3){display:none;}
+ #kn26 .prh.mv span:nth-child(5){display:block;}
  #kn26 .form{grid-template-columns:repeat(2,1fr);}
  #kn26 .meta>span{padding:0 10px;}
  }
@@ -1042,8 +1076,10 @@
     su una riga sola: a 36px andava a capo e la riga raddoppiava d'altezza. Il corpo
     resta 18px, uniforme con i valori singoli: ridurlo solo per gli intervalli li
     farebbe sembrare annotazioni minori, e compaiono due giorni su cinque. Gli 18px
-    li paga la sparkline, che scende a ~105: fa confronti di lunghezza, non misure. */
- #kn26 .prh.mv,#kn26 .pr.mv{grid-template-columns:104px 54px 1fr 42px;}
+    li paga la sparkline, che scende a ~105: fa confronti di lunghezza, non misure.
+    Nella tabella dell'analisi la sparkline sotto i 660 non c'e' piu': vedi la regola
+    di .prh.mv la' sopra. */
+ #kn26 .prh.mv,#kn26 .pr.mv{grid-template-columns:1fr 54px 48px 48px;}
  #kn26 .pr .sg{font-size:18px;}
  #kn26 .prob .v{font-size:42px;}
  #kn26 .dz .row{grid-template-columns:1fr;}
@@ -1188,10 +1224,6 @@
   <button class="btn big" id="k-refresh">↻ Aggiorna i sondaggi</button>
   <span class="hint">L'archivio si aggiorna da solo ogni notte. Questo pulsante rilegge Wikipedia adesso, per le rilevazioni delle ultime ore, e le valida riga per riga.</span>
  </div>
- <div class="cb az">
-  <button class="btn g big" id="k-datapanel-t">Archivio dati · salva ed esporta</button>
-  <span class="hint">L'archivio resta salvato fra una visita e l'altra. Da qui puoi esportarlo, reimportarlo o inserire un sondaggio a mano.</span>
- </div>
 
  <div class="pg">
   <div class="pgt">Ipotesi sui dati</div>
@@ -1242,9 +1274,33 @@
    <div><b>Solo ultimi 7 giorni</b><span>Restringe la media alla settimana in corso: reagisce prima agli scossoni della campagna, ma su meno rilevazioni e quindi con più rumore.</span></div>
  <div><b>Lista Unita araba</b><span>Attivo per impostazione predefinita: il 19 agosto Hadash, Ta'al e Balad hanno firmato l'accordo per correre insieme, mentre Ra'am resta separata. Il modello somma le loro quote di voto rilevazione per rilevazione, così i voti di Balad — sotto soglia da soli — smettono di disperdersi. Disattivandolo si vede il controfattuale: quanto costerebbe loro correre divisi.</span></div></div></div></details>
 
-<div class="box" id="k-datapanel" style="display:none">
- <h2 style="border:0;padding:0;margin-bottom:4px">Archivio sondaggi <em>aggiornamento automatico o inserimento manuale</em></h2>
- <p class="fn" style="margin-top:6px"><b>Aggiorna i sondaggi</b> rilegge la tabella integrale di Wikipedia e ne integra le righe non ancora presenti. Per le rilevazioni troppo fresche per essere già su Wikipedia, compila il modulo: la somma dei seggi deve fare 120.</p>
+<!-- L'ARCHIVIO E' UNA LINGUETTA, NON UN PULSANTE CON UN PANNELLO ALTROVE.
+     Era un <button> nella barra dei comandi in cima che mostrava e nascondeva questo
+     riquadro, che sta qui sotto: il comando e il suo contenuto a 11.700px di distanza.
+     Il pulsante non portava aria-expanded, ne' aria-controls, ne' aria-pressed —
+     verificato: tutti e tre null. Un lettore di schermo sentiva «Archivio dati · salva
+     ed esporta, pulsante» e non aveva modo di sapere ne' che rivelasse qualcosa ne' se
+     fosse aperto. Ora e' un <details>: lo stato lo dichiara il browser, e il comando sta
+     attaccato alla cosa che apre.
+     RESTA QUI e non torna in cima apposta: il messaggio di «Aggiorna i sondaggi» dice
+     «per quelle usa il modulo di inserimento QUI SOTTO», e #k-msg sta piu' in alto di
+     questo punto. Spostare la linguetta nella barra dei comandi renderebbe falsa quella
+     frase — e' la ragione per cui questa strada e' stata scelta al posto dello
+     spostamento in fondo alla pagina.
+     Costo a 380: il blocco in cima valeva 112,5px, la linguetta chiusa ne vale 48.
+     Sui punti di tabulazione NON cambia niente, e la misura di partenza era sbagliata:
+     i 28 campi del modulo erano gia' fuori dall'ordine perche' il riquadro era
+     display:none. Con la linguetta chiusa gli stop restano 99 come prima. -->
+<details id="k-datapanel">
+ <summary>Archivio dati · salva ed esporta</summary>
+ <div class="bd">
+ <!-- Niente <h2> qui: il <summary> un dito piu' su dice gia' «Archivio dati · salva ed
+      esporta», e il paragrafo dice per esteso quel che l'<em> diceva in breve —
+      aggiornamento automatico o inserimento manuale. Erano due titoli adiacenti per la
+      stessa scatola, ed e' una duplicazione nata il 22 agosto quando il comando e il suo
+      contenuto sono tornati vicini: prima stavano a 11.700px di distanza e non si
+      vedevano insieme. -->
+ <p class="fn" style="margin-top:2px">L'archivio resta salvato fra una visita e l'altra. <b>Aggiorna i sondaggi</b> rilegge la tabella integrale di Wikipedia e ne integra le righe non ancora presenti. Per le rilevazioni troppo fresche per essere già su Wikipedia, compila il modulo: la somma dei seggi deve fare 120.</p>
  <div id="k-diag"></div>
  <div class="form" id="k-form-meta"></div>
  <div class="form" id="k-form-seggi"></div>
@@ -1255,7 +1311,8 @@
   <button class="btn g xs" id="k-imp">Importa JSON</button>
   <button class="btn g xs" id="k-rst">Ripristina</button>
  </div>
-</div>
+ </div>
+</details>
 
 <section>
  <h2>Il verdetto del modello <em id="k-simn">—</em></h2>
@@ -1321,8 +1378,8 @@
  <p class="lede" id="k-coallede"></p>
  <div class="box">
   <div style="font-size:9.5px;text-transform:uppercase;letter-spacing:.09em;color:var(--mute);font-weight:700;margin-bottom:8px">Veti attivi — fare clic per disattivarli</div>
-  <div id="k-veti"></div>
   <p class="lett vetol" id="k-vetol" aria-live="polite"></p>
+  <div id="k-veti"></div>
  </div>
  <div id="k-coal"></div>
  <p class="fn" id="k-coalnota"></p>
@@ -1459,6 +1516,41 @@ var P={
 var IDS=Object.keys(P).sort(function(a,b){return P[a].o-P[b].o;});
 var BL={coalizione:{n:"Blocco Netanyahu",c:"#143EDB"},opposizione:{n:"Opposizione sionista",c:"#78002D"},
         arabo:{n:"Partiti arabi",c:"#007B4C"},incerto:{n:"Ago della bilancia",c:"#B57600"}};
+
+/* LE SCORCIATOIE DEL SIMULATORE, e sono l'UNICA sorgente di quelle composizioni.
+   Prima erano scritte due volte: nel gestore del clic e, identiche, nella riga che
+   inizializzava COAL alla partenza. Due strade per lo stesso valore, senza nessuna prova
+   che le legasse — la quarta volta in questo progetto dopo i token di blocco,
+   l'anagrafica delle liste e l'etichetta dei marcatori. Il difetto che ne sarebbe uscito
+   e' esattamente quello dell'8 settembre: si aggiorna il preset perche' una lista entra
+   nel blocco, lo stato iniziale resta indietro, e la pagina si apre su una coalizione
+   che nessun pulsante sa riprodurre.
+   Ora la partenza e' PRESET.netanyahu, e test/suite/simulatore.js lega le due cose.
+
+   Tre gradi del blocco del cambiamento, e la differenza fra loro e' sostanziale.
+   `cambio` e' la sola opposizione sionista: fin qui non esisteva un pulsante per lei,
+   perche' quello etichettato «Blocco del cambiamento» includeva gia' Ra'am — l'etichetta
+   prometteva una cosa e ne dava un'altra.
+   `cambio_raam` aggiunge Ra'am, che ha gov:1 ed e' disponibile a entrare in un governo:
+   e' una maggioranza vera.
+   `cambio_ar` aggiunge tutte le liste arabe, che hanno gov:0: e' una maggioranza che
+   regge solo con appoggio esterno, ed e' quello che la riga di esito dichiara gia'. */
+var CAMBIO=['yashar','byachad','democratici','beitenu','casa_sionista'];
+var PRESET={
+ /* Il blocco uscente NON e' un elenco scritto: e' il filtro sull'anagrafica, dove il
+    blocco di ciascuna lista e' gia' dichiarato. Scriverlo sarebbe una copia di P{}, e
+    l'8 settembre — quando una lista entra o esce dal blocco — se ne aggiornerebbe una
+    sola. Il controllo strutturale di test/struttura.mjs vieta di riscriverlo. */
+ netanyahu  :IDS.filter(function(i){return P[i].b==='coalizione';}),
+ cambio     :CAMBIO,
+ cambio_raam:CAMBIO.concat(['raam']),
+ /* anche qui: le liste arabe sono un BLOCCO dell'anagrafica, non un elenco da riscrivere.
+    Il contenitore e le sue componenti ci stanno tutti e tre — rChips somma solo quelle
+    con seggi, e la configurazione attiva ne tiene su un lato solo. */
+ cambio_ar  :CAMBIO.concat(IDS.filter(function(i){return P[i].b==='arabo';})),
+ unita      :['likud','yashar','byachad','beitenu','democratici'],
+ clear      :[]
+};
 
 /* veti dichiarati: [a, b, motivazione] */
 /* Correlazioni fra liste, misurate sull'archivio: residuo di ogni quota rispetto
@@ -2842,16 +2934,66 @@ function rEvSel(){
   '<button type="button" class="x btn g xs" data-ev="">Torna alla vista piena</button>';
  collocaEvSel();
 }
-function rCalendario(){
- var oggi=new Date();
- var tappe=[
+/* IL CALENDARIO ELETTORALE, e non e' solo del calendario: e' l'unico posto in cui le
+   scadenze sono scritte. Stava dentro rCalendario, che le disegnava; adesso e' fuori
+   perche' la prosa deve poterle interrogare — la nota metodologica parla del deposito
+   delle liste, e la data di quel deposito non puo' essere riscritta li' dentro. Sarebbe
+   la solita strada doppia, con l'aggravante che il calendario si aggiornerebbe da solo
+   e la prosa no: la pagina direbbe «passato» in un punto e parlerebbe al futuro
+   nell'altro, nello stesso schermo. */
+var TAPPE=[
   {d:'2026-09-08',t:'Deposito delle liste',s:'Termine per consegnare alla Commissione elettorale centrale le liste di candidati. Da quel momento fusioni e scissioni non sono più possibili: la mappa dei partiti si chiude.'},
   {d:'2026-10-06',t:'Comincia la campagna televisiva',s:'Si apre il periodo di 21 giorni in cui la legge consente la trasmissione degli spot elettorali.'},
   {d:'2026-10-23',t:'Scatta il silenzio demoscopico',s:'Dalla fine del venerdì precedente al voto non è più consentito pubblicare nuovi sondaggi.'},
   {d:'2026-10-27',t:'Si vota',s:'La giornata è festiva e i seggi restano aperti dalle 7 alle 22; nei centri minori, negli ospedali e nelle carceri chiudono alle 20.'},
   {d:'2026-11-04',t:'Risultati ufficiali',s:'La Commissione elettorale centrale proclama i risultati delle elezioni per la 26ª Knesset.'},
   {d:'2026-11-18',t:'Termine per i ricorsi',s:'Scade il termine per presentare ricorso contro i risultati davanti alla Corte suprema.'}
- ];
+];
+/* Quanti giorni mancano a una tappa, per titolo. Negativo se e' passata: e' lo stesso
+   ggCal del conto alla rovescia e delle sei schede, che porta le due date a mezzanotte
+   UTC e sottrae li' — vedi il punto 12 di CLAUDE.md. */
+function ggTappa(titolo){
+ var t=null,i;
+ for(i=0;i<TAPPE.length;i++) if(TAPPE[i].t===titolo) t=TAPPE[i];
+ return t?ggCal(new Date(),new Date(t.d+'T00:00:00')):null;
+}
+/* Il deposito delle liste chiude la mappa dei partiti, e con essa la fonte di errore
+   che il modello dichiara come la piu' grande. Dal 9 settembre ogni frase che ne parla
+   al futuro e' falsa: e' l'invariante 10, «niente tempo scritto a mano», applicata alla
+   prosa invece che ai numeri. */
+function depositoPassato(){ var g=ggTappa('Deposito delle liste'); return g!==null&&g<0; }
+/* LE DUE FRASI CHE IL 9 SETTEMBRE DIVENTANO FALSE.
+   La nota metodologica dichiara che la fonte di errore piu' grande sono le liste che
+   cambiano, e lo dice al futuro: «fino al deposito delle liste dell'8 settembre questa
+   e' la fonte di errore piu' grande». Il 9 il deposito e' passato, quella fonte non
+   agisce piu', e la frase continua a leggersi bene mentendo — che e' esattamente la
+   forma di difetto descritta dall'invariante 10.
+   Il ramo e' depositoPassato(), cioe' ggCal(oggi, 8 settembre) < 0: la stessa espressione
+   del conto alla rovescia e delle sei schede del calendario, non una terza.
+
+   ATTENZIONE: IL TESTO DEL RAMO «DOPO» E' UN SEGNAPOSTO. La prosa la scrive l'autore ed
+   e' firmata. Queste due frasi sono minime e VERE apposta, cosi' che se il deposito
+   arriva prima della revisione editoriale la pagina dica qualcosa di corretto invece di
+   un marcatore. Vanno sostituite, non lasciate. */
+function DEP_FONTE(){
+ return depositoPassato()
+  ? 'Il deposito delle liste dell\'8 settembre ha chiuso la mappa dei partiti: da quel '+
+    'giorno questa fonte di errore non agisce più, e quel che resta è rumore statistico '+
+    'e movimento della campagna.'
+  : 'Il modello proietta il sistema di partiti che vede, non quello che ci sarà: fino al '+
+    'deposito delle liste dell\'8 settembre questa è la fonte di errore più grande, e '+
+    'non è riducibile con la statistica.';
+}
+function DEP_LIMITE(){
+ return depositoPassato()
+  ? 'Il modello non prevede le fusioni di liste, che in Israele si decidevano fino al '+
+    'deposito delle candidature, chiuso l\'8 settembre;'
+  : 'Il modello non prevede le fusioni di liste, che in Israele si decidono fino al '+
+    'deposito delle candidature e possono cambiare la mappa in un giorno;';
+}
+function rCalendario(){
+ var oggi=new Date();
+ var tappe=TAPPE;
  $('k-calend').innerHTML=tappe.map(function(x){
   /* la stessa famiglia del conto alla rovescia, e lo stesso rimedio: la tappa è passata
      quando è passato il suo GIORNO, non quando sono passate ventiquattr'ore */
@@ -3027,6 +3169,9 @@ function rEmi(){
    un altro tempo, per dire la stessa cosa.
    La riga porta motivazione, fonte se c'è, e stato. Lo stato serviva: fin qui passava
    soltanto dal testo barrato, che a un lettore di schermo non arriva. */
+/* L'invito che la riga porta finche' nessun veto e' stato scelto. Sta qui accanto a
+   testoVeto() perche' sono i due soli testi che quella riga puo' contenere. */
+var VETO_INVITO='Scegli un veto per leggere perché è dichiarato e chi lo ha posto.';
 function testoVeto(i){
  var v=VETI[i]; if(!v) return '';
  return '<b>'+E(nm(v[0]))+' ⁄ '+E(nm(v[1]))+'</b> · '+E(v[2])+
@@ -3047,12 +3192,32 @@ function rVeti(){
     test/suite/veti.js su un DOM vero. */
  var cont=$('k-veti'), riga=$('k-vetol');
  if(!cont||typeof cont.querySelectorAll!=='function'||!riga) return;
+ /* Con la riga sopra le pastiglie, a riposo resterebbe un blocco vuoto da 4,4em fra il
+    titolo e i veti. Il testo di partenza lo riempie e dice la cosa che al tocco non era
+    detta da nessuna parte: che una motivazione c'e' e come leggerla.
+    Si scrive SOLO se la riga e' vuota: rVeti() gira a ogni render — basta muovere un
+    cursore — e sovrascrivere ripristinerebbe il difetto appena chiuso, cioe' una
+    spiegazione che sparisce da sola. */
+ if(!riga.innerHTML) riga.innerHTML=VETO_INVITO;
  Array.prototype.forEach.call(cont.querySelectorAll('button[data-v]'),function(b){
   var i=+b.dataset.v;
+  /* LA RIGA NON SI SVUOTA PIU', e questo e' il rimedio al difetto del tocco.
+     Tracciata la sequenza vera di un tocco — pointerenter, down, up, click, leave —
+     la riga si riempiva al primo evento e veniva CANCELLATA dall'ultimo: la
+     spiegazione viveva quanto il dito restava premuto, e per giunta 367px piu' in
+     basso. Chi tocca otteneva un veto commutato e una riga vuota.
+     E il focus() che il gestore del clic esegue dopo rVeti() scriveva lo stato
+     aggiornato un istante prima che pointerleave lo cancellasse: un messaggio che
+     viveva pochi millisecondi.
+     Il rimedio NON e' distinguere il tocco dal puntatore. Il messaggio effimero non
+     lo produceva il focus(): lo produceva la cancellazione. Tolte pointerleave e blur,
+     il focus() fa esattamente la cosa giusta per tutti e tre gli ingressi — puntatore,
+     dito e tastiera — cioe' ridire lo stato dopo che e' cambiato. Una grammatica sola,
+     nessun ramo per dispositivo.
+     Quel che resta scritto e' l'ultimo veto guardato, che e' una didascalia e non uno
+     stato transitorio: il prossimo pointerenter o focus la sostituisce. */
   b.addEventListener('pointerenter',function(){riga.innerHTML=testoVeto(i);});
   b.addEventListener('focus',function(){riga.innerHTML=testoVeto(i);});
-  b.addEventListener('pointerleave',function(){riga.innerHTML='';});
-  b.addEventListener('blur',function(){riga.innerHTML='';});
  });
 }
 function rCoal(){
@@ -3204,6 +3369,30 @@ function rChips(){
  $('k-chips').innerHTML=h;
  var tot=0,sel=[];
  Object.keys(COAL).forEach(function(i){if(COAL[i]&&SEG[i]){tot+=SEG[i];sel.push(i);}});
+ /* LA SCORCIATOIA ACCESA SI DEDUCE DALLA SELEZIONE, non si ricorda.
+    Prima nessuna delle sei si accendeva mai, e la pagina si apriva su cinque pastiglie
+    premute e 51 seggi senza dire da dove venissero: uno stato senza provenienza.
+    Ricordare quale pulsante e' stato premuto sarebbe stato piu' facile e sbagliato: alla
+    prima pastiglia cambiata la scorciatoia resterebbe accesa su una composizione che non
+    e' piu' la sua, cioe' affermerebbe una cosa falsa. Dedotta invece dal confronto degli
+    INSIEMI, la scorciatoia si accende quando la selezione E' quella composizione e si
+    spegne appena smette di esserlo — e si riaccende se il lettore ci torna a mano, il che
+    e' giusto: «questa selezione e' il blocco Netanyahu» o e' vero o non lo e'.
+    Il confronto e' sulle liste CON SEGGI, perche' e' quello che le pastiglie mostrano:
+    una lista del preset che il modello non elegge non e' selezionabile, e pretenderla
+    terrebbe la scorciatoia spenta per sempre. L'8 settembre e' il caso che arriva.
+    «Azzera» resta fuori: nomina un'azione, non una composizione, e su un nome che dice
+    l'azione aria-pressed direbbe il contrario di quel che si legge — e' la stessa
+    grammatica gia' scelta per «Escludi / Includi» nell'house effect. */
+ var chiave=sel.slice().sort().join(',');
+ Array.prototype.forEach.call(R.querySelectorAll('[data-pre]'),function(b){
+  var nome=b.dataset.pre, lista=PRESET[nome];
+  if(!lista||nome==='clear'){b.removeAttribute('aria-pressed');b.classList.remove('on');return;}
+  var suo=lista.filter(function(i){return SEG[i];}).sort().join(',');
+  var acceso=(suo===chiave&&chiave!=='');
+  b.classList.toggle('on',acceso);
+  b.setAttribute('aria-pressed',acceso?'true':'false');
+ });
  /* I due stati della barra passano dai token --neg/--pos via classe, non da esadecimali
     cablati qui dentro: quei due colori la tavolozza non li aveva mai visti, ed erano la
     stessa strada doppia dei token di blocco. Il confine è 61 compreso. */
@@ -3421,6 +3610,32 @@ function rTrend(){
  var STRATO=(window.matchMedia&&window.matchMedia('(min-width:900px)').matches);
  var W=MOB?520:900, H0=MOB?310:300, Lm=MOB?28:34, Rm=MOB?54:76, T0=MOB?34:30, B=MOB?32:34;
  var FS=MOB?1.55:1;                       /* ingrandimento dei caratteri su mobile */
+ /* PASSO dell'asse dei seggi e ALTERNANZA dei mesi: due costanti per punto di rottura,
+    accanto a W, Lm, Rm, T0, B, FS. La tendenza questo meccanismo ce l'ha gia' e non
+    gliene serve un secondo.
+
+    Misurato a 380 col passo 4: SEDICI filetti e sedici etichette a 11,66px di corpo su
+    un passo di 10,22px — l'inchiostro e' alto 8,15 e fra un'etichetta e la successiva
+    restano 2,07px. La colonna dei numeri si legge come un blocco continuo di cifre.
+
+    Il PERCHE' del passo 8, e non e' l'aritmetica: e' la linea del 61. Il grafico va da
+    8 a 68, cioe' 2,55px reali per seggio, e col passo 4 il filetto del 60 cade a
+    2,55px dalla linea tratteggiata della maggioranza — due righe orizzontali quasi
+    coincidenti, e una e' il riferimento per cui il grafico esiste. Col passo 8 i
+    filetti piu' vicini sono 56 e 64, a 7,65px. Provati anche 10 e 12, che darebbero
+    valori piu' tondi: tutti e due tengono il filetto del 60 e quindi conservano la
+    quasi-coincidenza, e lasciano scoperti 8 seggi in alto invece di 4.
+
+    Le etichette si ancorano ai MULTIPLI del passo, non a lo: lo e' calcolato dai dati
+    (floor del minimo su 4) e partire da li' darebbe una scala che si sposta quando si
+    sposta il minimo. */
+ var PASSOY=MOB?8:4;
+ /* I mesi si diradano CONTANDO DALL'ULTIMO, non dal primo. Alternare sull'indice del
+    mese lascerebbe fuori quello piu' recente — oggi agosto — che e' il capo da cui si
+    legge il grafico. Misurato a 380: «mag» e' larga 22,98px e il passo minimo fra due
+    mesi e' 23,07, cioe' 0,09px di margine: le etichette si toccano. Diradate, il passo
+    va a 46,14 e il margine a 23,16. */
+ var SALTAMESI=MOB?2:1;
  var t0=+new Date(S[0].d),t1=+new Date(S[S.length-1].d);
  var vals=[];S.forEach(function(x){vals.push(x.g,x.o,x.a);});
  punti.forEach(function(x){vals.push(x.g,x.o,x.a);});
@@ -3464,18 +3679,26 @@ function rTrend(){
   TRATTO={da:ISO.da, px:+_px.toFixed(1), gg:ISO.gg, mostrato:_px>=TRATTO_MIN};
  }
  var s='<svg viewBox="0 0 '+W+' '+H+'" role="img" aria-label="Proiezione del modello nel tempo">';
- for(var v=lo;v<=hi;v+=4){
+ for(var v=Math.ceil(lo/PASSOY)*PASSOY;v<=hi;v+=PASSOY){
   s+='<line x1="'+Lm+'" y1="'+Y(v).toFixed(1)+'" x2="'+(W-Rm)+'" y2="'+Y(v).toFixed(1)+
      '" stroke="'+C.hair2+'" stroke-width="1"/>'+
      '<text x="'+(Lm-6)+'" y="'+(Y(v)+4).toFixed(1)+'" text-anchor="end" font-size="'+(12*FS).toFixed(1)+'" fill="'+C.mute+'">'+v+'</text>';
  }
  var mesi=['gen','feb','mar','apr','mag','giu','lug','ago','set','ott'];
+ var visibili=[];
  for(var m=0;m<10;m++){
   var dm=new Date(2026,m,1), fine=new Date(2026,m+1,0);
   if(+fine<t0||+dm>t1) continue;                 /* il mese va etichettato se si sovrappone */
-  var xm=Math.max(Lm+10,Math.min(W-Rm-10,X(+dm<t0?new Date(t0):dm)));
-  s+='<text x="'+xm.toFixed(1)+'" y="'+(H-10)+'" text-anchor="middle" font-size="'+(12*FS).toFixed(1)+'" fill="'+C.mute+'">'+mesi[m]+'</text>';
+  visibili.push({m:m,d:(+dm<t0?new Date(t0):dm)});
  }
+ visibili.forEach(function(x,i){
+  /* il conto parte dall'ULTIMO: l'estremo recente e' sempre etichettato, l'antico puo'
+     cadere. Con un numero pari di mesi non si possono tenere tutti e due i capi senza
+     mettere due etichette adiacenti, che a 0,09px di margine si toccherebbero. */
+  if((visibili.length-1-i)%SALTAMESI) return;
+  var xm=Math.max(Lm+10,Math.min(W-Rm-10,X(x.d)));
+  s+='<text x="'+xm.toFixed(1)+'" y="'+(H-10)+'" text-anchor="middle" font-size="'+(12*FS).toFixed(1)+'" fill="'+C.mute+'">'+mesi[x.m]+'</text>';
+ });
  /* linea della maggioranza */
  s+='<line x1="'+Lm+'" y1="'+Y(61).toFixed(1)+'" x2="'+(W-Rm)+'" y2="'+Y(61).toFixed(1)+
     '" stroke="'+C.ink+'" stroke-width="1.4" stroke-dasharray="6 4"/>'+
@@ -3823,9 +4046,7 @@ function rFoot(){
  'Yamina ed Emet non esistevano ancora al momento della rilevazione e nacquero da fusioni a gennaio; '+
  'nel 2021 il Sionismo Religioso era sotto soglia in cinque sondaggi su sei e tre settimane dopo si fuse '+
  'con Otzma prendendo sei seggi; nel 2022 la Lista Unita era intera nei sondaggi di metà settembre e si '+
- 'spaccò il giorno del deposito, lasciando Balad al 2,90% e i suoi voti nel nulla. Il modello proietta '+
- 'il sistema di partiti che vede, non quello che ci sarà: fino al deposito delle liste dell\'8 settembre '+
- 'questa è la fonte di errore più grande, e non è riducibile con la statistica.</p>'+
+ 'spaccò il giorno del deposito, lasciando Balad al 2,90% e i suoi voti nel nulla. '+DEP_FONTE()+'</p>'+
  '<p><b>Un limite dichiarato.</b> Sulle singole liste gli intervalli sono ottimistici: nel banco di prova '+
  'il risultato vero cade nell\'intervallo dell\'80% nel <b>73%</b> dei casi, non nell\'80%. La correzione '+
  'per la volatilità delle liste in zona soglia recupera parte dello scarto e poi si ferma: il residuo non '+
@@ -3856,8 +4077,7 @@ function rFoot(){
  'il contrario di quello che si sarebbe tentati di assumere. Per questo il cursore parte da ciò che i sondaggi già '+
  'incorporano, e lo spostamento resta una scelta esplicita di chi legge.</p>'+
  '<h3>Limiti</h3>'+
- '<p>Il modello non prevede le fusioni di liste, che in Israele si decidono fino al deposito delle candidature e possono cambiare '+
- 'la mappa in un giorno; non stima l\'affluenza differenziale fra elettorato ebraico e arabo; non incorpora l\'errore storico degli '+
+ '<p>'+DEP_LIMITE()+' non stima l\'affluenza differenziale fra elettorato ebraico e arabo; non incorpora l\'errore storico degli '+
  'istituti israeliani, che nel 2022 sottostimò il blocco Netanyahu. Le probabilità vanno lette come ordini di grandezza.</p>'+
  '<h3>Fonti</h3>'+
  '<p>L\'archivio è la tabella integrale della voce Wikipedia <i>Opinion polling for the 2026 Israeli legislative election</i>, '+
@@ -4108,7 +4328,17 @@ function parseWikiTabella(tab,anno,out){
   var gov=null;
   if(iGov>=0&&row[iGov]){var mg=wClean(row[iGov].t).match(/^(\d+)$/); if(mg) gov=+mg[1];}
   var gcalc=0;
-  ['likud','sionismo_rel','otzma','shas','utj'].forEach(function(k){gcalc+=seggi[k]||0;});
+  /* TERZA copia della stessa lista, trovata dal controllo strutturale il 22 agosto 2026.
+     La colonna «Gov» di Wikipedia riporta i seggi del blocco di governo, che e' lo stesso
+     blocco della scorciatoia del simulatore: qui serviva a validare quella colonna, e la
+     lista era riscritta a mano. L'8 settembre, con una lista in piu' nel blocco, questo
+     parser avrebbe cominciato a respingere righe VALIDE dichiarando «blocco discordante»
+     — nel lavoro notturno, cioe' dove nessuno guarda. Adesso legge PRESET.netanyahu, che
+     a sua volta legge l'anagrafica: una strada sola per tutte e tre.
+     Se un giorno le due nozioni dovessero divergere — il blocco che Wikipedia conta e il
+     blocco che il simulatore propone — dev'essere una decisione dichiarata, non uno
+     scarto silenzioso fra due elenchi. */
+  PRESET.netanyahu.forEach(function(k){gcalc+=seggi[k]||0;});
   /* Il tipo serve al messaggio: «somma» e «blocco» sono incoerenze della fonte, e
      respingerle è giusto; «ambigua» e «illeggibile» sono limiti nostri, e vanno
      distinti da quelle o il lettore crede che Wikipedia sia sbagliata. */
@@ -4397,8 +4627,9 @@ $('k-reset-par').addEventListener('click',function(){
  Array.prototype.forEach.call(R.querySelectorAll('[data-par]'),function(b){b.classList.remove('on');});
  render();msg('Parametri riportati ai valori predefiniti.');
 });
-$('k-datapanel-t').addEventListener('click',function(){
- var p=$('k-datapanel');p.style.display=p.style.display==='none'?'block':'none';});
+/* Niente gestore per aprire l'archivio: e' un <details> e lo apre il browser. Lo stato
+   sta in un posto solo — l'attributo open — invece che in uno stile in linea che nessuna
+   tecnologia assistiva sapeva leggere. */
 $('k-exp').addEventListener('click',function(){
  var b=new Blob([JSON.stringify({sondaggi:SOND},null,2)],{type:'application/json'}),a=document.createElement('a');
  a.href=URL.createObjectURL(b);a.download='sondaggi-knesset-2026.json';a.click();msg('Archivio esportato.','ok');});
@@ -4534,22 +4765,10 @@ R.addEventListener('click',function(e){
   return;}
  if((t=e.target.closest('.chip'))){COAL[t.dataset.p]=!COAL[t.dataset.p];rChips();return;}
  if((t=e.target.closest('[data-pre]'))){
-  COAL={};var p=t.dataset.pre;
-  if(p==='netanyahu')['likud','shas','utj','sionismo_rel','otzma'].forEach(function(i){COAL[i]=1;});
-  /* Tre gradi del blocco del cambiamento, e la differenza fra loro è sostanziale.
-     `cambio` è la sola opposizione sionista: fin qui non esisteva un pulsante per lei,
-     perché quello etichettato «Blocco del cambiamento» includeva già Ra'am — l'etichetta
-     prometteva una cosa e ne dava un'altra.
-     `cambio_raam` aggiunge Ra'am, che ha gov:1 ed è disponibile a entrare in un governo:
-     è una maggioranza vera.
-     `cambio_ar` aggiunge tutte le liste arabe, che hanno gov:0: è una maggioranza che
-     regge solo con appoggio esterno, ed è quello che la riga di esito dichiara già. */
-  if(/^cambio/.test(p))['yashar','byachad','democratici','beitenu','casa_sionista'].forEach(function(i){COAL[i]=1;});
-  if(p==='cambio_raam'||p==='cambio_ar') COAL.raam=1;
-  if(p==='cambio_ar')['hadash_taal','lista_araba','balad'].forEach(function(i){COAL[i]=1;});
-  if(p==='unita')['likud','yashar','byachad','beitenu','democratici'].forEach(function(i){COAL[i]=1;});
+  COAL={}; (PRESET[t.dataset.pre]||[]).forEach(function(i){COAL[i]=1;});
   rChips();return;}
 });
+
 
 /* indice: costruito dalle sezioni presenti, con evidenziazione della sezione a schermo */
 function costruisciIndice(){
@@ -4752,7 +4971,11 @@ memGet('knesset2026-tema').then(function(v){
  if(v&&['auto','chiaro','scuro'].indexOf(v)>=0) applicaTema(v);
 })['catch'](function(){});
 
-COAL={likud:1,shas:1,utj:1,sionismo_rel:1,otzma:1};
+/* La pagina si apre sul blocco uscente, e non lo riscrive: lo PRENDE dalla scorciatoia,
+   che e' l'unico posto in cui quella composizione e' dichiarata. Cosi' la scorciatoia si
+   accende da sola al primo render — rChips() confronta la selezione con i preset — e il
+   lettore vede da dove viene il numero che sta guardando. */
+PRESET.netanyahu.forEach(function(i){COAL[i]=1;});
 setTimeout(function(){costruisciIndice();animaSezioni();},60);
 carica().then(render,render)['catch'](function(e){
  bootErr((e&&e.message)||e,'il recupero dell\'archivio salvato');

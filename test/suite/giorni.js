@@ -209,8 +209,16 @@ setTimeout(function(){
      non una gg() «riparata» per sbaglio. Per questo la prova, oltre a contarle, verifica
      che ciascuna passi da un oggi e non da due date d'archivio. */
   const usi = app.match(/ggCal\([^)]*\)/g) || [];
-  esito(usi.length === 5,
-    'ggCal è usata nei tre punti che contano giorni di calendario da adesso, e in nessun altro',
+  /* Da cinque a sette il 22 agosto 2026, e l'attesa si aggiorna perché il punto è
+     cambiato di proposito. I due usi nuovi sono ggTappa(), che dice quanti giorni
+     mancano a una tappa del calendario elettorale cercandola per titolo, e la menzione
+     nel commento che la accompagna. Serve alla PROSA: la nota metodologica parla del
+     deposito delle liste dell'8 settembre, e dal 9 quella frase è falsa — vedi
+     depositoPassato() e l'invariante 10. La condizione doveva essere la stessa del conto
+     alla rovescia e delle sei schede, non una terza espressione scritta a mano, ed è per
+     questo che il conteggio sale invece di restare fermo. */
+  esito(usi.length === 7,
+    'ggCal è usata nei punti che contano giorni di calendario da adesso, e in nessun altro',
     usi.length + ' occorrenze, definizione compresa: ' + usi.join(' · '));
   esito(/function ggOggi\(\)\{return Math\.max\(0,ggCal\(new Date\(\),VOTO\)\);\}/.test(app),
     'e la nota metodologica ricava i giorni al voto dalla data corrente, non da una costante');

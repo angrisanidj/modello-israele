@@ -51,7 +51,12 @@ let src = fs.readFileSync(__dirname + '/../app.js','utf8');
 src = src.replace('carica().then(render,render)',
   'global.A={render:render,sim:function(v){SIM=v;},rChips:rChips,SEG:function(){return SEG;},' +
   'setSEG:function(v){SEG=v;},setCOAL:function(v){COAL=v;},COAL:function(){return COAL;},' +
-  'P:function(){return P;},cp:cp,calcola:calcola};carica().then(render,render)');
+  'P:function(){return P;},cp:cp,calcola:calcola,PRESET:function(){return PRESET;},' +
+  'apertura:Object.keys(COAL).slice()};carica().then(render,render)');
+/* La selezione di APERTURA si fotografa dove global.A viene costruito, cioè subito dopo
+   che è stata scritta e prima che qualunque prova possa toccarla. Non si aggancia alla
+   RIGA che la scrive: una mutazione che rimette una lista letterale la sposterebbe, e la
+   prova morirebbe invece di cadere — cioè non proverebbe più la cosa per cui esiste. */
 eval(src);
 
 const $ = i => D.getElementById(i);
@@ -219,6 +224,119 @@ setTimeout(function(){
     'le scorciatoie sono sei', String(D.querySelectorAll('[data-pre]').length));
   preset('clear');
   esito(selezionate().length === 0, '«Azzera» le toglie tutte');
+
+  /* ══ LA SELEZIONE DI APERTURA E LA SCORCIATOIA SONO LA STESSA COSA ═══════════
+   *
+   * Fino al 22 agosto 2026 erano due: una riga che scriveva
+   * COAL={likud:1,shas:1,utj:1,sionismo_rel:1,otzma:1} alla partenza, e la stessa
+   * lista, identica, dentro il gestore della scorciatoia. Due strade per lo stesso
+   * valore e nessuna prova che le legasse — la quarta volta in questo progetto dopo i
+   * token di blocco, l'anagrafica delle liste e l'etichetta dei marcatori.
+   * La pagina si apriva su cinque pastiglie premute e 51 seggi con NESSUNA scorciatoia
+   * accesa: uno stato senza provenienza. E l'8 settembre, quando una lista entra nel
+   * blocco, si aggiorna il preset e la partenza resta indietro: la pagina si aprirebbe
+   * su una coalizione che nessun pulsante sa riprodurre.
+   * Questa è la prova che le lega. */
+  const APERTURA = A.apertura.slice().sort();
+  const DAL_PULSANTE = preset('netanyahu');
+  esito(JSON.stringify(APERTURA) === JSON.stringify(DAL_PULSANTE),
+    'premendo «Blocco Netanyahu» si ottiene ESATTAMENTE la selezione di apertura',
+    'apertura ' + JSON.stringify(APERTURA) + ' · pulsante ' + JSON.stringify(DAL_PULSANTE));
+  esito(JSON.stringify(A.PRESET().netanyahu.slice().sort()) === JSON.stringify(APERTURA),
+    'e tutte e due vengono da PRESET.netanyahu, che è l\'unico posto in cui è scritta',
+    JSON.stringify(A.PRESET().netanyahu));
+  /* E PRESET.netanyahu non è scritto nemmeno lui: è il filtro sull'anagrafica, dove il
+     blocco di ciascuna lista è già dichiarato. Riscriverlo come elenco sarebbe una copia
+     di P{}, e l'8 settembre se ne aggiornerebbe una sola — la struttura non lo vieta,
+     perché dentro PRESET un elenco è lecito: lo lega questa. */
+  const daAnagrafica = Object.keys(A.P()).filter(i => A.P()[i].b === 'coalizione').sort();
+  esito(JSON.stringify(A.PRESET().netanyahu.slice().sort()) === JSON.stringify(daAnagrafica),
+    'e PRESET.netanyahu è il filtro sull\'anagrafica, non una quarta copia della stessa lista',
+    'preset ' + JSON.stringify(A.PRESET().netanyahu.slice().sort()) +
+    ' · anagrafica ' + JSON.stringify(daAnagrafica));
+
+  /* ══ LA SCORCIATOIA ACCESA SI DEDUCE, NON SI RICORDA ═════════════════════════ */
+  const scorciatoie = () => [].slice.call(D.querySelectorAll('[data-pre]'));
+  const accese = () => scorciatoie().filter(b => b.classList.contains('on')).map(b => b.dataset.pre);
+
+  A.rChips();
+  esito(JSON.stringify(accese()) === '["netanyahu"]',
+    'premuta una scorciatoia, quella e solo quella risulta accesa', JSON.stringify(accese()));
+  esito(scorciatoie().filter(b => b.getAttribute('aria-pressed') === 'true').length === 1,
+    'e aria-pressed lo dichiara su una sola',
+    JSON.stringify(scorciatoie().map(b => b.dataset.pre + '=' + b.getAttribute('aria-pressed'))));
+
+  /* Cambiare UNA pastiglia deve spegnerla: se restasse accesa affermerebbe che la
+     selezione è quella composizione, e non lo è più. È il motivo per cui lo stato è
+     dedotto dal confronto degli insiemi e non ricordato dall'ultimo clic. */
+  click(chipDi('otzma'));
+  esito(accese().length === 0,
+    'togliendo una lista la scorciatoia si SPEGNE: non può affermare una composizione che non è più quella',
+    JSON.stringify(accese()));
+  esito(scorciatoie().every(b => b.getAttribute('aria-pressed') !== 'true'),
+    'e nessuna resta a dichiararsi premuta');
+  /* e rimettendola si riaccende: «questa selezione è il blocco Netanyahu» o è vero o no */
+  click(chipDi('otzma'));
+  esito(JSON.stringify(accese()) === '["netanyahu"]',
+    'rimettendola si riaccende: lo stato segue la selezione, in tutti e due i versi',
+    JSON.stringify(accese()));
+  /* e ricomponendola a mano da zero, senza mai premere la scorciatoia */
+  preset('clear');
+  esito(accese().length === 0, 'azzerando non resta accesa nessuna composizione');
+  A.PRESET().netanyahu.forEach(i => { if (A.SEG()[i]) click(chipDi(i)); });
+  esito(JSON.stringify(accese()) === '["netanyahu"]',
+    'ricomposta a mano, la scorciatoia si accende senza che sia stata premuta',
+    JSON.stringify(accese()));
+
+  /* «Azzera» nomina un'AZIONE, non una composizione: su un nome che dice l'azione
+     aria-pressed direbbe il contrario di quel che si legge. È la stessa grammatica già
+     scelta per «Escludi / Includi» nell'house effect. */
+  const azzera = D.querySelector('[data-pre="clear"]');
+  esito(!azzera.hasAttribute('aria-pressed'),
+    '«Azzera» non porta aria-pressed: nomina un\'azione, non uno stato',
+    azzera.getAttribute('aria-pressed'));
+  preset('clear');
+  esito(!azzera.classList.contains('on') && !azzera.hasAttribute('aria-pressed'),
+    'e non si accende nemmeno quando la selezione è vuota');
+  /* le altre cinque invece lo portano sempre, acceso o spento: dichiarano una cosa */
+  esito(scorciatoie().filter(b => b.dataset.pre !== 'clear')
+        .every(b => b.getAttribute('aria-pressed') === 'true' || b.getAttribute('aria-pressed') === 'false'),
+    'le altre cinque dichiarano sempre il proprio stato, acceso o spento',
+    JSON.stringify(scorciatoie().map(b => b.dataset.pre + '=' + b.getAttribute('aria-pressed'))));
+
+  /* Il confronto è sulle liste CON SEGGI, e serve un caso in cui la differenza si veda:
+     oggi tutte le liste del blocco ne hanno, quindi togliere il filtro non cambierebbe
+     nulla e la mutazione passerebbe. Qui una lista del preset viene privata dei seggi —
+     è quello che succede a una lista che il modello non elegge più — e la scorciatoia
+     deve accendersi lo stesso sulle rimanenti, perché sono tutte quelle selezionabili.
+     Senza il filtro resterebbe spenta per sempre. */
+  const salvaSEG = A.SEG();
+  const senzaSeggi = Object.assign({}, salvaSEG); senzaSeggi.otzma = 0;
+  A.setSEG(senzaSeggi);
+  A.setCOAL({}); A.PRESET().netanyahu.forEach(i => { if (senzaSeggi[i]) A.COAL()[i] = true; });
+  A.rChips();
+  esito(JSON.stringify(accese()) === '["netanyahu"]',
+    'una lista del blocco senza seggi non spegne la scorciatoia: il confronto guarda le liste selezionabili',
+    JSON.stringify(accese()));
+  /* E il caso limite che rende necessaria la guardia sulla selezione vuota: se TUTTE le
+     liste di una composizione perdessero i seggi, il suo elenco filtrato sarebbe vuoto
+     come la selezione, e la scorciatoia si accenderebbe su niente — dichiarando che una
+     selezione vuota È il blocco Netanyahu. Non è un'ipotesi di scuola: è quello che
+     succede a un blocco che il modello smette di eleggere. */
+  const azzerato = Object.assign({}, salvaSEG);
+  A.PRESET().netanyahu.forEach(i => { azzerato[i] = 0; });
+  A.setSEG(azzerato); A.setCOAL({}); A.rChips();
+  esito(accese().length === 0,
+    'con la selezione vuota nessuna scorciatoia si accende, nemmeno una rimasta senza liste',
+    JSON.stringify(accese()));
+  A.setSEG(salvaSEG); A.setCOAL({}); A.rChips();
+
+  /* mai due accese insieme: due composizioni distinte non possono essere la stessa */
+  const doppie = [];
+  ['netanyahu','cambio','cambio_raam','cambio_ar','unita'].forEach(function(n){
+    preset(n); if (accese().length > 1) doppie.push(n + '→' + accese().join('+'));
+  });
+  esito(doppie.length === 0, 'non se ne accendono mai due insieme', doppie.join(' · '));
 
   console.log('\nsimulatore: ' + ok + '/' + (ok + ko));
   if (ko) process.exit(1);

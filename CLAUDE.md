@@ -269,6 +269,11 @@ Messaggi di commit in italiano, all'infinito, con il perché e non solo il cosa.
 
 ## Ancora da fare
 
+**L'ultima voce di questo elenco non sta qui: è «La verifica a scenari», in fondo al
+file.** Va eseguita quando tutto il resto è chiuso — dopo l'esportazione PNG e dopo
+l'embed — perché prova le combinazioni che la suite non copre: le prove esercitano una
+leva alla volta, quella lista le esercita insieme.
+
 1. **Modalità `?embed=1`.** Non è per FocusAmerica: è pubblica, e chiunque deve poterla
    incorporare su un sito che non controlliamo — larghezza, tema, CMS, dominio.
 
@@ -1897,3 +1902,108 @@ Un difetto visivo trovato qui vale più di dieci prove verdi, e il modo di scriv
 **la misura sbagliata è quasi sempre quella che non è stata presa** (vedi «misurare
 convince di aver guardato»). Quando qualcosa non convince, annotare *che cosa* si vede, a
 quale larghezza e in quale tema, prima di ipotizzare perché.
+
+---
+
+# La verifica a scenari: l'ultima cosa prima di pubblicare
+
+**Va eseguita dopo l'esportazione PNG e dopo l'embed**, cioè quando non resta altro da
+aggiungere. Non è una ripetizione della suite e non è la revisione visiva: **le prove
+esercitano una leva alla volta, e qui si esercitano insieme.** Ogni difetto di questa
+famiglia trovato finora — la colonna orfana dell'analisi, il dominio degli istogrammi che
+escludeva la soglia, la riga dei veti cancellata dal `pointerleave` — stava in una
+*combinazione*, non in un comando.
+
+È una lista **da eseguire**, non un promemoria: ogni riga dice che cosa deve succedere e
+che cosa sarebbe un difetto. Quello che si trova si annota come dice «Come annotare quello
+che si trova»: che cosa si vede, a quale larghezza, in quale tema, prima di ipotizzare
+perché.
+
+## 1 · Comandi combinati — insieme, non uno per volta
+
+Ogni riga si prova a **380 e a 1265**, nei due temi.
+
+| combinazione | deve succedere | sarebbe un difetto |
+|---|---|---|
+| swing **−6** + affluenza **42%** + Direct Polls escluso + Lista Unita **spenta** | i seggi fanno 120; l'emiciclo separa esattamente 60; la linea del 61 è dentro il disegno degli istogrammi; le liste sciolte sono dichiarate dalla nota | una somma diversa da 120; la soglia fuori dal viewBox; una lista che sparisce dalla tabella senza che nessuno lo dica; una serie della tendenza piatta a zero |
+| swing **+6** + affluenza **69%** + tutti gli istituti esclusi tranne uno | il modello calcola su una rilevazione sola o dichiara che non può; l'house effect mostra schede vuote invece di numeri inventati | uno scarto calcolato sulla media di sé stesso; NaN in una cella; un istituto confrontato con niente |
+| **tutti** gli istituti esclusi | un messaggio esplicito, non una pagina vuota | grafici disegnati su zero rilevazioni; un errore in console che ferma il render |
+| swing agli estremi + le tre scorciatoie del simulatore + due veti disattivati | la riga di esito concorda con la barra; i veti violati sono elencati; la scorciatoia accesa è quella giusta o nessuna | la barra verde con la riga che dice «sotto quota 61»; una scorciatoia accesa su una selezione che non è la sua |
+| affluenza agli estremi **mentre** l'emiciclo è filtrato su una lista | il filtro sopravvive al ricalcolo, o si spegne dichiarandolo | il filtro acceso su una lista che non ha più seggi |
+| «Solo ultimi 7 giorni» con la finestra vuota | la pagina dice che non ci sono rilevazioni in finestra | una media su zero elementi; la proiezione di ieri presentata come di oggi |
+
+## 2 · Le date, con l'orologio congelato
+
+Si rende la pagina con `TZ=Europe/Rome` e la data forzata — il banco di `deposito.js` e
+`giorni.js` mostra come. **Con `TZ=UTC` metà di questi casi non si manifesta.**
+
+| data | deve succedere | sarebbe un difetto |
+|---|---|---|
+| **7 settembre** | il deposito è futuro in tutte e tre le sedi: calendario, nota metodologica, limiti | una delle tre che ne parla già al passato |
+| **8 settembre**, il giorno stesso | il calendario dice «oggi», la prosa parla ancora al futuro | «passato» il giorno stesso; il conto alla rovescia che scatta a mezzogiorno |
+| **9 settembre** | il calendario dice «passato», le due frasi sono al passato, e **nessuna delle due è identica al 7** | una frase al futuro; il segnaposto ancora al suo posto invece della prosa dell'autore |
+| **25 ottobre**, cambio d'ora | il conto alla rovescia è lo stesso alle 9 e alle 23 | un giorno di scarto a seconda dell'ora in cui si apre |
+| **26 ottobre** | «1 giorno», non «1 giorni» | l'accordo sbagliato, che `acc()` esiste per evitare |
+| **27 ottobre** | «oggi»; titolo e sommario non parlano del voto al futuro | «mancano 0 giorni»; una frase che invita a seguire una campagna in corso |
+| **28 ottobre** | la pagina parla al passato della propria stima, e **non** del risultato, che non ha | un risultato inventato; un conto alla rovescia negativo |
+| **4 e 10 novembre** | tutte le tappe passate; le due frasi del deposito ancora al passato | un ramo che «scade» e torna al futuro |
+| **job fermo da 3, 10, 30 giorni** — `dati/stato-job.json` vecchio, archivio invariato | la pagina distingue la data dell'ultimo sondaggio da quella dell'ultima verifica riuscita | «aggiornato al …» che si congela e non dice nulla: è il difetto già registrato in «Aggiornato al non dice quello che sembra» |
+
+## 3 · Scenari di lista — l'8 settembre in prova
+
+| scenario | deve succedere | sarebbe un difetto |
+|---|---|---|
+| una **fusione che si scioglie**: `dentro` tolto da due componenti | contenitore e componenti non compaiono mai insieme, in nessuna delle nove funzioni consumatrici | gli stessi elettori contati due volte; la somma che non fa 120 |
+| una **lista nuova** in anagrafica **senza** posizione di tinta | `COLORE` avvisa al primo slot oltre la saturazione e **fallisce con un errore esplicito** dal secondo | il colore `--mute` restituito in silenzio, cioè una lista dipinta come testo disabilitato |
+| **due liste che chiedono lo stesso slot** di tinta | la guardia sui colori duplicati scatta | due liste indistinguibili nell'emiciclo, e nessuno che lo dica |
+| una lista nuova nel **blocco Netanyahu** | `PRESET.netanyahu` la include da sé, e il parser di Wikipedia valida la colonna «Gov» con lei dentro | il preset aggiornato e la partenza no; il parser che respinge righe valide per «blocco discordante» |
+| **quindici colonne** nell'house effect | la soglia delle schede va rimisurata: con tredici era 1075, con quindici sale a ~1190 | la tabella che ricompare e sfora, cioè il difetto che le schede esistono per chiudere |
+| una lista che **perde tutti i seggi** | sparisce da pastiglie e scorciatoie senza rompere il confronto degli insiemi | una scorciatoia che non si accende più mai |
+
+## 4 · Archivio degenere
+
+| archivio | deve succedere | sarebbe un difetto |
+|---|---|---|
+| **azzerato**, nessun sondaggio | l'avviso di avvio resta, o un messaggio dice che non c'è niente da calcolare | grafici vuoti disegnati come se fossero dati; divisioni per zero |
+| **un solo sondaggio** | proiezione e mediana coincidono; l'intervallo dell'80% è degenere e la pagina lo dichiara | un intervallo di ampiezza zero presentato come misura; l'house effect che confronta l'unico istituto con sé stesso |
+| **due sondaggi dello stesso istituto** | il grappolo di istituto non azzera il peso di entrambi | peso totale zero, cioè NaN dappertutto |
+| **ultimo sondaggio vecchio di due mesi** | la finestra a 60 giorni è vuota o quasi e la pagina lo dice; il sottotitolo della sezione 2 **non** scrive «N rilevazioni negli ultimi 7 giorni» contando da un'ancora sbagliata | la frase falsa sul presente già registrata in «Aggiornato al non dice quello che sembra» |
+| **importato da un file estraneo**: JSON valido, liste ignote | il modulo respinge dichiarando quali colonne non riconosce | liste ignote accettate in silenzio; un archivio sostituito senza conferma |
+
+## 5 · Tre larghezze × due temi × undici sezioni
+
+**Questa è la revisione visiva vera**, e va fatta per intero: **sessantasei schermate**.
+A **380 · 760 · 1265**, in **chiaro e scuro forzati dal selettore** — con «auto» si misura
+quello che decide il sistema. Transizioni spente prima di ogni misura di geometria.
+
+Per ogni sezione, tre domande in quest'ordine: **si legge?** (contrasto e corpo reso);
+**sta dentro?** (nessuno sforamento orizzontale del documento); **dice la stessa cosa dei
+numeri?** (la prosa generata e il grafico non si contraddicono).
+
+Sarebbe un difetto: un testo sotto 4,5 di contrasto; un corpo reso sotto i 9px negli SVG;
+un documento che scorre in orizzontale a 380; una didascalia che nomina un valore diverso
+da quello disegnato sopra; un elemento che a 760 sta e a 1265 no, o viceversa.
+
+## 6 · L'embed dentro un iframe cross-origin
+
+Nei tre casi già misurati il 22 agosto 2026 — iframe semplice, `sandbox="allow-scripts"`,
+`sandbox="allow-scripts allow-same-origin"` — da un'**origine vera e diversa**, non
+`file:` né `data:`, che hanno origine opaca e non direbbero niente. Con il controllo che
+sa fallire nella stessa pagina: un quarto iframe verso `https://github.com/`, che **deve**
+produrre l'errore `frame-ancestors`. Se non lo produce, il canale di rilevazione non
+funziona e i tre verdi non valgono niente.
+
+| caso | deve succedere | sarebbe un difetto |
+|---|---|---|
+| tutti e tre | la pagina carica, nessun errore in console, `dati/archivio.json` risponde 200 | un errore di CSP o di CORS; l'archivio che non si carica e il seme BASE che passa per dato fresco senza dirlo |
+| dentro `sandbox` senza `allow-downloads` | il pulsante di esportazione PNG **non c'è**, oppure dichiara che lì non funziona | un pulsante che non scarica niente e non lo dice |
+| larghezza dell'ospite 320, 380, 900, 1400 | nessuno sforamento orizzontale dentro il riquadro | il documento dell'ospite che scorre per colpa nostra |
+| tema dell'ospite chiaro e scuro | il tema segue il selettore, non l'ospite | il riquadro che eredita un fondo che non conosce |
+| **`cache-control: max-age=600`** | si sa che un embed può mostrare una copia vecchia fino a dieci minuti | crederla fresca e annunciarla come tale |
+
+## Come si chiude
+
+La verifica a scenari è fatta quando **ogni riga di queste sei tabelle è stata eseguita e
+annotata**, non quando «sembra a posto». Quello che si trova va scritto nella forma della
+sezione «Come annotare quello che si trova»; quello che si ripara va provato con una prova
+nuova, e la prova va **mutata**, o non si sa se coglierebbe il difetto una seconda volta.

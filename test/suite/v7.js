@@ -34,7 +34,13 @@ sysDark=false;
 console.log("\n── controlli ──");
 const ck={
  "una sola griglia per comandi e parametri": !/class="pan"/.test(html) && (html.match(/class="cmd"/g)||[]).length===1,
- "quattro celle nella stessa griglia": D.querySelectorAll('.cmd > div').length===4,
+ /* Tre celle dal 22 agosto 2026, non più quattro: il blocco «Archivio dati» è uscito
+    dalla barra dei comandi ed è diventato un <details> più in basso, attaccato al
+    modulo che apre. Il comando e il suo contenuto stavano a 11.700px di distanza, e il
+    pulsante non portava né aria-expanded né aria-controls né aria-pressed. */
+ "tre celle nella stessa griglia": D.querySelectorAll('.cmd > div').length===3,
+ "l'archivio è una linguetta, non un pulsante con un pannello altrove":
+   /<details id="k-datapanel">/.test(html) && !/id="k-datapanel-t"/.test(html),
  "colonne uguali (filetti allineati)": /#kn26 \.cmd\{[^}]*grid-template-columns:1fr 1fr/.test(css),
  "calendario a 6 colonne": /#kn26 \.cal\{[^}]*grid-template-columns:repeat\(6,1fr\)/.test(css),
  "calendario a 3 e 2 colonne sotto": /max-width:1000px\)\{#kn26 \.cal\{grid-template-columns:repeat\(3/.test(css)
