@@ -18,18 +18,16 @@ function esito(cond, desc, dettaglio){
   else { ko++; console.log('KO ' + desc + (dettaglio ? ' — ' + dettaglio : '')); }
 }
 
-/* slot di ciascuna lista: la mappa sta qui, gli angoli e le bande nella regola.
-   Le liste alternative condividono lo slot per la regola di fusione. */
-const SLOT = {
-  likud:['coalizione',0], shas:['coalizione',1], utj:['coalizione',2],
-  sionismo_rel:['coalizione',3], otzma:['coalizione',4],
-  yesh_atid:['opposizione',0], byachad:['opposizione',0], democratici:['opposizione',1],
-  blue_white:['opposizione',2], beitenu:['opposizione',3], yashar:['opposizione',4],
-  bennett26:['opposizione',5],
-  hadash_taal:['arabo',0], lista_araba:['arabo',0], raam:['arabo',1], balad:['arabo',2],
-  casa_sionista:['incerto',0], unity_erdan:['incerto',1], israel_first:['incerto',2],
-  economico:['incerto',3]
-};
+/* La mappa lista → slot NON sta più qui, ed è la riparazione che conta di questa prova.
+   Era una terza copia dell'ordinamento — dopo l'anagrafica della pagina e l'ORDINE della
+   regola — e appena la regola ha cambiato l'ordine sono cadute quattordici asserzioni
+   che dicevano «regola e pagina non sono d'accordo» mentre la pagina era giusta e la
+   copia era vecchia. Una prova che si rompe quando la cosa provata è corretta non prova
+   niente: dice solo che qualcuno ha dimenticato di aggiornarla.
+   Adesso l'elenco delle liste viene da COLORE.ORDINE e il colore da COLORE.diLista(),
+   che è la stessa porta che usa chi rigenera la tavolozza. */
+const ATTESE = Object.keys(COLORE.ORDINE)
+  .reduce((a, b) => a.concat(COLORE.ORDINE[b]), []);
 
 /* ── colori chiari: dall'anagrafica P{} ── */
 const blocco = html.match(/var P=\{([\s\S]*?)\n\};/);
@@ -49,15 +47,22 @@ if (tab) {
     scuroDa[m[1].toUpperCase()] = m[2].toUpperCase();
 }
 
-esito(Object.keys(chiaro).length === Object.keys(SLOT).length,
-  'la pagina contiene le ' + Object.keys(SLOT).length + ' liste attese',
-  'ne ha ' + Object.keys(chiaro).length);
+esito(Object.keys(chiaro).length === ATTESE.length,
+  'la pagina contiene le ' + ATTESE.length + ' liste che la regola conosce',
+  'pagina ' + Object.keys(chiaro).length + ' · regola ' + ATTESE.length);
+/* e sono le stesse: una lista in anagrafica che la regola non conosce non avrebbe
+   colore l'8 settembre, e non se ne accorgerebbe nessuno finché non si guarda */
+const soloPagina = Object.keys(chiaro).filter(i => ATTESE.indexOf(i) < 0);
+const soloRegola = ATTESE.filter(i => !chiaro[i]);
+esito(soloPagina.length === 0 && soloRegola.length === 0,
+  'e sono le stesse liste, non solo lo stesso numero',
+  'solo in pagina: ' + (soloPagina.join(', ') || '—') +
+  ' · solo nella regola: ' + (soloRegola.join(', ') || '—'));
 
 /* ── il confronto vero, lista per lista, nei due temi ── */
-for (const id of Object.keys(SLOT)) {
-  const [b, s] = SLOT[id];
-  const attesoC = COLORE.di(b, s, 'chiaro').toUpperCase();
-  const attesoS = COLORE.di(b, s, 'scuro').toUpperCase();
+for (const id of ATTESE) {
+  const attesoC = (COLORE.diLista(id, 'chiaro') || '').toUpperCase();
+  const attesoS = (COLORE.diLista(id, 'scuro') || '').toUpperCase();
   const nella = chiaro[id];
   if (!nella) { esito(false, 'regola e pagina d\'accordo su ' + id, 'lista assente dall\'anagrafica'); continue; }
   const trovatoC = nella.c;
@@ -102,11 +107,29 @@ for (const id of Object.keys(SLOT)) {
 
     for (const k of Object.keys(BLOCCHI)) {
       const b = BLOCCHI[k];
+      /* IL TOKEN DI BLOCCO NON È PIÙ LO SLOT 0, e la differenza va capita prima di
+         leggere questa riga come un allentamento. Fino alla consegna 4 il token era
+         di(blocco, 0): il colore del capolista faceva anche da colore del blocco, e la
+         prova legava le due strade proprio così. Dalla consegna 6 i quattro token sono
+         una USCITA A SÉ della regola — COLORE.token() — perché devono rispettare fra
+         loro distanze e contrasti che il capolista non può garantire: lo slot 0 è scelto
+         per stare lontano dalle altre liste del suo blocco, non dagli altri tre token.
+         Misurato sulla tavolozza applicata: con i token = slot 0 la distanza minima fra
+         i quattro scenderebbe, mentre i token dedicati tengono 35,07 in chiaro e 39,45
+         in scuro.
+         Quel che NON cambia è la proprietà che questa prova esiste per tenere: una sola
+         sorgente, e la pagina che non può divergerne. È cambiata la funzione, non il
+         legame — e per questo l'asserzione resta, invece di sparire. */
       for (const tema of ['chiaro', 'scuro']) {
-        const atteso = COLORE.di(b, 0, tema).toUpperCase();
+        const atteso = COLORE.token(b, tema).toUpperCase();
         esito(tok[tema][k] === atteso, 'il token --' + k + ' del tema ' + tema + ' segue la regola',
           'regola ' + atteso + ' / pagina ' + tok[tema][k]);
       }
+      /* e non coincide col capolista: se un giorno tornasse a coincidere sarebbe un
+         indizio che qualcuno ha rimesso di(blocco,0) al posto di token() */
+      esito(COLORE.token(b, 'chiaro').toUpperCase() !== COLORE.di(b, 0, 'chiaro').toUpperCase(),
+        'e il token --' + k + ' è un colore suo, non quello del capolista',
+        'token ' + COLORE.token(b, 'chiaro') + ' · slot 0 ' + COLORE.di(b, 0, 'chiaro'));
       /* e BL{}, che è l'altra strada, deve puntare allo stesso colore chiaro */
       const m = bl ? new RegExp('n:"' + NOMI[k] + '",c:"(#[0-9A-Fa-f]{6})"').exec(bl[1]) : null;
       esito(!!m && m[1].toUpperCase() === tok.chiaro[k],
@@ -120,34 +143,72 @@ for (const id of Object.keys(SLOT)) {
   }
 }
 
-/* ── nessun colore prodotto dalla regola può essere un grigio ── */
+/* ── nessun colore assegnato è il grigio di ripiego ──
+ *
+ * La regola non ha un pavimento di croma: il dominio è costruito dentro il settore e la
+ * finestra, quindi un grigio non può nascerne. Ne esce da UNA sola strada, il ripiego di
+ * di() quando lo slot supera la saturazione del blocco — e quel grigio è #626D7E, cioè
+ * --mute, il colore del testo attenuato. Una lista dipinta come testo disabilitato è
+ * esattamente il difetto che non si nota guardando la pagina di fretta. */
 {
+  const RIPIEGO = {chiaro:'#626D7E', scuro:'#7D8A9B'};
   const smorti = [];
-  for (const id of Object.keys(SLOT)) {
-    const [b, s] = SLOT[id];
-    for (const tema of ['chiaro', 'scuro']) {
-      const h = COLORE.di(b, s, tema);
-      if (COLORE.croma(h) < COLORE.CROMA_PAVIMENTO - 1e-6) smorti.push(id + '/' + tema + ' ' + h);
-    }
+  for (const id of ATTESE) for (const tema of ['chiaro', 'scuro']) {
+    const h = (COLORE.diLista(id, tema) || '').toUpperCase();
+    if (h === RIPIEGO[tema].toUpperCase()) smorti.push(id + '/' + tema);
+    else if (COLORE.misuraColore(h).C < 0.04) smorti.push(id + '/' + tema + ' croma ' + COLORE.misuraColore(h).C.toFixed(3));
   }
-  esito(smorti.length === 0, 'nessun colore della regola scende sotto il pavimento di croma',
+  esito(smorti.length === 0,
+    'nessuna delle venti liste riceve il grigio di ripiego, né un colore che si legga grigio',
     smorti.join(', '));
 }
 
-/* ── oltre la capienza: colore distinto e avviso, poi errore esplicito ── */
+/* ── la capienza dice la saturazione vera, non il tetto che le si è chiesto ──
+ *
+ * La consegna 6 calcolava capienza() con palette(tema, 7) e riportava «liberi» come
+ * riempiti − in_anagrafica: un blocco che riempiva sette slot su sette risultava pieno
+ * anche quando ne reggeva dodici. Il §9 dichiarava «opposizione a zero slot liberi in
+ * tutti e due i temi», e non era vero: l'opposizione satura a 12 e ne ha cinque liberi.
+ * Il blocco davvero pieno è uno solo, l'ago della bilancia in tema chiaro.
+ * È un difetto della forma peggiore — un numero giusto per la domanda sbagliata — e la
+ * prova sta qui perché quel numero lo si legge una volta sola, la sera del deposito. */
+{
+  const cap = COLORE.capienza();
+  esito(cap.chiaro.opposizione.saturazione > 7,
+    'la capienza è la saturazione, non il tetto chiesto: l\'opposizione va oltre sette',
+    'satura a ' + cap.chiaro.opposizione.saturazione + ' in chiaro');
+  esito(cap.chiaro.incerto.liberi === 0,
+    'e l\'ago della bilancia in chiaro è il blocco davvero pieno: zero slot liberi',
+    'satura a ' + cap.chiaro.incerto.saturazione + ' con ' + cap.chiaro.incerto.in_anagrafica + ' liste');
+  for (const tema of ['chiaro', 'scuro']) for (const b of COLORE.BLOCCHI)
+    esito(cap[tema][b].liberi >= 0,
+      'ogni lista in anagrafica ha uno slot: ' + b + ' / ' + tema,
+      'satura a ' + cap[tema][b].saturazione + ', in anagrafica ' + cap[tema][b].in_anagrafica);
+  /* il rimedio si trova dal punto in cui la regola fallisce, non cercandolo */
+  esito(/§9/.test(cap.ripiego || ''),
+    'e capienza() dice dove andare quando un blocco è pieno', cap.ripiego);
+}
+
+/* ── oltre la saturazione: colore distinto e avviso, poi errore esplicito ──
+ *
+ * La consegna 6 restituiva il grigio in silenzio. Il primo slot oltre la saturazione può
+ * ancora dare qualcosa, ma deve dirlo; dal secondo in poi non c'è niente da dare, e
+ * fallire è l'unica risposta onesta. */
 {
   COLORE.azzeraAvvisi();
-  const n = COLORE.capienza('arabo');
-  const supp = COLORE.di('arabo', n, 'chiaro');
-  const gia = [];
-  for (let k = 0; k < n; k++) gia.push(COLORE.di('arabo', k, 'chiaro'));
-  esito(gia.indexOf(supp) < 0 && COLORE.avvisi().length > 0,
-    'oltre la capienza la regola dà un colore distinto e avvisa',
+  const sat = COLORE.capienza().chiaro.incerto.saturazione;
+  const supp = COLORE.di('incerto', sat, 'chiaro');
+  esito(COLORE.avvisi().length > 0,
+    'oltre la saturazione la regola avvisa invece di tacere',
     'slot supplementare ' + supp + ', avvisi ' + COLORE.avvisi().length);
-  let esploso = false;
-  try { COLORE.di('arabo', 2 * n, 'chiaro'); } catch (e) { esploso = true; }
+  esito(/§9/.test(COLORE.avvisi()[0] || ''),
+    'e l\'avviso dice dove sta la scala di ripiego', COLORE.avvisi()[0]);
+  let esploso = false, messaggio = '';
+  try { COLORE.di('incerto', sat + 1, 'chiaro'); } catch (e) { esploso = true; messaggio = e.message; }
   esito(esploso, 'oltre il primo supplementare la regola fallisce con un errore esplicito',
-    'non ha sollevato niente: una lista in eccesso riceverebbe un colore illeggibile');
+    'non ha sollevato niente: una lista in eccesso riceverebbe --mute e sembrerebbe spenta');
+  esito(/saturo|§9/.test(messaggio),
+    'e l\'errore dice quale blocco e dove guardare', messaggio.slice(0, 90));
   COLORE.azzeraAvvisi();
 }
 

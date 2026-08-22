@@ -148,24 +148,44 @@ Le sette: `balad`, `bennett26`, `casa_sionista`, `economico`, `israel_first`, `u
 
 ---
 
-## Il prezzo, che accettiamo sapendolo
+## Il prezzo — e qui il numero era sbagliato, ma l'errore è di misura, non di tavolozza
 
-Verificato con `capienza()`, e coincide con la vostra tabella riga per riga:
+Nella prima stesura di questo documento avevamo scritto che accettavamo «opposizione a zero
+slot liberi in tutti e due i temi». **Non è vero, e ce ne siamo accorti applicando.** Lo
+correggiamo qui invece di lasciarlo passare, perché è esattamente il genere di numero che
+poi si cita per due anni.
 
-| blocco | in anagrafica | liberi in chiaro | liberi in scuro |
-|---|---|---|---|
-| blocco Netanyahu | 5 | 2 | 1 |
-| **opposizione sionista** | 7 | **0** | **0** |
-| liste arabe | 4 | 1 | 2 |
-| **ago della bilancia** | 4 | **0** | 2 |
+`capienza()` chiama `palette(tema, 7)` e riporta «liberi» come *riempiti − in anagrafica*.
+Ma 7 è il **tetto chiesto**, non la saturazione: un blocco che riempie sette slot su sette
+risulta pieno anche quando ne reggerebbe dodici. Facendo crescere il tetto finché il blocco
+smette di riempirsi:
 
-**Opposizione a zero slot liberi in tutti e due i temi, ago della bilancia a zero in
-chiaro.** È la contropartita del pavimento dicromatico, l'avete dichiarata prima che ve la
-chiedessimo, e la accettiamo: venti liste su venti hanno un colore oggi, ed è quello che
-serviva.
+| blocco | satura a (chiaro) | in anagrafica | liberi | satura a (scuro) | liberi |
+|---|---|---|---|---|---|
+| blocco Netanyahu | 10 | 5 | 5 | 6 | 1 |
+| opposizione sionista | **12** | 7 | **5** | 12 | 5 |
+| liste arabe | 5 | 4 | 1 | 6 | 2 |
+| **ago della bilancia** | **4** | 4 | **0** | 6 | 2 |
 
-Se l'8 settembre nasce una lista in uno di quei due blocchi, si scende la scala di ripiego
-del §9 — un parametro per volta, ciascuno col suo costo.
+**Il blocco davvero pieno è uno solo: l'ago della bilancia in tema chiaro.** L'opposizione
+ha cinque slot liberi, non zero. Il §9 va rifatto su questi numeri, e la frase «se l'8
+settembre si deposita una lista in più nell'opposizione la regola non ha uno slot da darle»
+va tolta: ne ha cinque.
+
+Resta vero, e lo accettiamo, che **l'ago della bilancia in chiaro non ha margine.** Se lì
+nasce una quinta lista si scende la scala di ripiego del §9, un parametro per volta.
+
+**E c'è una seconda cosa, che abbiamo riparato nella nostra copia della regola.** Oltre la
+saturazione `di()` restituiva `#626D7E` — cioè `--mute`, il colore del testo attenuato —
+**senza avviso e senza errore**. La sera del deposito una quinta lista centrista avrebbe
+preso un grigio identico al testo disabilitato, e nessuno se ne sarebbe accorto fino a
+guardare la pagina. Nella nostra copia il primo slot oltre la saturazione avvisa, e dal
+secondo in poi la regola solleva un errore che nomina il blocco e rimanda al §9. Era una
+proprietà che la nostra suite provava già sulla regola precedente: la consegna l'ha persa
+per strada, e ve lo segnaliamo perché la riprendiate voi nella vostra.
+
+Le due correzioni sono in `dati/colore-liste.js` da parte nostra, marcate nel commento.
+Non toccano un solo colore.
 
 **Una richiesta sola su questo, ed è di forma, non di contenuto: la scala di ripiego deve
 trovarsi senza cercarla.** La sera del deposito delle liste chi la userà avrà poco tempo e

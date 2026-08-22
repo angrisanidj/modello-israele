@@ -106,6 +106,18 @@ commit* spiegando perché nel messaggio.
    ciascuna regola raggiunge davvero, e cade se ne compare una non dichiarata — anche
    scritta domani. Il numero che regge l'invariante: perché `--mute` arrivi a 4,5 servirebbe
    **α ≥ 0,93**, e a 0,93 l'attenuazione non si vede più. Vedi il punto 17.
+10. **Niente tempo scritto a mano.** Nessun valore, scadenza o formula temporale sta nel
+    testo come costante quando può essere ricavato **dai dati o dalla data corrente**:
+    né il conto dei giorni, né «mancano due mesi», né «l'8 settembre si depositano le
+    liste» al presente quando l'8 settembre è passato, né «tre volte l'errore dell'ultima
+    settimana» quando quel rapporto è calcolabile dal banco di prova.
+    La ragione è che questa pagina **resta pubblicata dopo il 27 ottobre 2026**, e ogni
+    costante temporale scritta a mano diventa falsa in una data che nessuno ha segnato in
+    calendario. Un numero sbagliato si nota; una frase al presente che parla di un futuro
+    già passato no — continua a leggersi bene, e mente.
+    Vale per il titolo, per il sommario, per la nota metodologica e per il calendario.
+    Se una grandezza non è ricavabile, va scritta **una volta sola** in una costante con
+    accanto la data in cui è stata misurata, e non ripetuta nella prosa.
 
 ## Trappole già incontrate, da non ripetere
 
@@ -1020,142 +1032,192 @@ lente in mezzo, ed è la figura giusta — ma è una figura diversa da quella di
 
 ---
 
-## La tavolozza: perché la soglia interna è 7,5 e non 8
+## La tavolozza: la regola della consegna 6, e che cosa è costata
 
-Applicata il 20 agosto 2026. I colori delle liste non sono più scritti a mano
-nell'anagrafica: vengono da una regola generativa — quattro bande di luminanza (una per
-blocco), un settore di tinta disgiunto per blocco, e per ogni slot una terna
-*tinta · posizione nella banda · croma*.
+Applicata il 22 agosto 2026. Sostituisce per intero la tavolozza generativa del 20 agosto
+— bande di luminanza, settori stretti, ΔE minimo 7,88 — e con essa tutte le sezioni che
+questo file dedicava a quella: la soglia interna di 7,5, l'obiettivo a cascata, i due
+limiti, la scala delle bande che partiva troppo in basso. **Non valgono più.** Se servono
+per capire come ci si è arrivati stanno nella storia di git e in `docs/`.
 
-**Il vincolo che morde è la larghezza delle bande, non la scelta dei punti.** Le bande
-sono fissate da due cose che non si possono allentare: i salti fra bande adiacenti devono
-stare a ≥ 1,309 in forma WCAG `(L₁+0,05)/(L₂+0,05)`, e i soffitti di contrasto impongono
-il tetto in tema chiaro e il pavimento in tema scuro. Quel che resta è un intervallo
-stretto, e dentro un settore di 50° con sei liste il ΔE2000 minimo non arriva a 8.
+La sorgente è `dati/colore-liste.js`. Non è una tavolozza con una regola scritta addosso:
+i venti colori di lista e i quattro token di blocco sono **l'uscita** di
+`COLORE.diLista(id, tema)` e `COLORE.token(blocco, tema)`, e `test/suite/regola.js`
+verifica che la pagina non ne diverga — 63 asserzioni.
 
-Misurato, sull'opposizione sionista:
+### Com'è fatta
 
-| Configurazione | ΔE2000 minimo |
-|---|---|
-| sei liste accese | **8,0** |
-| cinque liste accese | **8,9** |
-| bande allargate, fuori specifica | **11,6** |
+Quattro **settori di tinta disgiunti**, uno per blocco; per ogni tema le **finestre di
+luminanza** che i contrasti ammettono, ricavate dalle superfici e non scelte; dentro
+settore × finestra una griglia dichiarata (3° di tinta, 1,5 di L\*); e un'**assegnazione
+per inserimento a distanza massima**, dove la lista *k* prende il punto più lontano da
+quelli già assegnati nel suo blocco fra quelli che rispettano i pavimenti verso gli altri.
 
-Il riposizionamento degli slot vale molto — porta l'opposizione da 3,7 a 7,9 e la
-coalizione da 6,3 a 13,2 — ma 9,7 non è raggiungibile senza allargare le bande, e
-allargarle farebbe cadere il vincolo dei salti. La soglia di 8 era ricavata da una misura
-su un solo tema e con varianza sottostimata: **si corregge l'ingresso, non si aggiusta il
-risultato.** Da qui 7,5.
+| blocco | settore | arco reale chiaro | arco reale scuro |
+|---|---|---|---|
+| liste arabe | 142°–192° | 142,0°–190,8° | 142,0°–189,9° |
+| blocco Netanyahu | 226°–304° | 226,5°–303,8° | 229,0°–303,9° |
+| opposizione sionista | 340°–40° | 342,9°–39,9° | 340,1°–38,4° |
+| ago della bilancia | 58°–105° | 67,2°–103,1° | 58,0°–103,2° |
 
-Non riaprire la partita senza rimisurare: `node test/misura-consegna.mjs` rifà tutto il
-conto, e `MUTA=settori` verifica che il controllo sulle famiglie di tinta sappia fallire.
+Il settore non è un'affermazione sulla regola, è un **filtro dentro** la regola: un
+candidato la cui tinta *misurata* cade fuori viene scartato dal dominio. È la differenza
+che ha chiuso il difetto della revisione 5, dove le tinte annotate divergevano dalle tinte
+consegnate fino a 29,8° perché `oklch()` non applicava la funzione di trasferimento sRGB e
+il file annotava l'intenzione invece del risultato.
 
-**Due vincoli aggiunti che non sono negoziabili.** Massimizzare il ΔE senza di essi
-distrugge la famiglia di tinta: l'ottimo porta il croma a zero e produce grigi — e un
-grigio ha un angolo di tinta che non significa niente, quindi il controllo sui settori non
-se ne accorge. Perciò: pavimento di croma OKLCH a 0,0424 (il minimo della consegna
-precedente, quindi nessuna regressione) e ancore di blocco vincolate, tinta entro ±6° e
-croma non inferiore a quello della consegna precedente.
+### I numeri, misurati da noi sull'esadecimale che sta in pagina
 
-## Le bande restano: cosa sopravvive al bianco e nero e al daltonismo
-
-Deciso il 20 agosto 2026, misurato, e scritto qui per non riaprire la partita.
-
-Era stato chiesto se convenisse abbandonare le bande di luminanza — quelle che fanno dire
-il blocco al colore — per guadagnare distanza fra le liste. Senza bande il ΔE2000 minimo
-fra liste sale da **7,88** a **22,72**, quasi il triplo. Ma le quattro fasce di luminanza
-si sovrappongono tutte, e il blocco smette del tutto di leggersi in bianco e nero.
-
-La misura che ha deciso è un'altra, e va nella direzione opposta a quanto sembrava.
-Simulando deuteranopia e protanopia sulle 372 coppie di liste coesistenti:
-
-| | Nominale | Per un dicromate |
+| | chiaro | scuro |
 |---|---|---|
-| fra **blocchi diversi** (294 coppie) | 14,85 | **9,18** |
-| dentro lo **stesso blocco** (78 coppie) | 7,88 | **0,86** |
+| testo sopra il colore, minimo | **4,74** | **4,73** |
+| colore su `--card` / `--paper`, minimo | **3,36** | **4,36** |
+| ΔE dentro il blocco, sedici liste coesistenti | 9,3 | 11,4 |
+| idem, per un dicromate | **2,91** | **3,55** |
+| ΔE dentro il blocco, gli undici in aula | **15,7** | **12,7** |
+| idem, per un dicromate | **5,71** | **5,47** |
+| ΔE fra blocchi | 15,0 | 13,8 |
+| idem, per un dicromate | 6,97 | 5,68 |
 
-**Tutte e dodici** le coppie che scendono sotto ΔE 3 per un dicromate sono dello stesso
-blocco: nemmeno una fra blocchi diversi. La separazione fra blocchi regge in scala di
-grigi e regge per un occhio daltonico; quella fra liste della stessa famiglia no, perché
-è affidata alla sola tinta.
+Il confronto che conta, sulla stessa configurazione: **dentro il blocco si passa da 7,9 a
+15,7** in chiaro e da 7,9 a 12,7 in scuro, e **per un dicromate da 0,94 e 1,37 a 5,71 e
+5,47.** Era il difetto dichiarato da mesi — «dentro lo stesso blocco 0,86 per un dicromate»
+— ed è chiuso.
 
-È il compromesso giusto proprio perché i due posti non sono simmetrici: **nella tabella
-per lista il blocco è già scritto sotto ogni nome**, quindi la tinta ridondante che
-collassa non porta via informazione; **nell'emiciclo il colore è l'unico portatore**, e
-lì quello che conta è che il blocco si legga — e si legge.
+**Il pavimento dicromatico dentro il blocco è un vincolo della regola**, non un esito:
+4,2 in chiaro e 4,5 in scuro nei tre blocchi in aula, **3,0 e 3,3 nell'ago della bilancia**,
+dove la famiglia ocra non ha varianza protanopica. Il valore più basso è per blocco ed è
+dichiarato: con 4,2 uniforme l'ago della bilancia terrebbe tre liste e Israel First
+resterebbe senza colore.
 
-Rimisurabile con `node test/misura-consegna.mjs <cartella> --colori`. La simulazione usa
-le matrici di Viénot, Brettel e Mollon su RGB lineare: serve a ordinare le coppie, non a
-certificarle.
+### Il tetto della finestra scura è 0,650, ed è nostro
 
-## L'obiettivo a cascata, e perché l'ultimo blocco paga il conto
+La consegna lo metteva a **0,7200**, e il difetto che ne usciva era più grande di quello che
+sembrava guardando una lista sola.
 
-Misurato il 20 agosto 2026. **Non ancora applicato alla tavolozza**: è una proprietà del
-metodo, registrata perché non si riparta da capo.
+A 0,7200 la finestra arriva a **L\* 88**, dove il gamut sRGB non ha quasi più croma da dare.
+I due colori più alti uscivano a croma **0,053** e **0,057** — cioè quasi bianchi — e non
+erano due liste qualsiasi: `otzma` con 8 seggi e **`yashar` con 24, il primo partito**.
+Insieme **32 seggi su 120, il 27% della camera, contro ZERO seggi sotto croma 0,08 in tema
+chiaro**. E stavano sui **due lati opposti della soglia dei 61**: la zona più luminosa
+dell'emiciclo scavalcava esattamente la riga che il grafico esiste per mostrare.
 
-Massimizzare il ΔE minimo *globale* è l'obiettivo sbagliato: appena il blocco più
-vincolato inchioda il minimo — l'opposizione, sei liste in un settore di 50° — l'ottimizzatore
-smette di spingere gli altri, che restano fermi al valore di quello. Massimizzando invece
-**blocco per blocco in cascata**, dal più vincolato al meno, ciascuno tenuto fisso per i
-successivi:
+Nessuna prova cadeva, perché i due erano separati per bene — ΔE 25,8, e 23,4 per un
+protanope. Era un difetto editoriale, non di conformità, e si vedeva solo contando quanti
+seggi porta ciascun livello di croma. **Il conto che lo rivela è «quanta camera è dipinta»,
+non «i colori sono distinti».**
 
-| Blocco | Globale (oggi) | A cascata |
+Abbassando il tetto a **0,650**:
+
+| | 0,7200 | **0,6500** |
 |---|---|---|
-| opposizione | 7,88 | 7,88 |
-| arabo | 7,97 | **9,48** |
-| coalizione | 13,16 | **14,60** |
-| incerto | 14,52 | 14,46 |
+| seggi sotto croma 0,08 | 32 | **8** |
+| croma minima | 0,053 | 0,067 |
+| Yashar | `#FFD0C1` C 0,057 | **`#FF9A7D` C 0,128** |
+| ΔE dentro il blocco, scuro | 11,8 | **12,7** |
+| **dicromate dentro il blocco** | **3,88** | **5,47** |
+| ΔE fra blocchi, scuro | 17,4 | 15,9 |
+| slot liberi in scuro (c/o/a/i) | 1/5/2/2 | 2/3/1/1 |
 
-ΔE fra blocchi diversi: 14,85, invariato.
+**Il tema chiaro non è toccato**, e il pavimento dicromatico sale sopra il 4,5 dichiarato —
+il che chiude da sé una discrepanza che ci portavamo dietro: a 0,7200 la coppia
+`utj`/`sionismo_rel` misurava **5,0 con le matrici di Machado** della consegna e **3,88 con
+quelle di Viénot** di questa suite, cioè il vincolo teneva o non teneva a seconda del
+metodo. A 0,650 tiene con tutti e due, e la domanda «quale matrice definisce il pavimento»
+smette di essere urgente — resta però vera in generale: **un pavimento che dipende dalla
+matrice non è un pavimento.**
 
-**L'ultimo blocco della cascata non è libero come il primo, e può uscire peggiorato.**
-`incerto` scende di sei centesimi non per un difetto della ricerca ma per costruzione: la
-configurazione di partenza è valida finché anche i blocchi precedenti sono quelli di
-partenza, e una volta che gli altri tre si sono spostati quella configurazione può violare
-il ΔE ≥ 11 verso di loro. Chi viene per ultimo eredita i vincoli di tutti.
+**Sotto 0,600 non si scende**: l'ago della bilancia va a −1 slot e una lista resta senza
+colore. Il residuo accettato è `otzma` a croma 0,067 con 8 seggi.
 
-Conseguenza pratica: l'ordine della cascata è una scelta, non un dettaglio. Metterci per
-ultimo il blocco che ha più margine — oggi `incerto`, a 14,5 — è ciò che rende il costo
-trascurabile.
+### Che cosa è stato ceduto, e va saputo prima di riaprire la partita
 
-## Due limiti della tavolozza, misurati. Non rifare questo giro
+**Le bande di luminanza non esistono più.** In scala di grigi il ΔE minimo fra liste di
+blocchi diversi è **0,0** in tutti e due i temi. Era una cessione autorizzata, in cambio
+della distinguibilità dentro il blocco, e la contropartita è che **a livello di blocco il
+grigio regge**: i quattro token stanno a ΔE 8,61 in chiaro e 9,05 in scuro. Se il colore di
+lista smette di dire il blocco in bianco e nero, il colore di blocco continua a dirlo — ed
+è per questo che quel numero è un invariante e non un dato.
 
-**L'opposizione non può cambiare banda, e il suo ~7,5 è il pavimento di tutta la
-tavolozza.** Sei liste coesistenti in un settore di tinta da 50° stanno **solo** nella
-banda più chiara: nelle altre tre l'ottimizzatore non trova nemmeno una configurazione
-valida. Su ventiquattro assegnazioni famiglia→banda, dodici cadono, e in dieci casi il
-blocco che non trova posto è l'opposizione. Da qui discende che il ΔE minimo dell'intera
-tavolozza è sempre il suo, fra 7,0 e 7,9 a seconda di dove stanno gli altri: qualunque
-guadagno su arabo, coalizione o ago della bilancia **non sposta il minimo complessivo**.
+**Sedici identità storiche su venti sono perdute, con la ragione di ciascuna.** Quattro si
+tengono — Likud, I Democratici, Ra'am, Lista Unita araba — perché il loro colore storico è
+cromatico e cade dentro il settore del proprio blocco. Cinque non avevano una tinta (erano
+grigi: Shas, UTJ, Unità, Israel First, Partito Economico) e undici avevano una tinta che
+appartiene all'arco di un altro blocco. **Yisrael Beitenu** era viola a 297,5°, cioè nel
+settore della coalizione: sta a 343°, il bordo magenta, che è il punto legale più vicino.
+L'elenco misurato è in `tinta-storica.md` nella cartella della consegna.
 
-**L'assegnazione famiglia→banda è stata enumerata su tutte e ventiquattro le combinazioni**,
-con i settori e le ancore di oggi e tutti i vincoli attivi. **Ne sopravvivono due**, e sono
-quelle con l'opposizione nella banda chiara:
+### I quattro token di blocco non sono più lo slot 0
 
-| B1 · B2 · B3 · B4 | arabo | oppos | coali | incer | fra blocchi |
+Fino al 20 agosto `--coal`, `--oppo`, `--arab` e `--inc` erano `di(blocco, 0)`: il
+capolista faceva anche da colore del blocco. Adesso sono **un'uscita a sé** della regola,
+`COLORE.token()`, perché devono rispettare fra loro distanze e contrasti che il capolista
+non può garantire — lo slot 0 è scelto per stare lontano dalle *altre liste del suo blocco*,
+non dagli *altri tre token*.
+
+Contro il pavimento di prima, misurato:
+
+| | chiaro | scuro |
+|---|---|---|
+| su `--card` | 3,78 (era 4,70) | 4,36 (era 4,69) |
+| testo sopra | 4,72 ✔ | 4,74 (era 5,09) |
+| distanza nominale fra i quattro | **35,07** ✔ | **39,45** ✔ |
+| deuteranopia | 13,24 ✔ | 13,25 ≈ |
+| protanopia | **12,64** (era 5,7) | **18,64** ✔ |
+| scala di grigi | **8,61** (era 6,1) | **9,05** ✔ |
+| i tre in aula, tutte le viste | 13,24 (era 15,9) | 13,25 (era 23,1) |
+
+Protanopia e scala di grigi migliorano molto; contrasto su `--card` e distanza fra i tre
+in aula scendono. **È una regressione dichiarata qui e non altrove**: la consegna 6 non
+nomina mai i token di blocco, benché li abbia cambiati.
+
+### L'8 settembre, e la capienza vera
+
+```js
+COLORE.capienza();                              // saturazione per blocco e tema
+COLORE.ORDINE.opposizione.push('lista_nuova');  // in coda: le assegnate non si spostano
+COLORE.TINTA_ASSEGNATA.lista_nuova = 12;        // posizione di tinta, tolleranza 14°
+COLORE.diLista('lista_nuova', 'chiaro');
+```
+
+| blocco | satura a (chiaro) | in anagrafica | liberi | satura a (scuro) | liberi |
 |---|---|---|---|---|---|
-| verde · blu · sabbia · verdeazzurro | 9,0 | 7,9 | 15,1 | 14,5 | 17,0 |
-| **blu · verde · sabbia · verdeazzurro** *(applicata)* | **14,0** | 7,9 | 12,4 | 14,5 | 13,5 |
+| blocco Netanyahu | 10 | 5 | 5 | 7 | 2 |
+| opposizione sionista | 12 | 7 | 5 | 10 | 3 |
+| liste arabe | 5 | 4 | **1** | 5 | 1 |
+| **ago della bilancia** | **4** | 4 | **0** | 5 | 1 |
 
-**È stata scelta la seconda, e non per il ΔE.** Con il verde nella banda più scura
-`--arab` era `#202E00`, luminanza 0,0226 e croma 0,070: non si legge come verde, si legge
-come nero — e il verde per le liste arabe è una convenzione a cui non si rinuncia. Il blu
-quella banda la regge, perché è naturalmente scuro. La fisica è quella: la luminanza pesa
-0,7152 sul verde e 0,0722 sul blu, quindi un verde saturo è intrinsecamente chiaro e un
-blu saturo intrinsecamente scuro.
+**Due difetti della consegna riparati da noi, e sono nel nostro file, non nel loro.**
 
-Il prezzo, accettato: coalizione da 15,1 a **12,4** e distanza fra blocchi da 17,0 a
-**13,5**, entrambe sopra soglia. Il guadagno: blocco arabo da 9,0 a **14,0**.
+1. **`capienza()` misurava il tetto che le si chiedeva, non la saturazione.** Chiamava
+   `palette(tema, 7)` e riportava «liberi» come riempiti − in anagrafica: un blocco che
+   riempiva sette slot su sette risultava pieno anche quando ne reggeva dodici. Il §9 della
+   consegna dichiarava «opposizione a zero slot liberi in tutti e due i temi» e **non è
+   vero**: l'opposizione satura a 12 e ne ha cinque liberi. Il blocco davvero pieno è uno
+   solo, **l'ago della bilancia in tema chiaro**. È un numero giusto per la domanda
+   sbagliata, ed è la forma di difetto peggiore perché non si vede: la funzione risponde.
+2. **Oltre la saturazione la regola restituiva `#626D7E` in silenzio** — cioè `--mute`, il
+   colore del testo attenuato. Una lista dipinta come testo disabilitato, senza un avviso,
+   la sera del deposito. Adesso il primo slot oltre la saturazione **avvisa**, e dal secondo
+   in poi la regola **fallisce con un errore esplicito** che nomina il blocco e rimanda alla
+   scala di ripiego. È la proprietà che `regola.js` provava già sulla regola vecchia, e che
+   la consegna aveva lasciato cadere.
 
-**L'ancora della coalizione è stata riportata verso il blu bandiera**: da 241,6° a 262,2°,
-con `#0038B8` a 262,9° e il blu sRGB puro a 264,1°. Stava ventun gradi sotto, verso il
-ciano — la tinta meno blu del suo settore. `--coal` passa da `#004A72` a `#00226E`.
+**Se l'ago della bilancia deve accogliere una quinta lista**, la scala di ripiego è nel §9
+di `regola-colore.md` della consegna, un parametro per volta: prima `dentro_dic` di quel
+blocco meno 0,6, poi `fra_blocchi_dic` delle sue coppie meno 0,5, poi allargare il settore.
+`capienza()` restituisce quel percorso nel campo `ripiego`: **il punto in cui la regola
+fallisce dice dove andare**, perché quella sera nessuno avrà tempo di cercarlo.
 
-Con il blu nella banda più scura serve anche un **pavimento di croma dedicato all'ancora
-della coalizione, 0,12** invece del generale 0,0424: senza, l'ottimo produceva `#1D2A40`,
-che si legge grigio e non blu — lo stesso difetto per cui il verde è stato spostato. Non
-costa niente, anzi: il blocco sale da 11,85 a 12,40 e la distanza fra blocchi da 12,62 a
-13,47, perché il vincolo spinge la ricerca in un bacino migliore.
+### Quello che non è stato applicato
+
+Il **secondo canale** — l'anello sui marchi da 14px in su, per le liste che non siedono
+nella Knesset uscente — **non è in pagina**. È una modifica al disegno, non alla tavolozza,
+e va fatta a parte. Quando si farà: **sono sette liste, non otto.** `lista_araba` va
+esclusa per la stessa ragione per cui la consegna esclude `sionismo_rel` e `otzma` — è il
+contenitore di `hadash_taal`, che nel 2022 aveva cinque seggi. Che `r22` sia `null` per un
+contenitore vuol dire «questa sigla non esisteva nel 2022», non «questi elettori non hanno
+eletto nessuno», e la coerenza del criterio vale più della lettera del campo.
 
 ## Difetti noti, di codice e non di tavolozza
 
@@ -1412,45 +1474,13 @@ e non sanno niente della parentela.**
   deve comparire o il contenitore o le componenti, mai entrambi. Oggi è provato su `QUO`;
   restano `SEG`, `MC.d`, l'emiciclo, le pastiglie, la tabella e le legende.
 
-### Sui colori, prima di tutto il resto: la scala delle bande parte troppo in basso
+### Sui colori: la partita è chiusa, e non da qui
 
-**Il ΔE2000 mente in fondo alla scala.** La banda 1 sta a L\* 17, quasi nera, e a quella
-chiarezza la formula sovrastima la distinguibilità reale: Otzma e Shas sono a **ΔE 12
-sulla carta e a occhio sono due neri**. Non è un difetto della misura da correggere con
-una soglia, è che la misura lì non descrive quello che si vede.
-
-Misurato, e il risultato dice dove sta la leva: **alzare la banda non compra ΔE, alza L\***.
-
-| Y della banda | ΔE minimo | L\* |
-|---|---|---|
-| 0,021–0,025 *(oggi)* | 10,1–11,2 | 17 |
-| 0,038–0,045 | 11,3–11,4 | 24 |
-| 0,055–0,065 | 11,8 | 29 |
-
-Il ΔE si muove di poco più di un punto e mezzo su tutto l'intervallo; L\* passa da 17 a 29.
-È L\* che si vede.
-
-**Da valutare: una scala con L0 ≈ 0,04**, che dà bande a **0,040 · 0,103 · 0,185 · 0,293**.
-Mantiene i salti fra bande adiacenti ≥ 1,309 e resta sotto il tetto di 0,30 imposto dal
-3:1 su `--card`. Le due bande alte superano 0,183, quindi lì il testo sopra il colore
-pieno deve passare a `--on-color` scuro invece del bianco — **il token c'è già**, è stato
-aggiunto con la tavolozza del 20 agosto.
-
-**È un rifacimento dell'intera scala, non un ritocco.** Tutti e venti i colori cambiano.
-Vanno rimisurati con `node test/misura-consegna.mjs`, e `regola.js` deve tornare a legare
-tutte e cinque le copie: la regola, `P{}`, `BL{}`, `PAL_SCURO` e i quattro token CSS.
-Vale qui la riga generale scritta sopra — sono cinque strade per lo stesso valore, e una
-sola prova le tiene insieme.
-
-### La leva rimasta sui verdi arabi
-
-Viene **dopo** il rifacimento della scala, non prima: se le bande si alzano, tutti e venti
-i colori si spostano e questa leva va rivalutata su quelli nuovi.
-
-Se dopo lo scambio di banda i verdi restano vicini all'occhio, c'è ancora spazio: il
-settore verde è largo **57°**, e fra la coalizione e l'ago della bilancia resta un arco di
-**57°** inutilizzato. Allargare il verde lì dentro è la mossa successiva, e non tocca
-nessuno degli altri settori.
+Le due voci che stavano qui — «la scala delle bande parte troppo in basso» e «la leva
+rimasta sui verdi arabi» — riguardavano la tavolozza del 20 agosto, che non esiste più.
+Le bande di luminanza non ci sono, i settori sono altri, e il pavimento di 7,5 dentro il
+blocco è stato superato: si sta a 15,1 in chiaro sui dodici in aula. Vedi «La tavolozza:
+la regola della consegna 6».
 
 ### I difetti noti che restano
 
@@ -1497,7 +1527,7 @@ document.head.insertAdjacentHTML('beforeend',
 
 | # | Cosa | Dove | Larghezza | Che cosa cercare |
 |---|---|---|---|---|
-| 1 | **I colori delle venti liste** | emiciclo, legende, pastiglie, tabella per lista | 1265 e 380 | Le liste dello stesso blocco si distinguono a occhio? Il ΔE minimo è **7,88** ed è una misura, non una promessa: la banda 1 sta a L\* 17 e lì la formula sovrastima. **Otzma e Shas** sono il caso peggiore — a 12 di ΔE sulla carta, e forse due neri. Guardare anche il **verde arabo**, che nella banda scura si leggeva nero prima dello scambio |
+| 1 | **La tavolozza nuova, tutte e venti le liste** | emiciclo, legende, pastiglie, tabella per lista | 1265 e 380, nei due temi | **Nessuno l'ha mai vista resa**: è la tavolozza della consegna 6, applicata il 22 agosto. Le liste dello stesso blocco si distinguono? Il ΔE dentro il blocco è **15,7** sugli undici in aula (era 7,9) e **5,71** per un dicromate (era 0,94), ma sull'ago della bilancia scende a 9,3 e **2,91** — e quelle quattro liste stanno solo in tabella, col nome accanto. Guardare per prima cosa **l'ago della bilancia**, che è il blocco col pavimento più basso, e in **scuro** `otzma` `#BCD2FF`, l'unica rimasta quasi bianca — croma 0,067, 8 seggi — dopo che il tetto della finestra è stato abbassato a 0,650. E il **verde arabo**, che deve restare verde: sta a 142°–191° |
 | 2 | **L'anello di evidenziazione degli istogrammi** | «Quanti seggi per ciascun blocco» | 1265 e 380 | La barra evidenziata si stacca senza competere con la codifica del riempimento. È la costruzione a due tinte: alone `--card` sotto, tratto `--ink` sopra |
 | 3 | **L'house effect a schede** | sezione House effect | **380 e 760** (sotto la soglia di 1075) | Le schede: una per istituto, gli scarti da 0,8 in su. Il pulsante escludi/reinserisci accanto al nome. Provare a **escludere un istituto** e guardare la scheda tratteggiata. E a **1265** la tabella, per confronto |
 | 4 | **Il simulatore ridisegnato** | «Costruisci una maggioranza» | tutte e tre | Pillole, barra, targhetta del 61. Provare le **tre scorciatoie del cambiamento** — 56, 61 e 68 seggi — e guardare l'etichetta a 68, dove cade a cavallo del bordo del riempimento |
