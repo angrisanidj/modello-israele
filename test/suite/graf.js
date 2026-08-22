@@ -38,4 +38,4 @@ const ck={
  "serie parte da gennaio": A.S().serieModello()[0].d.startsWith('2026-01'),
  "totale 120": Object.values(A.S().SEG).reduce((a,b)=>a+b,0)===120,
 };
-Object.entries(ck).forEach(([k,v])=>console.log(" "+(v?"OK  ":"KO  ")+k));
+require('../esito.js')(ck);

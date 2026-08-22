@@ -41,7 +41,18 @@ const ck={
  "tre celle nella stessa griglia": D.querySelectorAll('.cmd > div').length===3,
  "l'archivio è una linguetta, non un pulsante con un pannello altrove":
    /<details id="k-datapanel">/.test(html) && !/id="k-datapanel-t"/.test(html),
- "colonne uguali (filetti allineati)": /#kn26 \.cmd\{[^}]*grid-template-columns:1fr 1fr/.test(css),
+ /* Era «/#kn26 \.cmd\{[^}]*grid-template-columns:1fr 1fr/», cioè chiedeva ESATTAMENTE la
+    regola che il 22 agosto 2026 si è rivelata la causa del buco: due tracce sempre, anche
+    a celle dispari, e il fondo --hair del contenitore che diventa un blocco di
+    557,5 × 119,5px dove nessuna cella copre. L'attesa è cambiata di proposito, e cambia
+    anche di forma: quello che serve non è «due colonne uguali» ma «celle uguali fra
+    loro», che è la proprietà da cui discendono i filetti allineati e che vale per
+    qualunque numero di celle. Base e crescita identiche su tutte le .cb la garantiscono:
+    sulla stessa riga il flex distribuisce lo spazio in parti uguali. */
+ "celle uguali fra loro (filetti allineati), senza tracce fisse":
+   /#kn26 \.cb\{[^}]*flex:1 1 260px/.test(css) &&
+   !/#kn26 \.cmd\{[^}]*grid-template-columns/.test(css) &&
+   (css.match(/#kn26 \.cb\{[^}]*flex:/g)||[]).length===1,
  "calendario a 6 colonne": /#kn26 \.cal\{[^}]*grid-template-columns:repeat\(6,1fr\)/.test(css),
  "calendario a 3 e 2 colonne sotto": /max-width:1000px\)\{#kn26 \.cal\{grid-template-columns:repeat\(3/.test(css)
    && /max-width:660px\)\{#kn26 \.cal\{grid-template-columns:repeat\(2/.test(css),
@@ -51,4 +62,4 @@ const ck={
  "selettore a tre stati": D.querySelectorAll('[data-tema]').length===3,
  "totale 120": Object.values(A.S().SEG).reduce((a,b)=>a+b,0)===120,
 };
-Object.entries(ck).forEach(([k,v])=>console.log(" "+(v?"OK  ":"KO  ")+k));
+require('../esito.js')(ck);

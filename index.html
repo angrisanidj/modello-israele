@@ -100,6 +100,19 @@
 #kn26 h1{font-family:var(--serif);font-size:clamp(31px,4.6vw,54px);line-height:1.03;
  letter-spacing:-.022em;margin-top:18px;}
 #kn26 .deck{font-size:16px;color:var(--ink2);margin-top:15px;line-height:1.62;}
+/* La fascia che compare il 28 ottobre. Non è `hidden`: lo stato lo dice una classe, come
+   ovunque nel foglio, perché una regola agganciata a un attributo di presentazione è la
+   trappola del pulsante dell'istituto escluso. */
+#kn26 .postvoto{display:none;}
+#kn26 .postvoto.on{display:block;margin-top:18px;padding:13px 16px;background:var(--wash);
+ border-left:3px solid var(--acc);font-size:14px;line-height:1.55;color:var(--ink2);}
+#kn26 .postvoto b{color:var(--ink);}
+#kn26 .firma{margin:28px 0 0;padding-top:16px;border-top:1px solid var(--hair);
+ font-size:12px;color:var(--mute);line-height:1.6;}
+#kn26 .firma a{color:var(--acc);}
+/* La data dell'ultima verifica riuscita quando è vecchia: non è un errore, è un fatto che
+   il lettore deve poter vedere senza contarlo. */
+#kn26 .brow em.vecchio{color:var(--neg);}
 #kn26 .deck b{color:var(--ink);font-weight:600;}
 #kn26 .meta{display:flex;flex-wrap:wrap;margin-top:22px;font-size:11px;color:var(--mute);
  text-transform:uppercase;letter-spacing:.09em;font-weight:700;align-items:center;}
@@ -808,9 +821,24 @@
 #kn26 .idx a{padding:5px 10px;font-size:10.5px;letter-spacing:.04em;}
 
 /* ══ BARRA COMANDI ══ */
-#kn26 .cmd{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--hair);
+/* LA BARRA E' FLESSIBILE, NON UNA GRIGLIA A DUE COLONNE, e la ragione è un buco.
+   Il fondo --hair su .cmd serve a disegnare i filetti da 1px fra le celle: si vede
+   attraverso i gap, e solo attraverso quelli finché ogni traccia è coperta. Con
+   grid-template-columns:1fr 1fr le tracce sono due SEMPRE, anche quando le celle sono
+   dispari — e il 22 agosto 2026, spostando l'archivio dati in una linguetta, le celle
+   sono passate da due a una: la seconda traccia è rimasta scoperta e quel fondo è
+   diventato un blocco di 557,5 × 119,5px accanto ad «Aggiorna i sondaggi». Misurato:
+   elementFromPoint al centro del vuoto restituisce DIV.cmd, colore rgb(226,231,239),
+   cioè --hair esatto.
+   UNA REGOLA TARATA SU TRE CELLE RIMETTEREBBE IL BUCO ALLA PROSSIMA AGGIUNTA. Il flex
+   non ha tracce: le celle dell'ultima riga si dividono lo spazio che avanza, quindi non
+   esiste nessuna posizione scoperta per nessun numero di celle. Con base 260px stanno
+   fino a quattro per riga nel contenitore da 1114, e la quinta va a capo prendendosi la
+   riga intera invece di lasciare tre buchi.
+   I due pannelli .pg hanno base 100%: mandano a capo da soli e occupano la riga. */
+#kn26 .cmd{display:flex;flex-wrap:wrap;gap:1px;background:var(--hair);
  border:1px solid var(--hair);padding:0;margin-top:18px;align-items:stretch;}
-#kn26 .cb{background:var(--card);padding:17px 19px;display:flex;flex-direction:column;gap:9px;align-items:flex-start;}
+#kn26 .cb{flex:1 1 260px;min-width:0;background:var(--card);padding:17px 19px;display:flex;flex-direction:column;gap:9px;align-items:flex-start;}
 #kn26 .btn.big{font-size:13px;padding:11px 19px;letter-spacing:.02em;}
 #kn26 .cb .hint{font-size:11.5px;color:var(--mute);line-height:1.5;}
 
@@ -832,7 +860,7 @@
    «Ipotesi sui dati» lasciava 372px di vuoto sotto di sé, perché la griglia stira le
    celle all'altezza della più alta. Ora la riga 1 tiene i due comandi sui dati, la 2
    le ipotesi, la 3 i parametri. Prima cosa si fa ai dati, poi come li si modella. */
-#kn26 .cmd .pg{grid-column:1 / -1;}
+#kn26 .cmd .pg{flex:1 1 100%;min-width:0;}
 /* Dentro il pannello dei parametri: lo swing con la sua nota in una colonna, gli altri
    due cursori impilati nell'altra. Resta un gruppo unitario — stesso titolo, stesso
    bordo — e la nota metodologica smette di stare in mezzo a due cursori. */
@@ -963,7 +991,10 @@
 #kn26 .guida>div{padding:0;background:transparent;}
 
 @media(max-width:820px){
- #kn26 .cmd,#kn26 .pan{grid-template-columns:1fr;}
+ /* .pan è ancora una griglia; .cmd no, quindi il collasso lo dichiara la base delle
+    celle: 100% vuol dire una per riga, e vale per quante siano. */
+ #kn26 .pan{grid-template-columns:1fr;}
+ #kn26 .cmd .cb{flex-basis:100%;}
  /* Al collasso della griglia esterna deve corrispondere quello della griglia interna
     del pannello: altrimenti su mobile restano due colonne di cursori larghe mezzo
     schermo. Tornando in colonna, lo swing riprende il margine sotto di sé. */
@@ -1034,8 +1065,12 @@
 @media(max-width:660px){
  #kn26 .mast{padding:22px 0 18px;}
  #kn26 .deck{font-size:14.5px;}
- #kn26 .meta{font-size:10px;gap:4px 0;}
- #kn26 .meta>span{padding:0 9px;}
+ /* nowrap: sotto i 660 le tre voci sono in forma corta e stanno su una riga sola. Se un
+    giorno non ci stessero più, si vedrebbe subito invece di riaprirsi in silenzio a due
+    righe — ed è la prova a dirlo, misurando la somma delle larghezze contro il
+    contenitore. */
+ #kn26 .meta{font-size:10px;gap:4px 0;flex-wrap:nowrap;}
+ #kn26 .meta>span{padding:0 7px;white-space:nowrap;}
  #kn26 .meta>span:first-child{padding-left:0;}
  #kn26 .btn.big{width:100%;text-align:center;}
  #kn26 .cb{padding:14px 15px;}
@@ -1197,10 +1232,17 @@
 
 <header class="mast">
  <div class="brow"><svg class="md" viewBox="0 0 100 100" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="9"><path d="M50 14 L82 70 L18 70 Z"/><path d="M50 86 L18 30 L82 30 Z"/></g></svg><span>Israele · Modello previsionale</span><span class="bar"></span><div class="tema" id="k-tema" role="group" aria-label="Tema del sito"><button data-tema="auto" class="on" title="Segue le impostazioni del sistema">Auto</button><button data-tema="chiaro" title="Sempre chiaro">Chiaro</button><button data-tema="scuro" title="Sempre scuro">Scuro</button></div><em id="k-upd">—</em></div>
- <h1>Nessun blocco ha la maggioranza: il modello mostra quanto sia fragile l'equilibrio</h1>
+ <!-- Ripiego per chi apre la pagina senza JavaScript: il testo vero lo scrive rTitolo()
+      dallo stato del modello. Qui non può esserci nessun risultato, perché sarebbe vero
+      solo il giorno in cui è stato scritto — invariante 10. -->
+ <h1 id="k-h1">La proiezione dei 120 seggi della 26ª Knesset, ricalcolata a ogni sondaggio</h1>
  <p class="deck" id="k-deck"></p>
  <div class="meta"><span id="k-cd">—</span><span id="k-fresh">—</span><span id="k-n">—</span></div>
 </header>
+
+<!-- La fascia del dopo-voto. Il testo lo scrive rTitolo(), che conosce già la data del
+     voto: qui non c'è nessun «27 ottobre» scritto a mano — invariante 10. -->
+<div class="postvoto" id="k-postvoto"></div>
 
 <div class="boot" id="k-boot">
  <b>Il modello non è ancora partito.</b>
@@ -1474,6 +1516,14 @@
  <summary>Nota metodologica, limiti e fonti</summary>
  <div class="bd"><div class="foot" id="k-foot"></div></div>
 </details>
+
+<!-- La firma. È testo statico: non dipende da nessun dato e non cambia a ogni render.
+     I due collegamenti puntano allo stesso sito, come chiesto; rel="noopener" perché
+     target="_blank" senza è un difetto noto, e nessuno dei due carica niente — la
+     regola del file autonomo riguarda le RISORSE, non i collegamenti. -->
+<p class="firma">Daniele Angrisani · Modello previsionale Knesset 2026 ·
+ <a href="https://www.focusamerica.it/" target="_blank" rel="noopener">Focus America</a> ·
+ <a href="https://www.focusamerica.it/" target="_blank" rel="noopener">focusamerica.it</a></p>
 </div>
 
 <script>
@@ -1622,6 +1672,18 @@ var EVENTI=[
  {data:"2026-08-17",testo:"Primarie del Likud"},
  {data:"2026-08-19",testo:"Hadash, Ta'al e Balad firmano l'accordo per la Lista Unita; Ra'am corre da sola"}
 ];
+/* LE DUE SOGLIE DELLA DIVERGENZA FRA LE DATE.
+   Non sono ricavabili dai dati: dipendono da come è impostato il lavoro notturno, che
+   gira ogni notte, e da quanto spesso escono sondaggi in Israele. Stanno scritte qui una
+   volta sola, con accanto la ragione, come chiede l'invariante 10 per le grandezze che
+   non si possono calcolare.
+   · GAP_VERIFICA — il job gira ogni notte, quindi due giorni senza una verifica riuscita
+     vogliono dire che qualcosa lo sta fermando. Misurato il 22 agosto 2026: l'ultima
+     verifica è dello stesso giorno.
+   · GAP_SONDAGGI — nella finestra dei 60 giorni escono in media più di due rilevazioni a
+     settimana, quindi sette giorni di silenzio con il job che gira sono un fatto, non un
+     guasto: è la distinzione che il lettore non poteva fare. */
+var GAP_VERIFICA=2, GAP_SONDAGGI=7;
 var ESCL={}, AFF=0;
 var EMIMODE='blocchi', EMIFILT=null, TRENDPTS=[], TRENDGEO=null, FILTRI={ist:'',per:'0',txt:''};
 var SOND=BASE.slice(), PAR={recenti:0,listaunita:1}, DISP=8, SW=0, SIG=1, SIM=20000, COAL={};
@@ -1756,6 +1818,12 @@ function giornoUTC(d){return Date.UTC(d.getFullYear(),d.getMonth(),d.getDate());
    può più succedere. */
 function ggCal(a,b){return Math.round((giornoUTC(b)-giornoUTC(a))/864e5);}
 function dc(s){var p=s.split('-');return p[2]+'.'+p[1];}
+/* La data di un istante nel formato dell'archivio, presa dai componenti LOCALI.
+   toISOString() darebbe l'UTC, e per VOTO — che è mezzanotte locale del 27 ottobre —
+   a est di Greenwich restituirebbe il 26. È lo stesso errore che giornoUTC() evita
+   dall'altra parte. */
+function dISO(d){var m=d.getMonth()+1,g=d.getDate();
+ return d.getFullYear()+'-'+(m<10?'0':'')+m+'-'+(g<10?'0':'')+g;}
 function dl(s){var m=['gennaio','febbraio','marzo','aprile','maggio','giugno','luglio','agosto','settembre','ottobre','novembre','dicembre'];
  var p=s.split('-');return parseInt(p[2],10)+' '+m[+p[1]-1]+' '+p[0];}
 function E(s){return String(s).replace(/[&<>"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});}
@@ -1877,12 +1945,25 @@ function blocchi(s){
    Quindi: le quattro di base sono una PARTIZIONE, e la precedenza della quinta è
    dichiarata qui e provata in test/suite/titolo.js su tutte le configurazioni possibili.
 
-   Che le quattro siano una partizione discende dall'invariante 1, la somma fa 120:
-     · coal ≥ 61  → la coalizione ha la maggioranza, e nessun altro può averla;
-     · coal = 60  → opposizione e arabi fanno 60, quindi NESSUNA somma arriva a 61;
-     · coal ≤ 59  → opposizione più arabi fanno almeno 61, e allora o ce la fa da sola
-                    l'opposizione, o serve il sostegno arabo.
+   Che le quattro siano una partizione discende dall'invariante 1, la somma fa 120 — ma
+   la somma è su QUATTRO blocchi, non tre, e la prima stesura se n'era dimenticata:
+     · coal ≥ 61          → la coalizione ha la maggioranza, e nessun altro può averla;
+     · oppo ≥ 61          → ce l'ha l'opposizione da sola;
+     · oppo + arabi ≥ 61  → non basta nessuno dei due, e il sostegno arabo decide;
+     · altrimenti         → non ci arriva NESSUNA di queste somme: i seggi che mancano
+                            sono dell'ago della bilancia, ed è lo stallo.
    Non si sovrappongono e non lasciano scoperto niente: è una catena, non un elenco.
+
+   LA VERSIONE PRECEDENTE SCRIVEVA «coal = 60» al posto dell'ultima, e su tre blocchi era
+   equivalente: coal = 60 lascia esattamente 60 seggi a tutti gli altri messi insieme. Ma
+   con l'ago della bilancia sopra soglia le due smettono di coincidere, e la differenza è
+   misurabile: al 22 agosto 2026 l'1,45% delle simulazioni non ha nessuna maggioranza
+   possibile pur avendo la coalizione sotto 60, e lì il titolo diceva «i partiti arabi
+   sono decisivi» — falso, perché nemmeno con loro si arriva a 61. È più frequente di tre
+   celle per cui era stata scritta una prosa a sé.
+   Nell'altro verso la correzione chiude una domanda: «coalizione a 60 con una maggioranza
+   alternativa» non esiste, e non è raro — è ARITMETICAMENTE IMPOSSIBILE. La coalizione a
+   60 è sempre e solo stallo pieno.
 
    La quinta vince quando il margine è ≤ 1, dove il margine è la distanza dalla soglia
    del blocco che ci sta più vicino. Un solo caso ha due blocchi in gioco insieme —
@@ -1907,8 +1988,8 @@ function blocchi(s){
    gioco — che richiede esattamente zero seggi arabi. Il flag 'entrambi' resta perché
    costa niente e impedisce una scelta arbitraria se un giorno capitasse. */
 function formaTitolo(b){
- var c=b.coalizione, o=b.opposizione;
- var base = c>=61 ? 1 : (c===60 ? 4 : (o>=61 ? 2 : 3));
+ var c=b.coalizione, o=b.opposizione, a=b.arabo;
+ var base = c>=61 ? 1 : (o>=61 ? 2 : (o+a>=61 ? 3 : 4));
  var dc=Math.abs(c-61), don=Math.abs(o-61);
  var qc=dc<=1, qo=don<=1;
  var scarto = qc ? c-61 : (qo ? o-61 : null);
@@ -1917,6 +1998,184 @@ function formaTitolo(b){
           blocco: (qc&&qo) ? 'entrambi' : (qc ? 'coalizione' : (qo ? 'opposizione' : null)),
           scarto: scarto,
           coalizione:c, opposizione:o, arabo:b.arabo };
+}
+/* [P] È LA FREQUENZA DELLA CONFIGURAZIONE DESCRITTA, NON UNA DELLE QUATTRO PASTIGLIE.
+   Le pastiglie in cima dicono la probabilità che un campo RAGGIUNGA la maggioranza; il
+   titolo descrive una configurazione precisa — «il blocco fa esattamente X seggi» — e
+   deve dire quanto spesso quella esce. Sono due grandezze diverse, e al 22 agosto 2026
+   divergono di quasi il doppio: la pastiglia dell'opposizione vale il 14,9%, la frequenza
+   del suo valore centrale l'8,5%. Un titolo che descrive l'una e cita l'altra dice una
+   cosa falsa con un numero giusto, che è la forma di errore peggiore perché regge al
+   controllo.
+
+   NON SERVE NESSUN PASSAGGIO IN PIÙ SULLE SIMULAZIONI, ed è il motivo per cui non c'è un
+   istogramma. montecarlo() restituisce già res.coal e res.oppz ORDINATI — servono ai
+   quantili — quindi il numero di esiti pari a x è la distanza fra i due estremi trovati
+   per bisezione. Misurato sulla pagina: 0,036 ms per chiamata su 20.000 elementi, e il
+   titolo ne fa una sola. Un istogramma accumulato dentro il ciclo costerebbe una
+   scrittura per simulazione e sarebbe una SECONDA STRADA per lo stesso numero, cioè la
+   cosa che questo progetto ha già pagato tre volte. */
+function freqEsatta(a,x){
+ var lo=0,hi=a.length,m;
+ while(lo<hi){m=(lo+hi)>>1;if(a[m]<x)lo=m+1;else hi=m;}
+ var p=lo;lo=0;hi=a.length;
+ while(lo<hi){m=(lo+hi)>>1;if(a[m]<=x)lo=m+1;else hi=m;}
+ return hi-p;
+}
+/* «nel 5%», «nell'8,5%», «nello 0,6%»: in italiano l'articolo dipende dalla PAROLA con
+   cui si legge il numero, non dalla cifra. È la stessa famiglia di acc(): una regola di
+   lingua ricopiata a mano in dodici testi divergerebbe in silenzio, e qui i testi sono
+   ventiquattro. Uno, otto, undici e gli ottanta vogliono l'elisione; lo zero vuole
+   «nello»; diciotto no, perché si legge «diciotto». */
+function inPc(x,d){
+ var v=100*x, n=Math.floor(Math.abs(v));
+ var voc=(n===1||n===8||n===11||(n>=80&&n<=89));
+ return (n===0?'nello ':(voc?'nell\'':'nel '))+f(v,d===undefined?1:d)+'%';
+}
+function votoPassato(){return ggCal(new Date(),VOTO)<0;}
+/* LE DODICI CELLE DEL TITOLO.
+   La forma non basta a scegliere il testo: la stessa forma 5 — un blocco a un seggio
+   dalla soglia — dice due notizie opposte secondo la base che ha sotto. Da qui una
+   chiave sola, calcolata QUI e in nessun altro posto, che la prova riusa invece di
+   ricostruirla: due strade per la scelta della cella sarebbero il difetto del colore di
+   blocco spostato dalla grafica alla lingua.
+
+   Sono dodici e non dieci, e le due in più vengono dal QUARTO blocco. L'elenco dei testi
+   dava per scontato che coalizione + opposizione + arabi facesse 120, cioè che l'ago
+   della bilancia valesse sempre zero. Non è vero — al 22 agosto 2026 l'ago prende seggi
+   nel 16% delle simulazioni — e da lì due conseguenze:
+     · «coalizione a 60 con una maggioranza alternativa» è ARITMETICAMENTE IMPOSSIBILE.
+       coal = 60 lascia esattamente 60 seggi a tutti gli altri messi insieme, quindi la
+       coalizione a 60 è sempre e solo stallo pieno: un caso, non due;
+     · esiste invece il caso simmetrico che nessuno aveva scritto: nessun blocco alla
+       maggioranza e NEMMENO opposizione più arabi ci arrivano, perché i seggi mancanti
+       sono dell'ago della bilancia. Misurato: 1,45% delle simulazioni, più frequente di
+       tre celle per cui una prosa a sé era stata scritta (0,84%, 0,69%, 0,56%). Prima di
+       questa riparazione quel caso finiva nella cella 3 e il titolo diceva «i partiti
+       arabi sono decisivi», che lì è falso.
+   Da qui la base 4 corretta — «nessuna maggioranza possibile» invece di «coalizione a
+   60» — e le tre celle nuove: f4, f5o4 e f5e. */
+function cellaTitolo(fo){
+ if(fo.forma<5) return 'f'+fo.forma;
+ if(fo.forma===5) return fo.blocco==='entrambi'?'f5e'
+  :(fo.blocco==='coalizione'?'f5c':(fo.base===3?'f5o3':'f5o4'));
+ return 'f'+fo.forma+(fo.blocco==='opposizione'?'o':'c');
+}
+/* Il blocco di cui il titolo dice i seggi. [X] e [P] escono da qui INSIEME, così non
+   possono raccontare due blocchi diversi nella stessa frase. */
+var TIT_BLOCCO={f1:'coalizione',f2:'opposizione',f3:null,f4:null,
+ f5c:'coalizione',f5o3:'opposizione',f5o4:'opposizione',f5e:'coalizione',
+ f6c:'coalizione',f6o:'opposizione',f7c:'coalizione',f7o:'opposizione'};
+/* DA DOVE VIENE [P], CELLA PER CELLA.
+   In sei celle su dodici [P] è la frequenza della configurazione descritta — «il blocco
+   fa esattamente X seggi» — e la frase parla di quella. In QUATTRO no, e la differenza
+   non è una sfumatura: lì la frase attacca il numero a una proposizione più larga, ed è
+   così che il lettore la legge. Il criterio è la frase, non la cella: [P] deve valere per
+   la proposizione che gli sta accanto.
+     · f5c, f5o4, f5e — «e nel [P]% delle simulazioni nessun campo ha i numeri per
+             governare»: la proposizione è lo STALLO PIENO, cioè la quarta pastiglia. Con
+             la frequenza della configurazione f5c direbbe l'1,3% invece del 2,8%, e f5o4
+             e f5e direbbero ZERO — un numero che smentisce la frase che ha accanto, che
+             è il modo peggiore di sbagliare perché il lettore vede tutti e due;
+     · f5o3 «le serve l'appoggio dei partiti arabi, come nel [P]% delle simulazioni» — la
+             proposizione è lo scenario in cui gli arabi sono decisivi, cioè la terza
+             pastiglia: 79% invece del 5,3%.
+   Le due frequenze sono le STESSE che alimentano le pastiglie in cima, non due copie
+   ricalcolate: se il titolo dicesse 2,7 e la pastiglia 2,8 sarebbe la strada doppia di
+   sempre, spostata dal colore al numero. La prova le lega. */
+var TIT_FONTE_P={f1:'esatta',f2:'esatta',f3:null,f4:null,
+ f5c:'stallo',f5o3:'arabi',f5o4:'stallo',f5e:'stallo',
+ f6c:'esatta',f6o:'esatta',f7c:'esatta',f7o:'esatta'};
+/* I VENTIQUATTRO TESTI. Dodici prima del voto e dodici dopo, e dopo il voto il soggetto
+   non è la Knesset ma IL MODELLO: finché dati/archivio.json non porta il campo «esito»
+   la pagina non conosce il risultato vero e può parlare soltanto della propria stima.
+   Le tre celle nuove — f4, f5o4, f5e — sono scritte nel registro delle altre e vanno
+   riviste dall'autore: sono le uniche che non ha dettato lui. */
+var TIT_PRIMA={
+ f1:function(X,P){return 'Il blocco Netanyahu raggiunge la maggioranza: la proiezione lo porta a '+X+' seggi, '+P+' delle simulazioni.';},
+ f2:function(X,P){return 'L’opposizione raggiunge la maggioranza senza i partiti arabi: '+X+' seggi, '+P+' delle simulazioni.';},
+ f3:function(){return 'Nessun blocco ha la maggioranza: i partiti arabi sono decisivi.';},
+ f4:function(){return 'Nessun blocco ha la maggioranza, e non l’ha nemmeno l’opposizione con i partiti arabi: a decidere sono le liste dell’ago della bilancia.';},
+ f5c:function(X,P){return 'Il blocco Netanyahu si ferma a '+X+' seggi, uno dalla maggioranza — e '+P+' delle simulazioni nessun campo ha i numeri per governare.';},
+ f5o3:function(X,P){return 'L’opposizione si ferma a '+X+' seggi, uno dalla maggioranza autonoma: le serve l’appoggio dei partiti arabi, come '+P+' delle simulazioni.';},
+ f5o4:function(X,P){return 'L’opposizione si ferma a '+X+' seggi, uno dalla maggioranza autonoma, e non ci arriva nemmeno con i partiti arabi — e '+P+' delle simulazioni nessun campo ha i numeri per governare.';},
+ f5e:function(X,P){return 'Blocco Netanyahu e opposizione si fermano entrambi a '+X+' seggi, uno dalla maggioranza — e '+P+' delle simulazioni nessun campo ha i numeri per governare.';},
+ f6c:function(X,P){return 'Il blocco Netanyahu conquista la maggioranza minima con '+X+' seggi: accade '+P+' delle simulazioni.';},
+ f6o:function(X,P){return 'L’opposizione conquista la maggioranza minima senza i partiti arabi con '+X+' seggi: accade '+P+' delle simulazioni.';},
+ f7c:function(X,P){return 'Il blocco Netanyahu supera di un seggio la soglia di maggioranza e arriva a '+X+': accade '+P+' delle simulazioni.';},
+ f7o:function(X,P){return 'L’opposizione supera di un seggio la soglia di maggioranza e arriva a '+X+' senza i partiti arabi: accade '+P+' delle simulazioni.';}
+};
+var TIT_DOPO={
+ f1:function(X,P){return 'Alla vigilia del voto, il modello dava al blocco Netanyahu '+X+' seggi e la maggioranza: questo scenario compariva '+P+' delle simulazioni.';},
+ f2:function(X,P){return 'Alla vigilia del voto, il modello dava all’opposizione '+X+' seggi e la maggioranza senza i partiti arabi: '+P+' delle simulazioni.';},
+ f3:function(){return 'Alla vigilia del voto, nessun blocco aveva la maggioranza: i partiti arabi risultavano decisivi.';},
+ f4:function(){return 'Alla vigilia del voto, nessun blocco aveva la maggioranza, e non l’aveva nemmeno l’opposizione con i partiti arabi: a decidere restavano le liste dell’ago della bilancia.';},
+ f5c:function(X,P){return 'Alla vigilia del voto, il blocco Netanyahu si fermava a '+X+' seggi, uno dalla maggioranza — e '+P+' delle simulazioni nessun campo aveva i numeri per governare.';},
+ f5o3:function(X,P){return 'Alla vigilia del voto, l’opposizione si fermava a '+X+' seggi, uno dalla maggioranza autonoma: le serviva l’appoggio dei partiti arabi, come '+P+' delle simulazioni.';},
+ f5o4:function(X,P){return 'Alla vigilia del voto, l’opposizione si fermava a '+X+' seggi, uno dalla maggioranza autonoma, e non ci arrivava nemmeno con i partiti arabi — e '+P+' delle simulazioni nessun campo aveva i numeri per governare.';},
+ f5e:function(X,P){return 'Alla vigilia del voto, blocco Netanyahu e opposizione si fermavano entrambi a '+X+' seggi, uno dalla maggioranza — e '+P+' delle simulazioni nessun campo aveva i numeri per governare.';},
+ f6c:function(X,P){return 'Alla vigilia del voto, il modello assegnava al blocco Netanyahu la maggioranza minima, con '+X+' seggi: questo scenario compariva '+P+' delle simulazioni.';},
+ f6o:function(X,P){return 'Alla vigilia del voto, il modello assegnava all’opposizione la maggioranza minima senza i partiti arabi, con '+X+' seggi: questo scenario compariva '+P+' delle simulazioni.';},
+ f7c:function(X,P){return 'Alla vigilia del voto, il modello portava il blocco Netanyahu a '+X+' seggi, uno oltre la soglia: questo scenario compariva '+P+' delle simulazioni.';},
+ f7o:function(X,P){return 'Alla vigilia del voto, il modello portava l’opposizione a '+X+' seggi, uno oltre la soglia e senza i partiti arabi: questo scenario compariva '+P+' delle simulazioni.';}
+};
+/* LA FORMA CORTA È LA STESSA FUNZIONE, non un secondo titolo.
+   Il <title> è quello che sopravvive nelle condivisioni e nei risultati di ricerca: se
+   restasse una stringa fissa mentre l'h1 è generato, la pagina direbbe due cose diverse
+   dentro e fuori, ed è la strada doppia di sempre spostata dalla grafica alla lingua.
+   Il tetto è 60 caratteri COMPRESA la coda «· Knesset 2026», che è l'unica cosa che dice
+   di che paese si parla: senza, «Nessuna maggioranza: decisivi i partiti arabi» non
+   nomina né Israele né l'anno. La prova misura la lunghezza su tutte le configurazioni,
+   [X] a tre cifre compreso. */
+var TIT_CODA=' · Knesset 2026';
+var TIT_CORTO_PRIMA={
+ f1:function(X){return 'Netanyahu alla maggioranza: '+X+' seggi';},
+ f2:function(X){return 'Maggioranza all’opposizione: '+X+' seggi';},
+ f3:function(){return 'Maggioranza solo con i partiti arabi';},
+ f4:function(){return 'Nessuna maggioranza possibile: stallo pieno';},
+ f5c:function(X){return 'Netanyahu a '+X+', uno dalla maggioranza';},
+ f5o3:function(X){return 'Opposizione a '+X+': servono i partiti arabi';},
+ f5o4:function(X){return 'Opposizione a '+X+', stallo pieno';},
+ f5e:function(X){return 'Netanyahu e opposizione a '+X+': stallo pieno';},
+ f6c:function(X){return 'Maggioranza minima al blocco Netanyahu: '+X;},
+ f6o:function(X){return 'Maggioranza minima all’opposizione: '+X;},
+ f7c:function(X){return 'Netanyahu oltre la soglia: '+X+' seggi';},
+ f7o:function(X){return 'Opposizione oltre la soglia: '+X+' seggi';}
+};
+var TIT_CORTO_DOPO={
+ f1:function(X){return 'Vigilia: Netanyahu a '+X+' e la maggioranza';},
+ f2:function(X){return 'Vigilia: opposizione a '+X+' e la maggioranza';},
+ f3:function(){return 'Vigilia: decisivi i partiti arabi';},
+ f4:function(){return 'Vigilia: nessuna maggioranza possibile';},
+ f5c:function(X){return 'Vigilia: Netanyahu a '+X+', stallo pieno';},
+ f5o3:function(X){return 'Vigilia: opposizione a '+X+' e arabi decisivi';},
+ f5o4:function(X){return 'Vigilia: opposizione a '+X+', stallo pieno';},
+ f5e:function(X){return 'Vigilia: due blocchi a '+X+', stallo pieno';},
+ f6c:function(){return 'Vigilia: maggioranza minima a Netanyahu';},
+ f6o:function(){return 'Vigilia: maggioranza minima all’opposizione';},
+ f7c:function(X){return 'Vigilia: Netanyahu a '+X+', oltre la soglia';},
+ f7o:function(X){return 'Vigilia: opposizione a '+X+', oltre la soglia';}
+};
+/* I seggi che il titolo nomina e la frequenza con cui quel numero esce, da una funzione
+   sola per le due forme: se il lungo dicesse 62 e il corto 61, nessuna prova che le
+   guardasse una per volta se ne accorgerebbe. */
+function datiTitolo(fo,mc){
+ var k=cellaTitolo(fo), bl=TIT_BLOCCO[k], fonte=TIT_FONTE_P[k];
+ var X=bl==='coalizione'?fo.coalizione:(bl==='opposizione'?fo.opposizione:null);
+ var P=null;
+ if(mc&&fonte==='stallo') P=inPc(mc.st/mc.n);
+ else if(mc&&fonte==='arabi') P=inPc(mc.vA/mc.n);
+ else if(mc&&fonte==='esatta'&&bl!==null)
+  P=inPc(freqEsatta(bl==='coalizione'?mc.coal:mc.oppz,X)/mc.n);
+ return {cella:k, X:X, P:P, fonte:fonte};
+}
+function testoTitolo(fo,dopo,mc){
+ var d=datiTitolo(fo,mc);
+ return (dopo?TIT_DOPO:TIT_PRIMA)[d.cella](d.X,d.P);
+}
+function titoloCorto(fo,dopo){
+ var d=datiTitolo(fo,null);
+ return (dopo?TIT_CORTO_DOPO:TIT_CORTO_PRIMA)[d.cella](d.X)+TIT_CODA;
 }
 function montecarlo(base,N,giorni){
  var ids=Object.keys(base),n=ids.length,i,j;
@@ -2052,7 +2311,7 @@ function effettiCasa(){
 }
 
 /* stato calcolato */
-var L,QUO,QBASE,SEG,MC,COALS,GIORNI,QSUM,SOGLIE,PREC;
+var L,QUO,QBASE,SEG,MC,COALS,GIORNI,ORIZZONTE,QSUM,SOGLIE,PREC;
 /* Dalle rilevazioni alle quote di voto. Estratto da calcola() per poter essere
    rieseguito su un sottoinsieme diverso (per esempio i sondaggi di una settimana fa). */
 /* Peso di una rilevazione dentro la media.
@@ -2195,6 +2454,27 @@ function calcola(){
  if(SW) QUO=applicaSwing(QUO,SW);
  SEG=dhondt(QUO);
  GIORNI=Math.max(0,ggCal(new Date(),VOTO));
+ /* L'ORIZZONTE DEL MONTE CARLO NON È IL CONTO ALLA ROVESCIA, e dal 28 ottobre la
+    differenza è tutta.
+    GIORNI è quanto manca al voto e il 28 ottobre vale zero — giusto per la testata, che
+    dice «voto concluso». Ma è anche il parametro con cui montecarlo() taratura l'ampiezza
+    dell'errore: a zero giorni l'errore simulato si riduce al minimo, e la pagina
+    mostrerebbe intervalli strettissimi attorno a una proiezione che nessuno ha più
+    ricalcolato. Sarebbe una falsa precisione che cresce proprio mentre il dato invecchia.
+    L'orizzonte vero è la distanza fra il voto e la RILEVAZIONE PIÙ RECENTE su cui la
+    proiezione è costruita: è la distanza a cui il modello sta, e dal 28 ottobre la
+    distanza a cui si è fermato.
+    NON C'È UN RAMO «PRIMA / DOPO», ed è voluto. La prima stesura teneva il conto alla
+    rovescia finché era positivo e congelava solo dopo, ma quella versione aveva un
+    difetto proprio dove serve di più: se il lavoro notturno si ferma, l'archivio
+    invecchia mentre il conto alla rovescia continua a scendere, e il modello
+    dichiarerebbe un'incertezza da vigilia su dati di tre settimane prima. Una regola
+    sola non ha quel buco, e prima del voto le due grandezze differiscono solo dei
+    giorni che separano l'ultimo sondaggio da oggi — due, il 22 agosto 2026.
+    La data dell'archivio si legge come mezzanotte LOCALE — 'T00:00:00' — perché ggCal
+    normalizza i componenti locali: passarle una mezzanotte UTC la sposterebbe di un
+    giorno a ovest di Greenwich. È l'idioma delle sei tappe del calendario. */
+ ORIZZONTE=Math.max(0,ggCal(new Date(L[0].data+'T00:00:00'),VOTO));
  /* proiezione com'era una settimana fa, con gli stessi parametri: misura
     quanto si è mosso il modello, non i singoli sondaggi */
  /* L'ANCORA DEL CONFRONTO È OGGI, NON L'ULTIMO SONDAGGIO.
@@ -2220,10 +2500,10 @@ function calcola(){
   if(Lp.length>=3&&Lp[0].data!==L[0].data){
    var qp=quoteDa(Lp); if(SW) qp=applicaSwing(qp,SW);
    PREC={seg:dhondt(qp),n:Lp.length,taglio:taglio,data:Lp[0].data,
-         mc:montecarlo(qp,Math.max(4000,Math.round(SIM/4)),GIORNI+7)};
+         mc:montecarlo(qp,Math.max(4000,Math.round(SIM/4)),ORIZZONTE+7)};
   }
  }catch(e){PREC=null;}
- MC=montecarlo(QUO,SIM,GIORNI);
+ MC=montecarlo(QUO,SIM,ORIZZONTE);
  COALS=coalizioni(SEG);
  SOGLIE={coalizione:puntiPer('coalizione'),opposizione:puntiPer('opposizione')};
 }
@@ -2252,13 +2532,62 @@ function puntiPer(bloc){
 }
 
 /* ══════════ 5 · RENDER ══════════ */
+/* L'h1 e il <title> escono dalla STESSA funzione. Due strade per lo stesso stato sono il
+   difetto del colore di blocco, e qui la seconda è quella che si vede FUORI dalla pagina:
+   nelle condivisioni sopravvive il <title>, non l'h1. Il testo che sta nel markup resta
+   come ripiego per chi apre il file senza JavaScript, e per questo non afferma nessun
+   risultato: sarebbe l'unica cosa che un lettore senza script leggerebbe, e sarebbe vera
+   soltanto il giorno in cui è stata scritta. */
+function rTitolo(){
+ var fo=formaTitolo(blocchi(SEG)), dopo=votoPassato();
+ $('k-h1').textContent=testoTitolo(fo,dopo,MC);
+ document.title=titoloCorto(fo,dopo);
+ /* La fascia dichiara che la pagina non è un risultato elettorale. Il testo si scrive
+    sempre, la classe decide se si vede: così una prova può leggerlo senza accendere
+    niente, e il giorno in cui compare non è il giorno in cui viene scritto per la prima
+    volta. */
+ var pv=$('k-postvoto');
+ pv.innerHTML='Le elezioni si sono tenute il <b>'+dl(dISO(VOTO))+'</b>. Questa pagina conserva '+
+  'l\'ultima proiezione pubblicata prima del voto: non mostra i risultati elettorali.';
+ pv.classList.toggle('on',dopo);
+}
 function rTesta(){
  var d=GIORNI;
- $('k-cd').innerHTML=d>0?('<b>'+f(d)+'</b> giorni al voto'):'Voto concluso';
+ /* IL SOMMARIO A UNA RIGA SOTTO I 660.
+    Misurato il 22 agosto 2026 a 375px: le tre voci chiedevano 706,3px di testo dentro 353,
+    quindi quattro righe e 70px di altezza. Non è una questione di gap — nemmeno azzerandoli
+    ci starebbero — ed è la stessa aritmetica della data nella testata: sotto una certa
+    larghezza il testo va accorciato, non compresso.
+    Sono DUE FORME DELLO STESSO DATO, non due testi: ogni numero nasce una volta sola e la
+    forma sceglie solo quante parole gli stanno intorno. È l'idioma delle schede
+    dell'house effect, e come là c'è una prova che lega le due forme.
+    La larghezza si legge a ogni render con matchMedia, come fanno già l'istogramma, la
+    tendenza e il riquadro dell'evento: la pagina non ha un ascoltatore di resize, e
+    aggiungerne uno qui solo per questa riga sarebbe una sesta strada. */
+ var stretto=!!(window.matchMedia&&window.matchMedia('(max-width:660px)').matches);
+ $('k-cd').innerHTML=d>0?('<b>'+f(d)+'</b> giorni'+(stretto?'':' al voto')):'Voto concluso';
  $('k-scd').textContent=d>0?(f(d)+' giorni al voto'):'voto concluso';
+ /* LE DUE DATE, e perché non erano una.
+    «aggiornato al 20 agosto» diceva la data dell'ULTIMO SONDAGGIO in archivio, non quella
+    dell'ultimo aggiornamento riuscito. Un lettore non poteva distinguere «ha girato
+    stanotte e non c'era niente di nuovo» da «è fermo da dieci giorni», e dentro un embed
+    quella differenza è fra un dato fresco e un dato morto nell'articolo di qualcun altro.
+    Adesso sono due grandezze e si chiamano per nome: k-upd è l'ultima VERIFICA riuscita,
+    letta dal registro del lavoro notturno; k-fresh è l'ultimo SONDAGGIO.
+    E si dichiara quando divergono, nei due modi in cui possono farlo — vedi GAP_VERIFICA
+    e GAP_SONDAGGI. */
  var u=SOND.map(function(s){return s.data;}).sort().pop();
- $('k-upd').textContent='aggiornato al '+dl(u);
- $('k-fresh').innerHTML='ultimo sondaggio <b>'+dl(u)+'</b>';
+ var v=JOB&&JOB.data;
+ var ritardo=v?ggCal(new Date(v+'T00:00:00'),new Date()):null;
+ var eu=$('k-upd');
+ eu.textContent=v
+  ? 'verificato il '+dl(v)+(ritardo>=GAP_VERIFICA?' · '+f(ritardo)+' '+acc(ritardo,'giorno','giorni')+' fa':'')
+  : 'ultima verifica non nota';
+ eu.className=(v&&ritardo>=GAP_VERIFICA)||!v?'vecchio':'';
+ var quiete=v?ggCal(new Date(u+'T00:00:00'),new Date(v+'T00:00:00')):null;
+ $('k-fresh').innerHTML=(stretto?'sondaggi al <b>'+dc(u)+'</b>':'ultimo sondaggio <b>'+dl(u)+'</b>')+
+  (quiete!==null&&quiete>=GAP_SONDAGGI
+   ? ', e da <b>'+f(quiete)+' '+acc(quiete,'giorno','giorni')+'</b> non ne arrivano di nuovi' : '');
  Array.prototype.forEach.call(R.querySelectorAll('[data-escl]'),function(b){
   b.classList.toggle('on',!!ESCL[b.dataset.escl]);
   /* La scorciatoia nelle ipotesi è un interruttore con l'etichetta FISSA — «Escludi Direct
@@ -2269,8 +2598,10 @@ function rTesta(){
   if(!b.classList.contains('mini')) b.setAttribute('aria-pressed',ESCL[b.dataset.escl]?'true':'false');});
  Array.prototype.forEach.call(R.querySelectorAll('[data-par]'),function(b){
   b.classList.toggle('on',!!PAR[b.dataset.par]);});
- $('k-n').innerHTML='<b>'+L.length+'</b> rilevazioni nel modello · <b>'+f(SOND.length)+'</b> in archivio dal 1º gennaio';
- $('k-simn').textContent=f(SIM)+' simulazioni · orizzonte '+f(GIORNI)+' giorni';
+ $('k-n').innerHTML=stretto
+  ? '<b>'+L.length+'</b>/<b>'+f(SOND.length)+'</b> rilevazioni'
+  : '<b>'+L.length+'</b> rilevazioni nel modello · <b>'+f(SOND.length)+'</b> in archivio dal 1º gennaio';
+ $('k-simn').textContent=f(SIM)+' simulazioni · orizzonte '+f(ORIZZONTE)+' giorni';
 }
 /* arrotonda una serie di quote a interi che sommano esattamente a 100:
    arrotondando ciascuna per conto proprio si ottiene 99 oppure 101 */
@@ -2593,12 +2924,27 @@ function rProj(){
   :'Fra le liste oggi proiettate in Knesset nessuna presenta un rischio elevato di esclusione.')+
   ' La colonna “Rispetto al 2022” riporta i seggi conquistati dalla lista corrispondente nella 25ª Knesset.';
 }
-/* mediana dei seggi nelle rilevazioni comprese in una finestra di giorni */
+/* Mediana dei seggi nelle rilevazioni comprese in una finestra di giorni.
+
+   L'ANCORA È OGGI, NON L'ULTIMO SONDAGGIO, ed è la seconda metà del difetto chiuso il
+   22 agosto 2026 sul confronto della proiezione. Prima t0 era la data della rilevazione
+   più recente, quindi «gli ultimi 7 giorni» voleva dire «i sette giorni prima
+   dell'ultimo sondaggio»: con l'archivio fresco le due coincidono e la frase è vera, ma
+   la deriva CRESCE IN SILENZIO se il lavoro notturno si ferma, perché l'ancora si
+   allontana da oggi insieme all'archivio. Misurato al 5 novembre 2026 con l'archivio di
+   agosto: «7 rilevazioni pubblicate negli ultimi 7 giorni», e l'ultima era del 19 agosto.
+   È l'invariante 10 — un «sette» che non nasce dalla data corrente — e la conseguenza
+   pratica è che ADESSO la finestra può essere VUOTA: chi legge la tabella dell'analisi
+   deve trovarci scritto che non c'è niente da confrontare, non l'ultimo confronto
+   riuscito presentato come di oggi. Vedi rAnalisi().
+   Il taglio passa da ggCal come il conto alla rovescia, e la data d'archivio si legge
+   come mezzanotte LOCALE: una new Date('AAAA-MM-GG') nuda è mezzanotte UTC e a ovest di
+   Greenwich varrebbe il giorno prima. */
 function finestra(a,b){
  var l=SOND.filter(function(s){return !s.pre;}).sort(function(x,y){return x.data<y.data?1:-1;});
  if(!l.length) return [];
- var t0=new Date(l[0].data);
- return l.filter(function(s){var d=gg(new Date(s.data),t0);return d>=a&&d<=b;});
+ var oggi=new Date();
+ return l.filter(function(s){var d=ggCal(new Date(s.data+'T00:00:00'),oggi);return d>=a&&d<=b;});
 }
 function med(l,id){
  if(!l.length) return null;
@@ -2717,8 +3063,21 @@ function rDirezione(){
 }
 function rAnalisi(){
  var M=movimenti(),r=M.r;
- if(!r.length){$('k-analisi').textContent='';$('k-movers').innerHTML='';return;}
- $('k-anmeta').textContent=M.n0+' rilevazioni pubblicate negli ultimi 7 giorni';
+ /* LA FINESTRA PUÒ ESSERE VUOTA, da quando l'ancora è oggi. Prima non poteva: partendo
+    dall'ultimo sondaggio, la finestra 0–6 conteneva sempre almeno quello. Adesso una
+    settimana senza rilevazioni — o un archivio fermo — la svuota, e il ramo di uscita
+    lasciava k-anmeta con il testo del render precedente: il conteggio di ieri presentato
+    come di oggi, che è precisamente il difetto che l'ancora nuova chiude. */
+ var ult=SOND.map(function(s){return s.data;}).sort().pop();
+ if(!r.length){
+  $('k-anmeta').textContent='nessuna rilevazione negli ultimi 7 giorni';
+  $('k-analisi').innerHTML='Negli ultimi 7 giorni non è stata pubblicata nessuna rilevazione, '+
+   'quindi questa tabella non ha mediane da confrontare'+
+   (ult?': l\'ultima in archivio è del <b>'+dl(ult)+'</b>.':'.')+
+   ' La proiezione in cima alla pagina continua invece a esserci, perché usa una finestra di 60 giorni.';
+  $('k-movers').innerHTML='';return;}
+ $('k-anmeta').textContent=f(M.n0)+' '+acc(M.n0,'rilevazione pubblicata','rilevazioni pubblicate')+
+  ' negli ultimi 7 giorni';
  var mx=Math.max.apply(null,r.map(function(x){return x.ora;}))||1,hh='';
  r.forEach(function(x){
   var P0=P[x.id];
@@ -2814,7 +3173,8 @@ function rAnalisi(){
    return (a!==null&&b2!==null)?a-b2:null;})();
  if(db7!==null) testo+='Rispetto alla settimana precedente il blocco di Netanyahu '+
    (Math.abs(db7)<1?'non si muove':(db7>0?'guadagna '+seg(db7):'perde '+seg(-db7)))+'. ';
- testo+='La mediana è calcolata su '+M.n0+' rilevazioni'+(M.da?' pubblicate fra il '+dl(M.da)+' e il '+dl(M.a):'')+'.';
+ testo+='La mediana è calcolata su '+f(M.n0)+' '+acc(M.n0,'rilevazione','rilevazioni')+
+   (M.da?' pubblicat'+acc(M.n0,'a','e')+' fra il '+dl(M.da)+' e il '+dl(M.a):'')+'.';
  $('k-analisi').innerHTML=testo;
  /* sommario in testata */
  $('k-deck').innerHTML='Proiezione dei 120 seggi della 26ª Knesset. Oggi il blocco Netanyahu è stimato a <b>'+
@@ -2945,7 +3305,11 @@ var TAPPE=[
   {d:'2026-09-08',t:'Deposito delle liste',s:'Termine per consegnare alla Commissione elettorale centrale le liste di candidati. Da quel momento fusioni e scissioni non sono più possibili: la mappa dei partiti si chiude.'},
   {d:'2026-10-06',t:'Comincia la campagna televisiva',s:'Si apre il periodo di 21 giorni in cui la legge consente la trasmissione degli spot elettorali.'},
   {d:'2026-10-23',t:'Scatta il silenzio demoscopico',s:'Dalla fine del venerdì precedente al voto non è più consentito pubblicare nuovi sondaggi.'},
-  {d:'2026-10-27',t:'Si vota',s:'La giornata è festiva e i seggi restano aperti dalle 7 alle 22; nei centri minori, negli ospedali e nelle carceri chiudono alle 20.'},
+  /* La data del voto NON è riscritta qui: è VOTO, che è la stessa da cui escono il conto
+     alla rovescia, la fascia del dopo-voto e l'orizzonte del Monte Carlo. Erano due strade
+     per lo stesso fatto, e due copie corrette oggi divergono domani — con l'aggravante che
+     il calendario e il modello si sarebbero contraddetti nello stesso schermo. */
+  {d:dISO(VOTO),t:'Si vota',s:'La giornata è festiva e i seggi restano aperti dalle 7 alle 22; nei centri minori, negli ospedali e nelle carceri chiudono alle 20.'},
   {d:'2026-11-04',t:'Risultati ufficiali',s:'La Commissione elettorale centrale proclama i risultati delle elezioni per la 26ª Knesset.'},
   {d:'2026-11-18',t:'Termine per i ricorsi',s:'Scade il termine per presentare ricorso contro i risultati davanti alla Corte suprema.'}
 ];
@@ -2971,23 +3335,33 @@ function depositoPassato(){ var g=ggTappa('Deposito delle liste'); return g!==nu
    Il ramo e' depositoPassato(), cioe' ggCal(oggi, 8 settembre) < 0: la stessa espressione
    del conto alla rovescia e delle sei schede del calendario, non una terza.
 
-   ATTENZIONE: IL TESTO DEL RAMO «DOPO» E' UN SEGNAPOSTO. La prosa la scrive l'autore ed
-   e' firmata. Queste due frasi sono minime e VERE apposta, cosi' che se il deposito
-   arriva prima della revisione editoriale la pagina dica qualcosa di corretto invece di
-   un marcatore. Vanno sostituite, non lasciate. */
+   IL SEGNAPOSTO E' STATO SOSTITUITO. Fino al 22 agosto 2026 il ramo «dopo» portava due
+   frasi minime e vere scritte per reggere il caso in cui l'8 settembre fosse arrivato
+   prima della revisione editoriale. Adesso c'e' la prosa vera, e dice una cosa che il
+   segnaposto non diceva: il limite delle liste che cambiano non sparisce dalla pagina il
+   9 settembre, smette di agire sulla proiezione di OGGI ma resta su tutta la serie
+   storica del grafico, e sugli scarti del banco di prova, che misurano l'errore
+   complessivo delle tre elezioni passate — liste comprese. */
 function DEP_FONTE(){
  return depositoPassato()
-  ? 'Il deposito delle liste dell\'8 settembre ha chiuso la mappa dei partiti: da quel '+
-    'giorno questa fonte di errore non agisce più, e quel che resta è rumore statistico '+
-    'e movimento della campagna.'
+  ? 'Con il deposito delle liste dell\'8 settembre questa fonte di errore si è chiusa: le '+
+    'sigle che il modello vede adesso sono quelle che compariranno sulla scheda, e nessuna '+
+    'fusione dell\'ultimo minuto può più riscrivere la mappa sotto la proiezione. Quel che '+
+    'resta — l\'errore dei sondaggi e il movimento della campagna — è la parte che la '+
+    'statistica sa dichiarare, ed è dichiarata negli intervalli qui sopra. Il banco di prova '+
+    'misura però l\'errore complessivo delle tre elezioni passate, liste che cambiano '+
+    'comprese: gli scarti della tabella vanno letti come un limite prudente, non come '+
+    'quello che ci si deve aspettare adesso.'
   : 'Il modello proietta il sistema di partiti che vede, non quello che ci sarà: fino al '+
     'deposito delle liste dell\'8 settembre questa è la fonte di errore più grande, e '+
     'non è riducibile con la statistica.';
 }
 function DEP_LIMITE(){
  return depositoPassato()
-  ? 'Il modello non prevede le fusioni di liste, che in Israele si decidevano fino al '+
-    'deposito delle candidature, chiuso l\'8 settembre;'
+  ? 'Il modello non prevede le fusioni di liste: in Israele si decidevano fino al deposito '+
+    'delle candidature, e quel termine è scaduto l\'8 settembre, quindi questo limite non '+
+    'agisce più su ciò che si legge qui — ma agiva su tutte le proiezioni pubblicate prima, '+
+    'compresa la serie storica del grafico;'
   : 'Il modello non prevede le fusioni di liste, che in Israele si decidono fino al '+
     'deposito delle candidature e possono cambiare la mappa in un giorno;';
 }
@@ -3851,9 +4225,50 @@ function swStorico(anno,g){
  var gg=Math.max(0,Math.min(75,g));
  return Math.max(0,a+b*gg);
 }
+/* Lo scarto tipico che il Monte Carlo produce DAVVERO. Era «circa cinque seggi» scritto a
+   mano quando la distanza dal voto era un'altra, ed è la definizione stessa di costante
+   temporale destinata a diventare falsa senza che nessuno se ne accorga — invariante 10.
+   È lo SCARTO QUADRATICO MEDIO, non la mezza ampiezza della banda dell'80%. Le due
+   differiscono del 28% — la mezza banda vale 1,28 sigma su una distribuzione normale — e
+   la prima stesura usava quella: dava 6,0 seggi dove il testo scritto a mano diceva
+   «circa cinque», e sembrava che la taratura fosse cambiata mentre era cambiata solo la
+   grandezza misurata. Con sigma il numero torna a 4,7, cioè conferma la calibrazione
+   invece di smentirla, e «scarto tipico» in italiano vuol dire questo. */
+function scartoTipico(arr){
+ if(!arr||!arr.length) return 0;
+ var m=0,v=0,i;
+ for(i=0;i<arr.length;i++) m+=arr[i];
+ m/=arr.length;
+ for(i=0;i<arr.length;i++) v+=(arr[i]-m)*(arr[i]-m);
+ return Math.sqrt(v/arr.length);
+}
+/* il primo partito della proiezione, che è quello di cui la nota dice lo scarto */
+function primoPartito(){
+ var mx=null;
+ for(var i in SEG) if(SEG[i]&&(mx===null||SEG[i]>SEG[mx])) mx=i;
+ return mx;
+}
+/* IL RAPPORTO FRA LO SWING DI OGGI E QUELLO DELL'ULTIMA SETTIMANA, calcolato.
+   La nota diceva «valori tre volte più piccoli di adesso»: un numero scritto a mano che
+   dipende da quanti giorni mancano al voto, cioè falso in una data che nessuno ha segnato
+   in calendario. Le due medie escono dalla stessa swStorico() che alimenta i pulsanti, e
+   BT_VICINO è la stessa costante che definisce «ultima settimana» nel banco di prova: non
+   un sette scritto qui. */
+function swMedio(g){var s=0;['2020','2021','2022'].forEach(function(a){s+=swStorico(a,g);});return s/3;}
+function swRapporto(){
+ var ora=swMedio(ORIZZONTE), sett=swMedio(BT_VICINO), r=sett?ora/sett:0;
+ var quanto=(r>=1.05?' cioè <b>'+f(r,1)+' volte</b> meno di adesso.':'');
+ return votoPassato()
+  ? 'I pulsanti cambiavano da soli col passare dei giorni: alla distanza in cui la proiezione si è '+
+    'fermata — '+f(ORIZZONTE)+' '+acc(ORIZZONTE,'giorno','giorni')+' dal voto — proponevano in media <b>'+f(ora,1)+
+    ' punti</b>, contro i <b>'+f(sett,1)+'</b> dell\'ultima settimana.'
+  : 'I pulsanti cambiano quindi da soli col passare dei giorni: a '+f(ORIZZONTE)+' '+
+    acc(ORIZZONTE,'giorno','giorni')+' dal voto propongono in media <b>'+f(ora,1)+' punti</b>, e a una '+
+    'settimana ne proporranno <b>'+f(sett,1)+'</b>,'+(quanto||' cioè meno.');
+}
 function rSwAnc(){
  var el=$('k-sw-anc'); if(!el) return;
- var g=GIORNI, v={}, somma=0;
+ var g=ORIZZONTE, v={}, somma=0;
  ['2020','2021','2022'].forEach(function(a){v[a]=swStorico(a,g);somma+=v[a];});
  var media=somma/3;
  var voci=[{s:0,t:'nessuno swing'}];
@@ -3869,12 +4284,13 @@ function rSwNota(){
   b.classList.toggle('on',Math.abs(+b.dataset.sw-SW)<0.03);});
  var b=blocchi(SEG), t;
  if(!SW){
-  var g=GIORNI, v=['2020','2021','2022'].map(function(a){return swStorico(a,g);});
+  var g=ORIZZONTE, v=['2020','2021','2022'].map(function(a){return swStorico(a,g);});
   t='Nel 2020, 2021 e 2022 il modello ha <b>sottostimato</b> il blocco di Netanyahu, e lo scarto '+
-    'si restringe avvicinandosi al voto. A <b>'+f(g)+' giorni</b> dalle urne — dove siamo oggi — '+
+    'si restringe avvicinandosi al voto. A <b>'+f(g)+' '+acc(g,'giorno','giorni')+'</b> dalle urne — '+
+    (votoPassato()?'dove la proiezione si è fermata':'dove siamo oggi')+' — '+
     'sarebbero serviti fra '+f(Math.min.apply(null,v),1)+' e '+f(Math.max.apply(null,v),1)+
     ' punti di swing perché la proiezione coincidesse col risultato. I pulsanti applicano '+
-    'quegli scarti, e si aggiornano da soli man mano che il voto si avvicina.';
+    'quegli scarti'+(votoPassato()?'.':', e si aggiornano da soli man mano che il voto si avvicina.');
  } else {
   t='Con uno swing di '+(SW>0?'+':'')+f(SW,1)+' punti il blocco di Netanyahu arriva a <b>'+
     f(b.coalizione)+' seggi</b> e l\'opposizione sionista a <b>'+f(b.opposizione)+'</b>'+
@@ -3964,9 +4380,15 @@ function rFoot(){
  'le liste sotto il 3,25%. Non sono simulati gli accordi di apparentamento fra liste affini, che nella realtà spostano uno o due seggi.</p>'+
  '<p><b>4. Incertezza.</b> '+f(SIM)+' simulazioni con due componenti di errore: una specifica di ogni lista e una sistematica '+
  'di blocco, entrambe crescenti con la distanza dal voto. La taratura riproduce l\'errore storico degli istituti israeliani: '+
- 'a '+f(GIORNI)+' giorni dalle urne lo scarto tipico sul totale di un blocco vale circa cinque seggi, quello su un singolo '+
- 'partito maggiore due o tre. Gli intervalli mostrati coprono l\'80% degli esiti simulati, cioè otto casi su dieci: '+
- 'restano ampi perché mancano ancora due mesi, e in due mesi le campagne israeliane hanno storicamente spostato più di questo. '+
+ 'a '+f(ORIZZONTE)+' giorni dalle urne — la distanza a cui si trova la rilevazione più recente, che non è '+
+ 'sempre quella di oggi — lo scarto tipico sul totale di un blocco vale <b>'+f(scartoTipico(MC.coal),1)+
+ ' seggi</b>, quello sul primo partito <b>'+f(scartoTipico(MC.d[primoPartito()]||[0]),1)+'</b>. '+
+ 'Gli intervalli mostrati coprono l\'80% degli esiti simulati, cioè otto casi su dieci: '+
+ (votoPassato()
+  ? 'erano ampi perché la proiezione si è fermata a '+f(ORIZZONTE)+' '+acc(ORIZZONTE,'giorno','giorni')+' dal voto, e in '+
+    'altrettanto tempo le campagne israeliane hanno storicamente spostato più di questo. '
+  : 'restano ampi perché al voto mancano ancora '+f(ggOggi())+' '+acc(ggOggi(),'giorno','giorni')+', e in '+
+    'altrettanto tempo le campagne israeliane hanno storicamente spostato più di questo. ')+
  'Sono intervalli di credibilità del modello, non margini di errore campionari dei singoli sondaggi.</p>'+
  '<p><b>5. Swing.</b> Il cursore in alto sposta punti percentuali da un blocco all\'altro in proporzione al peso di ciascuna lista, '+
  'come farebbe una campagna elettorale che premia un campo. Serve a misurare la fragilità dell\'equilibrio, non a prevederlo.</p>'+
@@ -3986,9 +4408,8 @@ function rFoot(){
  '<tr><td class="l">2021</td><td>+2,65&nbsp;<small>(58 gg)</small></td><td>+1,30&nbsp;<small>(4 gg)</small></td><td>0,025 pt al giorno</td></tr>'+
  '<tr><td class="l">2022</td><td>+4,30&nbsp;<small>(49 gg)</small></td><td>+1,80&nbsp;<small>(4 gg)</small></td><td>0,050 pt al giorno</td></tr>'+
  '</tbody></table>'+
- '<p>Da questi punti si stima una retta per elezione, valutata alla distanza dal voto in cui ci si trova '+
- 'oggi: i pulsanti cambiano quindi da soli col passare dei giorni, e a una settimana dal voto proporranno '+
- 'valori tre volte più piccoli di adesso. L\'estrapolazione è limitata a 75 giorni, perché oltre '+
+ '<p>Da questi punti si stima una retta per elezione, valutata alla distanza dal voto in cui il modello '+
+ 'si trova. '+swRapporto()+' L\'estrapolazione è limitata a 75 giorni, perché oltre '+
  'l\'osservazione più lontana — i 62 giorni del 2020 — una retta crescerebbe senza alcun freno empirico.</p>'+
  '<p>Vale la pena dirlo esplicitamente: questi pulsanti <b>non correggono</b> la proiezione, la interrogano. '+
  'Il valore predefinito resta zero, per le ragioni discusse più sopra.</p>'+
@@ -4039,7 +4460,7 @@ function rFoot(){
       : (ggOggi()>0
          ? 'Oggi mancano '+f(ggOggi())+' '+acc(ggOggi(),'giorno','giorni')+' al voto: il modello è nell\'ultima settimana, dove l\'errore '+
            'storico è il più basso.'
-         : 'Il voto si è tenuto il '+dl('2026-10-27')+': quello che segue è il banco di prova del modello, '+
+         : 'Il voto si è tenuto il '+dl(dISO(VOTO))+': quello che segue è il banco di prova del modello, '+
            'non una previsione.')))+'</p>'+
  '<p><b>Quello che il banco di prova mostra e che il modello non sa fare.</b> In tutte e tre le elezioni '+
  'l\'errore a distanza è dominato non dal rumore statistico ma dalle <i>liste che cambiano</i>: nel 2020 '+
@@ -4127,7 +4548,7 @@ function renderInterno(){
   if(doppi.length) msg("<b>Colori duplicati.</b> "+doppi.join(", ")+
    " condividono lo stesso colore in questo grafico: il colore non è più un indice affidabile.","err");
  })();
- rTesta();rProb();
+ rTitolo();rTesta();rProb();
  $('k-htit1').innerHTML='<i style="background:'+C.coal+'"></i>Blocco Netanyahu'+
   '<em>Likud · Shas · Giudaismo Unito Torah · Sionismo Religioso · Otzma Yehudit</em>';
  $('k-htit2').innerHTML='<i style="background:'+C.oppo+'"></i>Opposizione sionista'+
@@ -4426,6 +4847,23 @@ function salva(){memSet(KEY,JSON.stringify({s:SOND,t:Date.now(),eg:Object.keys(E
    Il JSON si accetta solo se è un archivio plausibile: un array, non più corto del
    seme, fatto di rilevazioni con data e seggi. Un file troncato o vuoto non deve
    potersi portare via l'archivio. */
+/* LO STATO DEL LAVORO NOTTURNO, che è l'unico modo che la pagina ha di sapere se è
+   aggiornata. dati/stato-job.json viene riscritto solo quando il job arriva in fondo:
+   se una guardia lo ferma — colonne ignote l'8 settembre, per esempio — quel file NON
+   viene toccato, ed è esattamente ciò che rende lo stallo misurabile.
+   Aprendo il file da disco il fetch fallisce come quello dell'archivio, e JOB resta
+   nullo: la testata lo dichiara invece di inventare una data. */
+var JOB=null;
+function statoJob(){
+ try{
+  return fetch('dati/stato-job.json',{cache:'no-cache'}).then(function(r){
+   if(!r||!r.ok) return null;
+   return r.json();
+  }).then(function(j){
+   if(j&&typeof j.data==='string'&&/^\d{4}-\d{2}-\d{2}$/.test(j.data)) JOB=j;
+  })['catch'](function(){});
+ }catch(e){ return Promise.resolve(); }
+}
 function archivioFresco(){
  try{
   return fetch('dati/archivio.json',{cache:'no-cache'}).then(function(r){
@@ -4441,6 +4879,8 @@ function archivioFresco(){
 }
 function carica(){
  return Promise.resolve(archivioFresco()).then(function(){
+  return statoJob();
+ }).then(function(){
   return memGet(KEY);
  }).then(function(v){
   if(!v) return;

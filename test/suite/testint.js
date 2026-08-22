@@ -1,4 +1,16 @@
 /* test d'integrazione: simula il click su "Aggiorna" con Wikipedia servita dal fixture */
+/* IL CODICE D'USCITA DICE QUELLO CHE DICONO LE RIGHE.
+   Qui le asserzioni sono stringhe «OK»/«FALLITO» stampate dentro due setTimeout
+   annidati: non c'è un contatore da cui ricavare l'uscita, e il processo usciva con zero
+   anche stampando FALLITO. Il banco le contava lo stesso — esegui.mjs legge lo stdout —
+   ma era una salvezza per caso: chi lancia questa suite da sola, o qualunque strumento
+   che guardi il codice d'uscita, la dava per verde. Si intercetta la stampa, che è
+   l'unico punto in cui il verdetto esiste. */
+const _log = console.log;
+console.log = function(){
+  if ([].some.call(arguments, x => /FALLITO/.test(String(x)))) process.exitCode = 1;
+  return _log.apply(console, arguments);
+};
 const {JSDOM}=require('jsdom');
 const dom=new JSDOM('');global.DOMParser=dom.window.DOMParser;
 const store={},listeners={};

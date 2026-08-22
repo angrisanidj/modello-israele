@@ -55,4 +55,4 @@ const ck={
  "tooltip anche al tocco": /touchstart/.test(html),
  "nessun overflow orizzontale complessivo": totProb===0,
 };
-Object.entries(ck).forEach(([k,v])=>console.log(" "+(v?"OK  ":"KO  ")+k));
+require('../esito.js')(ck);

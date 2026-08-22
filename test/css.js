@@ -13,7 +13,17 @@ const fs = require('fs');
 
 function carica(percorso){
   const html = fs.readFileSync(percorso, 'utf8');
-  const css = html.match(/<style>([\s\S]*?)<\/style>/)[1];
+  /* I COMMENTI SI TOLGONO PRIMA DI TUTTO, e non è pulizia: era un difetto silenzioso.
+     Il parser prende come selettore tutto quello che sta fra la parentesi graffa
+     precedente e quella successiva, commento compreso — quindi una regola preceduta da un
+     commento aveva per selettore «/* … *​/\n#kn26 .cmd», che prop() non trova mai perché
+     confronta selettori esatti. Il risultato: la regola esisteva, la prova chiedeva il
+     suo valore e riceveva null, cioè «non dichiarata». In un foglio commentato come
+     questo è la maggioranza delle regole che contano, ed è la forma di difetto peggiore —
+     non fallisce, risponde. Trovato il 22 agosto 2026 provando la barra dei comandi:
+     background su .cmd e flex su .cmd .pg erano scritti, e css.js li dava per assenti. */
+  const css = html.match(/<style>([\s\S]*?)<\/style>/)[1]
+    .replace(/\/\*[\s\S]*?\*\//g, '');
 
   /* una @media conta se la sua condizione comprende w; prefers-* e print non si valutano */
   function attiva(cond, w){

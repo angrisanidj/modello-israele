@@ -217,17 +217,57 @@ setTimeout(function(){
      depositoPassato() e l'invariante 10. La condizione doveva essere la stessa del conto
      alla rovescia e delle sei schede, non una terza espressione scritta a mano, ed è per
      questo che il conteggio sale invece di restare fermo. */
-  esito(usi.length === 7,
-    'ggCal è usata nei punti che contano giorni di calendario da adesso, e in nessun altro',
+  /* Da sette a undici il 22 agosto 2026, e le quattro nuove dicono anche perché la REGOLA
+     qui sotto è cambiata insieme al conteggio.
+       · votoPassato() — se l'h1 e il <title> parlano al presente o al passato. La domanda
+         «il voto è passato?» è la stessa del conto alla rovescia, non una quarta
+         espressione scritta a mano. Il 27 ottobre vale zero, quindi il giorno del voto la
+         pagina parla ancora al presente, ed è voluto;
+       · ORIZZONTE — la distanza fra l'ultima rilevazione e il voto, cioè il punto in cui
+         il Monte Carlo si congela quando il conto alla rovescia arriva a zero;
+       · il ritardo dell'ultima verifica riuscita rispetto a oggi, e la distanza fra
+         l'ultimo sondaggio e quella verifica: le due divergenze che la testata dichiara.
+     LA REGOLA NON È PIÙ «ogni chiamata parte da un oggi», perché due di queste non ci
+     partono e sono giuste lo stesso. Quella vera, che il conteggio da solo non diceva, è
+     un'altra: ggCal normalizza i componenti LOCALI di un istante, quindi ogni sua data
+     dev'essere un istante con un significato locale — new Date() adesso, oppure una data
+     d'archivio letta come mezzanotte locale con 'T00:00:00'. Una new Date('AAAA-MM-GG')
+     nuda è mezzanotte UTC e a ovest di Greenwich vale il giorno prima: è esattamente il
+     difetto che ggCal esiste per chiudere, e passargliela dentro lo riaprirebbe. */
+  /* Da undici a dodici quando anche finestra() ha smesso di ancorarsi all'ultimo
+     sondaggio: «negli ultimi 7 giorni» adesso conta da oggi, come il confronto della
+     proiezione. Era la seconda metà dello stesso difetto, e la sua chiusura porta la
+     dodicesima chiamata — l'unica che gira su tutto l'archivio, e infatti l'«oggi» è
+     issato fuori dal filtro. */
+  esito(usi.length === 12,
+    'ggCal è usata nei punti che contano giorni di calendario, e in nessun altro',
     usi.length + ' occorrenze, definizione compresa: ' + usi.join(' · '));
   esito(/function ggOggi\(\)\{return Math\.max\(0,ggCal\(new Date\(\),VOTO\)\);\}/.test(app),
     'e la nota metodologica ricava i giorni al voto dalla data corrente, non da una costante');
   /* i siti di chiamata veri: non la definizione «ggCal(a,b)» e non le menzioni nei
      commenti, che sono scritte «ggCal()» senza argomenti */
   const chiamate = usi.filter(u => u !== 'ggCal(a,b)' && u !== 'ggCal()');
-  esito(chiamate.length > 0 && chiamate.every(u => /new Date\(\)|oggi/.test(u)),
-    'ogni chiamata di ggCal parte da un «oggi»: fra due date d\'archivio si usa gg()',
+  esito(chiamate.length > 0 && chiamate.every(u => /new Date\(\)|oggi|T00:00:00/.test(u)),
+    'ogni data passata a ggCal è un istante locale: adesso, oppure una mezzanotte locale',
     chiamate.join(' · '));
+  /* E LA META' CHE IL CONTEGGIO NON VEDE: nessuna new Date() dentro una chiamata di ggCal
+     può essere una data d'archivio NUDA. `new Date('2026-08-20')` è mezzanotte UTC, i cui
+     componenti locali a ovest di Greenwich sono del 19: giornoUTC() li rimonterebbe al
+     giorno sbagliato, e la differenza uscirebbe di uno. Con 'T00:00:00' l'istante è
+     mezzanotte locale e il rimontaggio è esatto ovunque.
+     La finestra di 120 caratteri serve perché la cattura qui sopra si ferma alla prima
+     parentesi chiusa e taglia gli argomenti annidati. */
+  const finestre = [];
+  for (let i = app.indexOf('ggCal('); i >= 0; i = app.indexOf('ggCal(', i + 1))
+    finestre.push(app.slice(i, i + 120));
+  const nude = finestre.filter(w => {
+    const arg = w.slice(0, w.indexOf(');') + 1);
+    return /new Date\((?!\))/.test(arg) &&
+           (arg.match(/new Date\((?!\))/g) || []).length !== (arg.match(/T00:00:00/g) || []).length;
+  });
+  esito(nude.length === 0,
+    'e nessuna è una data d\'archivio nuda, che sarebbe mezzanotte UTC e varrebbe il giorno prima',
+    nude.slice(0, 2).map(w => w.split('\n')[0].slice(0, 70)).join(' · '));
 
   /* ══ 7 · l'accordo di numero, che stava scritto a mano in tre punti ══
    *

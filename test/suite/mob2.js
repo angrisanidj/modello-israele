@@ -125,4 +125,4 @@ const ck={
  "titoli istogrammi vanno a capo": haRegola('.htit') && /flex-wrap:wrap/.test(css.replace(/\s+/g,'')),
  "totale 120": Object.values(A.S().SEG).reduce((a,b)=>a+b,0)===120,
 };
-Object.entries(ck).forEach(([k,v])=>console.log(" "+(v?"OK  ":"KO  ")+k));
+require('../esito.js')(ck);

@@ -1,5 +1,14 @@
 # Le forme del titolo — quale frase esce quando
 
+> **Aggiornato il 22 agosto 2026, e questo file è superato in due punti.** Le nove celle
+> qui sotto sono contate su TRE blocchi: coalizione, opposizione, arabi. I blocchi sono
+> quattro — c'è l'ago della bilancia — e sullo spazio vero, 302.621 configurazioni invece
+> di 7381, le celle sono **dodici**. In particolare «la forma 4 pura non compare mai» e «la
+> coalizione a 60 sono due casi» sono **falsi**: la 4 compare nell'1,45% delle simulazioni,
+> e la coalizione a 60 è un caso solo. La versione buona è in
+> [stato-testi-titolo.md](stato-testi-titolo.md); qui restano le frequenze che hanno
+> guidato la scrittura dei testi, che valgono ancora.
+
 Scritto il 22 agosto 2026. Serve a scrivere i testi dell'h1 sapendo **quale frase compare
 in quale situazione e quanto spesso**, senza riderivare le frequenze.
 

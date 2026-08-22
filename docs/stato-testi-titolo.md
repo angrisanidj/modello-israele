@@ -1,65 +1,95 @@
-# I testi del titolo: dodici decisi, due correzioni da fare
+# I testi del titolo: applicati, e le due correzioni che hanno cambiato forma
 
-Scritto il 22 agosto 2026, a fine sessione. Serve a chi riprende senza la conversazione in
-cui si è deciso.
+Riscritto il 22 agosto 2026, quando i testi sono andati in pagina. La versione precedente
+di questo file diceva «i dodici testi sono decisi, mancano due correzioni dell'autore»: le
+correzioni sono arrivate, sono state applicate, e **tutte e due hanno dato un risultato
+diverso da quello che si aspettava chi le aveva chieste**. È la parte che vale la pena
+tenere.
 
-**I dodici testi delle forme del titolo sono decisi.** La tabella delle celle e delle
-frequenze che li ha guidati è in [forme-del-titolo.md](forme-del-titolo.md); la funzione
-è `formaTitolo()` in `index.html`, provata da `test/suite/titolo.js` su tutte e 7381 le
-configurazioni possibili.
-
-**Mancano due correzioni, e sono dell'autore.** Finché non arrivano, i testi non vanno in
-pagina: non è una svista da riparare in fretta, sono due distinzioni che il titolo deve
-saper fare e che oggi non fa.
-
----
-
-## 1 · I due casi della coalizione a 60
-
-Il titolo tratta **60 seggi** come un caso solo. Non lo è, e la differenza è quella che
-un lettore vuole sapere per prima:
-
-- **60 e nessun altro arriva a 61** — è lo stallo pieno: nessuno governa, e la trattativa
-  riparte da zero;
-- **60 mentre l'opposizione ne ha 61 o più** — non è stallo: è una maggioranza
-  alternativa che esiste, e la coalizione uscente è *fuori* per un seggio.
-
-Sono due notizie diverse scritte con lo stesso numero. Il titolo deve distinguerle, e la
-distinzione va scritta nella frase, non lasciata al lettore che conta i seggi
-nell'emiciclo.
-
-**Nota per chi implementa**: la condizione esiste già come dato — `blocchi(SEG)` porta i
-tre totali — quindi è una diramazione in `formaTitolo()`, non un calcolo nuovo. Quando si
-aggiunge, `test/suite/titolo.js` va esteso: le 7381 configurazioni comprendono già tutti
-e due i casi, ma oggi cadono nella stessa cella.
+La funzione è `formaTitolo()` in `index.html`; i testi stanno in `TIT_PRIMA`, `TIT_DOPO`,
+`TIT_CORTO_PRIMA` e `TIT_CORTO_DOPO`; la scelta della cella in `cellaTitolo()`. Le prove
+sono in `test/suite/titolo.js`, 61 asserzioni su **302.621 configurazioni**, e in
+`test/suite/date.js` per il tempo verbale.
 
 ---
 
-## 2 · La probabilità della configurazione descritta, non quella complessiva
+## 1 · I due casi della coalizione a 60 non sono due: sono uno
 
-Quando il titolo porta una probabilità, oggi porta **quella complessiva**. Deve portare
-**quella della configurazione che sta descrivendo**.
+La richiesta diceva: «60 e nessun altro arriva a 61» è lo stallo pieno, «60 mentre
+l'opposizione ne ha 61 o più» è una maggioranza alternativa che esiste, e il titolo deve
+distinguerli.
 
-La differenza, con i numeri del 22 agosto 2026: la pagina dice che l'opposizione ha il
-**21%** di arrivare a 61 e il blocco Netanyahu il **2%**, ma la configurazione più
-probabile in assoluto è il **75%** in cui *serve il sostegno dei partiti arabi*. Un titolo
-che descrive lo scenario dell'opposizione e gli attacca il 21% dice una cosa vera; un
-titolo che descrive lo stesso scenario e gli attacca la probabilità di qualcos'altro dice
-una cosa falsa con un numero giusto — che è la forma di errore peggiore, perché il numero
-regge al controllo.
+**Il secondo caso è aritmeticamente impossibile.** La coalizione a 60 lascia esattamente
+60 seggi a *tutti gli altri messi insieme* — opposizione, arabi e ago della bilancia — e
+nessuna loro somma può arrivare a 61. Verificato per esaurimento su tutte le 302.621
+configurazioni: zero. La coalizione a 60 è sempre e solo stallo pieno.
 
-**Nota per chi implementa**: le quattro probabilità stanno già separate in `MC` — sono le
-stesse che alimentano le quattro pastiglie in cima. Il titolo deve prendere quella della
-cella in cui si trova, e la prova deve legarle: **per ogni forma, la probabilità citata
-dev'essere quella della sua cella**. È la stessa forma di prova usata per le due strade
-del colore di blocco e per la selezione di apertura del simulatore.
+**Ma la distinzione che si chiedeva esiste davvero, e sta sull'altro blocco.**
+L'opposizione a 60 sì che ha due casi, e sono esattamente le due notizie opposte:
 
----
+| | frequenza sul Monte Carlo del 22 agosto |
+|---|---|
+| opposizione a 60 **con almeno un seggio arabo** → la maggioranza alternativa esiste | **5,57%** |
+| opposizione a 60 **senza nessun seggio arabo** → non ce l'ha nessuno | 0% oggi, possibile |
 
-## Cosa succede finché non arrivano
+## 2 · E c'era un terzo caso che nessuno aveva chiesto, più frequente di tre già scritti
 
-L'`<h1>` in pagina resta il testo statico nel markup, e il `<title>` resta la stringa
-fissa a riga 6. Nessuno dei due passa ancora da `formaTitolo()`: il codice c'è, la prosa
-no. **Il `<title>` dovrà diventare la forma corta della stessa funzione, sotto i 60
-caratteri**, o titolo della pagina e titolo del pezzo diranno due cose diverse — che è la
-solita strada doppia, spostata dalla grafica alla lingua.
+La partizione delle quattro forme di base era scritta su **tre** blocchi: coalizione,
+opposizione, arabi. I blocchi sono **quattro** — c'è l'ago della bilancia — e quando prende
+seggi la partizione si rompe in un punto solo, sempre lo stesso:
+
+> nessun blocco ha la maggioranza, **e nemmeno opposizione più arabi ci arrivano**, perché
+> i seggi che mancano sono dell'ago della bilancia.
+
+Prima della riparazione quella configurazione cadeva nella cella 3 e il titolo diceva «i
+partiti arabi sono decisivi», che lì è **falso**. Misurato: **1,45% delle simulazioni**,
+cioè più di tre celle per cui una prosa a sé era stata scritta senza discutere (0,84%,
+0,69%, 0,56%).
+
+Da qui la base 4 corretta — «nessuna maggioranza possibile» invece di «coalizione a 60» —
+e **tre celle nuove**: `f4`, `f5o4` e `f5e`. I loro sei testi (tre prima del voto, tre
+dopo) sono **gli unici sei su quarantotto che non ha dettato l'autore** e vanno riletti.
+
+## 3 · [P] è la frequenza della configurazione descritta
+
+Applicato come chiesto: `[P]` è la frequenza con cui il blocco nominato fa **esattamente**
+[X] seggi, non la probabilità che raggiunga la maggioranza. Le due divergono di quasi il
+doppio — al 22 agosto la pastiglia dell'opposizione vale il 14,9%, la frequenza del suo
+valore centrale l'8,5%.
+
+**Non è costato nessun passaggio in più sulle simulazioni.** `montecarlo()` restituisce già
+`res.coal` e `res.oppz` ordinati, quindi il conteggio è una doppia bisezione: **0,036 ms per
+chiamata** su 20.000 elementi, e il titolo ne fa una. Un istogramma accumulato nel ciclo
+sarebbe stato una seconda strada per lo stesso numero.
+
+**Una cosa da sapere se si rileggono i testi.** Due frasi attaccano `[P]` a una
+proposizione più larga della configurazione: «nel [P]% delle simulazioni nessun campo ha i
+numeri per governare» e «nel [P]% delle simulazioni le serve l'appoggio dei partiti arabi».
+Con la regola applicata quei numeri valgono **1,3%** e **5,6%** — la frequenza di quella
+esatta configurazione — mentre le due proposizioni, prese per sé, sono vere nel **2,7%** e
+nell'**80%** dei casi. Sono affermazioni vere ma parziali. Se si preferisce la lettura larga
+basta cambiare `datiTitolo()` in un punto solo, e `titolo.js` cade subito: la prova lega il
+numero alla cella apposta.
+
+## 4 · L'articolo davanti alla percentuale
+
+«nel 5%», «nell'8,5%», «nello 0,3%»: in italiano dipende dalla **parola** con cui il numero
+si legge, non dalla cifra. Ventiquattro testi con la regola ricopiata a mano sarebbero
+ventiquattro occasioni di sbagliarla, come le tre copie di «1 giorni». C'è `inPc()`, e una
+prova con dodici casi.
+
+## 5 · Il `<title>`
+
+È la forma corta della stessa funzione, con la coda «· Knesset 2026» — l'unica cosa che
+dice di che paese si parla — e sta **sotto i 60 caratteri** su tutte le configurazioni,
+`[X]` a tre cifre compreso. La prova misura la lunghezza su ogni cella e ogni valore di
+`[X]`, e verifica che il `<title>` esca dallo **stesso stato** dell'h1: quella riga prima
+era `D.title === undefined || true`, cioè non diceva niente, e un mutante che faceva uscire
+il `<title>` da un altro stato passava.
+
+## 6 · L'h1 statico non afferma più un risultato
+
+Nel markup resta il ripiego per chi apre il file senza JavaScript. Prima diceva «Nessun
+blocco ha la maggioranza», che è un risultato: vero il giorno in cui è stato scritto e
+falso in una data che nessuno ha segnato in calendario. Adesso descrive la pagina, non lo
+stato del modello.

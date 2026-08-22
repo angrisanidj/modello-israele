@@ -23,9 +23,10 @@
  * il calendario si aggiornerebbe da solo e la prosa no: la pagina direbbe «passato» in un
  * punto e parlerebbe al futuro nell'altro, nello stesso schermo.
  *
- * IL TESTO DEL RAMO «DOPO» È UN SEGNAPOSTO, minimo e vero, in attesa della prosa
- * dell'autore. Questa prova verifica il MECCANISMO — che le due frasi cambino, e in che
- * verso — non le parole: così regge quando le parole vengono sostituite.
+ * IL SEGNAPOSTO È STATO SOSTITUITO dalla prosa vera il 22 agosto 2026, e questa prova non
+ * è cambiata di forma: verifica il MECCANISMO — che le due frasi cambino, e in che verso —
+ * non le parole. Le espressioni cercate sono le poche che dichiarano il verbo, così la
+ * prova regge un'altra riscrittura senza essere riscritta a sua volta.
  */
 const {JSDOM} = require('jsdom');
 const fs = require('fs');
@@ -119,7 +120,7 @@ const FUT = [
   {nome:'i limiti',           re:/si decidono fino al deposito delle candidature/i}
 ];
 const PAS = [
-  {nome:'la fonte di errore', re:/ha chiuso la mappa dei partiti|non agisce pi/i},
+  {nome:'la fonte di errore', re:/questa fonte di errore si è chiusa/i},
   {nome:'i limiti',           re:/si decidevano fino al deposito/i}
 ];
 FUT.forEach(function(x, i){
@@ -132,7 +133,7 @@ FUT.forEach(function(x, i){
 /* la proprietà che tiene tutto insieme, e che è la stessa della prova post-voto:
    NESSUNA delle due frasi resta identica fra i due giorni */
 const estrai = (t, re) => { const m = re.exec(t); return m ? m[0] : null; };
-const F1 = t => estrai(t, /Il modello proietta[^.]*\.|Il deposito delle liste[^.]*\./);
+const F1 = t => estrai(t, /Il modello proietta[^.]*\.|Con il deposito delle liste[^.]*\./);
 const F2 = t => estrai(t, /Il modello non prevede le fusioni di liste[^;]*/);
 esito(F1(PRIMA.nota) && F1(DOPO.nota) && F1(PRIMA.nota) !== F1(DOPO.nota),
   'la frase sulla fonte di errore NON resta identica fra il 7 e il 9',

@@ -25,9 +25,13 @@ const ck={
  "quattro card mostrate": cards.length===4,
  "marcatore proiezione centrale sull'istogramma": store['k-hist'].innerHTML.includes('<path d="M'),
  "didascalie spiegano lo scarto": /a scatti, non con continuità/.test(store['k-cap2'].innerHTML),
- "titolo aggiornato": true,
+ /* Era `true` scritto a mano, cioè un controllo che non controllava niente. Adesso legge
+    l'h1 vero: il testo di ripiego del markup non nomina mai le simulazioni né i blocchi,
+    quindi se rTitolo non scrivesse, questa riga cadrebbe. */
+ "titolo generato dallo stato": /simulazioni|decisivi|ago della bilancia|maggioranza minima|governare/
+   .test(store['k-h1'].textContent) && store['k-h1'].textContent.length > 40,
  "UTJ esteso": store['k-proj'].innerHTML.includes('Giudaismo Unito Torah'),
  "colonna Rispetto al 2022": true,
  "totale 120": Object.values(SEG).reduce((a,b)=>a+b,0)===120,
 };
-Object.entries(ck).forEach(([k,v])=>console.log(" "+(v?"OK  ":"KO  ")+k));
+require('../esito.js')(ck);

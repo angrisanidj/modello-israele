@@ -29,19 +29,35 @@ alle prove.
 
 ```bash
 npm install          # solo la prima volta: installa jsdom per le prove
-npm test             # estrae il JS e lancia le 1028 prove
+npm test             # estrae il JS e lancia le 1172 prove
 npm run verifica     # prove + controlli strutturali
 ```
 
 `npm test` rigenera `test/app.js` da `index.html`. Non modificare `test/app.js` a mano: è un
 prodotto, viene sovrascritto.
 
+**Ogni suite esce con codice diverso da zero se un'asserzione cade**, e non è sempre stato
+vero. Fino al 22 agosto 2026 quattordici suite finivano con un `forEach` che stampava
+`KO` e usciva con **zero**: il banco le contava lo stesso, perché `esegui.mjs` legge lo
+stdout, ma era una salvezza per caso — di una riga sola e in un altro file. Chi lanciava
+una suite da sola vedeva uscita zero con asserzioni fallite, e qualunque strumento che
+guardasse il codice d'uscita la dava per verde: è successo davvero a un misuratore di
+mutanti, che li dava tutti vivi. Il verdetto adesso passa da `test/esito.js`, che sta
+fuori da `suite/` come `css.js` per non finire nell'elenco delle prove.
+
+E tre modi in cui una prova può essere **verde senza provare niente**, tutti trovati in
+questo progetto: una suite che **muore** alla prima riga e conta 0/0 (v5.js, per un id
+sparito dal markup — ora `esegui.mjs` la dichiara fallita); un'asserzione scritta come
+`console.log(" OK  …", condizione)`, che stampa OK **sempre** e appende il verdetto come
+secondo argomento (aff.js, due su due); e un'asserzione tautologica —
+`esito(D.title === undefined || true, …)` — che non può cadere.
+
 **Nessuna modifica a `index.html` è finita finché `npm run verifica` non passa per intero.**
 
 ## Il banco di misura su browser vero
 
 Le prove girano in jsdom, che **non fa layout**: larghezze, altezze, contrasti resi e
-sovrapposizioni non le vede nessuna delle 1028. Per quelle c'è un server statico da otto
+sovrapposizioni non le vede nessuna delle 1172. Per quelle c'è un server statico da otto
 righe, `.claude/serve.mjs`, dichiarato in `.claude/launch.json` come configurazione
 `misure`. **È sotto controllo di versione apposta: chi apre il progetto domani lo trova
 invece di rimontarlo.** Non è una dipendenza del modello — `index.html` resta un file
@@ -196,8 +212,15 @@ test/
   esegui.mjs          lancia tutta la suite e riassume
   struttura.mjs       controlli strutturali sul file, compresi i due sulle composizioni
   css.js              il foglio letto come dato: quali regole sono attive a una data
-                      larghezza. Sta FUORI da suite/ perché è una libreria, non una prova
+                      larghezza. Sta FUORI da suite/ perché è una libreria, non una prova.
+                      Toglie i commenti PRIMA di analizzare: senza, il selettore di una
+                      regola commentata comprendeva il commento e prop() non la trovava
+                      mai — la regola c'era e la prova riceveva «non dichiarata»
+  esito.js            stampa un blocco di controlli e fa fallire il processo se uno cade
   suite/*.js          le prove, una per area
+  suite/date.js       le due date, l'orizzonte congelato, la fascia del dopo-voto e il
+                      sommario a una riga: rende la pagina con l'orologio fermo e il
+                      registro del lavoro notturno finto
   misura-consegna.mjs misuratore di tavolozza, a mano: node test/misura-consegna.mjs
 dati/
   colore-liste.js     la regola generativa dei colori di lista
@@ -1739,7 +1762,7 @@ Due conseguenze pratiche, e sono quelle da ricordare:
 ### Lo stato al 22 agosto 2026, sera
 
 Scritto per ripartire senza la conversazione. Ultimo commit spinto: **`c71d6ea`**, CI e
-Pages verdi, **1028 prove**.
+Pages verdi, **1172 prove**.
 
 #### Prima di toccare qualunque cosa
 
@@ -1779,33 +1802,99 @@ dell'house effect, banco di prova come dato, `formaTitolo()`, invariante 10):
 - **l'archivio è un `<details>`** attaccato al modulo che apre;
 - **le due frasi del deposito** hanno il ramo condizionale su `depositoPassato()`.
 
-#### Fermo, in attesa dei testi dell'autore
+#### I testi dell'autore, applicati il 22 agosto 2026
 
-Il codice c'è, la prosa no.
+Erano il punto 1 della coda e bloccavano il resto. La storia sta in
+`docs/stato-testi-titolo.md`; qui c'è quello che serve a chi tocca il codice.
 
-- **L'h1 e il `<title>`.** I **dodici testi delle forme sono decisi**; mancano **due
-  correzioni dell'autore**, ed è scritto in `docs/stato-testi-titolo.md`: (1) i **due casi
-  della coalizione a 60** — stallo pieno contro maggioranza alternativa che esiste, che
-  oggi cadono nella stessa cella — e (2) la probabilità citata dev'essere **quella della
-  configurazione descritta**, non quella complessiva. Il `<title>` è ancora una stringa
-  fissa a riga 6 e deve diventare la forma corta della stessa funzione, sotto i 60
-  caratteri.
-- **Sommario, verdetto, pastiglie, istogrammi, simulatore**: la struttura è concordata, i
-  testi mancano. Nel **verdetto** la frase deve dire **da quando** si confronta
-  (`PREC.taglio` e `PREC.data` sono due campi distinti); negli **istogrammi** «quanti
-  seggi mancano» si dice da `61 − q(MC.coal, .50)`, la mediana, **non** da `blocchi(SEG)`.
-- **Le due frasi del deposito**: il meccanismo è pronto e provato, il testo del ramo
-  «dopo» è un **segnaposto minimo e vero** — è scritto così apposta, perché se l'8
-  settembre arriva prima della revisione la pagina dica qualcosa di corretto invece di un
-  marcatore. **Va sostituito, non lasciato.** Le due proposte sono nella conversazione del
-  22 agosto; se non ci sono più, il segnaposto dice già la sostanza.
-- **La firma**: `Daniele Angrisani · Modello previsionale Knesset 2026 · @putino`, con
-  `@putino` su `https://x.com/putino`, senza FocusAmerica — è un modello personale.
-  **Per l'embed**: chi incorpora incorpora un lavoro personale, e il testo che accompagna
-  il frammento va scritto di conseguenza.
-- **Il sommario a una riga** resta fermo finché non è decisa la **partita delle due date**:
-  `k-upd` e `k-fresh` leggono la stessa variabile, e finché non si decide quale delle due
-  diventa «ultima verifica riuscita» togliere `k-fresh` toglierebbe il pezzo sbagliato.
+- **L'h1 e il `<title>` escono dalla stessa funzione**, `testoTitolo()` e
+  `titoloCorto()`, dallo stesso `formaTitolo(blocchi(SEG))`. Le celle sono **dodici**, i
+  testi **quarantotto** — lungo e corto, prima e dopo il voto. Il `<title>` sta sotto i
+  60 caratteri con la coda «· Knesset 2026», e la prova lo misura su ogni cella e ogni
+  valore di `[X]`, tre cifre comprese.
+- **L'h1 del markup è un ripiego per chi apre il file senza JavaScript**, e per questo non
+  afferma nessun risultato: sarebbe l'unica cosa che quel lettore legge, e sarebbe vera
+  soltanto il giorno in cui è stata scritta.
+- **`[P]` SEGUE LA FRASE, non la cella**, e la sorgente è dichiarata in `TIT_FONTE_P`.
+  In sei celle su dodici la frase parla della configurazione e `[P]` è la frequenza con
+  cui il blocco nominato fa **esattamente** `[X]` seggi. Nelle altre quattro la frase
+  enuncia una proposizione più larga, ed è quella che il lettore legge attaccata al
+  numero: `f5c`, `f5o4` e `f5e` dicono «nessun campo ha i numeri per governare» e
+  prendono `[P]` dallo **stallo** (`MC.st`), `f5o3` dice «le serve l'appoggio dei partiti
+  arabi» e lo prende dallo **scenario arabo** (`MC.vA`). Sono le stesse variabili delle
+  quattro pastiglie in cima, non copie ricalcolate.
+  Il numero che spiega perché: con la frequenza della configurazione `f5o4` e `f5e`
+  direbbero **zero** accanto a una frase che afferma lo stallo — un numero che smentisce
+  la frase che ha di fianco, e il lettore le vede insieme.
+  Costo della frequenza esatta: zero. `res.coal` e `res.oppz` sono già ordinati, quindi è
+  una doppia bisezione, 0,036 ms per chiamata su 20.000 elementi. **Non aggiungere un
+  istogramma nel ciclo**: sarebbe una seconda strada per lo stesso numero.
+- **La firma**: `Daniele Angrisani · Modello previsionale Knesset 2026 · Focus America ·
+  focusamerica.it`, con «Focus America» e l'indirizzo collegati a
+  `https://www.focusamerica.it/`. Sostituisce la variante `@putino` che stava qui, e
+  cambia anche il testo che accompagna l'embed: non è più un lavoro personale senza
+  testata. Contrasti misurati sulla pagina resa: testo **4,93** in chiaro e **5,54** in
+  scuro, collegamenti **8,75** e **6,45**.
+- **Il sommario è a una riga sotto i 660**, ed è la partita delle due date sciolta: vedi
+  «Le due date» qui sotto.
+- **Restano senza prosa**: verdetto, pastiglie, istogrammi, simulatore. Nel **verdetto** la
+  frase deve dire **da quando** si confronta (`PREC.taglio` e `PREC.data` sono due campi
+  distinti); negli **istogrammi** «quanti seggi mancano» si dice da `61 − q(MC.coal, .50)`,
+  la mediana, **non** da `blocchi(SEG)`.
+
+#### Le due correzioni hanno dato un risultato diverso da quello che si chiedeva
+
+È la parte da non riscoprire.
+
+**«La coalizione a 60 sono due casi» — no, è uno.** coal = 60 lascia esattamente 60 seggi a
+tutti gli altri messi insieme, quindi nessuna loro somma arriva a 61: la coalizione a 60 è
+sempre e solo stallo pieno. Verificato per esaurimento sulle 302.621 configurazioni.
+**La distinzione che si chiedeva esiste, ma sta sull'altro blocco**: l'opposizione a 60 con
+almeno un seggio arabo (5,57% delle simulazioni) contro l'opposizione a 60 senza (0% oggi,
+possibile).
+
+**E c'era un terzo caso che nessuno aveva chiesto.** La partizione delle quattro forme di
+base era scritta su TRE blocchi. Sono quattro: c'è l'ago della bilancia, e quando prende
+seggi esiste la configurazione in cui **nemmeno opposizione più arabi arrivano a 61**. Lì
+il titolo diceva «i partiti arabi sono decisivi», che è falso. Misurato: **1,45% delle
+simulazioni**, più di tre celle per cui era stata scritta una prosa a sé (0,84%, 0,69%,
+0,56%). Da qui la base 4 corretta — «nessuna maggioranza possibile» invece di «coalizione a
+60» — e tre celle nuove: `f4`, `f5o4`, `f5e`. **I loro sei testi sono gli unici sei su
+quarantotto non dettati dall'autore**, e vanno riletti.
+
+**Una cosa da sapere se si rileggono i testi.** Due frasi attaccano `[P]` a una proposizione
+più larga della configurazione: «nel [P]% delle simulazioni nessun campo ha i numeri per
+governare» e «nel [P]% delle simulazioni le serve l'appoggio dei partiti arabi». Con la
+regola applicata quei numeri valgono 1,3% e 5,6%, mentre le due proposizioni prese per sé
+sono vere nel 2,7% e nell'80% dei casi: affermazioni vere ma parziali. Se si preferisce la
+lettura larga si cambia `datiTitolo()` in un punto solo, e `titolo.js` cade subito.
+
+#### Le due date, l'orizzonte e la fascia del dopo-voto
+
+- **`k-upd` è l'ultima VERIFICA riuscita**, letta da `dati/stato-job.json`, che il lavoro
+  notturno riscrive solo quando arriva in fondo: se una guardia lo ferma, quel file non
+  viene toccato, ed è ciò che rende lo stallo misurabile. **`k-fresh` è l'ultimo
+  SONDAGGIO.** Le due divergenze si dichiarano, con due soglie scritte una volta sola:
+  `GAP_VERIFICA` = 2 giorni (il job gira ogni notte) e `GAP_SONDAGGI` = 7 (in finestra
+  escono più di due rilevazioni a settimana, quindi sette giorni di silenzio sono un fatto
+  e non un guasto). Senza il registro — doppio clic da disco — la testata **dichiara** di
+  non sapere, invece di ripiegare in silenzio sulla data del sondaggio.
+- **`ORIZZONTE` non è `GIORNI`.** Il conto alla rovescia serve alla testata e il 28 ottobre
+  vale zero; l'orizzonte è la distanza fra il voto e la **rilevazione più recente**, e a
+  zero giorni il Monte Carlo stringerebbe gli intervalli al minimo attorno a una proiezione
+  che nessuno ha più ricalcolato — falsa precisione che **cresce mentre il dato invecchia**.
+  Una regola sola, senza rami: prima del voto le due differiscono dei giorni fra l'ultimo
+  sondaggio e oggi (due, il 22 agosto 2026), dopo l'orizzonte resta fermo. La banda dell'80%
+  del blocco misura 12 seggi il 22 agosto e 12 il 10 novembre.
+- **La fascia `#k-postvoto`** compare dal 28 ottobre e dice che la pagina non mostra
+  risultati elettorali. Il testo si scrive **sempre**, a comparire è solo la classe: così il
+  giorno in cui si vede non è il giorno in cui viene scritto per la prima volta. La data del
+  voto viene da `VOTO`, che adesso è l'**unica** sorgente — anche il calendario e il banco
+  di prova la prendono da lì, ed erano due copie in più.
+- **Il sommario a una riga sotto i 660.** Misurato a 375px: le tre voci chiedevano 706,3px
+  di testo dentro 353, cioè quattro righe e 70px. In forma corta 321,9px su **una riga**,
+  15,5px, con 31 di margine. Sopra i 660 non cambia niente. Sono **due forme dello stesso
+  dato** — l'idioma delle schede dell'house effect — e `date.js` le lega numero per numero.
 
 #### Un accoppiamento da non riscoprire rompendolo
 
@@ -1821,9 +1910,12 @@ il 37% del costo totale. Oggi i bersagli sotto i 44 sono **76 su 99**.
 
 ### Nell'ordine, quando si riprende
 
-1. **I testi**, che sbloccano tutto il resto: h1 e `<title>` — con le **due correzioni**
-   di `docs/stato-testi-titolo.md` — i cinque blocchi, e la **prosa vera al posto del
-   segnaposto** delle due frasi del deposito. Da `docs/forme-del-titolo.md`.
+1. ~~I testi~~ — **applicati il 22 agosto 2026**: h1, `<title>`, le due frasi del
+   deposito, il lede dell'house effect, la firma, la nota metodologica calcolata e le due
+   date. Vedi «I testi dell'autore, applicati il 22 agosto 2026» qui sopra.
+   **Restano senza prosa** verdetto, pastiglie, istogrammi e simulatore, e restano da
+   rileggere i **sei testi delle tre celle nuove** del titolo, che sono gli unici non
+   dettati dall'autore.
 2. **Gli apparentamenti** (punto 2 di «Ancora da fare»), e sale qui perché **non è più
    ipotetico**: il 22 agosto 2026 Abbas ha proposto alla Lista Unita araba un accordo di
    eccedenza, quindici giorni prima del deposito. Il modello oggi tratta ogni lista come
@@ -2035,7 +2127,7 @@ la regola della consegna 6».
 trovati oggi — la stella della bandiera che sconfinava nelle bande, l'occhiello a filo del
 bordo sull'ombra, il vuoto di 372px sotto le ipotesi, l'evidenziazione che competeva con
 la codifica del riempimento, il verde arabo che si leggeva nero — sono stati trovati
-**guardando la pagina**, non dalla suite. Le 1028 prove dicono che il modello non si è
+**guardando la pagina**, non dalla suite. Le 1172 prove dicono che il modello non si è
 rotto; non dicono che la pagina si veda. Dopo ogni push, aprire
 <https://angrisanidj.github.io/modello-israele/> e guardarla nei due temi.
 
@@ -2046,7 +2138,7 @@ rotto; non dicono che la pagina si veda. Dopo ogni push, aprire
 Scritta il 22 agosto 2026 per una passata sola, sezione per sezione. Serve a distinguere
 **quello che qualcuno ha già guardato reso** da **quello che nessuno ha mai visto**: in due
 giorni sono entrate parecchie cose che le prove dichiarano sane e che nessun occhio ha
-ancora confermato. Le 1028 prove dicono che il modello non si è rotto; non dicono che la
+ancora confermato. Le 1172 prove dicono che il modello non si è rotto; non dicono che la
 pagina si veda.
 
 Si guarda su <https://angrisanidj.github.io/modello-israele/>, **nei due temi forzati dal
@@ -2085,10 +2177,18 @@ document.head.insertAdjacentHTML('beforeend',
 | L'apertura da doppio clic (seme BASE) | 21 agosto | invariata, ma è la sola prova che il file sta in piedi da solo |
 | La linea della maggioranza nell'emiciclo | 21 agosto | chiusa con l'alone a due tinte |
 
-### «Aggiornato al» non dice quello che sembra
+### «Aggiornato al» non dice quello che sembra — CHIUSO A METÀ
 
 Trovato il 22 agosto 2026 preparando l'embed, e non è un difetto dell'embed: è un difetto
 della pagina che l'embed renderebbe pubblico.
+
+**La prima metà è chiusa lo stesso giorno**: `k-upd` legge `dati/stato-job.json` e dice
+l'ultima verifica riuscita, `k-fresh` dice l'ultimo sondaggio, e le due divergenze si
+dichiarano — vedi «Le due date, l'orizzonte e la fascia del dopo-voto». **La seconda no**:
+`finestra()` prende ancora come riferimento `t0 = new Date(l[0].data)`, cioè di nuovo il
+sondaggio più recente, e il sottotitolo della sezione 2 continua a poter scrivere «N
+rilevazioni pubblicate negli ultimi 7 giorni» contando da un'ancora che non è oggi. È la
+stessa famiglia, ed è l'unico pezzo rimasto: quello che segue lo descrive per intero.
 
 ```js
 var u = SOND.map(function(s){return s.data;}).sort().pop();

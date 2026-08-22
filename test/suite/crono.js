@@ -91,4 +91,4 @@ const ck={
  "il pulsante chiudi lo richiude": chiuso,
  "riclickando lo stesso si richiude": a1 && !a2,
 };
-Object.entries(ck).forEach(([k,v])=>console.log(" "+(v?"OK  ":"KO  ")+k));
+require('../esito.js')(ck);

@@ -46,4 +46,4 @@ const ck={
  "pulsante attivo evidenziato": anc[0].classList.contains('on'),
  "totale 120": Object.values(A.S().SEG).reduce((a,b)=>a+b,0)===120,
 };
-Object.entries(ck).forEach(([k,v])=>console.log(" "+(v?"OK  ":"KO  ")+k));
+require('../esito.js')(ck);

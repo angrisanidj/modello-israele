@@ -60,4 +60,4 @@ const ck={
  "simulatore rinominato": /Simulatore manuale di maggioranza/.test(D.body.innerHTML),
  "didascalia senza gergo": !/mediana simulata/.test($('k-cap1').innerHTML),
 };
-Object.entries(ck).forEach(([k,v])=>console.log(" "+(v?"OK  ":"KO  ")+k));
+require('../esito.js')(ck);

@@ -230,8 +230,16 @@ setTimeout(function(){
   esito(!disp || !/none/.test(disp.valore),
     'e non è nascosta a nessuna larghezza: la testata è il primo posto in cui si guarda se il dato è fresco',
     disp ? disp.sel + ' → ' + disp.valore : '');
-  esito(/\d/.test(upd.textContent) || upd.textContent === '—',
-    'e continua a portare una data, non un segnaposto vuoto', upd.textContent);
+  /* La testata porta l'ultima VERIFICA riuscita, letta da dati/stato-job.json. Qui il
+     fetch è respinto — jsdom non fa rete — quindi il registro non c'è, e la riga deve
+     dirlo: «ultima verifica non nota». Il difetto che la separazione chiude è proprio
+     ripiegare in silenzio sulla data dell'ultimo sondaggio, che è un'altra grandezza e
+     non si muove quando il lavoro notturno si ferma. Il caso con il registro presente
+     sta in date.js, dove il fetch è finto apposta. */
+  esito(/\d/.test(upd.textContent) || /verifica non nota/.test(upd.textContent) || upd.textContent === '—',
+    'e continua a portare una data, o dichiara di non averla: mai un segnaposto muto', upd.textContent);
+  esito(!/aggiornato al/.test(upd.textContent),
+    'e non chiama «aggiornamento» la data dell\'ultimo sondaggio, che è un\'altra cosa', upd.textContent);
 
   console.log('\nnota: ' + ok + '/' + (ok + ko));
   if (ko) process.exit(1);

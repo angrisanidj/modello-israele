@@ -43,7 +43,7 @@ const ck={
  "ripristino torna al valore iniziale": dopo.SEG.likud===base.likud && Object.keys(dopo.ESCL).length===0,
  "totale 120 dopo esclusioni": Object.values(dopo.SEG).reduce((a,b)=>a+b,0)===120,
 };
-Object.entries(ck).forEach(([k,v])=>console.log(" "+(v?"OK  ":"KO  ")+k));
+require('../esito.js')(ck);
 
 console.log("\n── verifica del filtro per istituto ──");
 [["Lazar · Panel4All"],["Midgam"]].forEach(lst=>{

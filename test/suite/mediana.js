@@ -71,7 +71,21 @@ eval(src);
    prova il reale. */
 const SEGGI = {yashar:24, likud:23, byachad:14, democratici:10, beitenu:10,
                utj:8, otzma:8, shas:7, hadash_taal:6, balad:0, raam:5, sionismo_rel:5};
-const FINTI = ['2026-08-19','2026-08-18','2026-08-17','2026-08-16','2026-08-15']
+/* LE DATE DELLA FIXTURE NASCONO DA OGGI, e dal 23 agosto 2026 devono.
+   Erano scritte a mano — 19, 18, 17, 16, 15 agosto — e reggevano finché finestra() si
+   ancorava alla rilevazione più recente: la finestra dei sette giorni conteneva sempre
+   le prime, qualunque fosse la data di esecuzione. Da quando l'ancora è OGGI, una
+   fixture con date fisse esce dalla finestra al passare dei giorni: il 23 agosto le
+   quattro rilevazioni «recenti» erano diventate tre e la mediana cadeva su un valore
+   solo invece che fra due. Non era un difetto del modello, era l'invariante 10 applicata
+   alla prova — una costante temporale scritta a mano che diventa falsa in una data che
+   nessuno ha segnato in calendario. */
+function giorniFa(k){
+  const d = new Date();
+  const u = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()) - k * 864e5);
+  return u.toISOString().slice(0, 10);
+}
+const FINTI = [giorniFa(0), giorniFa(1), giorniFa(2), giorniFa(3), giorniFa(4)]
   .map(function(d,i){ return {data:d, istituto:'Prova ' + i, campione:600,
                               seggi:Object.assign({}, SEGGI)}; });
 
@@ -201,12 +215,13 @@ setTimeout(function(){
   const BASE2 = {byachad: 14, democratici: 10, beitenu: 10, utj: 8, otzma: 8,
                  shas: 7, hadash_taal: 6, raam: 5, sionismo_rel: 5};
   const PARI = [
-    rilev('2026-08-19', 1, Object.assign({likud: 22, yashar: 24}, BASE2)),
-    rilev('2026-08-18', 2, Object.assign({likud: 22, yashar: 24}, BASE2)),
-    rilev('2026-08-17', 3, Object.assign({likud: 23, yashar: 24}, BASE2)),
-    rilev('2026-08-16', 4, Object.assign({likud: 23, yashar: 24}, BASE2)),
-    rilev('2026-08-10', 5, Object.assign({likud: 22, yashar: 24}, BASE2)),
-    rilev('2026-08-09', 6, Object.assign({likud: 22, yashar: 24}, BASE2))
+    /* quattro dentro la finestra 0–6 e due dentro la 7–13, contate da oggi */
+    rilev(giorniFa(0),  1, Object.assign({likud: 22, yashar: 24}, BASE2)),
+    rilev(giorniFa(1),  2, Object.assign({likud: 22, yashar: 24}, BASE2)),
+    rilev(giorniFa(2),  3, Object.assign({likud: 23, yashar: 24}, BASE2)),
+    rilev(giorniFa(3),  4, Object.assign({likud: 23, yashar: 24}, BASE2)),
+    rilev(giorniFa(9),  5, Object.assign({likud: 22, yashar: 24}, BASE2)),
+    rilev(giorniFa(10), 6, Object.assign({likud: 22, yashar: 24}, BASE2))
   ];
   A.setPAR('listaunita', 0);
   A.setSOND(PARI);

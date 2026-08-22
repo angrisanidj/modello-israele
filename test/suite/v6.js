@@ -56,4 +56,4 @@ const ck={
  "blocchi separati da distacco angolare, senza righe": !/stroke-width="3"/.test($('k-emi').innerHTML),
  "bottone lista unita evidenziato": D.querySelector('[data-par="listaunita"]').classList.contains('on'),
 };
-Object.entries(ck).forEach(([k,v])=>console.log(" "+(v?"OK  ":"KO  ")+k));
+require('../esito.js')(ck);

@@ -40,4 +40,4 @@ const ck={
  "sigle dei blocchi sotto i numeri": /Netanyahu<\/text>/.test(svg)&&/opposizione<\/text>/.test(svg),
  "totale 120": Object.values(global.A.S().SEG).reduce((a,b)=>a+b,0)===120,
 };
-Object.entries(ck).forEach(([k,v])=>console.log(" "+(v?"OK  ":"KO  ")+k));
+require('../esito.js')(ck);

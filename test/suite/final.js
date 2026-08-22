@@ -34,7 +34,14 @@ console.log("\n── controlli ──");
 const checks={
  "sticky popolata": txt(store['k-sprobs'].innerHTML).length>5,
  "countdown sticky": /giorni/.test(store['k-scd'].textContent),
- "data aggiornamento": /aggiornato al/.test(store['k-upd'].textContent),
+/* Le due date sono due grandezze diverse: k-upd è l'ultima VERIFICA riuscita, letta da
+    dati/stato-job.json, k-fresh l'ultimo SONDAGGIO. Qui il fetch è respinto, quindi il
+    registro non c'è e la testata deve DIRLO invece di ripiegare sulla data del sondaggio:
+    è precisamente il difetto che la separazione chiude. */
+ "la verifica non nota è dichiarata": /verifica non nota/.test(store['k-upd'].textContent),
+ "e l'ultimo sondaggio resta una data vera": /ultimo sondaggio/.test(store['k-fresh'].innerHTML)
+   && /\d{4}/.test(store['k-fresh'].innerHTML)
+   && !/aggiornato al/.test(store['k-upd'].textContent),
  "analisi non vuota": txt(store['k-analisi'].innerHTML).length>120,
  "movers popolati": store['k-movers'].innerHTML.includes('class="pr mv"'),
  "cronologia popolata": store['k-crono'].innerHTML.includes('<b>1</b>'),
@@ -48,4 +55,4 @@ const checks={
  "calendario 6 tappe": (store['k-calend'].innerHTML.match(/class="dt"/g)||[]).length===6,
  "totale 120": Object.values(SEG).reduce((a,b)=>a+b,0)===120,
 };
-Object.entries(checks).forEach(([k,v])=>console.log(" "+(v?"OK  ":"KO  ")+k));
+require('../esito.js')(checks);

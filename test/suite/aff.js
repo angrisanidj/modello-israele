@@ -25,5 +25,15 @@ A.aff(0);
 console.log("\n── controlli ──");
 A.aff(-26);A.render();const s1=A.S();
 A.aff(0);A.render();const s0=A.S();
-console.log(" OK  totale 120 in ogni scenario:",Object.values(s1.SEG).reduce((a,b)=>a+b,0)===120&&Object.values(s0.SEG).reduce((a,b)=>a+b,0)===120);
-console.log(" OK  l'affluenza bassa premia la coalizione:",s1.MC.vC/s1.MC.n>s0.MC.vC/s0.MC.n);
+/* LE DUE ASSERZIONI NON POTEVANO CADERE. Erano scritte come
+     console.log(" OK  totale 120 in ogni scenario:", <condizione>)
+   cioè stampavano «OK» SEMPRE, con il vero o falso appeso di fianco come secondo
+   argomento. Il banco conta le righe che cominciano per OK, quindi questa suite dava
+   2/2 qualunque cosa succedesse: due asserzioni che non erano asserzioni. È la stessa
+   forma di v5.js, che era morta e contava 0/0 — non falliscono, rispondono. */
+const ck={
+ "totale 120 in ogni scenario":
+   Object.values(s1.SEG).reduce((a,b)=>a+b,0)===120 && Object.values(s0.SEG).reduce((a,b)=>a+b,0)===120,
+ "l'affluenza bassa premia la coalizione": s1.MC.vC/s1.MC.n > s0.MC.vC/s0.MC.n
+};
+require('../esito.js')(ck);
