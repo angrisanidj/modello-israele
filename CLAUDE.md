@@ -29,7 +29,7 @@ alle prove.
 
 ```bash
 npm install          # solo la prima volta: installa jsdom per le prove
-npm test             # estrae il JS e lancia le 814 prove
+npm test             # estrae il JS e lancia le 1028 prove
 npm run verifica     # prove + controlli strutturali
 ```
 
@@ -41,7 +41,7 @@ prodotto, viene sovrascritto.
 ## Il banco di misura su browser vero
 
 Le prove girano in jsdom, che **non fa layout**: larghezze, altezze, contrasti resi e
-sovrapposizioni non le vede nessuna delle 814. Per quelle c'è un server statico da otto
+sovrapposizioni non le vede nessuna delle 1028. Per quelle c'è un server statico da otto
 righe, `.claude/serve.mjs`, dichiarato in `.claude/launch.json` come configurazione
 `misure`. **È sotto controllo di versione apposta: chi apre il progetto domani lo trova
 invece di rimontarlo.** Non è una dipendenza del modello — `index.html` resta un file
@@ -194,7 +194,9 @@ index.html            il modello, pubblicato così com'è come GitHub Pages
 test/
   estrai.mjs          estrae il JS da index.html in test/app.js
   esegui.mjs          lancia tutta la suite e riassume
-  struttura.mjs       controlli strutturali sul file
+  struttura.mjs       controlli strutturali sul file, compresi i due sulle composizioni
+  css.js              il foglio letto come dato: quali regole sono attive a una data
+                      larghezza. Sta FUORI da suite/ perché è una libreria, non una prova
   suite/*.js          le prove, una per area
   misura-consegna.mjs misuratore di tavolozza, a mano: node test/misura-consegna.mjs
 dati/
@@ -209,6 +211,7 @@ dati/
   eventi-grezzi.json  registro delle voci-evento da Wikipedia, in inglese, in attesa di revisione
   stato-job.json      i conteggi di ieri, riferimento delle guardie del lavoro notturno
 docs/
+  stato-testi-titolo.md  i dodici testi decisi e le due correzioni che mancano
   regola-colore.md    la specifica dei colori: bande, settori, punti, distanze
   pubblicare.md       note di lavoro
   richiesta-design-consegna-5.md  i vincoli in ORDINE, non in parallelo: vedi in fondo
@@ -302,7 +305,155 @@ leva alla volta, quella lista le esercita insieme.
    (punto 7), che è tutta costruita su quello: o l'embed chiede `allow-downloads`
    all'ospite, o dentro l'embed il pulsante di esportazione non va messo. **Non è una
    cosa da scoprire quando il PNG è già scritto.**
-2. Accordi di apparentamento (dall'8 settembre, valgono 1-2 seggi)
+2. **Accordi di apparentamento — *heskem odafim*. Non «dall'8 settembre»: il primo è
+   stato proposto il 22 agosto 2026**, quando Abbas ha offerto alla Lista Unita araba un
+   accordo di cooperazione e di condivisione dei voti in eccesso. Il primo caso concreto
+   è arrivato con **quindici giorni di anticipo sul deposito**, e questo cambia il modo
+   di costruire la tabella: **la mappa degli apparentamenti si costruisce mano a mano che
+   vengono annunciati, non tutta insieme l'8 settembre.** Ogni annuncio è una riga in
+   più, e le righe arrivano una alla volta da qui al deposito.
+
+   **Cosa fa il modello oggi.** `dhondt(sh)` — riga ~1779 — filtra le liste sopra il
+   3,25% e poi assegna 120 seggi uno alla volta col metodo dei divisori, **trattando ogni
+   lista come non apparentata**. È Bader-Ofer nella sua parte di riparto, senza la parte
+   degli apparentamenti: l'emendamento Bader-Ofer ha fatto due cose insieme — sostituire
+   i resti più alti col metodo d'Hondt *e* introdurre l'accordo di eccedenza — e il
+   modello ne implementa una sola. Lo stesso vale per `ripartoVeloce()`, la versione a
+   bisezione usata nelle 20.000 simulazioni.
+
+   **Come funziona l'accordo, e perché l'implementazione è piccola.** Due liste
+   apparentate si presentano al riparto **come una lista sola** con la somma delle quote;
+   i seggi che la lista virtuale ottiene si dividono poi **fra le due** con lo stesso
+   d'Hondt applicato alla sola coppia. La soglia del 3,25% resta **individuale**:
+   l'apparentamento non aiuta nessuno a superarla. Sono due passaggi, non un algoritmo
+   nuovo — e `dhondt()` si riusa per tutti e due.
+
+   **Costo, misurato scrivendo la variante e verificandola:** una tabella
+   `APPARENTAMENTI` letta dall'anagrafica come `PRESET` e `TAPPE` — coppie di id, non
+   liste cablate, o è la strada doppia di sempre alla prima coppia che cambia — più una
+   funzione da una ventina di righe che raggruppa, riparte e ridivide. **Verificato che
+   senza coppie riproduca esattamente il riparto di oggi**: è il primo controllo da
+   scrivere, e da lì la prova cresce. Va toccato anche `ripartoVeloce()`, o proiezione e
+   Monte Carlo direbbero due cose diverse: è una strada doppia che nasce insieme alla
+   funzionalità, e va legata da subito.
+
+   **Quanto varrebbe oggi, con l'archivio del 22 agosto 2026.** La risposta è
+   controintuitiva e va scritta perché non si rifaccia il conto:
+
+   **La coppia della notizia — Ra'am + Lista Unita araba — oggi vale ZERO seggi.**
+   Nessun seggio si muove, i blocchi restano 51 / 56 / 13. Il perché sta in tre numeri:
+
+   | | quota | seggi | divisore del seggio successivo |
+   |---|---|---|---|
+   | Ra'am | 4,23 | 5 | 0,7043 |
+   | Lista Unita araba | 6,01 | 8 | 0,6675 |
+   | **sommate** | **10,23** | **13** | **0,7310** |
+   | *serve per entrare fra i 120* | | | **0,7478** |
+
+   La coppia arriva a 0,7310 contro una soglia di 0,7478: **manca**. Sommare i resti non
+   basta quando nessuna delle due è vicina al confine.
+
+   **Ma il confine è sottilissimo, ed è lì la notizia vera.** L'ultimo seggio assegnato è
+   il decimo di Yisrael Beitenu, con divisore **0,7478**; il primo non assegnato è il
+   ventiquattresimo di Yashar, a **0,7466**. **Distanza: 0,0012, cioè 0,012 punti
+   percentuali di quota.** Con un margine così, quasi ogni apparentamento sposta un
+   seggio, e lo sposta quasi sempre da Beitenu.
+
+   **Le altre coppie plausibili, oggi:**
+
+   | coppia | effetto | blocchi |
+   |---|---|---|
+   | Likud + Sionismo Religioso | Likud 23→24, Beitenu 10→9 | coalizione **51→52** |
+   | Shas + Giudaismo Unito Torah | Shas 7→8, Beitenu 10→9 | coalizione **51→52** |
+   | Sionismo Religioso + Otzma | SR 5→6, Beitenu 10→9 | coalizione **51→52** |
+   | Yashar + B'Yachad | Yashar 23→24, Beitenu 10→9 | invariati (stesso blocco) |
+   | I Democratici + Beitenu | niente si muove | — |
+   | B'Yachad + I Democratici | niente si muove | — |
+
+   **Tre coppie del blocco Netanyahu valgono un seggio ciascuna, e lo prendono tutte
+   dalla stessa lista: Yisrael Beitenu.** Non sono cumulabili — il seggio di confine è
+   uno solo — ma dicono dove sta la fragilità.
+
+   **E non è un caso di oggi.** Spazzolando lo swing da −6 a +6 a mezzo punto, 25 stati:
+
+   | coppia | vale un seggio in | e il seggio viene da un altro blocco |
+   |---|---|---|
+   | Shas + UTJ | **14 stati su 25 (56%)** | 7 volte su 14 |
+   | Sionismo Rel. + Otzma | 10 su 25 (40%) | 7 su 10 |
+   | Yashar + B'Yachad | 9 su 25 (36%) | 8 su 9 |
+   | Likud + Sionismo Rel. | 6 su 25 (24%) | 5 su 6 |
+   | **Ra'am + Lista Unita** | **4 su 25 (16%)** | **4 su 4** |
+
+   La coppia araba è quella che vale **meno spesso** — ma **quando vale, il seggio viene
+   sempre da un altro blocco**: quattro volte su quattro. È esattamente il caso in cui un
+   seggio conta, e il modello oggi non lo vede.
+
+   **IL BANCO DI PROVA, e questa è la parte che decide.** La misura di oggi dice quanto
+   vale su *una* configurazione; il banco dice quanto vale **in generale**. Rifatto il
+   22 agosto 2026 sulle sette istantanee di `dati/storico.js`, provando **tutte** le
+   coppie possibili fra le liste sopra soglia — 362 coppie in tutto:
+
+   | istantanea | gg | liste | margine del 120° | coppie che valgono un seggio |
+   |---|---|---|---|---|
+   | 2020 · finale | 3 | 8 | 0,0077 | **20 su 28 (71%)** |
+   | 2020 · due mesi | 62 | 9 | **0,0012** | 23 su 36 (64%) |
+   | 2021 · due mesi | 58 | 11 | 0,0017 | 27 su 55 (49%) |
+   | 2021 · finale | 4 | 13 | 0,0047 | 48 su 78 (62%) |
+   | 2022 · sette settimane | 49 | 11 | **0,0202** | 14 su 55 (25%) |
+   | 2022 · cinque settimane | 38 | 11 | 0,0069 | 32 su 55 (58%) |
+   | 2022 · finale | 4 | 11 | 0,0178 | 10 su 55 (18%) |
+
+   **Su 362 coppie possibili, 174 spostano un seggio: il 48%. E in 112 casi su 174 — il
+   64% — il seggio viene dall'ALTRO blocco**, cioè cambia il conto che il grafico esiste
+   per mostrare.
+
+   Il margine del 120° seggio, sulle sette istantanee: **minimo 0,0012, mediano 0,0069,
+   massimo 0,0202**. Quello di oggi è **0,0012** — il più stretto mai registrato dal
+   banco, pari a **0,012 punti percentuali di quota**. Non è un caso limite: è il caso
+   normale, e oggi siamo all'estremo.
+
+   E una cosa che il banco mostra e la misura di oggi no: **le coppie che contano non
+   sono quelle che ci si aspetta.** Nelle istantanee del 2021 e del 2022 la coppia che
+   sposta il seggio è quasi sempre una qualunque dentro il blocco del cambiamento, e il
+   seggio lo toglie al **Likud** — `ya+jl`, `ya+yb`, `ya+labor`, `ya+rzp` danno tutte lo
+   stesso risultato. Non conta *chi* si apparenta: conta che **qualcuno** lo faccia
+   dall'altra parte del confine.
+
+   ### Le due conclusioni
+
+   Fin qui i dati. Queste due sono quello che i dati dicono, e sono la ragione per cui
+   questo punto sta al secondo posto della coda invece che fra le cose da valutare.
+
+   **1 · Vale più della metà dell'errore residuo, nel momento in cui il modello è più
+   letto.** Il banco dichiara **4,5 seggi** di errore a due mesi dal voto e **1,7
+   nell'ultima settimana** sul totale di blocco. Un apparentamento ne vale **uno**: nella
+   settimana in cui l'errore è 1,7 e la pagina viene letta di più, quell'uno è **più della
+   metà di quel che resta da sbagliare**. E il margine del 120° seggio **oggi è 0,0012**,
+   il più stretto delle sette istantanee del banco — cioè non stiamo guardando un caso
+   medio, stiamo guardando l'estremo. **Non è una raffinatezza: è la stessa grandezza
+   dell'incertezza che il modello dichiara**, e sarebbe una fonte di errore nota lasciata
+   fuori mentre se ne dichiarano di più piccole.
+
+   **2 · Vanno implementati tutti o nessuno.** Mapparne metà **rende il divario
+   sistematico invece che casuale**, ed è peggio che non mapparne nessuno: oggi il modello
+   sbaglia in modo simmetrico rispetto agli apparentamenti, perché non ne vede nessuno;
+   con metà della mappa sbaglierebbe **sempre nella stessa direzione**, quella dei blocchi
+   le cui coppie sono state annotate. Un errore casuale si dichiara nell'intervallo, uno
+   sistematico no — e il banco misura il primo, non il secondo. Da cui anche la regola
+   pratica: **se all'8 settembre la mappa è incompleta, si pubblica senza apparentamenti e
+   lo si dichiara**, non con quelli che si sono trovati.
+
+   **Corollario, e non è un dettaglio di implementazione: `dhondt()` e
+   `ripartoVeloce()` vanno toccati nello stesso commit.** Il primo fa la proiezione, il
+   secondo le 20.000 simulazioni; toccarne uno solo farebbe dire due cose diverse alla
+   stessa pagina — la proiezione con gli apparentamenti e le probabilità senza. È la
+   strada doppia di sempre, e qui **nasce insieme alla funzionalità**: va legata da una
+   prova nello stesso commit che la introduce, non dopo.
+
+   **Da sapere prima di implementare**: un apparentamento non è un dato di sondaggio ma
+   un **fatto dichiarato**, con una data e una fonte, come i veti. Va nell'anagrafica con
+   la data dell'annuncio, perché la serie storica del modello ricalcola il passato: una
+   coppia annunciata il 22 agosto non deve retroagire su una proiezione di luglio.
 3. Liste nuove e scissioni fino all'8 settembre (mappatura manuale, il parser avvisa)
 4. Incertezza sulla configurazione delle liste nel Monte Carlo
 5. Affluenza haredi (nessuna leva, ha oscillato meno di quella araba)
@@ -1587,96 +1738,198 @@ Due conseguenze pratiche, e sono quelle da ricordare:
 
 ### Lo stato al 22 agosto 2026, sera
 
-Scritto per ripartire senza la conversazione. Ultimo commit spinto: **`14c9b0b`**.
+Scritto per ripartire senza la conversazione. Ultimo commit spinto: **`c71d6ea`**, CI e
+Pages verdi, **1028 prove**.
 
-**Pubblicato e verde** — CI e Pages passate, 863 prove:
+#### Prima di toccare qualunque cosa
 
-- **la tavolozza della consegna 6**, generativa, in `dati/colore-liste.js`. Cinque strade
-  aggiornate — `P{}`, `PAL_SCURO`, `BL{}`, i quattro token CSS — e `regola.js` che le lega
-  con 63 asserzioni. Dentro il blocco 15,7 in chiaro e 12,7 in scuro, per un dicromate
-  5,71 e 5,47. Il tetto della finestra scura è **0,650 e non 0,7200**, ed è nostro: vedi
-  «Il tetto della finestra scura è 0,650, ed è nostro»;
-- **la scala divergente dell'house effect**, tabella e schede, col comando «Escludi /
-  Includi», il `(escluso)` nascosto e la regione viva del ricalcolo;
-- **il banco di prova come dato**: `BT[]`, e da lì rendono la tabella e i tre numeri —
-  4,5, 1,7 e il rapporto **2,7**, che prima era «tre volte» scritto a mano;
-- **il lede dell'house effect** e la frase del comando, nel markup;
-- **`formaTitolo()`** con le sette forme, e `test/suite/titolo.js` che le prova su tutte e
-  7381 le configurazioni;
-- **l'ancora del confronto a sette giorni** parte da oggi e non dall'ultimo sondaggio, e
-  `PREC` porta due date distinte;
-- **l'invariante 10**, «niente tempo scritto a mano».
+- **Il banco su browser vero è `.claude/serve.mjs`**, sotto controllo di versione apposta:
+  `node .claude/serve.mjs` serve la radice su `http://localhost:8788`, quindi
+  `dati/archivio.json` si carica col fetch relativo e si misura **la pagina vera**, non il
+  seme BASE. In `.claude/launch.json` è la configurazione `misure`.
+- **Le sue cinque trappole** stanno in «Il banco di misura su browser vero», e non sono
+  aneddoti: il tema che segue `prefers-color-scheme` se non lo si forza dal selettore; le
+  transizioni congelate che danno geometrie **stabili e false**; il clone misurato fuori
+  da `#kn26` che non eredita nessuna regola; un `<style>` iniettato in `<head>` che **non
+  ha effetto**, perché il foglio del modello sta nel `body` e vince per ordine di
+  sorgente; e l'`IntersectionObserver` che **non scatta in una scheda non in primo piano**
+  — l'indice non accende niente e sembra rotto.
+- Più una del DOM: `#k-house` e `#k-veti` vengono riscritti per intero a ogni render,
+  quindi un riferimento preso prima di un `click()` è morto subito dopo.
+- **`npm run verifica` deve passare per intero prima di ogni commit**, e nessun commit
+  senza che l'autore lo chieda in quel messaggio.
 
-**Fermo, in attesa dei testi dell'autore.** Il codice c'è, la prosa no:
+#### Pubblicato e verde
 
-- **l'h1 e il `<title>`**, nove celle raggiungibili: la tabella delle frequenze è in
-  `docs/forme-del-titolo.md` e serve proprio a scrivere quei testi. Il `<title>` oggi è
-  ancora una stringa fissa nel markup, riga 6, e deve diventare la forma corta della
-  stessa funzione, sotto i 60 caratteri;
-- **sommario, verdetto, pastiglie, istogrammi, simulatore**: la struttura — quale
-  grandezza in quale frase, con le condizioni — è quella concordata; i testi mancano.
-  Due cose sono già decise e vanno rispettate quando si scrivono: nel **verdetto** la
-  frase deve dire **da quando** si confronta, e adesso `PREC.taglio` e `PREC.data` sono
-  due campi distinti; negli **istogrammi** «quanti seggi mancano» si dice da
-  `61 − q(MC.coal, .50)`, la mediana, **non** da `blocchi(SEG)`;
-- **la nota metodologica**: restano le due frasi sul deposito dell'8 settembre, che oggi
-  sono al presente e diventano false il 9. Il resto della nota è già calcolato;
-- **la firma**: `Daniele Angrisani · Modello previsionale Knesset 2026 · @putino`, con
-  `@putino` su `https://x.com/putino`, senza FocusAmerica — è un modello personale, non
-  della testata. Se viene generata dal JavaScript il controllo strutturale la lascia
-  passare ed elenca il collegamento: è stato reso più preciso apposta. **Per l'embed**:
-  chi incorpora incorpora un lavoro personale, e il testo che accompagna il frammento da
-  copiare va scritto di conseguenza, o un editor attribuisce alla testata una cosa che la
-  testata non firma.
+Oltre a quanto già elencato più sopra (tavolozza della consegna 6, scala divergente
+dell'house effect, banco di prova come dato, `formaTitolo()`, invariante 10):
 
-**Il mobile: quattro cose che l'autore deve ancora dire.** Non sono state enunciate, e
-non vanno indovinate. Quello che il progetto ha già annotato su quel fronte, e che
-probabilmente le tocca:
+- **l'indice porta in vista la voce accesa** e non ha più la barra di scorrimento: sotto i
+  660 il nastro è largo 1891px in una finestra da 358, e `scrollLeft` restava a zero per
+  sempre. C'è la **sbirciata garantita**: a un bordo dove c'è ancora nastro si vedono
+  almeno 18px di testo vicino, senza mai scoprire la voce attiva;
+- **la soglia dei 61 negli istogrammi**: dominio bloccato attorno a 61, etichetta che si
+  ribalta, corpo scalato sotto i 660, e le **due fasce come margini del disegno** —
+  l'etichetta non sta più dentro l'area delle barre;
+- **la tabella dell'analisi** sotto i 660 ha quattro colonne vere invece di una orfana;
+- **i veti** hanno la riga della spiegazione sopra le pastiglie, e non si svuota più;
+- **il simulatore** apre con la scorciatoia accesa, e la composizione del blocco Netanyahu
+  ha **una sola sorgente**, il filtro sull'anagrafica;
+- **la tendenza** dirada asse e mesi sotto i 660;
+- **l'archivio è un `<details>`** attaccato al modulo che apre;
+- **le due frasi del deposito** hanno il ramo condizionale su `depositoPassato()`.
 
-- **i 380px su un browser vero**: adesso si possono guardare, il banco c'è (vedi «Il banco
-  di misura su browser vero»). L'invariante 8 — nessun testo negli SVG sotto i 5px reali a
-  380 — è verificata solo alla larghezza disponibile, non a 380;
-- **la via d'uscita dal filtro dell'emiciclo al tocco**: il ritorno alla vista piena è
-  annunciato con Esc, che al tocco non esiste, e il pulsante «Mostra tutti i seggi» sta
-  sotto la legenda, lontano dal punto in cui il dito ha appena premuto;
-- **«Giudaismo Unito Torah» va a capo** a 380 nella colonna dei nomi da 104px, e la sua
-  riga è alta 95px contro i 78 delle altre;
-- **i dischi dei marcatori sotto i 900px**, dove il `<title>` è l'unica cosa che li
-  descrive e il comando è la voce di cronologia: scelta da provare con un lettore di
-  schermo vero, non da stabilire ragionando.
+#### Fermo, in attesa dei testi dell'autore
 
-**E prima di misurare qualunque cosa su browser**: il server è `.claude/serve.mjs`, è
-sotto controllo di versione apposta, e le sue **tre trappole** stanno in «Il banco di
-misura su browser vero» — il tema che segue `prefers-color-scheme`, le transizioni
-congelate che danno geometrie stabili e false, e il clone misurato fuori da `#kn26` che
-non eredita nessuna regola del foglio. Più una del DOM: `#k-house` viene riscritto a ogni
-render, quindi un riferimento preso prima di un `click()` è morto subito dopo.
+Il codice c'è, la prosa no.
+
+- **L'h1 e il `<title>`.** I **dodici testi delle forme sono decisi**; mancano **due
+  correzioni dell'autore**, ed è scritto in `docs/stato-testi-titolo.md`: (1) i **due casi
+  della coalizione a 60** — stallo pieno contro maggioranza alternativa che esiste, che
+  oggi cadono nella stessa cella — e (2) la probabilità citata dev'essere **quella della
+  configurazione descritta**, non quella complessiva. Il `<title>` è ancora una stringa
+  fissa a riga 6 e deve diventare la forma corta della stessa funzione, sotto i 60
+  caratteri.
+- **Sommario, verdetto, pastiglie, istogrammi, simulatore**: la struttura è concordata, i
+  testi mancano. Nel **verdetto** la frase deve dire **da quando** si confronta
+  (`PREC.taglio` e `PREC.data` sono due campi distinti); negli **istogrammi** «quanti
+  seggi mancano» si dice da `61 − q(MC.coal, .50)`, la mediana, **non** da `blocchi(SEG)`.
+- **Le due frasi del deposito**: il meccanismo è pronto e provato, il testo del ramo
+  «dopo» è un **segnaposto minimo e vero** — è scritto così apposta, perché se l'8
+  settembre arriva prima della revisione la pagina dica qualcosa di corretto invece di un
+  marcatore. **Va sostituito, non lasciato.** Le due proposte sono nella conversazione del
+  22 agosto; se non ci sono più, il segnaposto dice già la sostanza.
+- **La firma**: `Daniele Angrisani · Modello previsionale Knesset 2026 · @putino`, con
+  `@putino` su `https://x.com/putino`, senza FocusAmerica — è un modello personale.
+  **Per l'embed**: chi incorpora incorpora un lavoro personale, e il testo che accompagna
+  il frammento va scritto di conseguenza.
+- **Il sommario a una riga** resta fermo finché non è decisa la **partita delle due date**:
+  `k-upd` e `k-fresh` leggono la stessa variabile, e finché non si decide quale delle due
+  diventa «ultima verifica riuscita» togliere `k-fresh` toglierebbe il pezzo sbagliato.
+
+#### Un accoppiamento da non riscoprire rompendolo
+
+**I 44px dei bersagli e `scroll-margin-top:112px` sono legati.** Portare tutti i bersagli
+a 44px costa **520px** sull'intero documento, cioè il **3,19%** — ma alzare le sole voci
+dell'indice costa 16px sul nastro, che portano `.idx` da 46,3 a 62,3 e **`.idx.on` da 97,4
+a 113,4: oltre i 112 dello `scroll-margin-top`**, cioè la fascia coprirebbe di 1,4px la
+sezione appena raggiunta da un'ancora. È esattamente il difetto chiuso togliendo la barra
+di scorrimento. **I due vanno mossi nello stesso commit, con la costante ricalcolata.**
+
+Il pezzo grosso è uno solo: i pulsanti «Escludi» dell'house effect, **20px** di altezza,
+il 37% del costo totale. Oggi i bersagli sotto i 44 sono **76 su 99**.
 
 ### Nell'ordine, quando si riprende
 
-1. **I testi**, che sbloccano tutto il resto: h1, `<title>`, i cinque blocchi, le due
-   frasi sul deposito. Da `docs/forme-del-titolo.md`.
-2. **Le quattro cose sul mobile**, appena l'autore le dice.
-3. **La revisione visiva della tavolozza nuova**: non l'ha ancora vista nessuno. La prima
-   riga della lista di controllo dice dove guardare — l'ago della bilancia, che ha il
-   pavimento dicromatico più basso, e in scuro `otzma` `#BCD2FF`, l'unica rimasta quasi
-   bianca.
-4. **Modalità `?embed=1`** (punto 1 di «Ancora da fare»).
-5. **Cercare le altre strade doppie.** Ogni valore che raggiunge lo schermo per più di un
-   percorso e non ha una prova che li leghi è il prossimo colore di blocco.
-6. **Il campo `esito`** in archivio (punto 8-bis): senza, dopo il voto la pagina può
-   parlare solo della propria stima, e l'ottava istantanea che sposterebbe il 2,7 non
-   esiste.
-7. Minore, dal filtro dell'emiciclo: vedi il mobile qui sopra.
-8. Dal parser Wikipedia: **24 righe di gennaio-aprile** hanno una cella unica che copre
-   Ra'am, Hadash–Ta'al e Balad — la Joint List larga di gennaio, che non ha contenitore in
-   anagrafica. Il parser le respinge dichiarandolo: vanno mappate a mano.
-9. Sempre dal parser: **le righe-evento arrivano in inglese** in una cronologia italiana.
-   `unisciEventi` salta le date già presenti, quindi oggi non entra niente di nuovo, ma il
-   primo evento inglese nuovo si mescolerà alle voci italiane.
-10. **L'altezza uniforme delle righe della tabella dell'analisi** non è provabile in jsdom:
-   dipende dal font e si vede solo su browser vero. Se si tocca il corpo, la colonna o il
-   font, va rimisurato col browser.
+1. **I testi**, che sbloccano tutto il resto: h1 e `<title>` — con le **due correzioni**
+   di `docs/stato-testi-titolo.md` — i cinque blocchi, e la **prosa vera al posto del
+   segnaposto** delle due frasi del deposito. Da `docs/forme-del-titolo.md`.
+2. **Gli apparentamenti** (punto 2 di «Ancora da fare»), e sale qui perché **non è più
+   ipotetico**: il 22 agosto 2026 Abbas ha proposto alla Lista Unita araba un accordo di
+   eccedenza, quindici giorni prima del deposito. Il modello oggi tratta ogni lista come
+   NON apparentata, e il confine del 120° seggio è a **0,0012 di divisore**: quasi ogni
+   apparentamento ne sposta uno, e quasi sempre lo toglie a Yisrael Beitenu.
+   **Il banco di prova dice che non è un caso limite**: sulle sette istantanee storiche,
+   **174 coppie su 362 spostano un seggio (48%), e nel 64% dei casi il seggio viene
+   dall'altro blocco**. Vale **uno** su un errore dichiarato di **1,7 seggi nell'ultima
+   settimana**: più della metà dell'incertezza residua, nel momento in cui la notizia si
+   scrive. La misura completa — le coppie, le percentuali, e il perché quella araba oggi
+   vale zero — sta nel punto 2 di «Ancora da fare». **La tabella si riempie mano a mano
+   che gli accordi vengono annunciati**, non tutta insieme l'8 settembre.
+3. **La tabella dei sondaggi** (`#k-tab`, sezione 11): è la sola sezione che non è stata
+   guardata in questo giro. Ventidue colonne dentro `.scroll`, larga 1288,9px, che non
+   sfora perché scorre da sé — ma **a 380 il 74% resta fuori**, e nessuno ha misurato che
+   cosa si legga davvero: quali colonne servono su un telefono, se la data e l'istituto
+   debbano restare fissi mentre le liste scorrono, e se le 173 righe abbiano bisogno di un
+   limite o di un caricamento progressivo.
+4. **La revisione visiva della tavolozza nuova**: non l'ha ancora vista nessuna persona.
+   La prima riga della lista di controllo dice dove guardare — l'ago della bilancia, che
+   ha il pavimento dicromatico più basso, e in scuro `otzma` `#BCD2FF`.
+5. **Le quattro cose sul mobile**, appena l'autore le dice. Una delle quattro —
+   «Giudaismo Unito Torah» che va a capo — **è caduta da sé** con la tabella dell'analisi.
+6. **Modalità `?embed=1`** (punto 1 di «Ancora da fare»). L'incorporabilità tecnica è già
+   verificata; quel che manca è la modalità.
+7. **Esportazione PNG dei quattro disegni** (punto 7): inventario fatto, decisioni prese,
+   codice non scritto. **Viene dopo la revisione visiva**, non prima.
+8. **Le meta Open Graph per l'anteprima nelle condivisioni.** Oggi la pagina **non ne ha
+   nessuna**: condividendo il link su Facebook, X o WhatsApp non esce nessuna immagine.
+   Servono `og:title`, `og:description`, `og:image`, `og:url`, `twitter:card` e le
+   varianti. Sta **dopo il PNG** perché ne riusa i pezzi, e prima della verifica a
+   scenari.
+
+   **Una decisione già presa: non la bandiera israeliana.** È l'immagine del paese, non
+   del modello, e in un'anteprima si legge come una presa di posizione. **L'emiciclo dice
+   «proiezione parlamentare» e porta il numero che conta** — dentro il suo viewBox ci sono
+   già «MAGGIORANZA 61» e i tre totali di blocco.
+
+   **Quattro punti da diagnosticare quando ci si arriva**, e i primi numeri sono già presi
+   il 22 agosto 2026:
+
+   1. **Cosa esce oggi.** Il `<head>` ha solo `charset`, `viewport`, `title`, due favicon
+      in data URI e `theme-color`: **zero `og:`, zero `twitter:`, nessuna
+      `description`, nessun `canonical`, nessun `<img>` nel markup.** Un aggregatore
+      costruirebbe il titolo dal `<title>` e per il resto pescherebbe dal corpo — che
+      senza JavaScript comincia con l'h1 statico e poi con **l'avviso di avvio**: «Il
+      modello non è ancora partito. Questa pagina calcola tutto nel browser…». È il primo
+      paragrafo che uno scraper trova, ed è quanto di peggio potrebbe finire in
+      un'anteprima.
+   2. **L'immagine dev'essere un file statico.** Le anteprime **non eseguono
+      JavaScript**: né l'SVG reso né un PNG generato al volo servono a niente, e nemmeno
+      un `og:image` che punti a una rotta dinamica. **La genera il lavoro notturno**
+      insieme all'archivio, con gli stessi pezzi dell'esportazione PNG — serializzare
+      l'SVG, iniettare `xmlns`, `width`, `height` e `font-family`, rasterizzare. Il job
+      oggi tocca **solo `dati/`** e committa tre file; aggiungerne un quarto è dentro le
+      sue guardie, ma va deciso: serve un rasterizzatore in CI (il job gira su Node, non
+      in un browser), e va misurato cosa costa in tempo e in peso del repository.
+   3. **Le dimensioni.** Lo standard è **1200×630**, rapporto 1,9048. L'emiciclo ha
+      viewBox `0 0 430 232`, rapporto **1,8534** — quasi identico. A piena altezza entra
+      in **1168×630** con 16px di margine per lato e **zero** in verticale: nessuno spazio
+      per la targa. Con la targa, misurato: disegno largo **1000 → alto 540, restano 90**;
+      **900 → 486, restano 144**; **860 → 464, restano 166**. L'inchiostro vero è
+      386,7×217 con 21,6 unità di margine vuoto a sinistra, quindi c'è un po' di
+      ricentratura da fare prima di incorniciare.
+   4. **Titolo e descrizione: generati o fissi.** Se devono seguire lo stato del modello
+      come l'h1, **non possono cambiare a ogni render** — un aggregatore legge il file
+      servito, non la pagina calcolata. Quindi **li scrive il job**, nello stesso passaggio
+      dell'immagine, e diventano il primo caso in cui il lavoro notturno tocca
+      `index.html`: oggi è escluso per principio — «ogni commit del job su quel file
+      sarebbe per definizione un'anomalia» — e quella regola andrebbe riscritta con
+      un'eccezione stretta e provata, oppure le meta vanno in un frammento a parte.
+      **È la decisione che pesa di più delle quattro.**
+9. **I 44px dei bersagli**, in un giro suo e con `scroll-margin-top` ricalcolato nello
+   stesso commit: vedi «Un accoppiamento da non riscoprire rompendolo» qui sopra.
+10. **La prova di regia per l'8 settembre.** Il deposito delle liste è il giorno in cui
+   quasi tutte le cose annotate qui vengono esercitate insieme, e **non si improvvisa la
+   sera stessa**: va provato prima, su una copia dell'archivio. Cosa succede quando
+   arrivano liste nuove, fusioni e scissioni tutte insieme — il parser che apre una issue
+   con le colonne da mappare, `COLORE.capienza()` e la scala di ripiego per l'ago della
+   bilancia (che in tema chiaro ha **zero slot liberi**), la soglia delle schede
+   dell'house effect che sale a ~1190 con quindici colonne, i veti che cambiano sotto,
+   `PRESET.netanyahu` che si aggiorna da sé, `dentro` per le componenti nuove, e le 24
+   righe di gennaio-aprile che aspettano una mappatura a mano. La riga «scenari di lista»
+   della verifica a scenari è la lista di controllo; questa è la **prova generale**.
+11. **La verifica a scenari** (in fondo al file): l'ultima cosa prima di pubblicare.
+12. **Un inventario delle funzionalità con i numeri veri**, per i post di lancio.
+    **Non i post — quelli li scrive l'autore — ma il materiale**: cosa fa il modello e
+    come, quante simulazioni Monte Carlo, quante rilevazioni in archivio e quante nella
+    finestra, il banco di prova sulle tre elezioni con l'errore per istantanea,
+    l'aggiornamento notturno e che cosa fanno le sue guardie, l'incorporabilità.
+    Va compilato **alla fine**, quando i numeri sono quelli definitivi: un inventario
+    scritto adesso invecchierebbe prima di essere usato.
+13. **Cercare le altre strade doppie.** Ogni valore che raggiunge lo schermo per più di un
+    percorso e non ha una prova che li leghi è il prossimo colore di blocco. In questo
+    giro ne sono cadute due — la composizione del blocco Netanyahu (**quattro** copie, una
+    nel parser notturno) e il calendario elettorale — e una si è rivelata **non** essere
+    tale: la numerazione delle sezioni ha due meccanismi ma una sorgente sola.
+14. **Il campo `esito`** in archivio (punto 8-bis): senza, dopo il voto la pagina può
+    parlare solo della propria stima, e l'ottava istantanea che sposterebbe il 2,7 non
+    esiste.
+15. Minore, dal filtro dell'emiciclo: la via d'uscita al tocco.
+16. Dal parser Wikipedia: **24 righe di gennaio-aprile** con una cella unica che copre
+    Ra'am, Hadash–Ta'al e Balad. Il parser le respinge dichiarandolo: vanno mappate a mano.
+17. Sempre dal parser: **le righe-evento arrivano in inglese** in una cronologia italiana.
+18. **L'altezza uniforme delle righe della tabella dell'analisi** non è provabile in jsdom:
+    se si tocca il corpo, la colonna o il font, va rimisurata col browser.
 
 ### Le due colonne «Seggi»: cosa è chiuso e cosa resta aperto
 
@@ -1782,7 +2035,7 @@ la regola della consegna 6».
 trovati oggi — la stella della bandiera che sconfinava nelle bande, l'occhiello a filo del
 bordo sull'ombra, il vuoto di 372px sotto le ipotesi, l'evidenziazione che competeva con
 la codifica del riempimento, il verde arabo che si leggeva nero — sono stati trovati
-**guardando la pagina**, non dalla suite. Le 814 prove dicono che il modello non si è
+**guardando la pagina**, non dalla suite. Le 1028 prove dicono che il modello non si è
 rotto; non dicono che la pagina si veda. Dopo ogni push, aprire
 <https://angrisanidj.github.io/modello-israele/> e guardarla nei due temi.
 
@@ -1793,7 +2046,7 @@ rotto; non dicono che la pagina si veda. Dopo ogni push, aprire
 Scritta il 22 agosto 2026 per una passata sola, sezione per sezione. Serve a distinguere
 **quello che qualcuno ha già guardato reso** da **quello che nessuno ha mai visto**: in due
 giorni sono entrate parecchie cose che le prove dichiarano sane e che nessun occhio ha
-ancora confermato. Le 814 prove dicono che il modello non si è rotto; non dicono che la
+ancora confermato. Le 1028 prove dicono che il modello non si è rotto; non dicono che la
 pagina si veda.
 
 Si guarda su <https://angrisanidj.github.io/modello-israele/>, **nei due temi forzati dal
