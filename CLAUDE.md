@@ -57,7 +57,7 @@ non può prendere: la larghezza minima della tabella dell'house effect (941,8px,
 col comando nuovo), l'altezza delle schede a 380 (1225,4 → 1317,9), il diametro reso del
 seggio dell'emiciclo (15,07px a 1265 e 8,19 a 380).
 
-**Tre trappole del banco, e la terza è la più cattiva.**
+**Cinque trappole del banco, e la terza è la più cattiva.**
 
 1. **Il riquadro segue `prefers-color-scheme`.** Con il tema su «auto» si misura quello
    che decide il sistema, non quello che si crede di misurare: capita di credere di essere
@@ -77,6 +77,26 @@ seggio dell'emiciclo (15,07px a 1265 e 8,19 a 380).
    applicano. Misurato: la larghezza minima della tabella dava **701,7px** col clone
    appeso al `body` e **941,8** appeso a `#kn26`. Il clone va dentro `#kn26`, e la
    conferma che la misura è buona è che riproduca un numero già noto.
+4. **Un `<style>` iniettato in `<head>` non ha effetto.** Il foglio del modello sta
+   **dentro il `body`** — apre a riga 146 e chiude appena prima della bandiera — quindi a
+   parità di specificità vince per **ordine di sorgente**, e una regola di prova messa in
+   testa perde in silenzio. Scoperta il 22 agosto 2026 misurando le pastiglie dei
+   parametri: le prime misure del nastro orizzontale erano **identiche a quelle di
+   partenza** — 187px, 2/3/2 righe — e sembravano dire che `flex-wrap:nowrap` non
+   cambiasse niente. Non era vero: la regola non era mai stata applicata. È la forma di
+   difetto peggiore perché **non fallisce, risponde** — e risponde il numero di prima,
+   che è esattamente quello che ci si aspetta di leggere quando si crede che una cosa non
+   funzioni. Il foglio di prova va appeso a `document.body`, oppure ogni dichiarazione
+   porta `!important` (che è il motivo per cui lo spegnimento delle transizioni della
+   trappola 2 funziona anche dalla testa).
+5. **In una scheda che non è in primo piano l'`IntersectionObserver` non scatta.** Il
+   riquadro del browser tiene le schede aperte e le pilota anche da dietro, ma lì Chrome
+   sospende le notifiche di intersezione: l'indice non accende nessuna voce, `scrollLeft`
+   resta a zero e la pagina sembra rotta. Verificato il 22 agosto 2026 con un osservatore
+   di controllo montato a mano sulle stesse sezioni e con lo stesso `rootMargin`: **zero
+   notifiche** a scheda dietro, tutte e undici appena portata davanti. Riguarda l'indice,
+   la comparsa progressiva delle sezioni e qualunque cosa si appoggi a quell'API. Prima di
+   misurare l'indice, **portare la scheda in primo piano**.
 
 E una del DOM, non del banco: **`$('k-house').innerHTML` viene riscritto per intero a ogni
 `render()`**, quindi un riferimento preso prima di un `click()` è morto subito dopo. Due
@@ -99,6 +119,10 @@ commit* spiegando perché nel messaggio.
    viene rimosso dal JavaScript al primo render riuscito. Serve a chi apre il file in anteprima.
 7. **Contrasto leggibile** nei due temi, chiaro e scuro.
 8. **Su schermo stretto** (viewport 380 px) nessun testo negli SVG scende sotto i 5 px reali.
+   **Cinque è un pavimento, non un obiettivo, e va saputo**: l'etichetta «61 =
+   maggioranza» degli istogrammi stava a **7,09px** — dentro l'invariante, e illeggibile.
+   Chiusa il 22 agosto 2026 portandola a 10,98; `soglia.js` chiede **almeno 9px reali**
+   per quella. Vedi «La soglia dei 61 negli istogrammi».
 9. **L'opacità non è un canale.** Può ridurre l'enfasi, ma non può essere l'unico portatore
    di una distinzione, e non si applica a testo che in quello stato va letto. Ogni
    `opacity` sotto 1 che raggiunge del testo deve comparire nell'inventario di
@@ -1031,6 +1055,247 @@ si vede subito e in una prova di posizione no.
 **Resta da guardare a occhio**, ed è nella lista della revisione: la barra al 30% era anche
 quello che rendeva il disco un centro. A opacità piena l'intervallo è un'asta piena con una
 lente in mezzo, ed è la figura giusta — ma è una figura diversa da quella di ieri.
+
+## L'indice sotto i 660: la voce accesa, la barra tolta, la sbirciata
+
+Applicato il 22 agosto 2026. Sotto i 660 la fascia dell'indice è un nastro orizzontale
+(`flex-wrap:nowrap; overflow-x:auto`): a 380 è largo **1891px in una finestra da 358**,
+cioè il **18,9% visibile** e 1533 fuori.
+
+### La voce accesa non veniva mai portata in vista
+
+`scrollLeft` restava **zero per sempre**, perché niente lo muoveva: dalla terza sezione in
+poi la pastiglia accesa stava fra x 276 e x 1713. **L'indice segnalava dove sei su un
+nastro che non lo mostrava**, e su undici punti di scorrimento campionati otto avevano la
+voce attiva fuori schermo.
+
+Rimedio: `inVista(nav, a)` centra la voce accesa muovendo `nav.scrollLeft` **a mano, non
+con `scrollIntoView`** — quello scorre tutti gli antenati scorrevoli, documento compreso,
+e con la fascia appiccicata a `top:0` una voce tagliata dal bordo farebbe scorrere la
+pagina: l'indice combatterebbe contro il dito. Verificato su otto passi che attraversano
+un cambio di sezione: `scrollY` chiesto e ottenuto coincidono otto volte su otto.
+
+La posizione si ricava dai **rettangoli resi più lo `scrollLeft` corrente**, non da
+`offsetLeft` — quello si misura dall'antenato posizionato, che qui è la fascia stessa,
+`position:sticky` contando come posizionata.
+
+Sopra i 660 il nastro va a capo e non scorre: `inVista` esce alla prima guardia, e
+`indice.js` lo prova **contando le scritture** di `scrollLeft`, non il valore finale —
+col solo valore il serraggio riporterebbe comunque a zero e la guardia potrebbe sparire
+senza che nessuno se ne accorga.
+
+### La barra di scorrimento tolta, e non è cosmesi
+
+**A riposo, in questo browser, la barra non si vedeva già**: è in sovrimpressione,
+`offsetHeight − clientHeight = 0` anche forzando `scrollbar-width:auto`. Il problema è
+dove le barre sono classiche, e il conto è questo:
+
+| | nav | `.idx` | `.idx.on` | contro `scroll-margin-top:112px` |
+|---|---|---|---|---|
+| barra in sovrimpressione | 33,3 | 51,3 | 102,4 | ✔ |
+| **barra classica da 11px** | 44,3 | 62,3 | **113,5** | ✘ **sfora di 1,5px** |
+| **senza barra e senza `padding-bottom:5px`** | **28,3** | **46,3** | **97,4** | ✔ e −5px per schermata |
+
+Quei 5px di `padding-bottom` esistevano **per la barra** — il commento nel foglio lo
+diceva — e se ne sono andati con lei. Togliere la barra rende l'altezza **indipendente
+dalla piattaforma**, che è quello che serve a una costante come `scroll-margin-top`.
+Nessun modo di scorrere si perde: il dito trascina, la rotella scorre, il fuoco porta il
+nastro da solo (misurato: fuoco sull'undicesima voce, `scrollLeft` 0 → 1533).
+
+### La sbirciata garantita, al posto della sfumatura
+
+Tolta la barra, il segnale che il nastro continua è **la pastiglia tagliata al bordo**, e
+regge quasi sempre. Misurato sulle undici posizioni di riposo, cioè venti bordi: una
+pastiglia tagliata si vede in **20 su 20**, il **testo** tagliato in **19 su 20**, con un
+minimo di 31,6px. Il ventesimo cade: alla sezione 3 il bordo sinistro finiva dentro
+l'imbottitura di coda della prima voce — **6,6px di niente** — mentre la seconda restava
+intera, così il nastro sembrava cominciare lì.
+
+Rimedio: se a un bordo dove c'è ancora nastro si vede meno di **18px di testo**, lo
+scorrimento si sposta quel tanto che basta. **Costo: zero pixel, zero colori, nessun
+comando, nessun ascoltatore.** Cambia **una sola posizione su undici** — la terza, da 175
+a 153 — e sul browser mostra esattamente 18px del testo precedente.
+
+**Il vincolo che la rende sicura**: la voce attiva non dev'essere **mai** scoperta. È
+serrata fra le due posizioni estreme che la tengono intera, e se non c'è spazio la
+sbirciata si rinuncia — meglio nessun segnale che perdere la voce che il lettore cerca.
+Lo slittamento disponibile vale `(finestra − larghezza della pastiglia)/2`, cioè fra 47,2
+e 135,6px, e ne servono 22.
+
+**La sfumatura è stata scartata, e non per il difetto che sembrava.** Una `mask-image`
+sfuma verso il **trasparente**, quindi non conosce nessun fondo e non ne servono due per i
+due temi: quel problema non c'era. Restavano gli altri due, e sono decisivi — servirebbe
+un ascoltatore di `scroll` più due classi per accenderla solo dal lato giusto, e
+soprattutto **attenua del testo**, che è la famiglia dell'invariante 9. Non essendo
+`opacity` non comparirebbe da sola nell'inventario di `test/suite/opacita.js`:
+**nascerebbe con un buco**.
+
+### Due cose che la prova ha imposto al codice
+
+- **Le guardie sugli estremi sono state tolte** perché ridondanti: oltre la fine del
+  nastro non esistono voci, quindi la ricerca del candidato non trova niente e lo
+  scorrimento non si muove. Una guardia che nessuna mutazione fa cadere è codice che
+  nessuna prova esercita.
+- **La misura del testo al bordo ha perso il parametro di verso.** La prima stesura
+  prendeva un `verso` e lo usava per scegliere fra coda e testa: **invertirlo non faceva
+  cadere nessuna prova**. Riscritta come «la parte della scatola d'inchiostro che cade
+  dentro la finestra», vale identica ai due bordi e non c'è più niente da invertire. *Una
+  forma che non si può sbagliare vale più di una prova che coglie l'errore.*
+
+E una asserzione scritta e tolta: «dove il bordo resta debole è perché il serraggio lo
+vietava» **cadeva** in una finestra da 240 sulle sezioni 5, 6 e 9 — non per un difetto, ma
+perché lì i due bordi entrano in **conflitto**: scoprire a sinistra ricopre a destra. Il
+vincolo che si pretende è quello di sicurezza, e basta quello.
+
+## La soglia dei 61 negli istogrammi: tre mosse che sono un blocco solo
+
+Applicate il 22 agosto 2026. Sono tre e vanno insieme, perché **la terza da sola
+peggiora la seconda**. La prova è `test/suite/soglia.js`, 31 asserzioni.
+
+### 1 · Il dominio può escludere la soglia che il grafico esiste per mostrare
+
+È il difetto grosso, e non era registrato da nessuna parte. `mn` e `mx` uscivano dai
+**soli quantili simulati** — `q(arr,.002)-1` e `q(arr,.998)+1` — quindi quando un blocco
+crolla la soglia esce dal tratto disegnato:
+
+| swing | dominio della coalizione | x61 | che si vedeva |
+|---|---|---|---|
+| −6 | 30–57 | **504,4** su un viewBox largo 460 | **niente**: né linea né etichetta |
+| −5 | 30–59 | **471,1** | niente |
+| −4 | 30–60 | 456 | la linea a quattro unità dal bordo, l'etichetta già tutta fuori |
+
+**Non è un difetto della resa stretta.** Il viewBox è fisso, quindi a 1265 succede
+identico: si nota meno perché tutto è più grande. E non lo diceva niente — il grafico
+perdeva in silenzio la cosa per cui esiste.
+
+Rimedio: `mn ≤ 60` e `mx ≥ 62`, **non 61 e 61**, così la soglia ha sempre almeno un
+cestello per parte e si legge l'attraversamento invece di un bordo. Costa qualche
+cestello vuoto agli estremi — a swing −6 si passa da 28 a 33 cestelli e la barra si
+stringe del 15% — e i cestelli vuoti erano **già previsti**: il contorno
+dell'evidenziazione ha un'altezza minima apposta, scritta per un altro motivo.
+
+### 2 · L'etichetta si ribalta, e il ribaltamento è dimostrabile
+
+Era sempre a destra della linea, e il bordo del viewBox la tagliava (`svg:root` ha
+`overflow:hidden`). Misurato: **nello stato predefinito, 12 render su 12** — di 0,2
+unità in cinque e di 12,4 (8,8px a 380, circa due caratteri) negli altri sette, perché
+il dominio oscilla fra `mx=65` e `mx=66` **fra un Monte Carlo e l'altro**. Sullo swing,
+9 stati su 26, fino a 136 unità, cioè zero per cento visibile.
+
+`ETIW` è la larghezza **dichiarata**: 12 unità per unità di corpo. Misurata su undici
+famiglie — la pila del foglio dà 8,57, Times 7,68, Georgia e Tahoma 9,30, Verdana 10,30
+— quindi 12 sta il 17% sopra la più larga vista e il 40% sopra quella che la pagina usa.
+**Sovrastimare non costa niente**: fa ribaltare un po' prima del necessario, mai troppo
+tardi.
+
+**La sicurezza è algebrica, non statistica.** Perché il ribaltamento serva, `x61`
+dev'essere oltre `W−6−ETIW`; e lì a sinistra restano `W−12−ETIW` unità. A corpo 15,5
+sono 262 contro le 186 che servono. Il caso «non ci sta da nessuna parte» **non esiste
+finché `ETIW ≤ (W−12)/2 = 224`**, e siamo sotto del 17%. La garanzia **non** è «a
+sinistra ci sta sempre» — a swing −6 l'opposizione ha `x61` a 159,4 e a sinistra non ci
+starebbe — ma «**quando a destra non ci sta, a sinistra sì**». È l'unica implicazione
+che serve, ed è quella che la prova asserisce.
+
+### 3 · Il corpo scala sotto i 660, come già faceva la tendenza
+
+Il viewBox è fisso e l'SVG scala al contenitore: a 380 il reso è 326px, fattore
+**0,7087**, quindi un `font-size` 10 rende **7,09px reali**. `#k-trend` aveva già
+`MOB`/`FS`; `istogramma()` era l'unico dei quattro disegni senza. Con `FS=1,55`
+l'etichetta rende **10,98px**, i numeri d'asse 10,98, la didascalia 11,55.
+
+**L'invariante 8 — niente sotto i 5px a 380 — passava a 7,09.** È «misurare convince di
+aver guardato» un'altra volta: la proprietà scelta era vera e non copriva quella che
+serviva.
+
+E **da sola questa mossa peggiora la 2**: a corpo 15,5 l'etichetta passa da 85,7 a 132,7
+unità e il taglio sale **da 14 stati su 26 a 20**. I due numeri sono nella prova, che
+gira lo spazzolamento a tutti e due i corpi apposta.
+
+### 4 · Le due fasce, e l'alone che è vissuto un giorno
+
+**L'alone `--card` è esistito per un giorno solo, ed è la storia più istruttiva di
+questo blocco.** Difetto trovato misurando: l'etichetta sta **dentro** l'area delle barre
+e di norma sta **a destra** della linea, cioè sopra quelle a opacità piena. Su 50 stati,
+in **8** finiva sopra barre piene, dove `--ink` sta a **1,56** in chiaro sull'opposizione
+e **2,04** in scuro sulla coalizione. L'alone chiudeva quel contrasto — e non chiudeva
+niente altro.
+
+**Perché non bastava, e il numero lo dice.** Misurato con l'inchiostro vero sugli stessi
+50 stati: l'etichetta si sovrapponeva **a delle barre in 33** e **alla fascia dell'80% in
+48**. Il contrasto era il sintomo più acuto del 18%; la sovrapposizione era il 96%.
+L'alone era il rimedio al sintomo.
+
+**Rimedio alla causa: le due fasce come margini del disegno.**
+
+| | prima | **desktop** | **sotto i 660** |
+|---|---|---|---|
+| `T`, fascia alta | 16 | **32** | **42** |
+| `PH`, area del disegno | 152 | **152** | **152** |
+| `B`, fascia bassa | 42 | **50** | **78** |
+| `H` del viewBox | 210 | **234** | **272** |
+
+**`PH` non cambia mai, ed è la parte che va difesa**: la variante a `H` fissa avrebbe
+pagato i margini coi dati — a 380 la barra più alta sarebbe scesa da 107,7 a **67,3px**
+resi. Le fasce scalano col corpo, il disegno no. Il triangolo della stima puntuale è una
+forma, non un testo: non scala, e ha una riga sua dentro la fascia alta.
+
+**È la stessa mossa dei marcatori della tendenza**: i dischi sono entrati nell'SVG e la
+crescita se l'è presa il margine, non il grafico. E trasforma sei numeri sciolti — `y=24`,
+`y=14`, `y=16`, `H−B+15`, `+24`, `+38` — in quote **derivate** da `T`, `PH`, `B`.
+
+**Chiude anche una collisione latente che nessuno aveva mai vista**: il triangolo della
+stima puntuale stava a `y 2..10` e l'etichetta a `12,57..33,73`, cioè a **2,5 unità**, e
+alla **stessa x quando la stima puntuale vale 61** — il caso più interessante. Non è mai
+avvenuta; ora sono due righe dichiarate e una prova le tiene separate.
+
+**L'alone è stato tolto**, e la prova che lo chiedeva è stata sostituita da quella forte:
+**nessun testo si sovrappone a una barra né alla fascia dell'80% né al triangolo**. Vale
+per qualunque testo, anche uno aggiunto domani. Verificato prima di applicare le fasce che
+fallisse: **43 su 50 sulle barre e 50 su 50 sulla fascia** con la scatola stimata per
+eccesso che la prova usa (33 e 48 con l'inchiostro vero misurato su browser).
+
+### La didascalia cominciava dentro il disegno e finiva sul bordo
+
+Stesso difetto, altra estremità, e i numeri sono quelli che hanno deciso `B`:
+
+| | 380 | 760 | 1265 |
+|---|---|---|---|
+| scala dell'80% → cima della didascalia, **prima** | **1,42px** | 8,79 | 6,81 |
+| altezza dell'inchiostro della didascalia | 11,55 | 10,00 | 11,35 |
+| rapporto | **0,12** | 0,88 | 0,60 |
+| fondo della didascalia → bordo del viewBox, **prima** | **0,00px** | 2,93 | 2,27 |
+| | | | |
+| scala → didascalia, **dopo** | **13,47** | **17,58** | **13,62** |
+| fondo → bordo, **dopo** | **4,11** | 5,86 | 4,54 |
+| asse → cima dei numeri, **dopo** | **8,72** (era 2,83) | 11,72 | 9,08 |
+
+**La regola che ha deciso i numeri**, e vale a tutte e due le larghezze: *fra il disegno e
+la didascalia ci dev'essere almeno l'altezza dell'inchiostro della didascalia stessa*.
+`soglia.js` prova quella, non i numeri — così se il corpo cambia la regola resta.
+
+Costo in altezza reso: **+44,0px per grafico a 380** (148,8 → 192,8), +35,2 a 760
+(307,7 → 342,9), +27,2 a 1265 (238,3 → 265,5). A 380 sono +88px sulla sezione 1, cioè il
+**+4,2%** di quella sezione e lo **0,5% della pagina**.
+
+### Un serraggio scritto, misurato e tolto
+
+La didascalia dell'80% scala anche lei, e a corpo 16,3 misura 260 unità con la pila del
+foglio e 309 nel caso peggiore: sembrava servire un serraggio del centro dentro il
+viewBox. **Misurato: non morde in nessuno dei 26 stati** — il centro della fascia resta
+fra 182,1 e 237,6, con 27,5 unità di margine nel caso peggiore e 52,1 con la larghezza
+vera. Era codice che nessuna prova poteva esercitare, cioè la cosa contro cui questo file
+mette in guardia. **Tolto, e al suo posto c'è una prova che misura quel margine**: se un
+giorno una distribuzione spinge la fascia di lato, cade e si vede. Il serraggio l'avrebbe
+nascosta.
+
+### Misurato su browser dopo, che è la parte che la suite non dice
+
+A **380**, sui 26 stati dello swing: zero senza il cestello dei 61, zero con la linea
+fuori, **zero sforamenti**. L'etichetta va a sinistra 18 volte e a destra 8 — le usa
+tutte e due. A swing −6 il dominio della coalizione è **30–62** e la linea si vede, dove
+prima non c'era. A **760** il corpo resta 10 (14,65px resi) e lo sforamento è zero in
+tutti e 26 gli stati: **il ribaltamento ripara anche lì**, perché il taglio non era mai
+stato un difetto del mobile.
 
 ## Calendario
 

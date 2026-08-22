@@ -975,8 +975,20 @@
 #kn26 section{scroll-margin-top:92px;}
 
 @media(max-width:660px){
- /* su schermo stretto l'indice resta su una riga e scorre: la barra è colorata e visibile */
- #kn26 .idx nav{flex-wrap:nowrap;overflow-x:auto;padding-bottom:5px;}
+ /* Su schermo stretto l'indice resta su una riga e scorre, ma SENZA barra.
+    Non è cosmesi: la barra rendeva l'altezza dipendente dalla piattaforma. Qui è in
+    sovrimpressione e non ruba niente — misurato, offsetHeight − clientHeight = 0 anche
+    forzando scrollbar-width:auto — ma dove le barre sono classiche prenderebbe gli 11px
+    dichiarati in ::-webkit-scrollbar, e allora nav 44,3 → .idx 62,3 → .idx.on 113,5
+    CONTRO scroll-margin-top:112px: la fascia appiccicata coprirebbe di 1,5px la sezione
+    appena raggiunta da un'ancora. Tolta la barra, l'altezza è la stessa ovunque.
+    Il padding-bottom:5px c'era per lei e se ne va con lei: .idx.on passa da 102,4 a
+    97,4, cioè cinque pixel restituiti a ogni schermata.
+    Il segnale che il nastro continua non è la barra — che a riposo, in sovrimpressione,
+    non si vede già oggi: è la pastiglia tagliata al bordo, e ci pensa la sbirciata
+    garantita in inVista(). */
+ #kn26 .idx nav{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;}
+ #kn26 .idx nav::-webkit-scrollbar{display:none;}
  #kn26 .idx a{flex:none;}
  #kn26 .idx .sp{gap:13px;}
  #kn26 .idx .lb{display:none;}
@@ -2236,7 +2248,67 @@ function rProb(){
  if(SW) $('k-simn').textContent=f(SIM)+' simulazioni · swing '+(SW>0?'+':'')+f(SW,1)+' pt verso la coalizione';
 }
 function istogramma(arr,col,el,lab,centr,soglia){
- var mn=Math.max(30,q(arr,.002)-1),mx=Math.min(90,q(arr,.998)+1),W=460,H=210,B=42,Lm=4;
+ /* IL DOMINIO COMPRENDE SEMPRE LA SOGLIA DEI 61.
+    Il difetto, misurato il 22 agosto 2026 e mai registrato prima: mn e mx uscivano dai
+    soli quantili simulati — q(arr,.002)-1 e q(arr,.998)+1 — quindi quando un blocco
+    crolla la soglia esce dal tratto disegnato. A swing -6 il dominio della coalizione
+    era 30-57 e x61 valeva 504,4 contro un viewBox largo 460: LA LINEA DELLA MAGGIORANZA
+    NON VENIVA DISEGNATA AFFATTO, ne' l'etichetta, e niente lo diceva. A -5 lo stesso
+    (471,1). A -4 la linea stava a 456, quattro unita' dal bordo, con l'etichetta gia'
+    tutta fuori. E' il grafico che perde la cosa per cui esiste.
+    NON e' un difetto della resa stretta: il viewBox e' fisso, quindi a 1265 succede
+    identico — si nota meno perche' tutto e' piu' grande.
+    Il fermo e' a 60 e 62, non a 61 e 61: cosi' la soglia ha sempre almeno un cestello
+    per parte e si legge l'attraversamento invece di un bordo. Costa qualche cestello
+    vuoto agli estremi — a swing -6 si passa da 28 a 33 cestelli e la barra si stringe
+    del 15% — e i cestelli vuoti erano gia' previsti: il contorno dell'evidenziazione ha
+    un'altezza minima apposta. */
+ var mn=Math.min(60,Math.max(30,q(arr,.002)-1)),
+     mx=Math.max(62,Math.min(90,q(arr,.998)+1)),
+     W=460,Lm=4;
+ /* Corpo dei caratteri sotto i 660, come gia' fa il grafico della tendenza con MOB/FS.
+    Il viewBox e' fisso e l'SVG scala al contenitore: a 380 il reso e' 326px, fattore
+    0,7087, quindi un font-size 10 diventa 7,09px REALI. Con 1,55 diventa 10,98.
+    L'invariante 8 — niente sotto i 5px a 380 — passava a 7,09 ed e' esattamente
+    «misurare convince di aver guardato»: la proprieta' scelta era vera e non copriva
+    quella che serviva.
+    Da sola questa mossa PEGGIORA: a corpo 15,5 l'etichetta passa da 85,7 a 132,7 unita'
+    e il taglio a destra sale da 9 stati su 26 a 13. Vale solo insieme al ribaltamento
+    piu' sotto, ed e' il motivo per cui le tre mosse sono un blocco solo. */
+ var FS=(window.matchMedia&&window.matchMedia('(max-width:660px)').matches)?1.55:1;
+ /* LE DUE FASCE SONO MARGINI DEL DISEGNO, non posizioni dei singoli elementi.
+    Prima l'etichetta della soglia stava DENTRO l'area delle barre: misurato su 50 stati,
+    si sovrapponeva a delle barre in 33 e alla fascia dell'80% in 48 — cioe' quasi sempre.
+    L'alone --card, applicato lo stesso giorno, chiudeva il CONTRASTO (1,56 in chiaro e
+    2,04 in scuro sopra una barra piena) e non chiudeva la sovrapposizione: era il rimedio
+    al sintomo. Qui si chiude la causa, e l'alone e' stato tolto.
+    Stessa cosa in basso: a 380 la didascalia cominciava 1,42px sotto la linea della scala
+    dell'80% — un dodicesimo della propria altezza — e finiva ESATTAMENTE sul bordo del
+    viewBox, zero. A 1265 lo stacco era 6,81px contro gli 11,4 che servono.
+
+    La regola dietro i numeri, e vale a tutte e due le larghezze: fra il disegno e la
+    didascalia ci dev'essere almeno l'altezza dell'inchiostro della didascalia stessa.
+
+    E' la stessa mossa dei marcatori della tendenza: i dischi sono entrati nell'SVG e la
+    crescita se l'e' presa il margine, non il grafico. PH non cambia MAI — pagare i
+    margini con i dati (la barra piu' alta da 107,7 a 67,3px resi a 380) sarebbe il
+    contrario di quello che si vuole.
+
+    Chiude anche una collisione latente che nessuno aveva mai vista: il triangolo della
+    stima puntuale stava a y 2..10 e l'etichetta a 12,57..33,73, cioe' a 2,5 unita' di
+    distanza, e alla STESSA x quando la stima puntuale vale 61. Ora sono due righe
+    dichiarate della fascia alta, e una prova le tiene separate.
+
+    Le fasce scalano col corpo, l'area del disegno no. Il triangolo e' una forma, non un
+    testo: non scala. */
+ var fe=10*FS;                          /* corpo dell'etichetta e dei numeri d'asse */
+ var TRI=8;                             /* altezza del triangolo della stima puntuale */
+ /* fascia alta = 3 di margine + inchiostro dell'etichetta (circa 1,25 corpi sotto la
+    cima) + uno stacco di 0,6 corpi + il triangolo + 2. Da' 32 e 42. */
+ var T=Math.round(13+1.85*fe);
+ var PH=152;                            /* l'area del disegno: invariata, sempre */
+ var B=Math.round(50*FS);               /* fascia bassa: 50 e 78 */
+ var H=T+PH+B, AY=T+PH;                 /* 234 e 272; asse a 184 e 194 */
  var bins={},i;for(i=mn;i<=mx;i++)bins[i]=0;
  arr.forEach(function(v){if(v>=mn&&v<=mx)bins[v]++;});
  var top=0;for(i in bins) top=Math.max(top,bins[i]);
@@ -2244,28 +2316,72 @@ function istogramma(arr,col,el,lab,centr,soglia){
  var s='<svg viewBox="0 0 '+W+' '+H+'" role="img" aria-label="'+E(lab)+'" tabindex="0" aria-describedby="'+el+'-l">';
  /* fascia dell'80% centrale: è lì che cade l'esito in 8 casi su 10 */
  var xa=Lm+(p10-mn)*bw, xb=Lm+(p90-mn+1)*bw;
- s+='<rect x="'+xa.toFixed(1)+'" y="16" width="'+(xb-xa).toFixed(1)+'" height="'+(H-B-16)+
+ s+='<rect x="'+xa.toFixed(1)+'" y="'+T+'" width="'+(xb-xa).toFixed(1)+'" height="'+PH+
     '" fill="'+col+'" opacity=".07"/>';
  for(i=mn;i<=mx;i++){
-  var hh=(H-B-16)*bins[i]/(top||1),x=Lm+(i-mn)*bw;
+  var hh=PH*bins[i]/(top||1),x=Lm+(i-mn)*bw;
   /* niente <title>: il suggerimento nativo si sovrapporrebbe alla riga di lettura,
      non e' raggiungibile da tastiera e al tocco non esiste */
-  s+='<rect class="bb" data-i="'+i+'" x="'+x.toFixed(1)+'" y="'+(H-B-hh).toFixed(1)+'" width="'+(bw-.8).toFixed(1)+'" height="'+hh.toFixed(1)+
+  s+='<rect class="bb" data-i="'+i+'" x="'+x.toFixed(1)+'" y="'+(AY-hh).toFixed(1)+'" width="'+(bw-.8).toFixed(1)+'" height="'+hh.toFixed(1)+
      '" fill="'+col+'" opacity="'+(i>=61?1:.30)+'"/>';
  }
  var x61=Lm+(61-mn)*bw;
- s+='<line x1="'+x61.toFixed(1)+'" y1="14" x2="'+x61.toFixed(1)+'" y2="'+(H-B)+'" stroke="'+C.ink+'" stroke-width="1.5"/>';
- s+='<text x="'+(x61+6).toFixed(1)+'" y="24" font-size="10" font-weight="700" fill="'+C.ink+'">61 = maggioranza</text>';
+ s+='<line x1="'+x61.toFixed(1)+'" y1="'+(T-2)+'" x2="'+x61.toFixed(1)+'" y2="'+AY+'" stroke="'+C.ink+'" stroke-width="1.5"/>';
+ /* IL LATO DELL'ETICHETTA: a destra se ci sta, altrimenti a sinistra.
+    Prima era sempre a destra della linea, e veniva tagliata dal bordo del viewBox
+    (l'SVG di radice ha overflow:hidden). Misurato: nello stato predefinito, su dodici
+    render consecutivi, l'istogramma della coalizione la tagliava DODICI volte su dodici
+    — di 0,2 unita' in cinque render e di 12,4 (8,8px a 380, circa due caratteri) negli
+    altri sette, perche' il dominio oscilla fra mx=65 e mx=66 fra un Monte Carlo e
+    l'altro. Sullo spazzolamento dello swing sforava in 9 stati su 26, fino a 136 unita',
+    cioe' etichetta visibile allo zero per cento.
+    ETIW e' la larghezza dichiarata: 12 unita' per unita' di corpo. Misurata il
+    22 agosto 2026 su undici famiglie — la pila del foglio da' 8,57, Times 7,68,
+    Georgia e Tahoma 9,30, Verdana 10,30 — quindi 12 sta il 17% sopra la piu' larga
+    che si sia vista e il 40% sopra quella che la pagina usa davvero. Sovrastimare non
+    costa niente: fa ribaltare l'etichetta un po' prima del necessario, mai troppo
+    tardi. Sottostimare la farebbe uscire su una macchina con una pila diversa, ed e'
+    il difetto che di qui non si vedrebbe.
+    IL RIBALTAMENTO NON PUO' FALLIRE, ed e' la parte che ne fa una regola e non una
+    speranza: perche' serva, x61 dev'essere oltre W-6-ETIW, e li' a sinistra restano
+    W-12-ETIW unita'. A corpo 15,5, ETIW vale 186 e ne restano 262. Il caso «non ci
+    sta da nessuna parte» non esiste finche' ETIW <= (W-12)/2 = 224, e siamo sotto del
+    27%. Verificato: sui 26 stati dello spazzolamento la destra falliva 9 volte a corpo
+    10 e 13 a corpo 15,5; la sinistra ZERO volte a tutti e due i corpi.
+
+    L'ALONE --card SOTTO IL TESTO chiude un difetto che il ribaltamento NON risolve, e
+    che nessuno aveva registrato: l'etichetta sta dentro l'area delle barre, a destra
+    della linea, cioe' proprio sopra quelle a opacita' piena (i >= 61). Misurato su 50
+    stati: in 8 finisce sopra barre piene, dove --ink sta a 1,56 in chiaro
+    sull'opposizione e 2,04 in scuro sulla coalizione — sotto 4,5. Il ribaltamento non
+    basta perche' il lato pieno e' esattamente il lato dove l'etichetta va di norma.
+    L'alone e' il QUINTO uso dello stesso idioma nel file — la linea della maggioranza
+    nell'emiciclo, l'anello degli istogrammi, il tratto del simulatore, il disco delle
+    sparkline — e non aggiunge nessun token: --card e' il fondo. paint-order="stroke"
+    dipinge il contorno PRIMA del riempimento, o l'alone mangerebbe le aste delle
+    lettere. Costo geometrico: zero. */
+ var etiW=12*fe, dest=(x61+6+etiW<=W);
+ s+='<text x="'+(x61+(dest?6:-6)).toFixed(1)+'" y="'+(3+fe).toFixed(1)+'"'+(dest?'':' text-anchor="end"')+
+    ' font-size="'+fe.toFixed(1)+'" font-weight="700" fill="'+C.ink+'">61 = maggioranza</text>';
  if(centr!=null&&centr>=mn&&centr<=mx){
   var xc=Lm+(centr-mn)*bw+bw/2;
-  s+='<path d="M'+(xc-5).toFixed(1)+' 2 L'+(xc+5).toFixed(1)+' 2 L'+xc.toFixed(1)+' 10 Z" fill="'+col+'"/>';
+  s+='<path d="M'+(xc-5).toFixed(1)+' '+(T-2-TRI)+' L'+(xc+5).toFixed(1)+' '+(T-2-TRI)+' L'+xc.toFixed(1)+' '+(T-2)+' Z" fill="'+col+'"/>';
  }
- s+='<line x1="0" y1="'+(H-B)+'" x2="'+W+'" y2="'+(H-B)+'" stroke="'+C.hair+'"/>';
+ s+='<line x1="0" y1="'+AY+'" x2="'+W+'" y2="'+AY+'" stroke="'+C.hair+'"/>';
  for(i=Math.ceil(mn/5)*5;i<=mx;i+=5)
-  s+='<text x="'+(Lm+(i-mn)*bw+bw/2).toFixed(1)+'" y="'+(H-B+15)+'" text-anchor="middle" font-size="10" fill="'+C.mute+'">'+i+'</text>';
+  s+='<text x="'+(Lm+(i-mn)*bw+bw/2).toFixed(1)+'" y="'+(AY+15*FS).toFixed(1)+'" text-anchor="middle" font-size="'+fe.toFixed(1)+'" fill="'+C.mute+'">'+i+'</text>';
  /* scala esplicita sotto l'asse, invece di sigle */
- s+='<line x1="'+xa.toFixed(1)+'" y1="'+(H-B+24)+'" x2="'+xb.toFixed(1)+'" y2="'+(H-B+24)+'" stroke="'+col+'" stroke-width="2.5"/>';
- s+='<text x="'+((xa+xb)/2).toFixed(1)+'" y="'+(H-B+38)+'" text-anchor="middle" font-size="10.5" fill="'+C.ink2+'">'+
+ s+='<line x1="'+xa.toFixed(1)+'" y1="'+(AY+24*FS).toFixed(1)+'" x2="'+xb.toFixed(1)+'" y2="'+(AY+24*FS).toFixed(1)+'" stroke="'+col+'" stroke-width="2.5"/>';
+ /* La didascalia scala col resto, e NON viene serrata dentro il viewBox: il serraggio
+    e' stato scritto, misurato e tolto. A corpo 16,3 la riga misura 260 unita' con la
+    pila del foglio e 309 nel caso peggiore, ma il centro della fascia dell'80% resta
+    fra 182,1 e 237,6 su tutti i 26 stati dello swing — 27,5 unita' di margine nel caso
+    peggiore, 52,1 con la larghezza vera. Il serraggio non mordeva in nessuno stato:
+    era codice che nessuna prova poteva esercitare, cioe' la cosa contro cui questo
+    progetto mette in guardia. Al suo posto c'e' una prova che MISURA quel margine: se
+    un giorno una distribuzione spinge la fascia di lato, cade e si vede. Un serraggio
+    l'avrebbe nascosto. */
+ s+='<text x="'+((xa+xb)/2).toFixed(1)+'" y="'+(AY+44*FS).toFixed(1)+'" text-anchor="middle" font-size="'+(10.5*FS).toFixed(1)+'" fill="'+C.ink2+'">'+
     '8 simulazioni su 10 fra '+p10+' e '+p90+' seggi</text>';
  /* Contorno dell'evidenziazione, a due tinte e dipinto per ultimo, quindi sopra tutto.
     Una tinta sola non puo' farcela: nel tema chiaro dovrebbe stare sotto L 0,153 per
@@ -2307,7 +2423,7 @@ function istogramma(arr,col,el,lab,centr,soglia){
     /* un cestello vuoto ha altezza zero: senza un minimo il contorno sparirebbe
        proprio dove il lettore ha piu' bisogno di sapere dove si trova */
     var bh=Math.max(parseFloat(b.getAttribute('height'))||0,3);
-    var by=(H-B)-bh;
+    var by=AY-bh;
     [ho,hi].forEach(function(r){
      r.setAttribute('x',b.getAttribute('x'));
      r.setAttribute('y',by.toFixed(1));
@@ -4454,12 +4570,117 @@ function costruisciIndice(){
    es.forEach(function(e){
     if(e.isIntersecting){
      Array.prototype.forEach.call(nav.querySelectorAll('a'),function(a){a.classList.remove('on');});
-     if(link[e.target.id]) link[e.target.id].classList.add('on');
+     if(link[e.target.id]){link[e.target.id].classList.add('on');inVista(nav,link[e.target.id]);}
     }
    });
   },{rootMargin:'-20% 0px -70% 0px'});
   Array.prototype.forEach.call(secs,function(s){io.observe(s);});
  }catch(e){}
+}
+/* Porta in vista la voce accesa dell'indice.
+
+   Sotto i 660 la fascia e' un nastro orizzontale (flex-wrap:nowrap; overflow-x:auto).
+   Misurato a 380: largo 1891px in una finestra da 358, cioe' il 18,9% visibile e 1533
+   fuori. Senza questo scrollLeft resta ZERO per sempre — dalla terza sezione in poi
+   l'indice segnala dove sei su un nastro che non lo mostra, e la voce accesa sta fra
+   x 276 e x 1713. Verificato su undici punti di scorrimento: otto con la voce attiva
+   fuori schermo.
+
+   Si muove scrollLeft a mano e NON con scrollIntoView, che scorre TUTTI gli antenati
+   scorrevoli, documento compreso: con la fascia appiccicosa a top:0 una voce tagliata
+   dal bordo farebbe scorrere la pagina, cioe' l'indice combatterebbe contro il dito
+   del lettore. Qui si tocca solo il nastro.
+
+   La posizione si ricava dai rettangoli resi piu' lo scrollLeft corrente, NON da
+   offsetLeft: quello si misura dall'antenato posizionato, che qui e' la fascia stessa
+   (position:sticky conta come posizionata), non dall'origine di scorrimento del nastro.
+
+   Salto secco e non fluido: rispetta prefers-reduced-motion senza doverla interrogare,
+   e non resta indietro quando le sezioni si succedono in fretta. */
+function inVista(nav,a){
+ if(!nav||!a||!nav.getBoundingClientRect||!a.getBoundingClientRect) return;
+ var max=nav.scrollWidth-nav.clientWidth;
+ if(max<=0) return;            /* sopra i 660 il nastro va a capo: non scorre, e non si tocca */
+ var nr=nav.getBoundingClientRect(), ar=a.getBoundingClientRect();
+ var x=(ar.left-nr.left)+nav.scrollLeft;      /* posizione della voce dentro il nastro */
+ /* centrata quando ci sta; se fosse piu' larga della finestra si allinea a sinistra,
+    perche' centrarla lascerebbe fuori il numero, che e' l'inizio del nome */
+ var d=(ar.width<nav.clientWidth)?(nav.clientWidth-ar.width)/2:0;
+ nav.scrollLeft=sbircia(nav,a,Math.max(0,Math.min(max,x-d)),max);
+}
+/* LA SBIRCIATA GARANTITA: a un bordo dove c'e' ancora nastro si deve vedere del TESTO
+   di una voce vicina, non solo la sua imbottitura.
+
+   Perche' esiste. Tolta la barra di scorrimento, il solo segnale che il nastro continua
+   e' la pastiglia tagliata al bordo — ed e' un segnale buono: misurato sulle undici
+   posizioni di riposo, cioe' venti bordi, una pastiglia tagliata si vede in 20 su 20 e
+   il TESTO tagliato in 19 su 20, con un minimo di 31,6px. Ma il ventesimo cade: alla
+   sezione 3 il bordo sinistro finisce dentro l'imbottitura di coda della prima voce e
+   si vedono 6,6px di NIENTE, mentre la seconda voce resta intera — cosi' il nastro
+   sembra cominciare li'.
+
+   Il rimedio non aggiunge un comando, un colore o un pixel: sposta lo scorrimento
+   quel tanto che basta. Simulato con SBIRCIA=18: i bordi deboli passano da uno a zero,
+   cambia UNA sola posizione su undici (la terza, di 22,4px), e le voci attive restano
+   intere tutte e undici. Il margine c'e' sempre: lo slittamento possibile senza
+   scoprire la voce attiva vale (finestra − larghezza della pastiglia)/2, cioe' fra
+   47,2 e 135,6px, e ne servono 22.
+
+   IL VINCOLO CHE LA RENDE SICURA e' che la voce attiva non venga MAI scoperta: e'
+   serrata fra slMin e slMax, che sono le due posizioni estreme che la tengono intera.
+   Se non c'e' spazio, la sbirciata si rinuncia — meglio nessun segnale che perdere la
+   voce che il lettore sta cercando.
+
+   Ai due estremi si spegne da se': a scrollLeft 0 non c'e' nastro a sinistra e quel
+   bordo non si guarda, idem a destra al massimo. Sopra i 660 non ci si arriva nemmeno,
+   perche' inVista esce prima: il nastro va a capo e non scorre. */
+var SBIRCIA=18;
+function sbircia(nav,att,sl,max){
+ var voci=nav.querySelectorAll('a'), i, g=[], r, nr=nav.getBoundingClientRect(), sl0=nav.scrollLeft;
+ if(!voci.length||typeof document.createRange!=='function') return sl;
+ if(typeof document.createRange().getBoundingClientRect!=='function') return sl;
+ /* la scatola dell'INCHIOSTRO di ogni voce, non della pastiglia: l'imbottitura non e'
+    un segnale, ed e' esattamente quello che si vedeva nel caso che cadeva */
+ for(i=0;i<voci.length;i++){
+  var rg=document.createRange(); rg.selectNodeContents(voci[i]);
+  var b=rg.getBoundingClientRect(), pr=voci[i].getBoundingClientRect();
+  if(!b.width) return sl;                    /* niente layout: non si tocca niente */
+  g.push({tx:(b.left-nr.left)+sl0, tw:b.width, px:(pr.left-nr.left)+sl0, pw:pr.width});
+  if(voci[i]===att) r=g[g.length-1];
+ }
+ if(!r) return sl;
+ var cw=nav.clientWidth;
+ /* i due estremi entro cui la voce attiva resta INTERA */
+ var slMin=Math.max(0,r.px+r.pw-cw), slMax=Math.min(max,r.px);
+ /* quanto testo di una voce vicina resta visibile al bordo: a sinistra e' la coda,
+    a destra la testa. Il verso si passa, non si deduce dal valore del bordo. */
+ /* Quanto testo di una voce si vede attraverso il bordo: e' la parte della sua scatola
+    d'inchiostro che cade DENTRO la finestra. Vale identica ai due bordi, quindi non c'e'
+    nessun verso da passare — ed e' il motivo per cui e' scritta cosi'. La prima stesura
+    prendeva un parametro di verso, e invertirlo NON faceva cadere nessuna prova: una
+    forma che non si puo' sbagliare vale piu' di una prova che coglie l'errore. */
+ function testo(bordo){var v=0,k,a,b2;
+  for(k=0;k<g.length;k++){
+   if(!(g[k].tx<bordo&&g[k].tx+g[k].tw>bordo)) continue;   /* solo quella tagliata dal bordo */
+   a=Math.max(g[k].tx,sl); b2=Math.min(g[k].tx+g[k].tw,sl+cw);
+   v=Math.max(0,b2-a);
+  }
+  return v;}
+ var k2,c;
+ /* Agli estremi non serve nessuna guardia: oltre la fine del nastro non esistono voci,
+    quindi la ricerca del candidato non trova niente e sl non si muove. Una guardia
+    esplicita sarebbe codice che nessuna prova puo' far cadere. */
+ if(testo(sl)<SBIRCIA){                             /* scopri a sinistra */
+  c=null; for(k2=0;k2<g.length;k2++) if(g[k2].tx+g[k2].tw<=sl+0.01)
+   c=(c===null)?g[k2].tx+g[k2].tw-SBIRCIA:Math.max(c,g[k2].tx+g[k2].tw-SBIRCIA);
+  if(c!==null) sl=Math.max(slMin,Math.min(sl,c));
+ }
+ if(testo(sl+cw)<SBIRCIA){                           /* scopri a destra */
+  c=null; for(k2=0;k2<g.length;k2++) if(g[k2].tx>=sl+cw-0.01)
+   c=(c===null)?g[k2].tx+SBIRCIA-cw:Math.min(c,g[k2].tx+SBIRCIA-cw);
+  if(c!==null) sl=Math.min(slMax,Math.max(sl,c));
+ }
+ return Math.max(0,Math.min(max,sl));
 }
 /* comparsa progressiva delle sezioni */
 function animaSezioni(){
