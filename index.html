@@ -1341,6 +1341,20 @@
 
 <section>
  <h2>House effect <em>scostamento medio di ciascun istituto rispetto agli altri sondaggisti</em></h2>
+ <!-- Il lede sta nel MARKUP e non dentro rHouse(): non dipende dai dati, non cambia a
+      ogni render, e #k-house viene riscritto per intero — un testo fisso là dentro
+      sarebbe ricostruito venti volte per niente. La nota in fondo alla sezione, quella
+      sì, è generata: dice quali istituti sono esclusi adesso. -->
+ <p class="lett">Un house effect emerge quando lo scarto di un istituto rispetto agli altri si
+  ripete da una rilevazione all'altra: è questa continuità a distinguerlo dal normale rumore dei
+  sondaggi. I valori della tabella sono espressi in seggi e indicano, lista per lista, di quanto
+  ciascun istituto si discosta in media dagli altri sondaggisti. Non è una pagella: finché non
+  esiste un risultato elettorale con cui confrontare le stime, non sappiamo chi abbia ragione;
+  per questo il modello non corregge i dati sulla base dell'house effect, ma permette di escludere
+  un istituto e vedere quanto cambia la proiezione.</p>
+ <p class="lett"><b>Escludi</b> rifà la proiezione senza le rilevazioni dell'istituto;
+  <b>Includi</b> le reinserisce. Serve a vedere quanto pesa un singolo sondaggista, non a
+  correggere il modello, che li considera tutti.</p>
  <div class="box"><div id="k-house"></div>
   <!-- L'annuncio del ricalcolo. Sta FISSO qui e non dentro #k-house, che viene riscritto
        per intero a ogni render: una regione viva sostituita in blocco non annuncia in modo
@@ -3387,6 +3401,35 @@ function rTrend(){
    distanze dal voto, e non è una costante: si dimezza avvicinandosi alle urne.
    I punti sono (giorni al voto, punti di swing); da essi si stima una retta per
    elezione, valutata alla distanza in cui ci troviamo oggi. */
+/* IL BANCO DI PROVA, come dati e non come tabella scritta a mano.
+   Le sette istantanee erano sette <tr> dentro la stringa della nota metodologica, e
+   accanto c'erano tre numeri ricavati da loro — 4,5, 1,7 e «tre volte» — copiati a mano.
+   Finché stavano lì il rapporto non era calcolabile e non poteva cambiare con
+   l'avvicinarsi del voto: è l'invariante 10, «niente tempo scritto a mano», applicata a
+   una grandezza che ha una scadenza.
+   Adesso la tabella e i tre numeri rendono tutti da qui. Le colonne: etichetta, giorni al
+   voto, seggi del modello per il blocco di Netanyahu, seggi veri. */
+var BT=[{e:'2020 · due mesi',        g:62, m:54, r:58},
+        {e:'2021 · due mesi',        g:58, m:47, r:52},
+        {e:'2022 · sette settimane', g:49, m:59, r:64},
+        {e:'2022 · cinque settimane',g:38, m:60, r:64},
+        {e:'2020 · ultima settimana',g: 3, m:57, r:58},
+        {e:'2021 · ultima settimana',g: 4, m:51, r:52},
+        {e:'2022 · ultima settimana',g: 4, m:61, r:64}];
+/* Il confine fra «a distanza» e «ultima settimana» è dichiarato una volta sola: sotto i
+   sette giorni si è nell'ultima settimana, sopra i trenta si è nel tratto piatto. In
+   mezzo non c'è nessuna istantanea, ed è proprio quello che il banco di prova non sa
+   dire: se la discesa sia graduale o un salto. */
+var BT_VICINO=7, BT_LONTANO=30;
+/* i giorni che mancano al voto, ricavati dalla data corrente e non scritti: invariante 10 */
+function ggOggi(){return Math.max(0,ggCal(new Date(),VOTO));}
+function btMedia(f){var s=0,n=0,i;for(i=0;i<BT.length;i++) if(f(BT[i].g)){s+=Math.abs(BT[i].r-BT[i].m);n++;}
+ return n?s/n:0;}
+/* errore medio lontano, vicino, e il loro rapporto: quello che la nota chiamava «tre
+   volte» e che oggi vale 2,7 — un numero che cambia se il banco di prova cresce. */
+function btErrori(){var l=btMedia(function(g){return g>=BT_LONTANO;}),
+                        v=btMedia(function(g){return g<=BT_VICINO;});
+ return {lontano:l, vicino:v, rapporto:v?l/v:0};}
 var SWSTOR={'2020':[[62,1.75],[3,0.35]],
             '2021':[[58,2.65],[4,1.30]],
             '2022':[[49,4.30],[38,2.85],[4,1.80]]};
@@ -3573,18 +3616,25 @@ function rFoot(){
  'somma 120 e coincidenza con il totale di blocco pubblicato. Ecco come sarebbe andata.</p>'+
  '<table style="margin:10px 0 12px"><thead><tr><th class="l">Istantanea</th><th>Giorni al voto</th>'+
  '<th>Modello</th><th>Reale</th><th>Errore</th></tr></thead><tbody>'+
- '<tr><td class="l">2020 · due mesi</td><td>62</td><td>54</td><td class="s">58</td><td>+4</td></tr>'+
- '<tr><td class="l">2021 · due mesi</td><td>58</td><td>47</td><td class="s">52</td><td>+5</td></tr>'+
- '<tr><td class="l">2022 · sette settimane</td><td>49</td><td>59</td><td class="s">64</td><td>+5</td></tr>'+
- '<tr><td class="l">2022 · cinque settimane</td><td>38</td><td>60</td><td class="s">64</td><td>+4</td></tr>'+
- '<tr><td class="l">2020 · ultima settimana</td><td>3</td><td>57</td><td class="s">58</td><td>+1</td></tr>'+
- '<tr><td class="l">2021 · ultima settimana</td><td>4</td><td>51</td><td class="s">52</td><td>+1</td></tr>'+
- '<tr><td class="l">2022 · ultima settimana</td><td>4</td><td>61</td><td class="s">64</td><td>+3</td></tr>'+
+ BT.map(function(x){return '<tr><td class="l">'+x.e+'</td><td>'+x.g+'</td><td>'+x.m+
+   '</td><td class="s">'+x.r+'</td><td>'+(x.r>x.m?'+':'−')+Math.abs(x.r-x.m)+'</td></tr>';}).join('')+
  '</tbody></table>'+
- '<p>I numeri si riferiscono al blocco di Netanyahu. In tutti e sette i casi il risultato vero cade '+
- 'dentro l\'intervallo dichiarato dal modello. L\'errore resta piatto attorno a <b>4,5 seggi</b> fra i '+
- '62 e i 38 giorni dal voto, e scende a <b>1,7</b> nell\'ultima settimana: non è una discesa graduale, '+
- 'è un salto che avviene nelle ultime settimane di campagna. Questo modello si trova oggi nel tratto piatto.</p>'+
+ '<p>I numeri si riferiscono al blocco di Netanyahu, e sono <b>'+f(BT.length)+'</b> istantanee. '+
+ 'In tutti i casi il risultato vero cade dentro l\'intervallo dichiarato dal modello. L\'errore resta '+
+ 'piatto attorno a <b>'+f(btErrori().lontano,1)+' seggi</b> oltre i '+f(BT_LONTANO)+' giorni dal voto, e '+
+ 'scende a <b>'+f(btErrori().vicino,1)+'</b> nell\'ultima settimana: fra i due tratti non c\'è nessuna '+
+ 'istantanea, quindi il banco di prova non dice se la discesa sia graduale o un salto — dice solo che '+
+ 'l\'errore a distanza è <b>'+f(btErrori().rapporto,1)+' volte</b> quello dell\'ultima settimana. '+
+ (ggOggi()>BT_LONTANO
+   ? 'Oggi mancano '+f(ggOggi())+' '+acc(ggOggi(),'giorno','giorni')+' al voto: il modello si trova nel tratto piatto.'
+   : (ggOggi()>BT_VICINO
+      ? 'Oggi mancano '+f(ggOggi())+' '+acc(ggOggi(),'giorno','giorni')+' al voto: il modello è oltre il tratto piatto e prima dell\'ultima '+
+        'settimana, cioè nell\'intervallo su cui il banco di prova non ha istantanee.'
+      : (ggOggi()>0
+         ? 'Oggi mancano '+f(ggOggi())+' '+acc(ggOggi(),'giorno','giorni')+' al voto: il modello è nell\'ultima settimana, dove l\'errore '+
+           'storico è il più basso.'
+         : 'Il voto si è tenuto il '+dl('2026-10-27')+': quello che segue è il banco di prova del modello, '+
+           'non una previsione.')))+'</p>'+
  '<p><b>Quello che il banco di prova mostra e che il modello non sa fare.</b> In tutte e tre le elezioni '+
  'l\'errore a distanza è dominato non dal rumore statistico ma dalle <i>liste che cambiano</i>: nel 2020 '+
  'Yamina ed Emet non esistevano ancora al momento della rilevazione e nacquero da fusioni a gennaio; '+

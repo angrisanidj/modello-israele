@@ -200,9 +200,25 @@ setTimeout(function(){
     'il conto alla rovescia usa ggCal, non gg');
   esito(/var d=ggCal\(oggi,/.test(app),
     'e le sei tappe del calendario pure: condividevano il difetto, condividono il rimedio');
-  esito((app.match(/ggCal\(/g) || []).length === 4,
-    'ggCal è usata nei due punti che contano giorni di calendario, e in nessun altro',
-    (app.match(/ggCal\(/g) || []).length + ' occorrenze, definizione compresa');
+  /* Le chiamate legittime sono tre, più la definizione: il conto alla rovescia, le sei
+     tappe del calendario e ggOggi(), che la nota metodologica usa per dire in quale
+     tratto del banco di prova ci si trova. Tutte e tre contano giorni di calendario da
+     ADESSO, che è precisamente il caso in cui gg() sbaglia.
+     Il numero non è il punto: il punto è che ogni occorrenza in più sia una di queste e
+     non una gg() «riparata» per sbaglio. Per questo la prova, oltre a contarle, verifica
+     che ciascuna passi da un oggi e non da due date d'archivio. */
+  const usi = app.match(/ggCal\([^)]*\)/g) || [];
+  esito(usi.length === 5,
+    'ggCal è usata nei tre punti che contano giorni di calendario da adesso, e in nessun altro',
+    usi.length + ' occorrenze, definizione compresa: ' + usi.join(' · '));
+  esito(/function ggOggi\(\)\{return Math\.max\(0,ggCal\(new Date\(\),VOTO\)\);\}/.test(app),
+    'e la nota metodologica ricava i giorni al voto dalla data corrente, non da una costante');
+  /* i siti di chiamata veri: non la definizione «ggCal(a,b)» e non le menzioni nei
+     commenti, che sono scritte «ggCal()» senza argomenti */
+  const chiamate = usi.filter(u => u !== 'ggCal(a,b)' && u !== 'ggCal()');
+  esito(chiamate.length > 0 && chiamate.every(u => /new Date\(\)|oggi/.test(u)),
+    'ogni chiamata di ggCal parte da un «oggi»: fra due date d\'archivio si usa gg()',
+    chiamate.join(' · '));
 
   /* ══ 7 · l'accordo di numero, che stava scritto a mano in tre punti ══
    *

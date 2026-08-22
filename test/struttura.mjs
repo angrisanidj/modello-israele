@@ -24,11 +24,28 @@ p('file autonomo: nessuna risorsa esterna',
    Il controllo è più stretto del precedente, che i fetch non li guardava affatto:
    qui ogni URL assoluto dentro il JavaScript deve essere wikipedia.org, quindi un
    fetch verso un servizio terzo — traduzioni, CDN, analytics — fa fallire la
-   verifica invece di passare inosservato. */
-const urlJS=[...js.matchAll(/https?:\/\/([^'"\s\\]+)/g)].map(m=>m[1]);
+   verifica invece di passare inosservato.
+
+   UN COLLEGAMENTO NON È UNA CHIAMATA DI RETE, e il controllo adesso lo distingue.
+   Il primo controllo qui sopra già lo faceva per il markup — toglie gli <a href> prima
+   di cercare risorse esterne — ma questo no: una firma generata dal JavaScript con un
+   <a href="https://x.com/…"> lo faceva cadere, e sarebbe stato un falso positivo, perché
+   l'href di un'ancora non carica niente: è navigazione, e la decide chi legge.
+   La distinzione è più PRECISA, non più larga: la lista bianca delle chiamate di rete
+   resta Wikipedia e basta. Quello che cambia è che gli href delle ancore escono dal conto
+   delle chiamate — e vengono elencati a parte, così un collegamento esterno resta una
+   cosa che si vede invece di una cosa che passa. */
+const ancoreJS=[...js.matchAll(/<a\s[^>]*href="(https?:\/\/[^"]+)"/g)].map(m=>m[1]);
+const jsSenzaAncore=js.replace(/<a\s[^>]*href="https?:\/\/[^"]+"/g,'<a ');
+const urlJS=[...jsSenzaAncore.matchAll(/https?:\/\/([^'"\s\\]+)/g)].map(m=>m[1]);
 const estranei=urlJS.filter(u=>!/^([a-z]+\.)?wikipedia\.org\//.test(u));
 p('ogni URL assoluto nel JS è Wikipedia'+(estranei.length?' ('+estranei.slice(0,3).join(', ')+')':''),
   !estranei.length);
+/* i collegamenti esterni non fanno cadere niente, ma vanno visti: sono l'unico posto
+   della pagina da cui il lettore può uscire, e devono essere pochi e voluti */
+p('i collegamenti esterni generati dal JS sono dichiarati'+
+  (ancoreJS.length?' ('+[...new Set(ancoreJS)].join(', ')+')':' (nessuno)'),
+  ancoreJS.every(u=>/^https:\/\//.test(u)));
 const fetches=[...js.matchAll(/fetch\(\s*(['"])([^'"]*)\1/g)].map(m=>m[2]);
 const fetchCattivi=fetches.filter(u=>/^https?:/.test(u)&&!/wikipedia\.org/.test(u));
 p('ogni fetch con URL letterale è Wikipedia o un percorso relativo'+

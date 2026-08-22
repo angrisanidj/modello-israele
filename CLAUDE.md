@@ -384,6 +384,15 @@ Messaggi di commit in italiano, all'infinito, con il perché e non solo il cosa.
       `allow-downloads`, nemmeno con `href` `blob:`. Cioè dentro `?embed=1`. Vedi il
       punto 1: la cosa serve a chi scrive l'embed, e prima, non dopo.
 8. Aggiornamento automatico programmato, con avviso se l'archivio è vecchio
+8-bis. **I risultati veri del 27 ottobre non entrano da nessuna parte, e senza di loro il
+   titolo generato dopo il voto può parlare solo dell'ultima proiezione, al passato.**
+   Serve un campo in `dati/archivio.json` — un oggetto `esito` accanto alle rilevazioni,
+   con i seggi per lista come li certifica la commissione elettorale il 4 novembre, e la
+   data di quella certificazione. Da lì discendono tre cose che oggi non si possono dire:
+   il confronto fra proiezione e risultato, l'ottava istantanea del banco di prova — che
+   entrerebbe in `BT[]` e sposterebbe il rapporto di 2,7 — e le quattro varianti del
+   titolo che raccontano com'è andata invece di come la si vedeva. Finché quel campo non
+   c'è, dopo il voto la pagina resta onesta solo se parla al passato della propria stima.
 9. Accessibilità: navigazione da tastiera, ruoli ARIA.
 
    **Chiuso il 22 agosto 2026**, dentro questo punto: i bersagli dei marcatori degli
