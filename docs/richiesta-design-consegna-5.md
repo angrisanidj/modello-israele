@@ -76,6 +76,31 @@ non ci serve, perché è a sette che verrà usata.
 
 ---
 
+## Che cosa non è in discussione: le superfici e i token di testo
+
+**Tutto quello che non è colore di lista o di blocco resta com'è nella consegna 4.** Sedici
+token: `--card`, `--paper`, `--wash`, `--hair`, `--hair2`, `--ink`, `--ink2`, `--mute`,
+`--rule`, `--on-color`, `--acc`, `--acc-hi`, `--accw`, `--flag`, `--pos`, `--neg`.
+
+Non è una preferenza, è la condizione che rende leggibili i numeri di questo documento:
+**ogni contrasto qui dentro è misurato contro quelle superfici.** Se arrivano superfici
+nuove — un `--card` diverso, un `--paper` diverso, un `--on-color` diverso — **tutti i
+contrasti si spostano e la misura va rifatta da capo**, compresi quelli con cui giudichiamo
+la tavolozza chiusa e quelli del pavimento qui sotto. Non è un aggiustamento: è un altro
+documento.
+
+Se ritenete che debbano cambiare, **ditelo esplicitamente e separatamente**, non insieme ai
+colori di lista. Le superfici si discutono prima, e i colori si misurano dopo, contro
+quelle nuove.
+
+Una nota su `--acc` e `--flag`, che sono il blu della bandiera: valgono la stessa regola, e
+in più sono l'unico blu della pagina che significa «stato attivo» invece che «blocco». Il
+loro angolo di tinta è 262,9°, cioè dentro il settore che una delle due consegne assegna
+alla coalizione: se le famiglie si riassegnano, va detto come si tiene distinto il blu del
+comando da quello del blocco.
+
+---
+
 ## I vincoli, in ordine di priorità
 
 Quando due non stanno insieme, **cede quello più in basso, e va scritto quale e di quanto.**
@@ -126,6 +151,56 @@ noi prendendo per ogni colore il migliore fra `--on-color` e `--on-color-inv`:
 | token di blocco su `--card` | — | **3,35** | `--inc` chiaro `#AE8710` |
 
 Sopra 4,50 e sopra 3,00, ma sotto il margine. Va corretto.
+
+### 3-bis · I quattro token di blocco, che non sono un dettaglio della vista per lista
+
+`--coal`, `--oppo`, `--arab`, `--inc` sono lo **slot 0 di ogni blocco**, e se le famiglie
+si riassegnano cambiano anche loro. Non è una conseguenza secondaria: quei quattro colori
+compaiono in **otto punti della pagina**, e solo uno è la vista per lista.
+
+1. l'**emiciclo nella vista per blocco**, seggio per seggio;
+2. i **totali di blocco** al centro dell'emiciclo, che sono testo colorato;
+3. le **legende di blocco**, sotto l'emiciclo e nel simulatore;
+4. le **quattro barre di probabilità** — maggioranza Netanyahu, maggioranza opposizione,
+   maggioranza solo con i partiti arabi, stallo;
+5. i **due istogrammi** «Quanti seggi per ciascun blocco» e le pastiglie delle loro testate;
+6. le **pastiglie di blocco** accanto a ogni lista nelle tabelle della proiezione e dei
+   movimenti;
+7. due **colonne del backtest**;
+8. il **tratteggio dei marcatori** nel grafico della tendenza, che usa `--inc`.
+
+**Devono rispettare gli stessi contrasti del punto 3** — testo sopra il colore ≥ 4,65,
+colore ≥ 3,15 su `--card` — **e restare distinguibili fra loro**, perché la vista per
+blocco oggi funziona e non deve regredire.
+
+#### Il pavimento: i numeri di oggi
+
+Contrasti (`--oppo` chiaro e `--coal` scuro sono i due minimi):
+
+| | `--card` | `--paper` | `--wash` | testo sopra |
+|---|---|---|---|---|
+| **chiaro**, minimo | **4,70** (`--oppo` `#018279`) | 4,42 | 4,30 | **4,70** |
+| **scuro**, minimo | **4,69** (`--coal` `#3A7CFE`) | 5,09 | 4,36 | **5,09** |
+
+Distanza fra i quattro, sulle sei coppie:
+
+| | nominale | deuteranopia | protanopia | tritanopia | scala di grigi |
+|---|---|---|---|---|---|
+| **chiaro**, minimo | **31,1** | 12,4 | **5,7** | 15,9 | **6,1** |
+| **scuro**, minimo | **38,2** | 13,3 | **11,9** | 23,1 | **7,4** |
+
+E limitandosi ai **tre blocchi che stanno davvero in aula** — `incerto` oggi non ha seggi —
+il minimo su tutte e quattro le visioni è **15,9** in chiaro e **23,1** in scuro.
+
+Due letture oneste di questa tabella, perché non venga usata come un bastone:
+
+- il **5,7** in chiaro è `arabo`/`incerto` in protanopia, ed è **già oggi** il punto debole.
+  Non chiediamo di migliorarlo, chiediamo di non peggiorarlo — ed è esattamente la stessa
+  coppia che la vostra tavolozza chiusa dichiara a 6,6. Su quel numero siete già avanti;
+- la **scala di grigi a 6,1 e 7,4** è invece qualcosa che oggi c'è e che il punto 5
+  autorizza a perdere sulle **liste**. Sui **token di blocco** chiediamo di tenerla, perché
+  è la vista per blocco a essere l'ultima linea: se il colore di lista smette di dire il
+  blocco in bianco e nero, il colore di blocco deve continuare a dirlo.
 
 ### 4 · Il verde per le liste arabe
 
@@ -247,6 +322,10 @@ mantenuta, la scelta da rifare è l'assegnazione delle famiglie, non il singolo 
 1. **quale delle due consegne è la consegna** (§0);
 2. **una regola generativa** e i colori che ne discendono, non il contrario;
 3. il **ΔE garantito a cinque, sei e sette liste** per blocco, nei due temi;
-4. per ogni vincolo che non è stato possibile tenere, **quale ha ceduto e di quanto** —
+4. i **quattro token di blocco** che ne discendono, con contrasti e distanze reciproche
+   misurati contro il pavimento del §3-bis;
+5. per ogni vincolo che non è stato possibile tenere, **quale ha ceduto e di quanto** —
    scritto, non dedotto da noi misurando;
-5. la **larghezza del tratto** dell'anello, se il secondo canale resta.
+6. la **larghezza del tratto** dell'anello, se il secondo canale resta;
+7. se ritenete che le **superfici** debbano cambiare, ditelo **separatamente e prima**: con
+   superfici nuove ogni numero di questo documento va rimisurato.
