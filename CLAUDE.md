@@ -188,6 +188,9 @@ docs/
   regola-colore.md    la specifica dei colori: bande, settori, punti, distanze
   pubblicare.md       note di lavoro
   richiesta-design-consegna-5.md  i vincoli in ORDINE, non in parallelo: vedi in fondo
+  richiesta-design-consegna-6.md  i tre punti dopo la verifica della consegna 5
+  accettazione-consegna-6.md      che cosa si accetta, e le quattro righe rimaste
+  forme-del-titolo.md             le nove celle dell h1 con le frequenze: si scrivono i testi da lì
 ```
 
 ## Il modello in breve
@@ -1312,95 +1315,98 @@ Due conseguenze pratiche, e sono quelle da ricordare:
   una cosa sta dove deve, la domanda successiva è sempre se si legge — e quella, in
   questo progetto, la risponde solo un occhio su un browser vero.
 
-### Nell'ordine
+### Lo stato al 22 agosto 2026, sera
 
-1. ~~Gli sforamenti a 380~~ — **chiusi tutti e tre.** L'house effect il 21 agosto con le
-   schede sotto la soglia; le quattro tabelle della nota e la data della testata — punti
-   15 e 16 — il 22 agosto, con il capo riga e con `flex-wrap`. **A 380 il documento non
-   scorre più in orizzontale, con la nota metodologica chiusa e aperta.** Era il
-   prerequisito dell'embed: dentro `?embed=1`, in una colonna stretta, un documento che
-   scorre in orizzontale peggiora invece di restare com'è.
-2. **Modalità `?embed=1`** per l'inserimento in FocusAmerica (punto 1).
-3. **Cercare le altre strade doppie.** Ogni valore che raggiunge lo schermo per più di un
-   percorso e non ha una prova che li leghi è il prossimo colore di blocco. Vedi sopra.
-4. **I 380px su un browser vero.** Nessuno li ha ancora guardati: nella sessione di oggi
-   il riquadro del browser non si ridimensionava, e l'invariante 8 — nessun testo negli
-   SVG sotto i 5px reali a viewport 380 — è verificata solo alla larghezza disponibile.
-5. **La revisione visiva della pagina non è finita.** Restano punti che non convincono, e
-   vanno guardati uno per uno in una passata dedicata, nei due temi e a schermo stretto.
-   Non è un elenco di difetti noti da spuntare: è **revisione editoriale**, e si fa
-   guardando, non misurando. Le prove dicono che il modello non si è rotto; non dicono che
-   la pagina si veda. Da fare a mente fresca, con il file aperto davanti, senza fretta.
-6. **L'esportazione PNG (punto 7), e solo adesso.** Inventario e decisioni sono già
-   scritti; il codice no, di proposito. Viene dopo la revisione perché non cambia come si
-   legge la pagina, mentre la revisione può cambiare l'aspetto dei grafici che
-   l'esportazione incornicia: scriverla prima vuol dire scriverla due volte.
-7. Minore, dal filtro dell'emiciclo: **il ritorno alla vista piena è annunciato con Esc**,
-   che al tocco non esiste; e il pulsante «Mostra tutti i seggi» sta sotto la legenda,
-   lontano dal punto in cui il dito ha appena premuto. Chi filtra da telefono ha la via
-   d'uscita più scomoda delle tre, ed è l'unico che non può usare quella dichiarata.
-8. Dal parser Wikipedia, dopo la riparazione del 21 agosto: **24 righe di gennaio-aprile
-   hanno una cella unica che copre Ra'am, Hadash–Ta'al e Balad** — la Joint List larga di
-   gennaio, una configurazione che non ha contenitore in anagrafica. Il parser le respinge
-   dichiarandolo, ed è giusto così: **vanno mappate a mano**, decidendo se aggiungere il
-   contenitore a `P{}` (con `dentro` su tutte e tre le componenti, Ra'am compresa) o
-   lasciarle fuori. Sessanta rilevazioni circa di storia in più, se si decide di volerle.
-9. Sempre dal parser: **le righe-evento arrivano in inglese** («Hadash, Ta'al and Balad
-   re-form the Joint List») **in una cronologia che è in italiano.** `unisciEventi` salta
-   le date già presenti, quindi oggi non entra niente di nuovo, ma il primo evento inglese
-   nuovo si mescolerà alle quattordici voci italiane. Serve una traduzione manuale al
-   momento dell'ingresso, o una coda di revisione prima che finiscano in cronologia.
-10. **L'altezza uniforme delle righe della tabella dell'analisi non è provabile in jsdom**,
-   che non fa layout: dipende dal font, e si vede solo su browser vero. Il 21 agosto la
-   colonna «Seggi» è stata dimensionata sul caso peggiore misurato («20–29», 63px a corpo
-   22) alle tre larghezze — 66px in base e a 660, 54px sotto i 400 dove il corpo è 18 —
-   e le altezze verificate a mano a 1265, 760 e 380px. Se si tocca il corpo, la colonna o
-   il font, va rimisurato con il browser, non con le prove.
-11. Preesistente, visto durante quella misura: a 380px **il nome «Giudaismo Unito Torah»
-    va a capo** nella colonna dei nomi da 104px e la sua riga è alta 95px contro i 78
-    delle altre. È la colonna dei nomi, non quella dei seggi: servono o più larghezza a
-    scapito della sparkline, o una sigla corta per l'etichetta stretta.
-12. **Il simulatore manuale è stato verificato a mano il 21 agosto 2026**, perché tre cose
-    sue jsdom non le misura: le altezze delle pillole (34px uniformi a 950, 760 e 380px,
-    su 3 e 6 righe), il totale dentro il riempimento nei due stati e nei due temi
-    (contrasti 6,35–9,07 dentro, 14,2–16,3 quando passa accanto in `--ink`), e la soglia
-    «dentro/accanto» che è misurata sul testo reso più 24px — a 380px con corpo 15 non ha
-    zona di collisione con l'etichetta «61 · maggioranza», controllato seggio per seggio
-    fra 28 e 46. **Chi tocca corpo, altezza della barra o posizione dell'etichetta
-    rimisura col browser**, nei due temi.
+Scritto per ripartire senza la conversazione. Ultimo commit spinto: **`14c9b0b`**.
 
-    Riverificato sulla pagina pubblicata il 21 agosto 2026, dopo la targhetta
-    dell'etichetta della soglia, alle tre larghezze — 935, 760, 380 — nei due temi e con
-    le tre scorciatoie del cambiamento, che danno 56, 61 e 68 seggi. Testo sulla targhetta
-    4,79 in chiaro e 4,75 in scuro; targhetta contro il riempimento 5,81 e 7,78; totale
-    dentro il riempimento 6,35 e 9,07. A 68 seggi l'etichetta cade davvero **a cavallo**
-    del bordo del riempimento — 38px sopra a 935, 29,2 a 760, 11,9 a 380 — ed è il caso
-    per cui nessun colore condizionato poteva bastare. Divario fra totale ed etichetta
-    338,5 · 261,8 · 103px, nessuna collisione. Pulsanti 29px e pillole 34px uniformi,
-    nessuno sforamento dentro `sez-7`.
+**Pubblicato e verde** — CI e Pages passate, 863 prove:
 
-    **L'alone `--wash` del tratto serve da 61 in poi, non da 68**, e non è la stessa
-    soglia dell'etichetta. Il tratto sta a 50,83% e 61 seggi riempiono il 50,833%: i due
-    bordi si toccano esattamente lì, quindi da 61 in su il tratto è sul riempimento — a
-    61 la differenza è sotto il pixel e il verso dipende dall'arrotondamento della barra,
-    misurato vero a 935 e falso per un pixel a 380. L'etichetta invece va a cavallo solo
-    più in alto, perché sta 7px a destra del tratto. Chi misura l'alone lo misuri a 61,
-    non a 68: è lì che il tratto nudo scenderebbe a 2,80 in chiaro e 1,83 in scuro.
+- **la tavolozza della consegna 6**, generativa, in `dati/colore-liste.js`. Cinque strade
+  aggiornate — `P{}`, `PAL_SCURO`, `BL{}`, i quattro token CSS — e `regola.js` che le lega
+  con 63 asserzioni. Dentro il blocco 15,7 in chiaro e 12,7 in scuro, per un dicromate
+  5,71 e 5,47. Il tetto della finestra scura è **0,650 e non 0,7200**, ed è nostro: vedi
+  «Il tetto della finestra scura è 0,650, ed è nostro»;
+- **la scala divergente dell'house effect**, tabella e schede, col comando «Escludi /
+  Includi», il `(escluso)` nascosto e la regione viva del ricalcolo;
+- **il banco di prova come dato**: `BT[]`, e da lì rendono la tabella e i tre numeri —
+  4,5, 1,7 e il rapporto **2,7**, che prima era «tre volte» scritto a mano;
+- **il lede dell'house effect** e la frase del comando, nel markup;
+- **`formaTitolo()`** con le sette forme, e `test/suite/titolo.js` che le prova su tutte e
+  7381 le configurazioni;
+- **l'ancora del confronto a sette giorni** parte da oggi e non dall'ultimo sondaggio, e
+  `PREC` porta due date distinte;
+- **l'invariante 10**, «niente tempo scritto a mano».
 
-    **Due trappole del banco di prova, e vanno lette insieme.** Il riquadro segue
-    `prefers-color-scheme` e con «auto» misura scuro anche quando si crede di misurare
-    chiaro: il tema va forzato dal selettore. E — peggio, perché non si annuncia — **con
-    la pagina non composta le transizioni CSS si congelano a metà, e le geometrie lette in
-    quello stato sono false.** Il riempimento `#k-gb` riportava 137,7px per
-    `width:56,6667%` di una barra da 324px, e su quel numero le prime misure negavano che
-    l'etichetta fosse a cavallo: negavano cioè esattamente il difetto che si stava
-    chiudendo. Non è una lettura rumorosa da rifare — è stabile e sbagliata, e ripetuta dà
-    lo stesso numero. Il rimedio va messo **prima** di qualunque misura di geometria:
+**Fermo, in attesa dei testi dell'autore.** Il codice c'è, la prosa no:
 
-    ```js
-    document.head.insertAdjacentHTML('beforeend',
-      '<style>#kn26 *{transition:none !important;animation:none !important}</style>');
-    ```
+- **l'h1 e il `<title>`**, nove celle raggiungibili: la tabella delle frequenze è in
+  `docs/forme-del-titolo.md` e serve proprio a scrivere quei testi. Il `<title>` oggi è
+  ancora una stringa fissa nel markup, riga 6, e deve diventare la forma corta della
+  stessa funzione, sotto i 60 caratteri;
+- **sommario, verdetto, pastiglie, istogrammi, simulatore**: la struttura — quale
+  grandezza in quale frase, con le condizioni — è quella concordata; i testi mancano.
+  Due cose sono già decise e vanno rispettate quando si scrivono: nel **verdetto** la
+  frase deve dire **da quando** si confronta, e adesso `PREC.taglio` e `PREC.data` sono
+  due campi distinti; negli **istogrammi** «quanti seggi mancano» si dice da
+  `61 − q(MC.coal, .50)`, la mediana, **non** da `blocchi(SEG)`;
+- **la nota metodologica**: restano le due frasi sul deposito dell'8 settembre, che oggi
+  sono al presente e diventano false il 9. Il resto della nota è già calcolato;
+- **la firma**: `Daniele Angrisani · Modello previsionale Knesset 2026 · @putino`, con
+  `@putino` su `https://x.com/putino`, senza FocusAmerica — è un modello personale, non
+  della testata. Se viene generata dal JavaScript il controllo strutturale la lascia
+  passare ed elenca il collegamento: è stato reso più preciso apposta. **Per l'embed**:
+  chi incorpora incorpora un lavoro personale, e il testo che accompagna il frammento da
+  copiare va scritto di conseguenza, o un editor attribuisce alla testata una cosa che la
+  testata non firma.
+
+**Il mobile: quattro cose che l'autore deve ancora dire.** Non sono state enunciate, e
+non vanno indovinate. Quello che il progetto ha già annotato su quel fronte, e che
+probabilmente le tocca:
+
+- **i 380px su un browser vero**: adesso si possono guardare, il banco c'è (vedi «Il banco
+  di misura su browser vero»). L'invariante 8 — nessun testo negli SVG sotto i 5px reali a
+  380 — è verificata solo alla larghezza disponibile, non a 380;
+- **la via d'uscita dal filtro dell'emiciclo al tocco**: il ritorno alla vista piena è
+  annunciato con Esc, che al tocco non esiste, e il pulsante «Mostra tutti i seggi» sta
+  sotto la legenda, lontano dal punto in cui il dito ha appena premuto;
+- **«Giudaismo Unito Torah» va a capo** a 380 nella colonna dei nomi da 104px, e la sua
+  riga è alta 95px contro i 78 delle altre;
+- **i dischi dei marcatori sotto i 900px**, dove il `<title>` è l'unica cosa che li
+  descrive e il comando è la voce di cronologia: scelta da provare con un lettore di
+  schermo vero, non da stabilire ragionando.
+
+**E prima di misurare qualunque cosa su browser**: il server è `.claude/serve.mjs`, è
+sotto controllo di versione apposta, e le sue **tre trappole** stanno in «Il banco di
+misura su browser vero» — il tema che segue `prefers-color-scheme`, le transizioni
+congelate che danno geometrie stabili e false, e il clone misurato fuori da `#kn26` che
+non eredita nessuna regola del foglio. Più una del DOM: `#k-house` viene riscritto a ogni
+render, quindi un riferimento preso prima di un `click()` è morto subito dopo.
+
+### Nell'ordine, quando si riprende
+
+1. **I testi**, che sbloccano tutto il resto: h1, `<title>`, i cinque blocchi, le due
+   frasi sul deposito. Da `docs/forme-del-titolo.md`.
+2. **Le quattro cose sul mobile**, appena l'autore le dice.
+3. **La revisione visiva della tavolozza nuova**: non l'ha ancora vista nessuno. La prima
+   riga della lista di controllo dice dove guardare — l'ago della bilancia, che ha il
+   pavimento dicromatico più basso, e in scuro `otzma` `#BCD2FF`, l'unica rimasta quasi
+   bianca.
+4. **Modalità `?embed=1`** (punto 1 di «Ancora da fare»).
+5. **Cercare le altre strade doppie.** Ogni valore che raggiunge lo schermo per più di un
+   percorso e non ha una prova che li leghi è il prossimo colore di blocco.
+6. **Il campo `esito`** in archivio (punto 8-bis): senza, dopo il voto la pagina può
+   parlare solo della propria stima, e l'ottava istantanea che sposterebbe il 2,7 non
+   esiste.
+7. Minore, dal filtro dell'emiciclo: vedi il mobile qui sopra.
+8. Dal parser Wikipedia: **24 righe di gennaio-aprile** hanno una cella unica che copre
+   Ra'am, Hadash–Ta'al e Balad — la Joint List larga di gennaio, che non ha contenitore in
+   anagrafica. Il parser le respinge dichiarandolo: vanno mappate a mano.
+9. Sempre dal parser: **le righe-evento arrivano in inglese** in una cronologia italiana.
+   `unisciEventi` salta le date già presenti, quindi oggi non entra niente di nuovo, ma il
+   primo evento inglese nuovo si mescolerà alle voci italiane.
+10. **L'altezza uniforme delle righe della tabella dell'analisi** non è provabile in jsdom:
+   dipende dal font e si vede solo su browser vero. Se si tocca il corpo, la colonna o il
+   font, va rimisurato col browser.
 
 ### Le due colonne «Seggi»: cosa è chiuso e cosa resta aperto
 
