@@ -29,7 +29,7 @@ alle prove.
 
 ```bash
 npm install          # solo la prima volta: installa jsdom per le prove
-npm test             # estrae il JS e lancia le 1223 prove
+npm test             # estrae il JS e lancia le 1293 prove
 npm run verifica     # prove + controlli strutturali
 npm run spazzola     # rilancia il banco con l'orologio al 23 ottobre: dice quali prove
                      #   danno per scontato un archivio fresco. Da rifare dopo ogni
@@ -60,7 +60,7 @@ secondo argomento (aff.js, due su due); e un'asserzione tautologica —
 ## Il banco di misura su browser vero
 
 Le prove girano in jsdom, che **non fa layout**: larghezze, altezze, contrasti resi e
-sovrapposizioni non le vede nessuna delle 1223. Per quelle c'è un server statico da otto
+sovrapposizioni non le vede nessuna delle 1293. Per quelle c'è un server statico da otto
 righe, `.claude/serve.mjs`, dichiarato in `.claude/launch.json` come configurazione
 `misure`. **È sotto controllo di versione apposta: chi apre il progetto domani lo trova
 invece di rimontarlo.** Non è una dipendenza del modello — `index.html` resta un file
@@ -382,11 +382,38 @@ leva alla volta, quella lista le esercita insieme.
    cosa da scoprire quando il PNG è già scritto.**
 2. ~~Accordi di apparentamento~~ — **IMPLEMENTATI IL 23 AGOSTO 2026, e nati spenti.**
    `APPARENTAMENTI` sta nell'anagrafica: coppie di id, con la **data** dell'annuncio e lo
-   **stato**. I depositati entrano sempre nel riparto; i proposti solo con la leva
+   **stato**. I depositati entrano sempre nel riparto; gli annunciati solo con la leva
    `PAR.apparentamenti`, che si comporta come `PAR.listaunita` e mostra il controfattuale.
    Oggi non c'è nessun depositato, quindi **a leva spenta ogni numero in pagina è identico
    a prima**, ed è la prima cosa che `test/suite/apparentamenti.js` verifica invece di
-   darla per scontata. **L'8 settembre si cambia uno `stato`, non il codice.**
+   darla per scontata.
+
+   **IL TERMINE È IL 16 OTTOBRE, NON L'8 SETTEMBRE**, e questo punto ha detto il contrario
+   per tre commit — «si cambia uno stato l'8 settembre» era falso due volte: la data è
+   un'altra, e quello che l'8 settembre si può fare è soltanto portare a `depositato` gli
+   accordi già firmati, che storicamente sono pochi. Vedi il Calendario qui sopra per la
+   verifica sui tre cicli e per il rapporto col silenzio demoscopico.
+
+   **QUANTI NE ARRIVERANNO, dalle tre campagne del banco**: 3 nel 2020, 6 nel 2021, 4 nel
+   2022 fra le liste che contano — **il totale sta fra 3 e 6**, con 8-13 liste sopra
+   soglia (oggi 11). **La coda è la parte grossa**: nel 2021 tre dei sei sono stati
+   firmati dopo il deposito delle liste e uno a quindici giorni dal voto (Shas + UTJ, 8
+   marzo); nel 2022 **tutti e quattro nell'ultima settimana utile**, a ridosso del termine
+   del 21 ottobre. Alla distanza di oggi dal voto — 65 giorni — il 2021 ne aveva
+   annunciati **2 su 6** e il 2022 **0 su 4**: da qui all'8 settembre aspettarsene **zero,
+   uno, al massimo due**, e il grosso fra fine settembre e il 16 ottobre. Una tabella
+   quasi vuota a settembre non è un'anagrafica finita, ed è scritto anche nel commento
+   accanto a `APPARENTAMENTI` perché è la lettura sbagliata più facile da fare.
+
+   **UN ANNUNCIATO CHE NON DIVENTA DEPOSITATO MUORE, e nel 2022 è stato il caso normale
+   per le liste arabe**: Balad rifiutò Hadash–Ta'al, Ra'am non provò, e le trattative
+   annunciate finirono in niente mentre la stampa lo raccontava come un vantaggio per il
+   blocco di Netanyahu. I modi di morire sono due e sono tutti e due implementati:
+   `stato:'ritirato'` con il campo `fine` — la data del ritiro, che serve alla serie
+   storica per non riscrivere il passato — e il **termine**, che li spegne tutti insieme.
+   Dopo il 16 ottobre `coppieAl()` non li restituisce più, con la leva accesa o spenta:
+   **dopo il termine un accordo non depositato non è un'ipotesi, è una cosa che non è
+   successa**, e il comando sparisce invece di promettere un controfattuale che non c'è.
    `dhondt()` e `ripartoVeloce()` sono stati toccati nello stesso commit, e una prova li
    confronta su 300 vettori di quote generati: erano la strada doppia che sarebbe nata
    insieme alla funzionalità.
@@ -400,8 +427,21 @@ leva alla volta, quella lista le esercita insieme.
    pubblicato, con una rilevazione in più: **Likud 23 → 22, Lista Unita araba 7 → 8**,
    cioè blocco Netanyahu **51 → 50** e partiti arabi **12 → 13**. Il seggio attraversa il
    confine fra i blocchi, che è il caso in cui conta. Non è una correzione della misura di
-   ieri: è il margine del 120° seggio a **0,0012 di divisore** che si vede in azione, e la
-   ragione per cui questo punto era il secondo della coda.
+   ieri: è il margine del 120° seggio — **0,0035 di divisore** il 23 agosto, fra il 23°
+   seggio del Likud a 0,7525 e l'8° di Shas a 0,7490 — che si vede in azione, e la ragione
+   per cui questo punto era il secondo della coda.
+
+   **E non è più un caso limite: spazzolando lo swing da −6 a +6 a mezzo punto, la coppia
+   vale un seggio in 25 stati su 25, e in 25 su 25 il seggio viene da un altro blocco.**
+   Il 22 agosto valeva in 4 stati su 25. Il perché è strutturale e va saputo prima di
+   rimisurarlo: lo swing sposta punti fra coalizione e opposizione e **non tocca le quote
+   arabe**, quindi la coppia resta sempre nella stessa posizione rispetto al taglio; cambia
+   solo *chi paga* — la coalizione in 11 stati (Likud cinque volte, poi Shas, UTJ, Otzma,
+   Sionismo Religioso), l'opposizione nei 14 restanti (Yashar sette volte, B'Yachad,
+   Democratici, Beitenu). I tre divisori che lo spiegano: il prossimo seggio di Ra'am
+   starebbe a **0,6899** e quello della Lista Unita a **0,7188** — tutti e due sotto il
+   taglio — mentre sommate le quote fanno 9,89 e il 13° seggio della lista virtuale sta a
+   **0,7608**, che batte il Likud. Poi il 13 si divide 5 e 8.
 
    Quello che segue è l'analisi che ha portato all'implementazione, e resta perché i suoi
    numeri servono a leggere la tabella.
@@ -541,8 +581,9 @@ leva alla volta, quella lista le esercita insieme.
    con metà della mappa sbaglierebbe **sempre nella stessa direzione**, quella dei blocchi
    le cui coppie sono state annotate. Un errore casuale si dichiara nell'intervallo, uno
    sistematico no — e il banco misura il primo, non il secondo. Da cui anche la regola
-   pratica: **se all'8 settembre la mappa è incompleta, si pubblica senza apparentamenti e
-   lo si dichiara**, non con quelli che si sono trovati.
+   pratica: **se al 16 ottobre la mappa è incompleta, si pubblica senza apparentamenti e
+   lo si dichiara**, non con quelli che si sono trovati. (La data qui diceva 8 settembre:
+   è il termine delle liste, non quello degli accordi, e la regola vale al **secondo**.)
 
    **Corollario, e non è un dettaglio di implementazione: `dhondt()` e
    `ripartoVeloce()` vanno toccati nello stesso commit.** Il primo fa la proiezione, il
@@ -763,6 +804,19 @@ leva alla volta, quella lista le esercita insieme.
     righe non esercitate da nessuna prova. Oggi le copre `interazione.js`, che costruisce
     un DOM vero. Vanno convertite: finché restano così, ogni codice che tocchi elementi
     resi va provato altrove o non è provato affatto.
+
+    **Il conto è arrivato una seconda volta il 23 agosto 2026**, e questa volta senza
+    guardie. Lo stub non aveva `setAttribute` **affatto**: la prima riga di pagina che ha
+    scritto un attributo su un elemento reso — l'`aria-label` del comando degli accordi di
+    eccedenza — ha fatto morire **tutte e sei** le suite alla prima chiamata, con zero
+    asserzioni ciascuna. Rimedio scelto: **l'attrito è stato messo nello stub, non nella
+    pagina**. Niente guardia d'uscita in `rApp()` — sarebbe stata la stessa riparazione
+    sbagliata di allora — e invece un `attr:{}` vero con `setAttribute` / `getAttribute` /
+    `removeAttribute` e `hidden` nelle sei copie. Lo stub deve poter *fare finta* di essere
+    un elemento; non deve mentire su **che cosa un elemento sa fare**.
+
+    E la copia dello stub è essa stessa una strada sestupla: sei `El()` quasi identici, e
+    la modifica di oggi è stata applicata a mano sei volte.
 14. **La tabella che sfora è quella dell'*house effect*, non quella dell'archivio.**
     Questo punto ha indirizzato sulla tabella sbagliata per tre commit: la misura era
     giusta — 942px dentro un `div` con `overflow-x:visible` — ma quei numeri sono di
@@ -1202,6 +1256,14 @@ scorciatoia nelle ipotesi è il caso opposto — etichetta fissa «Escludi Direc
 quindi lì `aria-pressed` è la grammatica giusta e ora ce l'ha. Stessa famiglia di comandi,
 due grammatiche, e la differenza è se il nome dice l'azione o la cosa.
 
+**E gli altri tre pulsanti delle ipotesi non ce l'avevano**, benché siano lo stesso caso:
+«Solo ultimi 7 giorni», «Lista Unita araba» e la scorciatoia dell'house effect hanno
+l'etichetta **fissa**, quindi a schermo lo stato lo dice la classe `.on` e a un lettore di
+schermo non lo diceva **niente** — una leva accesa e una spenta si annunciavano identiche.
+Chiuso il 23 agosto 2026 in `rTesta()`, con l'esclusione esplicita del quarto, il comando
+degli accordi di eccedenza, che è dell'altra grammatica. La regola è **scritta**, non
+dedotta: `if(b.id!=='k-app')`.
+
 Due cose che allo schermo sono dette da un segno e a un lettore di schermo non arrivavano:
 **`(escluso)` nascosto** accanto al nome barrato — `text-decoration:line-through` non viene
 annunciato da quasi nessun lettore, quindi lo stato esisteva solo dentro il nome del
@@ -1554,15 +1616,151 @@ prima non c'era. A **760** il corpo resta 10 (14,65px resi) e lo sforamento è z
 tutti e 26 gli stati: **il ribaltamento ripara anche lì**, perché il taglio non era mai
 stato un difetto del mobile.
 
+## Il comando degli accordi: quanti ne applica, e se è un fatto o un'ipotesi
+
+Applicato il 23 agosto 2026, insieme al termine del 16 ottobre. Il pulsante diceva
+**«Apparentamenti proposti»**: la cosa, non l'azione, e soprattutto non diceva a chi lo
+premeva se stesse guardando un fatto o un'ipotesi.
+
+### L'etichetta
+
+Grammatica dell'azione, la stessa di «Escludi / Includi» nell'house effect: il nome dice
+che cosa succede premendo, **il cambio di nome è il riscontro**, e quindi **niente
+`aria-pressed`** — direbbe il contrario di quello che si legge.
+
+| stato | testo visibile |
+|---|---|
+| leva spenta, 1 annunciato | **Aggiungi 1 accordo annunciato** |
+| leva accesa | **Togli 1 accordo annunciato** |
+| 3 annunciati | **Aggiungi 3 accordi annunciati** |
+| 0 annunciati, o termine passato | il pulsante **non c'è** |
+
+**«Annunciato» e non «proposto»**: è il fatto verificabile — c'è una data e una fonte —
+mentre «proposto» dice anche chi ha proposto a chi, che nell'offerta unilaterale di Abbas
+del 22 agosto non è simmetrico.
+
+**IL NUMERO VIENE DA `contoApp()`, NON DA `APPARENTAMENTI.length`.** `filtraRiparto()`
+scarta due categorie — un accordo con una lista sotto soglia, e il secondo accordo che
+riusa una lista già impegnata — quindi i due numeri divergono il primo giorno in cui una
+lista scende sotto soglia: l'etichetta direbbe due e il riparto ne applicherebbe uno. Il
+conto esce dallo stesso filtro che fa il riparto, chiesto **due volte**, senza l'ipotesi e
+con, perché l'etichetta deve dire che cosa cambierebbe anche a leva spenta. Gli scartati
+sono dichiarati **con la ragione** nella riga di esito, e la ragione nasce dentro il
+filtro: raccoglierla altrove sarebbe la strada doppia di sempre.
+
+**Il nome accessibile COMINCIA col testo visibile, per costruzione e non per attenzione.**
+WCAG 2.5.3 chiede che il nome accessibile *contenga* l'etichetta che si legge, o chi
+comanda a voce dice quello che vede e non succede niente. Nell'house effect la cosa era
+gratis — l'etichetta è una parola sola, «Escludi» — qui l'etichetta è una frase, e
+concatenarla (`eti = testo + ' al riparto: ' + quali`) è l'unico modo che non si può
+sbagliare riscrivendo. `aria-label` e `title` sono la stessa stringa, nata una volta sola:
+idioma di `ETI`.
+
+**E i due versi hanno due preposizioni**: si aggiunge **al** riparto e si toglie **dal**
+riparto. La prima stesura le aveva scambiate — «Aggiungi dal riparto» — e nessuna prova
+poteva accorgersene finché non è stata scritta quella che confronta i due versi.
+
+### La riga di esito
+
+Non è la didascalia del pulsante: **dice i depositati, che nessun comando governa** perché
+sono già dentro ogni numero della pagina, accesa o spenta la leva. Tre regimi, generati.
+
+| quando | che cosa dice |
+|---|---|
+| oggi, leva spenta | «Nessun accordo di eccedenza è ancora depositato: il riparto non ne applica nessuno. 1 annunciato e non ancora depositato, quindi fuori: … Il termine è il 16 ottobre 2026, **non il deposito delle liste**.» |
+| oggi, leva accesa | «… applicato per ipotesi: Ra'am e Lista Unita araba. **Vale 1 seggio**, e lo sposta fra i blocchi: **Blocco Netanyahu 51 → 50 · Partiti arabi 12 → 13**. È un'ipotesi, non un fatto.» |
+| dall'8 settembre | «N accordi depositati, sempre nel riparto: … M annunciati e non ancora depositati, quindi fuori.» |
+| dal 16 ottobre | «Il termine è passato il 16 ottobre: … Gli accordi annunciati e mai depositati non contano più.» — e la leva sparisce |
+
+**Nomina i blocchi, non solo i seggi**, e la ragione è una misura: l'unico accordo in
+tabella oggi sposta un seggio **da un blocco all'altro in tutti e venticinque** gli stati
+dello swing. «Un seggio» sarebbe vero e depotenziato.
+
+**L'effetto si misura chiedendo lo stesso riparto senza gli annunciati**: `dhondt()` ha
+preso un terzo argomento facoltativo con le coppie già filtrate, così la riga non ha un
+secondo modo di contare i seggi. Un array vuoto è legittimo e vale «nessun accordo» — in
+JavaScript un array vuoto è vero, quindi `if(!cp)` non lo confonde con «non passato».
+
+### Misurato su browser vero, il 23 agosto 2026
+
+| | 380 | 1265 |
+|---|---|---|
+| etichetta, larghezza | **195,4px** (era 163,1: **+32,3**) | 195,4 |
+| nastro delle ipotesi | 2 righe → **3**, 65 → **101px** | resta **1 riga**, 29px |
+| riga di esito, altezza | **103,5px** | 34,5px |
+| sforamento del documento | **zero** | zero |
+| contrasto della riga (`--mute`) | **5,24** chiaro · **5,10** scuro | idem |
+| contrasto dell'etichetta | 10,04 · 8,39 | idem |
+
+Costo complessivo a 380: **+139,5px** nel pannello delle ipotesi, tutti sotto la piega dei
+comandi e nessuno sui grafici. **Se un giorno pesassero**, la cosa da accorciare è la riga
+e non l'etichetta: l'etichetta è il canale che dice fatto-o-ipotesi.
+
+**Provato premendo, sulla pagina vera**: etichetta, nome accessibile e riga cambiano
+insieme, il sommario passa a «blocco Netanyahu 50», e ripremendo tutto torna identico.
+Zero errori in console.
+
+### La prova, e le due cose che ha imposto
+
+`test/suite/apparentamenti.js` è passata da 46 a 120 asserzioni. Due scelte che valgono
+oltre questo caso:
+
+- **non si asserisce una misura.** Quanto valga l'accordo dipende dall'archivio del giorno
+  — oggi uno, il 22 agosto zero, e sul seme `BASE` che gira in jsdom **zero** — quindi la
+  prova rifà il conto e verifica che la riga dica **quello**. Scritto «vale un seggio»
+  sarebbe caduto alla prima rilevazione nuova, dicendo «difetto» dove c'era un sondaggio in
+  più. E siccome il seme non esercita il ramo che si muove, la prova **cerca** una coppia
+  che sposti un seggio invece di sceglierne una a caso: quale sia dipende dall'archivio;
+- **il termine si prova con `al`, non con l'orologio.** `coppieAl(data, true)` valuta a una
+  data qualunque — è la stessa che usa la serie storica — quindi le prove sul 16 e sul 17
+  ottobre non dipendono dal giorno in cui girano, e il confine si prova esatto: il giorno
+  del termine l'accordo vale ancora, il giorno dopo no. Per la pagina **resa** non basta:
+  lì l'orologio si congela, alla vigilia del termine e al giorno dopo, e le due date
+  escono da `termineApp()`.
+
+**E `npm run spazzola` ha trovato la stagionalità che avevo appena scritto.** La prima
+stesura di queste prove dava per scontato di essere eseguita **prima del 16 ottobre**:
+accendeva la leva e pretendeva che l'accordo entrasse nel riparto. Con l'orologio al 23
+ottobre — la data predefinita dello spazzolamento — cadeva, e cadeva **avendo ragione il
+codice**. È l'invariante 10 nella forma meno riconoscibile: non una data letterale in una
+fixture, ma un `null` che vuol dire «adesso». Provate le sei date 9 settembre · 16 e 17 e
+23 ottobre · 20 novembre · 1º febbraio: zero cadute.
+
+**Mutata, undici volte, e tutti e undici i mutanti sono morti**: il termine portato al
+deposito delle liste (11 asserzioni), la leva che ignora il termine (2), i depositati che
+non vengono prima nel filtro (1), il numero dell'etichetta preso da `APPARENTAMENTI.length`
+(1), il nome accessibile che non comincia col testo visibile (2), le due preposizioni
+scambiate (1), l'`aria-pressed` tolto agli altri tre pulsanti (3), il ritiro che non spegne
+niente (2), il comando che resta dopo il termine (1), `dhondt()` che ignora le coppie
+passate (1), gli scarti senza ragione (1).
+
+E la mutazione ha trovato **un difetto nelle prove stesse**: due asserzioni cercavano
+«vale N seggi» in minuscolo, e dopo che la frase è diventata una proposizione a sé — «Vale
+1 seggio» — erano verdi soltanto perché il seme di prova prendeva l'altro ramo. Sono
+ancorate alla maiuscola nessuna delle due, adesso.
+
 ## Calendario
 
 | Data | Cosa |
 |---|---|
 | 8 settembre 2026 | Deposito delle liste: la mappa dei partiti si chiude |
 | 6 ottobre 2026 | Comincia la propaganda televisiva |
+| **16 ottobre 2026** | **Termine per gli accordi di eccedenza** — undici giorni prima del voto |
 | 23 ottobre 2026 | Silenzio demoscopico: ultimi sondaggi pubblicabili |
 | **27 ottobre 2026** | **Voto** |
 | 4 novembre 2026 | Risultati ufficiali |
+
+**Le due date non sono la stessa, e per tre commit il modello ha detto che lo erano.** L'8
+settembre si chiudono le **liste**; gli accordi di eccedenza si depositano fino
+all'**undicesimo giorno prima del voto**, trentotto giorni dopo. Verificato su tre cicli:
+2019 il 6 settembre per il voto del 17, 2021 il 12 marzo per il 23, 2022 il venerdì
+precedente il 1º novembre. La data non è scritta a mano da nessuna parte — `termineApp()`
+è `VOTO` meno `TERMINE_APP_GG` — e da lì escono la riga del calendario, la leva e la nota.
+
+E **cade sette giorni prima del silenzio demoscopico**: nell'ultima settimana di campagna
+gli accordi saranno tutti noti e non arriveranno più sondaggi. È un fatto che riguarda come
+si legge la proiezione in quei giorni — l'unica cosa che può ancora muovere i numeri è un
+apparentamento — ed è scritto nella nota metodologica.
 
 ---
 
@@ -1837,10 +2035,18 @@ Due conseguenze pratiche, e sono quelle da ricordare:
   una cosa sta dove deve, la domanda successiva è sempre se si legge — e quella, in
   questo progetto, la risponde solo un occhio su un browser vero.
 
-### Lo stato al 22 agosto 2026, sera
+### Lo stato al 23 agosto 2026, sera
 
-Scritto per ripartire senza la conversazione. Ultimo commit spinto: **`c71d6ea`**, CI e
-Pages verdi, **1223 prove**.
+Scritto per ripartire senza la conversazione. Ultimo commit spinto: **`55b0b87`**, CI e
+Pages verdi. Sul banco di oggi le prove sono **1293**.
+
+**Quello che è entrato il 23 agosto**, dopo gli apparentamenti: il **termine del 16
+ottobre** — che non è l'8 settembre, e la nota diceva il contrario — con la sua riga di
+calendario ricavata da `VOTO`; il **comando degli accordi** che dice quanti ne applica e in
+che stato, con la riga di esito che dichiara i depositati e l'effetto in blocchi; lo stato
+`ritirato` per un annunciato che muore; `aria-pressed` sui tre pulsanti delle ipotesi a
+etichetta fissa, che non l'avevano; e gli **attributi veri nello stub delle sei suite** del
+punto 13, che senza morivano tutte alla prima riga di pagina che scriveva un `aria-label`.
 
 #### Prima di toccare qualunque cosa
 
@@ -2003,10 +2209,12 @@ il 37% del costo totale. Oggi i bersagli sotto i 44 sono **76 su 99**.
    **Restano senza prosa** verdetto, pastiglie, istogrammi e simulatore, e restano da
    rileggere i **sei testi delle tre celle nuove** del titolo, che sono gli unici non
    dettati dall'autore.
-2. ~~Gli apparentamenti~~ — **fatti il 23 agosto 2026**: vedi il punto 2 di «Ancora da
-   fare». Resta da riempire la tabella mano a mano che gli accordi vengono annunciati, e
-   da portarli a `depositato` l'8 settembre. Quello che segue è la misura che li aveva
-   messi al secondo posto.
+2. ~~Gli apparentamenti~~ — **fatti il 23 agosto 2026**, e il giorno stesso corretti: il
+   termine **non** è l'8 settembre ma il **16 ottobre**, undici giorni prima del voto.
+   Vedi il punto 2 di «Ancora da fare» e «Il comando degli accordi». Resta da riempire la
+   tabella mano a mano che gli accordi vengono annunciati — **il grosso arriverà fra fine
+   settembre e il 16 ottobre**, non l'8 settembre — e da portare a `depositato` quelli
+   firmati. Quello che segue è la misura che li aveva messi al secondo posto.
 
    ~~Sale qui perché **non è più
    ipotetico**: il 22 agosto 2026 Abbas ha proposto alla Lista Unita araba un accordo di
@@ -2092,6 +2300,13 @@ il 37% del costo totale. Oggi i bersagli sotto i 44 sono **76 su 99**.
    `PRESET.netanyahu` che si aggiorna da sé, `dentro` per le componenti nuove, e le 24
    righe di gennaio-aprile che aspettano una mappatura a mano. La riga «scenari di lista»
    della verifica a scenari è la lista di controllo; questa è la **prova generale**.
+
+   **E una seconda prova di regia, più piccola, per il 16 ottobre**: il termine degli
+   accordi di eccedenza. Quel giorno il comando sparisce, la riga di esito cambia ramo e
+   gli annunciati mai depositati smettono di contare — con l'orologio congelato al 15, al
+   16 e al 17 si guarda che le tre schermate dicano tre cose coerenti, e che il calendario
+   dica «oggi» il 16 e «passato» il 17. Le prove lo verificano; nessuno l'ha ancora
+   **guardato**.
 11. **La verifica a scenari** (in fondo al file): l'ultima cosa prima di pubblicare.
 12. **Un inventario delle funzionalità con i numeri veri**, per i post di lancio.
     **Non i post — quelli li scrive l'autore — ma il materiale**: cosa fa il modello e
@@ -2219,7 +2434,7 @@ la regola della consegna 6».
 trovati oggi — la stella della bandiera che sconfinava nelle bande, l'occhiello a filo del
 bordo sull'ombra, il vuoto di 372px sotto le ipotesi, l'evidenziazione che competeva con
 la codifica del riempimento, il verde arabo che si leggeva nero — sono stati trovati
-**guardando la pagina**, non dalla suite. Le 1223 prove dicono che il modello non si è
+**guardando la pagina**, non dalla suite. Le 1293 prove dicono che il modello non si è
 rotto; non dicono che la pagina si veda. Dopo ogni push, aprire
 <https://angrisanidj.github.io/modello-israele/> e guardarla nei due temi.
 
@@ -2230,7 +2445,7 @@ rotto; non dicono che la pagina si veda. Dopo ogni push, aprire
 Scritta il 22 agosto 2026 per una passata sola, sezione per sezione. Serve a distinguere
 **quello che qualcuno ha già guardato reso** da **quello che nessuno ha mai visto**: in due
 giorni sono entrate parecchie cose che le prove dichiarano sane e che nessun occhio ha
-ancora confermato. Le 1223 prove dicono che il modello non si è rotto; non dicono che la
+ancora confermato. Le 1293 prove dicono che il modello non si è rotto; non dicono che la
 pagina si veda.
 
 Si guarda su <https://angrisanidj.github.io/modello-israele/>, **nei due temi forzati dal

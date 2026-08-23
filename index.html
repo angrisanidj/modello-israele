@@ -125,6 +125,12 @@
  font-weight:700;padding:9px 16px;border-radius:2px;transition:.16s;}
 #kn26 .btn:hover{background:var(--acc);border-color:var(--acc);}
 #kn26 .btn:disabled{opacity:.45;cursor:progress;}
+/* Dopo il termine degli accordi di eccedenza la leva sparisce, e l'attributo `hidden` da
+   solo non basta a garantirlo: la regola del browser è `[hidden]{display:none}` senza
+   selettore d'id, quindi qualunque regola di questo foglio che desse un `display` a un
+   pulsante la batterebbe per specificità e il comando resterebbe visibile e inerte.
+   Oggi nessuna lo fa; questa riga fa in modo che non conti se domani una lo farà. */
+#kn26 [hidden]{display:none;}
 #kn26 .btn.g{background:transparent;color:var(--ink2);border-color:var(--hair);}
 #kn26 .btn.g:hover{border-color:var(--ink);color:var(--ink);background:var(--wash);}
 #kn26 .btn.g.on{background:var(--rule);color:var(--paper);border-color:var(--rule);}
@@ -1273,9 +1279,15 @@
    <button class="btn g xs" data-escl="Direct Polls">Escludi Direct&nbsp;Polls</button>
    <button class="btn g xs" data-par="recenti">Solo ultimi 7 giorni</button>
    <button class="btn g xs" data-par="listaunita">Lista Unita araba</button>
-   <button class="btn g xs" data-par="apparentamenti">Apparentamenti proposti</button>
+   <!-- Il nome di questo pulsante lo scrive rApp(), con QUANTI accordi applica e in che
+        stato: «Apparentamenti proposti» diceva la cosa, non l'azione, e soprattutto non
+        diceva a chi lo premeva se stesse guardando un fatto o un'ipotesi. Il testo qui è
+        il ripiego per chi apre il file senza JavaScript, e per questo non afferma nessun
+        numero: sarebbe vero solo il giorno in cui è stato scritto. -->
+   <button class="btn g xs" id="k-app" data-par="apparentamenti">Aggiungi gli accordi annunciati</button>
   </div>
   <p class="pgn">Modificano quali sondaggi entrano nel calcolo, come sono composte le liste, o quali accordi di apparentamento entrano nel riparto. Ogni istituto può essere escluso singolarmente dalla tabella <i>House effect</i>.</p>
+  <p class="pgn" id="k-appriga"></p>
  </div>
  <div class="pg">
   <div class="pgt">Parametri del modello <button class="lnk" id="k-reset-par">azzera</button></div>
@@ -1876,11 +1888,25 @@ function gauss(){if(_g!==null){var v=_g;_g=null;return v;}
    annunciata il 22 agosto non deve retroagire su una proiezione di luglio — e lo `stato`
    separa quello che è stato PROPOSTO da quello che è stato DEPOSITATO.
 
-   I DEPOSITATI ENTRANO SEMPRE, I PROPOSTI SOLO CON LA LEVA ACCESA. Oggi non ce n'è
-   nessuno depositato — il termine è l'8 settembre — quindi a leva spenta il riparto è
-   ESATTAMENTE quello di prima, e c'è una prova che lo verifica invece di darlo per
-   scontato. La leva è `PAR.apparentamenti`, e si comporta come `PAR.listaunita`: mostra
-   il controfattuale. L'8 settembre non si scrive codice nuovo, si cambia uno `stato`.
+   I DEPOSITATI ENTRANO SEMPRE, GLI ANNUNCIATI SOLO CON LA LEVA ACCESA. Oggi non ce n'è
+   nessuno depositato, quindi a leva spenta il riparto è ESATTAMENTE quello di prima, e
+   c'è una prova che lo verifica invece di darlo per scontato. La leva è
+   `PAR.apparentamenti`, e si comporta come `PAR.listaunita`: mostra il controfattuale.
+
+   IL TERMINE NON È L'8 SETTEMBRE, e per tre commit questo commento ha detto il
+   contrario. L'8 settembre si chiudono le LISTE; gli accordi di eccedenza si depositano
+   fino a UNDICI GIORNI prima del voto, cioè il 16 ottobre 2026 — trentotto giorni dopo.
+   Verificato su tre cicli: nel 2019 il termine era il 6 settembre per il voto del 17,
+   nel 2021 il 12 marzo per il 23, nel 2022 il venerdì precedente il 1º novembre. Da qui
+   discende tutto il resto di questo blocco: la tabella non si chiude l'8 settembre, la
+   leva non si spegne l'8 settembre, e quello che l'8 settembre si può fare è soltanto
+   portare a `depositato` gli accordi già firmati.
+
+   QUANTI ARRIVERANNO, dalle tre campagne del banco di prova: 3 nel 2020, 6 nel 2021, 4
+   nel 2022 fra le liste che contano. La coda è la parte grossa — nel 2021 tre dei sei
+   sono stati firmati DOPO il deposito delle liste e uno a quindici giorni dal voto, nel
+   2022 tutti e quattro nell'ultima settimana utile. Chi guarda questa tabella a
+   settembre e la trova quasi vuota non sta guardando un'anagrafica finita.
 
    MAPPARNE META' E' PEGGIO CHE NON MAPPARNE NESSUNO, e va detto qui perché è la ragione
    per cui la leva esiste: oggi il modello sbaglia in modo simmetrico rispetto agli
@@ -1892,30 +1918,88 @@ var APPARENTAMENTI=[
  {a:'raam', b:'lista_araba', data:'2026-08-22', stato:'proposto',
   fonte:"Mansour Abbas propone alla Lista Unita un accordo di cooperazione e di condivisione dei voti in eccesso"}
 ];
-/* Gli accordi che valgono a una certa data: i depositati sempre, i proposti solo se la
-   leva è accesa. `al` è la data della proiezione che si sta calcolando — null per oggi —
-   e serve alla serie storica, che ricalcola il passato. */
-function coppieAttive(al){
+/* IL TERMINE, RICAVATO DAL VOTO E NON SCRITTO A MANO. È l'undicesimo giorno prima delle
+   urne — vedi il blocco qui sopra per i tre cicli su cui è verificato — quindi esce da
+   VOTO come il conto alla rovescia, la fascia del dopo-voto e la riga del calendario.
+   Scritto a mano sarebbe una costante temporale in più: vale finché non vale più, e
+   varrebbe falso il giorno in cui la data del voto cambia. */
+var TERMINE_APP_GG=11;
+function termineApp(){return new Date(giornoUTC(VOTO)-TERMINE_APP_GG*864e5).toISOString().slice(0,10);}
+/* L'oggi del lettore nel formato dell'archivio, per confrontarlo con le date scritte lì:
+   stesso idioma del taglio a sette giorni della mediana. */
+function oggiISO(){return new Date(giornoUTC(new Date())).toISOString().slice(0,10);}
+/* Gli accordi che valgono a una certa data: i depositati sempre, gli annunciati solo se
+   `ipotesi` lo chiede. `al` è la data della proiezione che si sta calcolando — null per
+   oggi — e serve alla serie storica, che ricalcola il passato.
+
+   UN ACCORDO ANNUNCIATO CHE NON DIVENTA DEPOSITATO MUORE, e non è il caso raro: nel 2022
+   nessuna delle tre liste arabe firmò, e le trattative annunciate finirono in niente. I
+   modi di morire sono due e vanno previsti prima che succedano. `fine` è il giorno in cui
+   l'accordo è stato ritirato — prima di quel giorno la serie storica lo vede ancora
+   annunciato, dopo non esiste — e il TERMINE li spegne tutti insieme, perché dopo il 16
+   ottobre un accordo non depositato non è un'ipotesi: è una cosa che non è successa. Da
+   quel giorno la leva non ha più niente da applicare, e infatti sparisce.
+
+   I DEPOSITATI VENGONO PRIMA, e l'ordine non è cosmetico. Il filtro «una lista sta in un
+   accordo solo» tiene il primo che incontra: se un annunciato condividesse una lista con
+   un depositato, a decidere quale dei due entra sarebbe l'ordine in cui sono scritti
+   nella tabella, e un'ipotesi scaccerebbe un fatto. */
+function coppieAl(al,ipotesi){
+ var q=al||oggiISO(), oltre=q>termineApp();
  return APPARENTAMENTI.filter(function(x){
-  if(al&&x.data>al) return false;
-  return x.stato==='depositato'||!!PAR.apparentamenti;
+  if(x.data>q) return false;
+  if(x.stato==='depositato') return true;
+  if(x.fine&&q>=x.fine) return false;
+  if(x.stato==='ritirato'&&!x.fine) return false;   /* ritirato senza data: mai vissuto */
+  return !oltre&&!!ipotesi;
+ }).sort(function(a,b){
+  return (a.stato==='depositato'?0:1)-(b.stato==='depositato'?0:1);
  });
 }
+function coppieAttive(al){return coppieAl(al,!!PAR.apparentamenti);}
 /* Gli accordi che entrano DAVVERO nel riparto. Due filtri oltre a coppieAttive:
    · una lista che non è in gioco — sotto soglia, o assente dalle quote — scioglie il suo
      accordo, perché l'apparentamento è fra due liste che siedono;
    · UNA LISTA STA IN UN ACCORDO SOLO. In Israele l'heskem odafim è fra due liste, non
      fra tre: se l'anagrafica ne portasse due che condividono una lista, la seconda viene
      scartata invece di fondere una catena. Il filtro sta qui e in nessun altro posto —
-     la proiezione e il Monte Carlo lo chiedono a questa funzione. */
-function coppieRiparto(sopra,al){
+     la proiezione e il Monte Carlo lo chiedono a questa funzione.
+
+   `scarti`, se passato, raccoglie gli esclusi CON LA RAGIONE. La riga di esito la dice al
+   lettore, e nasce qui invece che da un secondo giro di controlli: sarebbe la strada
+   doppia di sempre, con l'aggravante che direbbe al lettore una cosa e al riparto
+   un'altra. */
+function filtraRiparto(cp,sopra,scarti){
  var visti={},out=[];
- coppieAttive(al).forEach(function(x){
-  if(sopra&&(sopra[x.a]===undefined||sopra[x.b]===undefined)) return;
-  if(visti[x.a]||visti[x.b]) return;
+ cp.forEach(function(x){
+  if(sopra&&(sopra[x.a]===undefined||sopra[x.b]===undefined)){
+   if(scarti) scarti.push({x:x,perche:nm(sopra[x.a]===undefined?x.a:x.b)+' non è sopra la soglia'});
+   return;}
+  if(visti[x.a]||visti[x.b]){
+   if(scarti) scarti.push({x:x,perche:nm(visti[x.a]?x.a:x.b)+' è già in un altro accordo'});
+   return;}
   visti[x.a]=1;visti[x.b]=1;out.push(x);
  });
  return out;
+}
+function coppieRiparto(sopra,al){return filtraRiparto(coppieAttive(al),sopra);}
+/* Le liste in gioco: l'insieme che filtraRiparto() chiede per sciogliere l'accordo di chi
+   non siede. È la stessa soglia individuale di dhondt(), chiesta una volta sola. */
+function sopraSoglia(){var s={},k;for(k in QUO) if(QUO[k]>=SOGLIA) s[k]=QUO[k];return s;}
+/* QUANTI ACCORDI IL PULSANTE APPLICA DAVVERO, che non è quanti ne porta la tabella.
+   Se il numero dell'etichetta venisse da APPARENTAMENTI.length, l'etichetta direbbe un
+   numero e il riparto ne applicherebbe un altro il primo giorno in cui una lista scende
+   sotto soglia o due accordi si contendono la stessa lista. Esce quindi dallo stesso
+   filtro che fa il riparto, chiesto due volte — senza l'ipotesi e con — perché
+   l'etichetta deve dire che cosa cambierebbe anche a leva spenta, cioè quando il riparto
+   quella domanda non se la pone. */
+function contoApp(sopra){
+ var scarti=[],
+     senza=filtraRiparto(coppieAl(null,false),sopra),
+     con=filtraRiparto(coppieAl(null,true),sopra,scarti);
+ return {dep:senza.length,tot:con.length,ann:con.length-senza.length,
+         senza:senza,con:con,scarti:scarti,
+         oltre:oggiISO()>termineApp(),termine:termineApp()};
 }
 /* riparto d'Hondt puro: `seggi` seggi fra le quote date, senza soglia e senza accordi */
 function divisori(sh,seggi){
@@ -1941,11 +2025,17 @@ function ripartoSoglia(sh){
  if(!n) return {};
  return divisori(sopra,120);
 }
-function dhondt(sh,al){
+/* `cp` è un'uscita di sicurezza per chi ha già le coppie in mano e non vuole che le
+   ricalcoli la leva: la riga di esito misura quanto valgono gli accordi annunciati
+   chiedendo lo stesso riparto con e senza, e se dovesse rifarlo per conto suo sarebbe una
+   seconda strada verso lo stesso numero. Un array vuoto è legittimo e vale «nessun
+   accordo»: qui non può essere confuso con «non me l'hai passato», perché in JavaScript
+   un array vuoto è vero. */
+function dhondt(sh,al,cp){
  var sopra={},k,n=0;
  for(k in sh) if(sh[k]>=SOGLIA){sopra[k]=sh[k];n++;}   /* la soglia resta individuale */
  if(!n) return {};
- var cp=coppieRiparto(sopra,al);
+ if(!cp) cp=coppieRiparto(sopra,al);
  if(!cp.length) return divisori(sopra,120);
  var di={},virt={},out={};
  cp.forEach(function(x){di[x.a]=x.a+'+'+x.b;di[x.b]=x.a+'+'+x.b;});
@@ -2641,7 +2731,7 @@ function calcola(){
     giorni che separano l'ultimo sondaggio da oggi — due, il 22 agosto 2026.
     La data dell'archivio si legge come mezzanotte LOCALE — 'T00:00:00' — perché ggCal
     normalizza i componenti locali: passarle una mezzanotte UTC la sposterebbe di un
-    giorno a ovest di Greenwich. È l'idioma delle sei tappe del calendario. */
+    giorno a ovest di Greenwich. È l'idioma delle tappe del calendario. */
  ORIZZONTE=Math.max(0,ggCal(new Date(L[0].data+'T00:00:00'),VOTO));
  /* proiezione com'era una settimana fa, con gli stessi parametri: misura
     quanto si è mosso il modello, non i singoli sondaggi */
@@ -2767,7 +2857,14 @@ function rTesta(){
      diverse, e la differenza è se il nome dice l'azione o la cosa. */
   if(!b.classList.contains('mini')) b.setAttribute('aria-pressed',ESCL[b.dataset.escl]?'true':'false');});
  Array.prototype.forEach.call(R.querySelectorAll('[data-par]'),function(b){
-  b.classList.toggle('on',!!PAR[b.dataset.par]);});
+  b.classList.toggle('on',!!PAR[b.dataset.par]);
+  /* Stessa distinzione dei pulsanti dell'house effect, e qui mancava: questi tre hanno
+     l'etichetta FISSA — «Solo ultimi 7 giorni» resta tale anche premuta — quindi lo stato
+     lo può dire solo aria-pressed, e senza un lettore di schermo non sapeva se la leva
+     fosse alzata. Il quarto, gli accordi di eccedenza, è il caso opposto: il suo nome
+     dice l'AZIONE e cambia premendo, quindi aria-pressed direbbe il contrario di quello
+     che si legge. Lo esclude rApp(), che quel nome lo scrive. */
+  if(b.id!=='k-app') b.setAttribute('aria-pressed',PAR[b.dataset.par]?'true':'false');});
  $('k-n').innerHTML=stretto
   ? '<b>'+L.length+'</b>/<b>'+f(SOND.length)+'</b> rilevazioni'
   : '<b>'+L.length+'</b> rilevazioni nel modello · <b>'+f(SOND.length)+'</b> in archivio dal 1º gennaio';
@@ -3484,6 +3581,13 @@ function rEvSel(){
 var TAPPE=[
   {d:'2026-09-08',t:'Deposito delle liste',s:'Termine per consegnare alla Commissione elettorale centrale le liste di candidati. Da quel momento fusioni e scissioni non sono più possibili: la mappa dei partiti si chiude.'},
   {d:'2026-10-06',t:'Comincia la campagna televisiva',s:'Si apre il periodo di 21 giorni in cui la legge consente la trasmissione degli spot elettorali.'},
+  /* Il termine degli accordi di eccedenza NON è scritto qui: è termineApp(), cioè VOTO
+     meno undici giorni, la stessa espressione da cui escono la leva e la nota. Ed è la
+     riga che al calendario mancava: la pagina raccontava il deposito delle liste come se
+     chiudesse anche gli accordi, e sono due date diverse a trentotto giorni di distanza. */
+  {d:termineApp(),t:'Termine per gli accordi di eccedenza',
+   s:'Ultimo giorno per depositare gli apparentamenti — <i>heskem odafim</i> — presso la Commissione elettorale centrale: '+
+     f(TERMINE_APP_GG)+' '+acc(TERMINE_APP_GG,'giorno','giorni')+' prima del voto, non il giorno del deposito delle liste.'},
   {d:'2026-10-23',t:'Scatta il silenzio demoscopico',s:'Dalla fine del venerdì precedente al voto non è più consentito pubblicare nuovi sondaggi.'},
   /* La data del voto NON è riscritta qui: è VOTO, che è la stessa da cui escono il conto
      alla rovescia, la fascia del dopo-voto e l'orizzonte del Monte Carlo. Erano due strade
@@ -3544,6 +3648,101 @@ function DEP_LIMITE(){
     'compresa la serie storica del grafico;'
   : 'Il modello non prevede le fusioni di liste, che in Israele si decidono fino al '+
     'deposito delle candidature e possono cambiare la mappa in un giorno;';
+}
+/* IL COMANDO DEGLI ACCORDI: l'etichetta e la riga di esito.
+
+   IL NOME DICE L'AZIONE E IL NUMERO, e questa è la grammatica di «Escludi / Includi»
+   dell'house effect: il testo visibile è la prima parola del nome accessibile, il cambio
+   di nome dopo la pressione È il riscontro, e quindi NIENTE `aria-pressed` — direbbe il
+   contrario di quello che si legge. Gli altri tre pulsanti delle ipotesi hanno etichetta
+   fissa e sono il caso opposto: lì `aria-pressed` è la cosa giusta, e fino a oggi
+   mancava.
+
+   IL NUMERO VIENE DA contoApp(), non da APPARENTAMENTI.length: è quanti accordi entrano
+   DAVVERO nel riparto premendo, e i due numeri divergono il primo giorno in cui una lista
+   scende sotto soglia. Il numero cambia mano a mano che gli accordi vengono annunciati,
+   quindi l'etichetta si riscrive a ogni render invece di stare nel markup.
+
+   LA RIGA DI ESITO NON È LA DIDASCALIA DEL PULSANTE. Dice i DEPOSITATI, che nessun
+   comando governa perché sono già dentro ogni numero della pagina, accesa o spenta la
+   leva; e dice l'effetto in seggi e in BLOCCHI, perché la misura del 23 agosto 2026 dice
+   che l'unico accordo in tabella sposta un seggio da un blocco all'altro in tutti e
+   venticinque gli stati dello swing: «un seggio» sarebbe vero e depotenziato. */
+function rApp(){
+ var c=contoApp(sopraSoglia()), b=$('k-app'), r=$('k-appriga');
+ /* Dopo il termine non c'è più niente da applicare per ipotesi: il comando sparisce
+    invece di restare a promettere un controfattuale che non esiste. La leva non viene
+    spenta qui — sarebbe una seconda strada: chi decide che dopo il termine gli annunciati
+    non contano è coppieAl(), e lo decide per tutti, riparto e Monte Carlo compresi. */
+ var utile=!c.oltre&&c.ann>0;
+ b.hidden=!utile;
+ if(utile){
+  var az=PAR.apparentamenti?'Togli':'Aggiungi',
+      testo=az+' '+f(c.ann)+' '+acc(c.ann,'accordo annunciato','accordi annunciati'),
+      quali=coppieAl(null,true).filter(function(x){return x.stato!=='depositato';})
+        .map(function(x){return nm(x.a)+' e '+nm(x.b)+', '+dl(x.data);}).join('; ');
+  b.textContent=testo;
+  /* aria-label e title sono la stessa stringa, nata una volta sola: è l'idioma di ETI nei
+     marcatori degli eventi e di «Escludi Direct Polls» nell'house effect.
+     E COMINCIA CON IL TESTO VISIBILE, per costruzione e non per attenzione: WCAG 2.5.3
+     chiede che il nome accessibile CONTENGA l'etichetta che si legge, o chi comanda a voce
+     dice quello che vede e non succede niente. Nell'house effect la cosa era gratis —
+     l'etichetta è una parola sola — qui l'etichetta è una frase, e concatenarla è l'unico
+     modo che non si può sbagliare riscrivendo. */
+  var eti=testo+(PAR.apparentamenti?' dal riparto: ':' al riparto: ')+quali+
+   ' — '+acc(c.ann,'non ancora depositato','non ancora depositati');
+  b.setAttribute('aria-label',eti);b.setAttribute('title',eti);
+ }
+ r.innerHTML=rigaApp(c);
+}
+function rigaApp(c){
+ var nomi=function(x){return nm(x.a)+' e '+nm(x.b);},
+     ann=coppieAl(null,true).filter(function(x){return x.stato!=='depositato';}),
+     t='';
+ if(c.oltre){
+  t=c.dep
+   ? 'Il termine per gli accordi di eccedenza è passato il <b>'+dl(c.termine)+'</b>: '+
+     '<b>'+f(c.dep)+' '+acc(c.dep,'accordo depositato','accordi depositati')+'</b>, e '+
+     acc(c.dep,'è','sono')+' nel riparto. Gli accordi annunciati e mai depositati non contano più.'
+   : 'Il termine per gli accordi di eccedenza è passato il <b>'+dl(c.termine)+'</b> e non ne risulta '+
+     'depositato nessuno: il riparto non ne applica. Quelli annunciati e mai depositati non contano più.';
+  return t;
+ }
+ t=c.dep
+  ? '<b>'+f(c.dep)+' '+acc(c.dep,'accordo depositato','accordi depositati')+'</b>, sempre nel riparto: '+
+    coppieAl(null,false).map(nomi).join('; ')+'. '
+  : 'Nessun accordo di eccedenza è ancora depositato: il riparto non ne applica nessuno. ';
+ if(!c.ann){
+  t+='Non ce n\'è nessuno annunciato in attesa di deposito. Il termine è il <b>'+dl(c.termine)+'</b>.';
+ } else if(PAR.apparentamenti){
+  /* L'effetto si misura chiedendo lo STESSO riparto senza gli annunciati: due chiamate a
+     dhondt() con coppie diverse, non un secondo modo di contare i seggi. */
+  var senza=dhondt(QUO,null,c.senza), bs=blocchi(senza), bc=blocchi(SEG), mossi=0, dett=[], k;
+  for(k in SEG) if(SEG[k]>(senza[k]||0)) mossi+=SEG[k]-(senza[k]||0);
+  ['coalizione','opposizione','arabo','incerto'].forEach(function(z){
+   if(bs[z]!==bc[z]) dett.push(BL[z].n+' <b>'+f(bs[z])+' → '+f(bc[z])+'</b>');
+  });
+  t+='<b>'+f(c.ann)+' '+acc(c.ann,'accordo annunciato','accordi annunciati')+' e non '+
+   acc(c.ann,'depositato','depositati')+'</b>, '+acc(c.ann,'applicato','applicati')+' per ipotesi: '+
+   ann.map(nomi).join('; ')+'. '+(mossi
+    /* La frase riparte qui, e non prosegue l'elenco: «Ra'am e Lista Unita araba vale un
+       seggio» faceva concordare il verbo con l'ACCORDO mentre il lettore aveva appena
+       letto due nomi di lista. */
+    ? acc(c.ann,'Vale','Valgono')+' <b>'+seg(mossi)+'</b>'+
+      (dett.length?', e '+acc(mossi,'lo sposta','li sposta')+' fra i blocchi: '+dett.join(' · ')
+                  :', dentro lo stesso blocco')
+    : 'Non '+acc(c.ann,'sposta','spostano')+' nessun seggio')+
+   '. È un\'ipotesi, non un fatto.';
+ } else {
+  t+='<b>'+f(c.ann)+' '+acc(c.ann,'annunciato','annunciati')+'</b> e non ancora '+
+   acc(c.ann,'depositato','depositati')+', quindi fuori dal riparto: '+
+   ann.map(function(x){return nomi(x)+', '+dl(x.data);}).join('; ')+
+   '. Il pulsante '+acc(c.ann,'lo aggiunge','li aggiunge')+' e mostra quanto '+
+   acc(c.ann,'peserebbe','peserebbero')+'. Il termine è il <b>'+dl(c.termine)+'</b>, non il deposito delle liste.';
+ }
+ if(c.scarti.length) t+=' '+f(c.scarti.length)+' '+acc(c.scarti.length,'accordo non entra','accordi non entrano')+
+  ': '+c.scarti.map(function(s){return nomi(s.x)+', perché '+s.perche;}).join('; ')+'.';
+ return t;
 }
 function rCalendario(){
  var oggi=new Date();
@@ -4552,22 +4751,52 @@ function rTab(){
 /* Che cosa la pagina dice degli accordi, ricavato dalla tabella e dalla leva invece che
    scritto. Prima diceva «non sono simulati», e quella frase è diventata falsa nel momento
    in cui lo sono: e' l'invariante 10 applicata a un fatto invece che a una data. */
+/* Quanti giorni separano due date dell'archivio. Sono tutte mezzanotte UTC, quindi la
+   differenza è già esatta e vale gg(): è il caso in cui NON serve ggCal, e il punto 12 di
+   CLAUDE.md dice perché. */
+function ggFraISO(a,b){return gg(new Date(a),new Date(b));}
+function dataTappa(titolo){var i;for(i=0;i<TAPPE.length;i++) if(TAPPE[i].t===titolo) return TAPPE[i].d;return null;}
 function notaApparentamenti(){
- var dep=APPARENTAMENTI.filter(function(x){return x.stato==='depositato';});
- var pro=APPARENTAMENTI.filter(function(x){return x.stato==='proposto';});
+ var c=contoApp(sopraSoglia());
+ var dep=coppieAl(null,false);
+ var ann=coppieAl(null,true).filter(function(x){return x.stato!=='depositato';});
+ /* Dopo il termine coppieAl() non li restituisce più — è il punto — quindi per dire che
+    sono morti bisogna guardarli nella tabella, che è l'unico posto in cui restano. */
+ var morti=APPARENTAMENTI.filter(function(x){return x.stato!=='depositato';});
  var nomi=function(x){return nm(x.a)+' e '+nm(x.b);};
  var t='Gli accordi di apparentamento — <i>heskem odafim</i> — sono simulati: due liste apparentate '+
   'si presentano al riparto come una lista sola e si dividono poi fra loro i seggi che ottengono, '+
   'con lo stesso metodo. La soglia del 3,25% resta individuale, quindi l\'accordo non aiuta nessuno '+
   'a superarla. Spostano uno o due seggi, e spesso da un blocco all\'altro. ';
+ /* LA DATA CHE QUESTA NOTA SBAGLIAVA. Diceva che il termine è quello del deposito delle
+    liste: è falso, e il lettore che leggeva «nessuno risulta depositato» a settembre ne
+    ricavava che la partita fosse chiusa. Le due date sono qui una accanto all'altra, con
+    la distanza calcolata invece che scritta. */
+ var dl8=dataTappa('Deposito delle liste'), sil=dataTappa('Scatta il silenzio demoscopico');
+ t+='<b>Il termine per depositarli non è quello delle liste</b>: si firmano fino a '+
+  f(TERMINE_APP_GG)+' '+acc(TERMINE_APP_GG,'giorno','giorni')+' prima del voto, cioè il '+dl(c.termine)+
+  (dl8?', '+f(ggFraISO(dl8,c.termine))+' giorni dopo la chiusura delle liste dell\''+dl(dl8):'')+'. '+
+  'È il tempo in cui storicamente se ne firmano di più: nel 2021 tre accordi su sei sono arrivati dopo '+
+  'il deposito delle liste, e nel 2022 tutti e quattro nell\'ultima settimana utile. ';
+ if(sil) t+='Il termine cade <b>'+f(ggFraISO(c.termine,sil))+' giorni prima del silenzio demoscopico</b>: '+
+  'nell\'ultima settimana di campagna gli accordi saranno tutti noti e non arriveranno più sondaggi nuovi, '+
+  'quindi quello che si legge qui cambierà solo per gli accordi, non per i dati. ';
  if(dep.length) t+='Accordi depositati, e quindi sempre nel riparto: '+dep.map(nomi).join('; ')+'. ';
- else t+='Nessun accordo risulta ancora depositato: il termine è quello del deposito delle liste. ';
- if(pro.length){
-  t+='Annunciati ma non ancora depositati: '+pro.map(function(x){return nomi(x)+', '+dl(x.data);}).join('; ')+'. '+
+ else if(c.oltre) t+='Il termine è passato e non risulta depositato nessun accordo. ';
+ else t+='Nessun accordo risulta ancora depositato. ';
+ if(c.oltre){
+  t+=morti.length
+   ? 'Gli accordi annunciati e mai depositati — '+morti.map(nomi).join('; ')+' — non entrano più nel riparto: '+
+     'dopo il termine non sono un\'ipotesi, sono una cosa che non è successa.'
+   : 'Non ne risulta annunciato nessuno.';
+ } else if(ann.length){
+  t+='Annunciati ma non ancora depositati: '+ann.map(function(x){return nomi(x)+', '+dl(x.data);}).join('; ')+'. '+
    (PAR.apparentamenti
-    ? 'Il pulsante <i>Apparentamenti proposti</i> è acceso, quindi entrano nel riparto: quello che si legge è un controfattuale, non un dato.'
-    : 'Non entrano nel riparto: il pulsante <i>Apparentamenti proposti</i> in cima li aggiunge, per mostrare quanto peserebbero.');
+    ? 'Il pulsante in cima è acceso, quindi entrano nel riparto: quello che si legge è un controfattuale, non un dato.'
+    : 'Non entrano nel riparto: il pulsante in cima li aggiunge, per mostrare quanto peserebbero.');
  } else t+='Non ne risulta annunciato nessuno.';
+ if(c.scarti.length) t+=' '+f(c.scarti.length)+' '+acc(c.scarti.length,'accordo non entra','accordi non entrano')+
+  ' comunque: '+c.scarti.map(function(s){return nomi(s.x)+', perché '+s.perche;}).join('; ')+'.';
  /* La ragione per cui una mappa incompleta è peggio di nessuna mappa va detta al lettore,
     non solo a chi scrive il codice: senza accordi l'errore è simmetrico, con metà degli
     accordi diventa sistematico in una direzione sola. */
@@ -4783,7 +5012,7 @@ function renderInterno(){
   pc(MC.vO/MC.n)+'</b> delle simulazioni, con esito più frequente <b>'+f(i2.moda)+' seggi</b> e stima puntuale '+f(bb.opposizione)+'. '+
   'Stima puntuale e risultato più frequente non coincidono sempre, perché la soglia di sbarramento e il riparto d\'Hondt '+
   'trasformano i voti in seggi a scatti, non con continuità.';
- mostraAff();rSwAnc();rSwNota();rDiag();rSommario();rAnalisi();rDirezione();rProj();rEmi();rVeti();rCoal();rPower();rChips();rHouse();rTrend();rCrono();rCalendario();rTab();rFoot();
+ mostraAff();rSwAnc();rSwNota();rDiag();rSommario();rAnalisi();rDirezione();rProj();rEmi();rVeti();rCoal();rPower();rChips();rApp();rHouse();rTrend();rCrono();rCalendario();rTab();rFoot();
 }
 
 /* ══════════ PARSER DELLA TABELLA WIKIPEDIA ══════════

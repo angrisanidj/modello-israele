@@ -1,5 +1,11 @@
 const {JSDOM}=require('jsdom');const dom=new JSDOM('');global.DOMParser=dom.window.DOMParser;
-const store={};function El(i){return{id:i,innerHTML:'',textContent:'',style:{},className:'',dataset:{},value:'',
+/* GLI ATTRIBUTI MANCAVANO DEL TUTTO. È il DOM ridotto del punto 13 di CLAUDE.md, e ha
+   presentato il conto un'altra volta: la prima riga di pagina che ha scritto un attributo
+   su un elemento reso — l'etichetta accessibile del comando degli accordi di eccedenza —
+   ha fatto morire tutte e sei queste suite alla prima chiamata, con zero asserzioni.
+   Finché non sono convertite a jsdom vero, lo stub deve almeno non mentire su che cosa un
+   elemento SA fare: qui gli attributi sono una mappa vera, non un finto silenzio. */
+const store={};function El(i){return{id:i,innerHTML:'',textContent:'',style:{},className:'',dataset:{},attr:{},setAttribute(k,v){this.attr[k]=v;},getAttribute(k){return k in this.attr?this.attr[k]:null;},removeAttribute(k){delete this.attr[k];},hidden:false,value:'',
  classList:{toggle(){},contains(){return false},add(){},remove(){}},addEventListener(){},querySelectorAll(){return[]}};}
 global.document={getElementById:i=>store[i]||(store[i]=El(i)),createElement:()=>({click(){},style:{}}),
  addEventListener(){},documentElement:{scrollTop:0},querySelectorAll(){return[]}};

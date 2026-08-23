@@ -14,7 +14,8 @@ console.log = function(){
 const {JSDOM}=require('jsdom');
 const dom=new JSDOM('');global.DOMParser=dom.window.DOMParser;
 const store={},listeners={};
-function El(id){return{id,innerHTML:'',textContent:'',style:{},className:'',dataset:{},disabled:false,
+/* attributi veri e non finto silenzio: vedi il commento in aff.js e il punto 13 */
+function El(id){return{id,innerHTML:'',textContent:'',style:{},className:'',dataset:{},attr:{},setAttribute(k,v){this.attr[k]=v;},getAttribute(k){return k in this.attr?this.attr[k]:null;},removeAttribute(k){delete this.attr[k];},hidden:false,disabled:false,
  classList:{toggle(){},contains(){return false},add(){},remove(){}},
  addEventListener(ev,fn){listeners[id]=fn;},querySelectorAll(){return[]},value:''};}
 global.document={getElementById:id=>store[id]||(store[id]=El(id)),createElement:()=>({click(){},style:{}}),

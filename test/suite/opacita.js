@@ -57,7 +57,11 @@ global.FileReader = function(){};
 global.fetch = () => Promise.reject(0);
 
 const app = fs.readFileSync(__dirname + '/../app.js','utf8');
-let src = app;
+/* TAPPE esce dal modello e non è ricontata qui: il calendario ha preso una riga nuova — il
+   termine degli accordi di eccedenza — e una prova che si aspettasse SEI tappe cadrebbe
+   ogni volta che il calendario cresce, dicendo «difetto» dove c'è una riga in più. */
+let src = app.replace('carica().then(render,render)',
+  'global.A={TAPPE:TAPPE};carica().then(render,render)');
 eval(src);
 
 const $ = i => D.getElementById(i);
@@ -201,12 +205,13 @@ setTimeout(function(){
   });
 
   /* il canale, per ciascuno, verificato sul reso e non sul foglio */
-  /* Le sei tappe sono tutte future, quindi oggi nel DOM non c'è nessuna .past e non c'è
+  /* Le tappe sono tutte future, quindi oggi nel DOM non c'è nessuna .past e non c'è
      niente da guardare. La prova non finge: verifica che il conto sia quello atteso, e
      controlla il canale dove vive davvero, cioè nel ramo del generatore. */
   const past = [].slice.call(D.querySelectorAll('#k-calend .past'));
   const gg = [].slice.call(D.querySelectorAll('#k-calend .g')).map(e => e.textContent.trim());
-  esito(gg.length === 6, 'il calendario rende le sue sei tappe', String(gg.length));
+  esito(gg.length === A.TAPPE.length, 'il calendario rende tutte le sue tappe',
+    gg.length + ' rese, ' + A.TAPPE.length + ' dichiarate');
   esito(gg.every(t => /giorni|oggi|passato/.test(t)),
     'e ognuna dice o quanti giorni mancano, o «oggi», o «passato»', gg.join(' · '));
   esito(past.length === 0 || past.every(e => /passato/.test(e.querySelector('.g').textContent)),

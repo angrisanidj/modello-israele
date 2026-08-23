@@ -1,4 +1,5 @@
-/* Il conto dei giorni al voto, e le sei tappe del calendario.
+/* Il conto dei giorni al voto, e le tappe del calendario — quante ne dichiara TAPPE, non
+ * sei: dal 23 agosto 2026 ce n'è una in più, il termine degli accordi di eccedenza.
  *
  * IL DIFETTO. gg() misura una differenza in millisecondi e la ARROTONDA. Fra «adesso» e
  * una mezzanotte, quella differenza contiene le ore già passate della giornata, quindi il
@@ -53,6 +54,7 @@ global.fetch = () => Promise.reject(0);
 let src = fs.readFileSync(__dirname + '/../app.js','utf8');
 src = src.replace('carica().then(render,render)',
   'global.A={gg:gg,ggCal:ggCal,giornoUTC:giornoUTC,VOTO:VOTO,acc:acc,seg:seg,' +
+  'TAPPE:TAPPE,termineApp:termineApp,' +
   'rCalendario:rCalendario,GIORNI:function(){return GIORNI;},'+
   'PREC:function(){return PREC;},SOND:function(){return SOND;}};carica().then(render,render)');
 eval(src);
@@ -130,7 +132,7 @@ setTimeout(function(){
   esito(A.giornoUTC(new Date(2026,9,25,0,1)) % 864e5 === 0,
     'e il risultato è sempre una mezzanotte esatta');
 
-  /* ══ 5 · le sei tappe: la stessa funzione, e la parola cambia a mezzanotte ══ */
+  /* ══ 5 · le tappe del calendario: la stessa funzione, e la parola cambia a mezzanotte ══ */
   const veroDate = W.Date, veroGlobal = global.Date;
   function congela(y,m,d,h,mi){
     const fisso = new veroDate(y,m,d,h,mi);
@@ -147,12 +149,19 @@ setTimeout(function(){
     return [].map.call($('k-calend').querySelectorAll('.g'), e => e.textContent.trim());
   }
   function passate(){ return $('k-calend').querySelectorAll('.past').length; }
+  /* PER TITOLO, NON PER POSIZIONE. Queste asserzioni erano scritte come tappe()[3] — il
+     voto — e tappe()[0] — il deposito: la riga nuova del termine degli accordi di
+     eccedenza le ha spostate tutte di uno, e sei prove sono cadute dicendo «passato» dove
+     il difetto era soltanto un indice. Un calendario è un elenco che cresce, e una prova
+     che lo indicizza per posizione cade a ogni riga aggiunta senza che niente sia rotto. */
+  function idTappa(titolo){ let k = -1; A.TAPPE.forEach((x, i) => { if (x.t === titolo) k = i; }); return k; }
+  function gTappa(titolo){ return tappe()[idTappa(titolo)]; }
 
   /* il giorno prima del deposito delle liste, a due ore diverse */
   congela(2026, 8, 7, 9, 0);  A.rCalendario();
-  const mattina = tappe()[0], passMattina = passate();
+  const mattina = gTappa('Deposito delle liste'), passMattina = passate();
   congela(2026, 8, 7, 21, 0); A.rCalendario();
-  const sera = tappe()[0], passSera = passate();
+  const sera = gTappa('Deposito delle liste'), passSera = passate();
   esito(mattina === sera,
     'la prima tappa dice la stessa cosa la mattina e la sera dello stesso giorno',
     'mattina «' + mattina + '» · sera «' + sera + '»');
@@ -160,16 +169,16 @@ setTimeout(function(){
     'e il giorno prima del deposito manca UN giorno, al singolare: diceva «1 giorni»',
     mattina);
   esito(passMattina === passSera && passMattina === 0,
-    'e nessuna delle sei è ancora passata');
+    'e nessuna tappa è ancora passata');
 
   /* il giorno stesso, e il giorno dopo */
   congela(2026, 8, 8, 23, 30); A.rCalendario();
-  esito(tappe()[0] === 'oggi', 'il giorno del deposito la tappa dice «oggi», anche a tarda sera',
-    tappe()[0]);
+  esito(gTappa('Deposito delle liste') === 'oggi', 'il giorno del deposito la tappa dice «oggi», anche a tarda sera',
+    gTappa('Deposito delle liste'));
   esito(passate() === 0, 'e non è ancora passata');
   congela(2026, 8, 9, 0, 30); A.rCalendario();
-  esito(tappe()[0] === 'passato', 'e il giorno dopo, mezz\'ora dopo mezzanotte, è passata',
-    tappe()[0]);
+  esito(gTappa('Deposito delle liste') === 'passato', 'e il giorno dopo, mezz\'ora dopo mezzanotte, è passata',
+    gTappa('Deposito delle liste'));
   esito(passate() === 1, 'ed è una sola', String(passate()));
 
   /* a cavallo del cambio d'ora: il voto, che è due giorni dopo */
@@ -178,12 +187,12 @@ setTimeout(function(){
   congela(2026, 9, 25, 23, 45); A.rCalendario();
   const t25b = tappe();
   esito(t25.join('|') === t25b.join('|'),
-    'il 25 ottobre, giorno del cambio d\'ora, le sei tappe dicono la stessa cosa a mezzogiorno e a mezzanotte meno un quarto',
+    'il 25 ottobre, giorno del cambio d\'ora, tutte le tappe dicono la stessa cosa a mezzogiorno e a mezzanotte meno un quarto',
     t25.join(' · '));
-  esito(t25[3] === '2giorni' || /^2/.test(t25[3]),
-    'e al voto mancano due giorni, non uno né tre', t25[3]);
+  esito(/^2/.test(t25[idTappa('Si vota')]),
+    'e al voto mancano due giorni, non uno né tre', t25[idTappa('Si vota')]);
   congela(2026, 9, 27, 6, 0); A.rCalendario();
-  esito(tappe()[3] === 'oggi', 'il giorno del voto la tappa dice «oggi»', tappe()[3]);
+  esito(gTappa('Si vota') === 'oggi', 'il giorno del voto la tappa dice «oggi»', gTappa('Si vota'));
   scongela();
   A.rCalendario();
 
@@ -200,7 +209,7 @@ setTimeout(function(){
   esito(/GIORNI=Math\.max\(0,ggCal\(/.test(app),
     'il conto alla rovescia usa ggCal, non gg');
   esito(/var d=ggCal\(oggi,/.test(app),
-    'e le sei tappe del calendario pure: condividevano il difetto, condividono il rimedio');
+    'e le tappe del calendario pure: condividevano il difetto, condividono il rimedio');
   /* Le chiamate legittime sono tre, più la definizione: il conto alla rovescia, le sei
      tappe del calendario e ggOggi(), che la nota metodologica usa per dire in quale
      tratto del banco di prova ci si trova. Tutte e tre contano giorni di calendario da
@@ -289,12 +298,15 @@ setTimeout(function(){
     'l\'accordo è chiamato da più di un posto: è una regola, non un caso particolare',
     (app2.match(/acc\(/g) || []).length + ' occorrenze, definizione compresa');
 
-  /* e il giorno prima di OGNI tappa, non solo della prima */
-  const vigilie = [[2026,8,7],[2026,9,5],[2026,9,22],[2026,9,26],[2026,10,3],[2026,10,17]];
-  vigilie.forEach(function(v, i){
-    congela(v[0], v[1], v[2], 18, 0); A.rCalendario();
+  /* E IL GIORNO PRIMA DI OGNI TAPPA, NON SOLO DELLA PRIMA. Le sei vigilie erano scritte a
+     mano — [[2026,8,7],[2026,9,5],…] — cioè sei date letterali che dicevano «il giorno
+     prima della tappa i-esima»: la stessa cosa solo finché il calendario non cresce. Ora
+     escono da A.TAPPE, e la riga nuova del termine degli accordi si prova da sé. */
+  A.TAPPE.forEach(function(x, i){
+    const v = new Date(Date.parse(x.d + 'T00:00:00Z') - 864e5);
+    congela(v.getUTCFullYear(), v.getUTCMonth(), v.getUTCDate(), 18, 0); A.rCalendario();
     const t = tappe()[i];
-    esito(t === '1giorno', 'la vigilia della tappa ' + (i+1) + ' dice «1 giorno»', t);
+    esito(t === '1giorno', 'la vigilia di «' + x.t + '» dice «1 giorno»', t);
   });
   scongela();
   A.rCalendario();

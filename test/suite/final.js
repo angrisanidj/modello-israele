@@ -1,7 +1,8 @@
 const {JSDOM}=require('jsdom');
 const dom=new JSDOM('');global.DOMParser=dom.window.DOMParser;
 const store={},lst={};
-function El(id){return{id,innerHTML:'',textContent:'',style:{},className:'',dataset:{},disabled:false,
+/* attributi veri e non finto silenzio: vedi il commento in aff.js e il punto 13 */
+function El(id){return{id,innerHTML:'',textContent:'',style:{},className:'',dataset:{},attr:{},setAttribute(k,v){this.attr[k]=v;},getAttribute(k){return k in this.attr?this.attr[k]:null;},removeAttribute(k){delete this.attr[k];},hidden:false,disabled:false,
  classList:{toggle(){},contains(){return false},add(){},remove(){}},
  addEventListener(e,f){lst[id]=f;},querySelectorAll(){return[]},value:''};}
 global.document={getElementById:id=>store[id]||(store[id]=El(id)),createElement:()=>({click(){},style:{}}),
@@ -11,7 +12,7 @@ global.Blob=function(){};global.URL={createObjectURL(){return''}};global.FileRea
 global.fetch=(u)=>/wikipedia/.test(u)?Promise.resolve({ok:true,text:()=>Promise.resolve(require('../../dati/fixture.js'))})
  :Promise.resolve({json:()=>Promise.resolve({content:[{type:'text',text:'{"sondaggi":[]}'}]})});
 let src=require('fs').readFileSync(__dirname+'/../app.js','utf8');
-src=src.replace('carica().then(render,render)','global.A={S:()=>({SOND,SEG,MC,L,EVENTI,COALS,SOGLIE,blocchi}),render:render,sim:v=>{SIM=v},SOND:function(){return SOND;},setSOND:function(v){SOND=v;},EVENTI:function(){return EVENTI;}};carica().then(render,render)');
+src=src.replace('carica().then(render,render)','global.A={S:()=>({SOND,SEG,MC,L,EVENTI,COALS,SOGLIE,blocchi,TAPPE}),render:render,sim:v=>{SIM=v},SOND:function(){return SOND;},setSOND:function(v){SOND=v;},EVENTI:function(){return EVENTI;}};carica().then(render,render)');
 eval(src);
 /* L'ARCHIVIO SI RIPORTA A OGGI PRIMA DI PROVARE. Questa suite legge la tabella
    dell'analisi (o la proiezione di confronto), che vivono in una finestra di sette giorni
@@ -67,7 +68,9 @@ const checks={
     dentro l'SVG, che è il ramo attivo sotto i 900px. L'attesa segue il numero degli
     eventi, non una stringa di stile. */
  "eventi sul grafico": (store['k-trend'].innerHTML.match(/<title>/g)||[]).length===EVENTI.length,
- "calendario 6 tappe": (store['k-calend'].innerHTML.match(/class="dt"/g)||[]).length===6,
+ /* NON SEI: quante ne dichiara TAPPE. Il calendario ha preso la riga del termine degli
+    accordi di eccedenza, e un numero scritto qui direbbe «difetto» a ogni riga in più. */
+ "calendario: tutte le tappe rese": (store['k-calend'].innerHTML.match(/class="dt"/g)||[]).length===A.S().TAPPE.length,
  "totale 120": Object.values(SEG).reduce((a,b)=>a+b,0)===120,
 };
 require('../esito.js')(checks);
