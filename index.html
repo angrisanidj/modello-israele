@@ -1820,6 +1820,12 @@ function f(n,d){return Number(n).toLocaleString('it-IT',{minimumFractionDigits:d
    scheda la guardano tutti. Tre copie della stessa regola, e una divergente: è la forma di
    sempre. */
 function acc(n,s,p){return Math.abs(n)===1?s:p;}
+/* La e eufonica, che è la stessa famiglia di acc(): una regola di lingua che dipende da
+   una cosa che si sa solo a tempo di esecuzione. Il messaggio dell'aggiornamento scriveva
+   «e è stata ignorata» perché la congiunzione era una costante e il seguito un ramo, e chi
+   ha scritto il ramo guardava il numero, non la lettera. Prende la frase che segue e
+   restituisce la congiunzione giusta con lei attaccata, così le due non si separano più. */
+function ed(s){return (/^[eèéE]/.test(String(s).replace(/^<[^>]+>/,''))?'ed ':'e ')+s;}
 function seg(n){return f(Math.abs(n))+' '+acc(n,'seggio','seggi');}
 function pc(x,d){return f(100*x,d===undefined?0:d)+'%';}
 /* gg() misura la distanza fra due DATE già allineate a mezzanotte — le rilevazioni
@@ -5420,6 +5426,82 @@ function eventiInAttesa(ev,registro){
    quindi è leggibile da qualunque contesto — dentro Claude, da un server locale
    o da un file aperto su disco. Le rilevazioni delle ultime ore, che Wikipedia
    non ha ancora recepito, si inseriscono dal modulo qui sotto. */
+/* IL MESSAGGIO DELL'AGGIORNAMENTO, che è una funzione pura apposta.
+   Stava dentro il gestore del pulsante, cioè dietro una chiamata di rete: l'unico modo
+   di leggerlo era premere e guardare, e infatti i suoi due difetti — «e è stata
+   ignorata» senza elisione e un conto che davanti al lettore faceva 42 su 33 dichiarate
+   — sono stati trovati leggendolo a occhio, non dalla suite. Da qui in poi prende quello
+   che il parser ha prodotto e restituisce la stringa: il gestore la passa a msg(), e la
+   prova la esamina senza rete. */
+function msgAggiorna(out,nuove,ev){
+ var s;
+ if(nuove) s='Archivio aggiornato: <b>'+nuove+(nuove===1?' nuova rilevazione':' nuove rilevazioni')+
+   '</b> da Wikipedia. Ora contiene '+f(SOND.length)+' rilevazioni.';
+ else s='Nessuna rilevazione nuova: l\'archivio è già allineato a Wikipedia.';
+ if(ev) s+=' '+ev+(ev===1?' voce-evento nuova trovata':' voci-evento nuove trovate')+
+   ' (in inglese, non curate): la cronologia pubblicata resta quella curata in italiano, '+
+   'e le voci aspettano la revisione editoriale nel registro.';
+ s+=' Sono state lette <b>'+out.sondaggi.length+'</b> righe valide su '+
+   (out.sondaggi.length+out.scartate.length)+'.';
+ if(out.scartate.length){
+  /* Il messaggio deve dire perché le righe cadono davvero. Attribuire tutto alla
+     somma diversa da 120 faceva credere che Wikipedia fosse piena di errori, quando
+     la maggior parte degli scarti veniva da come la leggevamo noi. Le incoerenze
+     della fonte si dichiarano per quello che sono; quello che manca a noi si dichiara
+     come lavoro da fare, perché è azionabile. */
+  /* IL CONTO DEVE TORNARE DAVANTI AL LETTORE, e non tornava. Misurato sulla pagina vera
+     il 23 agosto 2026: 33 righe scartate, e il messaggio stampava 9, 6, 3 e 24 — che
+     sommano 42. Nessuna riga era contata due volte e nessuna mancava: il 9 delle
+     incoerenze della fonte È il 6 della somma più il 3 del blocco, ma la sua
+     scomposizione proseguiva l'elenco con le stesse virgole delle altre voci, quindi
+     chi sommava quello che vedeva sommava un totale e i suoi addendi insieme. Il
+     grassetto lo diceva — i sotto-numeri non ce l'hanno — ed è un segnale troppo debole
+     per reggere un'aritmetica.
+     Adesso la scomposizione sta fra parentesi e dietro un «di cui», e le voci di primo
+     livello sommano ESATTAMENTE le righe dichiarate: `contate` lo tiene, e quel che
+     avanza diventa una voce sua invece di sparire. Senza il residuo, un `tipo` nuovo —
+     ne basta uno aggiunto al parser — toglierebbe righe dalla somma in silenzio. */
+  var per={};out.scartate.forEach(function(x){per[x.tipo||'altro']=(per[x.tipo||'altro']||0)+1;});
+  var fonte=(per.somma||0)+(per.blocco||0), voci=[], contate=0;
+  if(fonte){
+   var dett=[];
+   if(per.somma) dett.push({n:per.somma,t:'con i seggi che non sommano a 120'});
+   if(per.blocco) dett.push({n:per.blocco,t:'con il totale di blocco discordante'});
+   /* Con una causa sola il suo numero sarebbe identico a quello di primo livello, e
+      «5 (di cui 5 …)» fa rifare al lettore un conto che ha già fatto: lì la causa si dice
+      senza numero. Con due, il «di cui» dice che sono una scomposizione e non due voci in
+      più — che è esattamente quello che il messaggio non diceva.
+      LA PARENTESI RESTA IN TUTTI E DUE I CASI, e non è cosmesi: dentro ci finisce anche
+      il 120 dei seggi, che è una soglia e non un conto di righe. Fuori dalle parentesi
+      ogni numero della frase è un numero di righe, e quelli sommano il totale dichiarato:
+      è la regola che rende il conto verificabile da chi legge, e la prova è scritta su
+      quella e non sulla forma delle voci. */
+   voci.push('<b>'+fonte+'</b> per incoerenze della fonte'+
+     (dett.length===1 ? ' ('+dett[0].t+')'
+      : dett.length ? ' (di cui '+dett.map(function(d){return d.n+' '+d.t;}).join(' e ')+')' : ''));
+   contate+=fonte;
+  }
+  if(per.ambigua){voci.push('<b>'+per.ambigua+'</b> con una cella che copre più liste senza un '+
+    'contenitore dichiarato in anagrafica — sono le rilevazioni che davano un numero unico '+
+    'a tutte le liste arabe, Ra\'am compreso: serve mapparle a mano');contate+=per.ambigua;}
+  if(per.illeggibile){voci.push('<b>'+per.illeggibile+'</b> con valori non interpretabili');
+    contate+=per.illeggibile;}
+  if(per.altro){voci.push('<b>'+per.altro+'</b> per altri motivi');contate+=per.altro;}
+  var resto=out.scartate.length-contate;
+  if(resto>0) voci.push('<b>'+resto+'</b> per motivi che il messaggio non sa ancora nominare');
+  s+=' '+out.scartate.length+(out.scartate.length===1?' riga non supera':' righe non superano')+
+    ' la validazione: '+voci.join('; ')+'.';
+ }
+ if(out.ignorate&&out.ignorate.length) s+=' '+out.ignorate.length+
+   (out.ignorate.length===1?' tabella della pagina non è di seggi':' tabelle della pagina non sono di seggi')+
+   ' — percentuali grezze, sondaggi tematici o scenari ipotetici — '+
+   ed(acc(out.ignorate.length,'è stata ignorata','sono state ignorate'))+'.';
+ if(out.ignote&&out.ignote.length) s+=' <b>Da controllare:</b> in una tabella di seggi compaiono colonne '+
+   'non riconosciute ('+out.ignote.map(E).join(', ')+'): probabilmente una lista nuova, da mappare a mano.';
+ s+=' Le rilevazioni pubblicate nelle ultime ore possono non essere ancora su Wikipedia: '+
+   'per quelle usa il modulo di inserimento qui sotto.';
+ return s;
+}
 $('k-refresh').addEventListener('click',function(){
  var b=this;b.disabled=true;b.textContent='Aggiorno…';
  msg('Scarico la tabella integrale da Wikipedia e la analizzo riga per riga…');
@@ -5439,42 +5521,7 @@ $('k-refresh').addEventListener('click',function(){
    var out=x.out;
    var nuove=unisci(out.sondaggi), ev=eventiInAttesa(out.eventi,x.registro);
    if(nuove||ev){salva();render();}
-   var s;
-   if(nuove) s='Archivio aggiornato: <b>'+nuove+(nuove===1?' nuova rilevazione':' nuove rilevazioni')+
-     '</b> da Wikipedia. Ora contiene '+f(SOND.length)+' rilevazioni.';
-   else s='Nessuna rilevazione nuova: l\'archivio è già allineato a Wikipedia.';
-   if(ev) s+=' '+ev+(ev===1?' voce-evento nuova trovata':' voci-evento nuove trovate')+
-     ' (in inglese, non curate): la cronologia pubblicata resta quella curata in italiano, '+
-     'e le voci aspettano la revisione editoriale nel registro.';
-   s+=' Sono state lette <b>'+out.sondaggi.length+'</b> righe valide su '+
-     (out.sondaggi.length+out.scartate.length)+'.';
-   if(out.scartate.length){
-    /* Il messaggio deve dire perché le righe cadono davvero. Attribuire tutto alla
-       somma diversa da 120 faceva credere che Wikipedia fosse piena di errori, quando
-       la maggior parte degli scarti veniva da come la leggevamo noi. Le incoerenze
-       della fonte si dichiarano per quello che sono; quello che manca a noi si dichiara
-       come lavoro da fare, perché è azionabile. */
-    var per={};out.scartate.forEach(function(x){per[x.tipo||'altro']=(per[x.tipo||'altro']||0)+1;});
-    var fonte=(per.somma||0)+(per.blocco||0), voci=[];
-    if(fonte) voci.push('<b>'+fonte+'</b> per incoerenze della fonte'+
-      (per.somma?', '+per.somma+' con i seggi che non sommano a 120':'')+
-      (per.blocco?(per.somma?' e ':', ')+per.blocco+' con il totale di blocco discordante':''));
-    if(per.ambigua) voci.push('<b>'+per.ambigua+'</b> con una cella che copre più liste senza un '+
-      'contenitore dichiarato in anagrafica — sono le rilevazioni che davano un numero unico '+
-      'a tutte le liste arabe, Ra\'am compreso: serve mapparle a mano');
-    if(per.illeggibile) voci.push('<b>'+per.illeggibile+'</b> con valori non interpretabili');
-    if(per.altro) voci.push('<b>'+per.altro+'</b> per altri motivi');
-    s+=' '+out.scartate.length+(out.scartate.length===1?' riga non supera':' righe non superano')+
-      ' la validazione: '+voci.join('; ')+'.';
-   }
-   if(out.ignorate&&out.ignorate.length) s+=' '+out.ignorate.length+
-     (out.ignorate.length===1?' tabella della pagina non è di seggi':' tabelle della pagina non sono di seggi')+
-     ' — percentuali grezze, sondaggi tematici o scenari ipotetici — e '+
-     (out.ignorate.length===1?'è stata ignorata':'sono state ignorate')+'.';
-   if(out.ignote&&out.ignote.length) s+=' <b>Da controllare:</b> in una tabella di seggi compaiono colonne '+
-     'non riconosciute ('+out.ignote.map(E).join(', ')+'): probabilmente una lista nuova, da mappare a mano.';
-   s+=' Le rilevazioni pubblicate nelle ultime ore possono non essere ancora su Wikipedia: '+
-     'per quelle usa il modulo di inserimento qui sotto.';
+   var s=msgAggiorna(out,nuove,ev);
    msg(s,(nuove||ev)?'ok':'info');
   })['catch'](function(e){
    msg('<b>Wikipedia non raggiungibile</b> ('+E(e.message||e)+'): l\'archivio resta quello già salvato. '+

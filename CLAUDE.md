@@ -29,7 +29,7 @@ alle prove.
 
 ```bash
 npm install          # solo la prima volta: installa jsdom per le prove
-npm test             # estrae il JS e lancia le 1293 prove
+npm test             # estrae il JS e lancia le 1307 prove
 npm run verifica     # prove + controlli strutturali
 npm run spazzola     # rilancia il banco con l'orologio al 23 ottobre: dice quali prove
                      #   danno per scontato un archivio fresco. Da rifare dopo ogni
@@ -60,7 +60,7 @@ secondo argomento (aff.js, due su due); e un'asserzione tautologica —
 ## Il banco di misura su browser vero
 
 Le prove girano in jsdom, che **non fa layout**: larghezze, altezze, contrasti resi e
-sovrapposizioni non le vede nessuna delle 1293. Per quelle c'è un server statico da otto
+sovrapposizioni non le vede nessuna delle 1307. Per quelle c'è un server statico da otto
 righe, `.claude/serve.mjs`, dichiarato in `.claude/launch.json` come configurazione
 `misure`. **È sotto controllo di versione apposta: chi apre il progetto domani lo trova
 invece di rimontarlo.** Non è una dipendenza del modello — `index.html` resta un file
@@ -293,6 +293,9 @@ docs/
   richiesta-design-consegna-6.md  i tre punti dopo la verifica della consegna 5
   accettazione-consegna-6.md      che cosa si accetta, e le quattro righe rimaste
   forme-del-titolo.md             le nove celle dell h1 con le frequenze: si scrivono i testi da lì
+  testi-quattro-blocchi.md        verdetto, pastiglie, istogrammi, simulatore: condizione,
+                      grandezze disponibili e che cosa la frase deve dire — i quattro
+                      blocchi che l anagrafica dei testi non copre ancora
 ```
 
 ## Il modello in breve
@@ -1739,6 +1742,43 @@ E la mutazione ha trovato **un difetto nelle prove stesse**: due asserzioni cerc
 1 seggio» — erano verdi soltanto perché il seme di prova prendeva l'altro ramo. Sono
 ancorate alla maiuscola nessuna delle due, adesso.
 
+## Il messaggio dell'aggiornamento: due difetti che nessuna prova poteva vedere
+
+Trovati a occhio, riparati il 23 agosto 2026. Stavano nel messaggio del pulsante «Aggiorna
+i sondaggi», cioè **dentro il gestore, dietro una chiamata di rete**: l'unico modo di
+leggerli era premere e guardare. Adesso il testo esce da `msgAggiorna(out,nuove,ev)`, una
+funzione pura che la suite esamina senza rete — è la stessa mossa fatta per le guardie del
+lavoro notturno.
+
+**1 · «e è stata ignorata».** La congiunzione era una costante e il seguito un ramo, e chi
+ha scritto il ramo guardava il numero, non la lettera: al singolare usciva «e è», che in
+italiano non si scrive. C'è `ed(s)`, che prende la frase e sceglie la congiunzione — la
+stessa famiglia di `acc()` e di `inPc()`, cioè una regola di lingua che dipende da una cosa
+nota solo a tempo di esecuzione.
+
+**2 · Il conto delle categorie non tornava davanti al lettore, e l'aritmetica era giusta.**
+Misurato sulla pagina vera, eseguendo il parser vero: **33 righe scartate**, e il messaggio
+stampava **9, 6, 3 e 24** — che sommano 42. Nessuna riga era contata due volte e nessuna
+mancava: **il 9 delle incoerenze della fonte È il 6 della somma più il 3 del blocco**, e
+33 = 9 + 24. Ma la scomposizione proseguiva l'elenco con le stesse virgole delle altre
+voci, e a dire che era una scomposizione c'era **solo il grassetto** — un segnale troppo
+debole per reggere un'aritmetica che il lettore rifà.
+
+Rimedio, e la regola che ne esce: **fuori dalle parentesi ogni numero della frase è un
+numero di righe, e quelli sommano il totale dichiarato.** La scomposizione sta dietro un
+«di cui», dentro le parentesi; con una causa sola la causa si dice **senza numero**, perché
+«5 (di cui 5 …)» fa rifare un conto già fatto; e dentro le parentesi finisce anche il
+**120** dei seggi, che è una soglia e non un conto. In più c'è un **residuo**: `contate`
+tiene la somma delle voci, e quel che avanza diventa una voce sua — senza, un `tipo` nuovo
+aggiunto al parser toglierebbe righe dalla somma in silenzio.
+
+La prova è scritta sulla proprietà del **lettore**, non su quella del codice: si prende la
+frase, si tolgono le parentesi, si sommano i numeri rimasti. Mutata sette volte — la
+congiunzione costante, `ed()` che sceglie sempre «e», la scomposizione rimessa in fila nei
+due rami, il residuo tolto, le due incoerenze non sommate — e nessun mutante è
+sopravvissuto. Quello della scomposizione a due cause riproduce esattamente il difetto di
+partenza: `9 + 6 + 120 + 3 + 24 = 162`.
+
 ## Calendario
 
 | Data | Cosa |
@@ -2038,7 +2078,7 @@ Due conseguenze pratiche, e sono quelle da ricordare:
 ### Lo stato al 23 agosto 2026, sera
 
 Scritto per ripartire senza la conversazione. Ultimo commit spinto: **`55b0b87`**, CI e
-Pages verdi. Sul banco di oggi le prove sono **1293**.
+Pages verdi. Sul banco di oggi le prove sono **1307**.
 
 **Quello che è entrato il 23 agosto**, dopo gli apparentamenti: il **termine del 16
 ottobre** — che non è l'8 settembre, e la nota diceva il contrario — con la sua riga di
@@ -2130,10 +2170,21 @@ Erano il punto 1 della coda e bloccavano il resto. La storia sta in
   Wikipedia e basta: un href non carica niente e non entra lì.
 - **Il sommario è a una riga sotto i 660**, ed è la partita delle due date sciolta: vedi
   «Le due date» qui sotto.
-- **Restano senza prosa**: verdetto, pastiglie, istogrammi, simulatore. Nel **verdetto** la
-  frase deve dire **da quando** si confronta (`PREC.taglio` e `PREC.data` sono due campi
-  distinti); negli **istogrammi** «quanti seggi mancano» si dice da `61 − q(MC.coal, .50)`,
-  la mediana, **non** da `blocchi(SEG)`.
+- **Restano senza prosa**: verdetto, pastiglie, istogrammi, simulatore. La struttura per
+  scriverli — condizione, grandezze disponibili, che cosa la frase deve dire — è in
+  [docs/testi-quattro-blocchi.md](docs/testi-quattro-blocchi.md), scritta il 23 agosto
+  2026. Nel **verdetto** la frase deve dire **da quando** si confronta (`PREC.taglio` e
+  `PREC.data` sono due campi distinti); negli **istogrammi** «quanti seggi mancano» si dice
+  da `61 − q(MC.coal, .50)`, la mediana, **non** da `blocchi(SEG)`.
+
+  **E una decisione che tocca all'autore, prima delle parole**: con la leva degli
+  apparentamenti accesa il riquadro della direzione attribuisce ai sondaggi un movimento
+  che ha causato il lettore. `PREC` si costruisce con `dhondt(qp, taglio)`, cioè alla data
+  del taglio, e un accordo annunciato dopo quel giorno non entra nel termine di paragone:
+  misurato oggi, a leva accesa il riquadro scrive **−1 al blocco Netanyahu** e non l'ha
+  fatto nessun sondaggio. È corretto per la serie storica ed è falso come confronto, perché
+  le due esecuzioni non sono più «a parametri identici», che è quello che il riquadro
+  afferma di fare. Le tre uscite possibili sono nel §1 di quel file.
 
 #### Le due correzioni hanno dato un risultato diverso da quello che si chiedeva
 
@@ -2434,7 +2485,7 @@ la regola della consegna 6».
 trovati oggi — la stella della bandiera che sconfinava nelle bande, l'occhiello a filo del
 bordo sull'ombra, il vuoto di 372px sotto le ipotesi, l'evidenziazione che competeva con
 la codifica del riempimento, il verde arabo che si leggeva nero — sono stati trovati
-**guardando la pagina**, non dalla suite. Le 1293 prove dicono che il modello non si è
+**guardando la pagina**, non dalla suite. Le 1307 prove dicono che il modello non si è
 rotto; non dicono che la pagina si veda. Dopo ogni push, aprire
 <https://angrisanidj.github.io/modello-israele/> e guardarla nei due temi.
 
@@ -2445,7 +2496,7 @@ rotto; non dicono che la pagina si veda. Dopo ogni push, aprire
 Scritta il 22 agosto 2026 per una passata sola, sezione per sezione. Serve a distinguere
 **quello che qualcuno ha già guardato reso** da **quello che nessuno ha mai visto**: in due
 giorni sono entrate parecchie cose che le prove dichiarano sane e che nessun occhio ha
-ancora confermato. Le 1293 prove dicono che il modello non si è rotto; non dicono che la
+ancora confermato. Le 1307 prove dicono che il modello non si è rotto; non dicono che la
 pagina si veda.
 
 Si guarda su <https://angrisanidj.github.io/modello-israele/>, **nei due temi forzati dal

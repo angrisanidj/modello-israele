@@ -45,6 +45,7 @@ global.fetch = () => Promise.reject(0);
 let src = fs.readFileSync(__dirname + '/../app.js','utf8');
 src = src.replace('carica().then(render,render)',
   'global.A={parseWiki:parseWiki,wTesto:wTesto,wContenitore:wContenitore,' +
+  'msgAggiorna:msgAggiorna,ed:ed,' +
   'P:function(){return P;}};carica().then(render,render)');
 eval(src);
 
@@ -136,6 +137,90 @@ setTimeout(function(){
     JSON.stringify(out.ignorate));
   esito(!out.ignote.length, 'nessuna colonna di lista non riconosciuta',
     JSON.stringify(out.ignote));
+
+  /* ══ 5 · IL MESSAGGIO CHE IL LETTORE LEGGE ═════════════════════════════════
+   *
+   * Stava dentro il gestore del pulsante, dietro una chiamata di rete: nessuna prova lo
+   * guardava, e i suoi due difetti sono stati trovati a occhio. Adesso è msgAggiorna(),
+   * una funzione pura, e questi sono i due difetti scritti come proprietà.
+   *
+   * IL CONTO CHE NON TORNAVA. Misurato sulla pagina vera il 23 agosto 2026: 33 righe
+   * scartate, e il messaggio stampava 9, 6, 3 e 24. Nessuna riga contata due volte e
+   * nessuna mancante — il 9 È il 6 più il 3 — ma la scomposizione proseguiva l'elenco con
+   * le stesse virgole delle altre voci, e il grassetto era l'unico a dire che era una
+   * scomposizione. La proprietà che si prova è quella del LETTORE, non quella del codice:
+   * i numeri FUORI dalle parentesi sommano le righe dichiarate. */
+  const nudo = s => String(s).replace(/<[^>]+>/g, '');
+  const clausola = m => (nudo(m).match(/la validazione: ([^.]*)\./) || ['',''])[1];
+  const fuoriParentesi = c => (c.replace(/\([^)]*\)/g, '').match(/\d+/g) || []).map(Number);
+  const finto = (tipi, ign) => ({
+    sondaggi: new Array(100).fill(0).map(() => ({})),
+    scartate: Object.keys(tipi).reduce((a, t) =>
+      a.concat(new Array(tipi[t]).fill(0).map(() => ({tipo: t}))), []),
+    eventi: [], ignote: [],
+    ignorate: new Array(ign || 0).fill(0).map(() => ({righe: 5, ignote: []}))
+  });
+
+  {
+    /* i numeri della pagina vera del 23 agosto 2026, che è il caso da cui viene il difetto */
+    const o = finto({somma: 6, blocco: 3, ambigua: 24}, 1);
+    const m = A.msgAggiorna(o, 0, 0), c = clausola(m);
+    const f = fuoriParentesi(c);
+    esito(f.reduce((a, b) => a + b, 0) === o.scartate.length,
+      'i numeri fuori dalle parentesi sommano le righe dichiarate: 9 + 24 = 33',
+      f.join(' + ') + ' = ' + f.reduce((a, b) => a + b, 0) + ' contro ' + o.scartate.length);
+    esito(/di cui 6 con i seggi che non sommano a 120 e 3 con il totale di blocco discordante/.test(c),
+      'e la scomposizione delle incoerenze della fonte sta dietro un «di cui», dentro le parentesi', c);
+    esito(!/, 6 con i seggi/.test(c),
+      'non più in fila con le altre voci, dove chi somma quello che vede arrivava a 42');
+  }
+
+  {
+    /* tutti i tipi insieme, compreso uno che il parser non produce ancora */
+    const o = finto({somma: 2, blocco: 1, ambigua: 5, illeggibile: 3, altro: 4, boh: 7}, 0);
+    const c = clausola(A.msgAggiorna(o, 0, 0));
+    const f = fuoriParentesi(c);
+    esito(f.reduce((a, b) => a + b, 0) === o.scartate.length,
+      'il conto torna anche con tutti i tipi insieme',
+      f.join(' + ') + ' = ' + f.reduce((a, b) => a + b, 0) + ' contro ' + o.scartate.length);
+    esito(/7<\/b> per motivi che il messaggio non sa ancora nominare/.test(A.msgAggiorna(o, 0, 0)),
+      'e un tipo che il messaggio non sa nominare diventa una voce sua invece di sparire dalla somma',
+      c);
+  }
+
+  {
+    /* un tipo solo: niente parentesi, e il numero è quello */
+    const o = finto({ambigua: 4}, 0);
+    const c = clausola(A.msgAggiorna(o, 0, 0));
+    esito(!/\(/.test(c), 'con un tipo solo non c\'è nessuna scomposizione da nascondere', c);
+    esito(fuoriParentesi(c).reduce((a, b) => a + b, 0) === 4, 'e il conto torna lo stesso');
+    const o2 = finto({somma: 5}, 0);
+    const c2 = clausola(A.msgAggiorna(o2, 0, 0));
+    esito(fuoriParentesi(c2).reduce((a, b) => a + b, 0) === 5, 'e con la sola somma il totale è cinque', c2);
+    esito(/5 per incoerenze della fonte \(con i seggi che non sommano a 120\)/.test(c2) && !/di cui/.test(c2),
+      'con una causa sola la causa si dice senza numero: «5 (di cui 5)» farebbe rifare al lettore il conto che ha già fatto',
+      c2);
+    esito(fuoriParentesi(c2).length === 1,
+      'e il 120 dei seggi resta dentro le parentesi: fuori ogni numero è un numero di righe', c2);
+  }
+
+  /* L'ELISIONE. Diceva «e è stata ignorata», che nessuno scrive in italiano, e succedeva
+     perché la congiunzione era una costante e il seguito un ramo: chi ha scritto il ramo
+     guardava il numero, non la lettera. Ora ed() prende la frase e sceglie. */
+  {
+    const uno = nudo(A.msgAggiorna(finto({}, 1), 0, 0));
+    const due = nudo(A.msgAggiorna(finto({}, 2), 0, 0));
+    esito(/— ed è stata ignorata\./.test(uno), 'una tabella sola: «ed è stata ignorata»',
+      (uno.match(/—[^.]*\./g) || []).pop());
+    esito(!/ e è /.test(uno), 'e la e senza elisione non c\'è più da nessuna parte');
+    esito(/— e sono state ignorate\./.test(due), 'due o più: «e sono state ignorate», senza elisione',
+      (due.match(/—[^.]*\./g) || []).pop());
+    esito(A.ed('è stata ignorata') === 'ed è stata ignorata' &&
+          A.ed('sono state ignorate') === 'e sono state ignorate' &&
+          A.ed('escluse') === 'ed escluse' && A.ed('altre') === 'e altre',
+      'ed() decide sulla lettera che segue, non sul ramo che l\'ha chiamata',
+      A.ed('è x') + ' · ' + A.ed('sono x') + ' · ' + A.ed('escluse') + ' · ' + A.ed('altre'));
+  }
 
   console.log('\ntestwiki: ' + ok + '/' + (ok + ko));
   if (ko) process.exit(1);
