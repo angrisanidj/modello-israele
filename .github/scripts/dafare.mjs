@@ -192,7 +192,7 @@ export function markdown(f){
   r.push('');
   r.push('Riepilogo del ' + f.generato + ' · il job ' +
     (f.job.esito === 'ok' ? 'ha girato' : 'si è fermato: ' + f.job.motivo) +
-    ' · archivio all\'' + (f.job.archivioAl || '?') +
+    ' · archivio al ' + (f.job.archivioAl || '?') +
     (f.job.rilevazioniNuove ? ' · ' + f.job.rilevazioniNuove + ' rilevazioni nuove' : ''));
   const ORD = ['blocca', 'richiede', 'informativa'];
   const TIT = {blocca: 'Blocca la pubblicazione', richiede: 'Richiede te', informativa: 'Da sapere'};

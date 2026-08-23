@@ -106,25 +106,10 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          [ -f dati/da-fare.json ] || exit 0
-          # la spazzolata arriva dopo il parser: si aggiunge al file già scritto
-          if [ -f spazzola.txt ] && [ "${{ steps.spazzola.outputs.caduta }}" = "1" ]; then
-            node --input-type=module -e "
-              import {readFileSync,writeFileSync} from 'node:fs';
-              import {conSpazzolata} from './.github/scripts/dafare.mjs';
-              const f=JSON.parse(readFileSync('dati/da-fare.json','utf8'));
-              writeFileSync('dati/da-fare.json',
-                JSON.stringify(conSpazzolata(f,readFileSync('spazzola.txt','utf8')),null,1)+'
-');
-            "
-          fi
-          node --input-type=module -e "
-            import {readFileSync,writeFileSync} from 'node:fs';
-            import {markdown} from './.github/scripts/dafare.mjs';
-            const f=JSON.parse(readFileSync('dati/da-fare.json','utf8'));
-            writeFileSync('corpo-dafare.md', markdown(f));
-            writeFileSync('conto.txt', String(f.conto.richiedono + f.conto.informative));
-          "
+          # il JavaScript sta in un file: multiriga dentro «run: |» rende il YAML invalido,
+          # ed è già successo — la esecuzione fallisce in zero secondi e il job non parte
+          SPAZZOLA_CADUTA=${{ steps.spazzola.outputs.caduta }} node .github/scripts/riepilogo.mjs
+          [ -f corpo-dafare.md ] || exit 0
           if ! git diff --quiet dati/da-fare.json; then
             git config user.name "aggiornamento-notturno"
             git config user.email "41898282+github-actions[bot]@users.noreply.github.com"

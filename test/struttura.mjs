@@ -1,6 +1,6 @@
 /* Controlli strutturali sul file pubblicato: HTML bilanciato, nessun id orfano,
    nessuna funzione duplicata, dimensione entro i limiti. */
-import {readFileSync} from 'node:fs';
+import {readFileSync,readdirSync} from 'node:fs';
 import {gzipSync} from 'node:zlib';
 import {fileURLToPath} from 'node:url';
 import {dirname,join} from 'node:path';
@@ -166,6 +166,28 @@ const TETTO_GZIP=179*1024;
 const gz=gzipSync(Buffer.from(html,'utf8')).length;
 p('gzip sotto i '+(TETTO_GZIP/1024)+' KB ('+(gz/1024).toFixed(1)+' KB · '+
   (html.length/1024).toFixed(0)+' KB di caratteri)', gz<TETTO_GZIP);
+/* I WORKFLOW DEVONO ESSERE YAML VALIDO, e non è un controllo di stile.
+   Il 23 agosto 2026 due righe di JavaScript multiriga dentro un blocco «run: |» hanno reso
+   .github/workflows/aggiorna.yml illeggibile: GitHub non è riuscito nemmeno a leggerne il
+   nome, l'esecuzione è fallita in ZERO secondi e il lavoro notturno non è partito. Senza
+   job non c'è nemmeno il riepilogo che avrebbe dovuto dirlo — il canale che avvisa muore
+   insieme alla cosa di cui doveva avvisare.
+   Il file lo scrive una persona a mano e nessuna prova lo leggeva. Adesso sì. */
+let yamlKO=[];
+try{
+  const {load}=await import('js-yaml');
+  for(const f of readdirSync(join(qui,'..','.github','workflows'))){
+    if(!/.ya?ml$/.test(f)) continue;
+    const t=readFileSync(join(qui,'..','.github','workflows',f),'utf8');
+    try{
+      const d=load(t);
+      if(!d||!d.jobs||!Object.keys(d.jobs).length) yamlKO.push(f+': nessun job');
+    }catch(e){ yamlKO.push(f+': '+String(e.message).split(/\r?\n/)[0].slice(0,90)); }
+  }
+}catch(e){ yamlKO.push('js-yaml non installato: npm install'); }
+p('i workflow di GitHub sono YAML valido'+(yamlKO.length?' ('+yamlKO.join(' | ')+')':''),
+  !yamlKO.length);
+
 p('avviso di avvio presente nel markup', /id="k-boot"/.test(html));
 p('viewport per mobile', /name="viewport"/.test(html));
 p('lingua italiana dichiarata', /<html[^>]*lang="it"/.test(html));

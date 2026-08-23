@@ -2248,16 +2248,61 @@ Due conseguenze pratiche, e sono quelle da ricordare:
 
 ### Lo stato al 23 agosto 2026, sera
 
-Scritto per ripartire senza la conversazione. Ultimo commit spinto: **`55b0b87`**, CI e
-Pages verdi. Sul banco di oggi le prove sono **1348**.
+Scritto per ripartire senza la conversazione. Ultimo commit spinto: **`4eb6756`**, CI e
+Pages verdi. Sul banco di oggi le prove sono **1536**.
 
-**Quello che è entrato il 23 agosto**, dopo gli apparentamenti: il **termine del 16
-ottobre** — che non è l'8 settembre, e la nota diceva il contrario — con la sua riga di
-calendario ricavata da `VOTO`; il **comando degli accordi** che dice quanti ne applica e in
-che stato, con la riga di esito che dichiara i depositati e l'effetto in blocchi; lo stato
-`ritirato` per un annunciato che muore; `aria-pressed` sui tre pulsanti delle ipotesi a
-etichetta fissa, che non l'avevano; e gli **attributi veri nello stub delle sei suite** del
-punto 13, che senza morivano tutte alla prima riga di pagina che scriveva un `aria-label`.
+**Che cosa è entrato oggi**, in cinque commit. Gli **apparentamenti** con il loro termine —
+il **16 ottobre**, non l'8 settembre, e per tre commit il file diceva il contrario — e il
+comando che dice quanti accordi applica e in che stato. Il **confronto a parametri
+identici**, che con la leva accesa non lo era. Il **conto delle categorie** nel messaggio
+dell'aggiornamento, che davanti al lettore faceva 42 su 33 dichiarate. Le **convalide**
+della tabella degli accordi e le prove che non cadono più quando la tabella cresce.
+`dati/da-fare.json`, il riepilogo notturno. **`nmA()` che pretende la preposizione.** E il
+**confine dell'agente**, che è la cosa che non si deduce da nessun codice.
+
+#### Le cinque cose decise oggi che il codice non dice
+
+Stanno tutte nelle loro sezioni; qui ci sono perché chi riapre il progetto le deve trovare
+prima di toccare qualcosa.
+
+**1 · Il confine dell'agente** — sezione «Il confine dell'agente». L'agente **prepara e una
+persona conferma** per tutto ciò che sposta un numero: accordi e mappature di lista si
+fermano al diff; il **testo** di una voce-evento lo può applicare; la **data** di una voce
+no. La terza riga è quella che non si deduce: sembra che gli eventi non spostino numeri, e
+il testo infatti non ne sposta, ma **la data colloca il marcatore sull'asse della tendenza
+e decide la terna dei trenta giorni** del riquadro isolato — «nei 30 giorni successivi:
+Netanyahu 51, opposizione 47, arabi 11». Un giorno di differenza cambia tre numeri
+pubblicati.
+
+**2 · Davanti a un rosso, un agente non modifica mai una prova.** Se `npm run verifica`
+fallisce dopo una sua modifica, si ferma e chiede — **anche quando il rosso è legittimo**.
+Far tornare verde un'attesa costa dieci secondi e cancella l'unica misura che il progetto
+ha di sé stesso. Che un'attesa sia diventata obsoleta è una decisione, non una riparazione.
+
+**3 · La trappola dell'orologio nelle fixture.** Da metà di `test/suite/apparentamenti.js`
+in poi **l'orologio è congelato alla vigilia del 16 ottobre**: lì `giorniFa(3)` non è
+agosto, è il **12 ottobre**. Una fixture datata «tre giorni fa» dentro una suite congelata
+**non fallisce: misura un'altra cosa**. Le date delle fixture si scelgono rispetto a quello
+che la prova interroga, non rispetto a oggi. È scritto in tutti e tre i contratti di
+`docs/` perché un agente ne legge uno solo.
+
+**4 · Due domande aperte su chi è il primo partito.** `MC.primo` esiste, è un campo di
+`MC`, e oggi lo usa **solo** `k-verdetto`; il titolo lo potrebbe leggere senza nessun
+lavoro, perché `datiTitolo(fo,mc)` riceve già `mc`.
+  · **Se sia una forma del titolo a sé o una frase dentro le forme esistenti.** Il dato per
+  decidere: su ~55 giorni d'archivio la gara è **stretta in 26 (47%)** — il primo sotto il
+  65% delle simulazioni — mentre le due letture **discordano solo nel 7%** (4 giorni,
+  l'ultimo il 19 agosto). Quindi la notizia frequente non è «la proiezione dice il
+  contrario», è «il primo partito è un lancio di moneta su un seggio di margine».
+  · **Se le due letture possano contraddirsi a schermo.** `k-verdetto` confronta le
+  simulazioni con la proiezione; `k-analisi` confronta la **mediana grezza a sette giorni**
+  con la proiezione e ha già la frase «La proiezione del modello ribalta tuttavia
+  l'ordine». Sono due domande diverse su chi è primo, in due riquadri vicini, e nessuno ha
+  verificato che non possano dire il contrario l'una dell'altra nello stesso schermo.
+
+**5 · Il caso V4 è vivo oggi.** Il riquadro della direzione mostra **seggi fermi** e
+l'opposizione che passa dal **16% al 21%**, +5,1 punti. Il ramo che lo riconosce c'è —
+classe `psmossa` e gli attributi con blocco e numeri — la frase no: si scrive lì.
 
 #### Prima di toccare qualunque cosa
 
@@ -2276,6 +2321,12 @@ punto 13, che senza morivano tutte alla prima riga di pagina che scriveva un `ar
   quindi un riferimento preso prima di un `click()` è morto subito dopo.
 - **`npm run verifica` deve passare per intero prima di ogni commit**, e nessun commit
   senza che l'autore lo chieda in quel messaggio.
+- **`npm run spazzola` dopo ogni modifica a un'àncora temporale**, ed è nel lavoro notturno
+  dopo il push. Trova la famiglia di difetti che nessun'altra cosa trova: una prova che
+  darà per scontato un archivio fresco il 23 ottobre, cioè quando la pagina conta di più.
+- **E la trappola che non è del banco ma delle fixture**: da metà di `apparentamenti.js`
+  l'orologio è congelato alla vigilia del **16 ottobre**, quindi lì `giorniFa(3)` è il 12
+  ottobre. Una data di fixture si sceglie rispetto a quello che la prova interroga.
 
 #### Pubblicato e verde
 
@@ -2295,7 +2346,17 @@ dell'house effect, banco di prova come dato, `formaTitolo()`, invariante 10):
   ha **una sola sorgente**, il filtro sull'anagrafica;
 - **la tendenza** dirada asse e mesi sotto i 660;
 - **l'archivio è un `<details>`** attaccato al modulo che apre;
-- **le due frasi del deposito** hanno il ramo condizionale su `depositoPassato()`.
+- **le due frasi del deposito** hanno il ramo condizionale su `depositoPassato()`;
+- **gli accordi di eccedenza**: il termine del 16 ottobre ricavato da `VOTO`, il comando che
+  dice quanti ne applica e in che stato, la riga di esito coi depositati e l'effetto in
+  blocchi, lo stato `ritirato`, e le **convalide** che fermano una riga sbagliata e
+  rendono rosso il banco;
+- **il confronto della direzione a parametri identici**, con la firma che lega la frase alla
+  proprietà, e `notaSerie()` che dichiara quando la fine della linea e la testata divergono;
+- **il messaggio dell'aggiornamento** con il conto che torna e l'elisione, tirato fuori dal
+  gestore in `msgAggiorna()`;
+- **`dati/da-fare.json`** e la issue unica del mattino, con la regola del silenzio;
+- **`nmA()`** che pretende la preposizione, con il controllo strutturale che cerca la classe.
 
 #### I testi dell'autore, applicati il 22 agosto 2026
 
@@ -2423,47 +2484,33 @@ il 37% del costo totale. Oggi i bersagli sotto i 44 sono **76 su 99**.
 
 ### Nell'ordine, quando si riprende
 
-1. ~~I testi~~ — **applicati il 22 agosto 2026**: h1, `<title>`, le due frasi del
-   deposito, il lede dell'house effect, la firma, la nota metodologica calcolata e le due
-   date. Vedi «I testi dell'autore, applicati il 22 agosto 2026» qui sopra.
-   **Restano senza prosa** verdetto, pastiglie, istogrammi e simulatore, e restano da
-   rileggere i **sei testi delle tre celle nuove** del titolo, che sono gli unici non
-   dettati dall'autore.
-2. ~~Gli apparentamenti~~ — **fatti il 23 agosto 2026**, e il giorno stesso corretti: il
-   termine **non** è l'8 settembre ma il **16 ottobre**, undici giorni prima del voto.
-   Vedi il punto 2 di «Ancora da fare» e «Il comando degli accordi». Resta da riempire la
-   tabella mano a mano che gli accordi vengono annunciati — **il grosso arriverà fra fine
-   settembre e il 16 ottobre**, non l'8 settembre — e da portare a `depositato` quelli
-   firmati. Quello che segue è la misura che li aveva messi al secondo posto.
+L'ordine è deciso, non suggerito: ogni voce dipende da quella prima. La prosa viene prima
+di tutto perché è l'unica cosa che nessun altro può fare al posto dell'autore; la revisione
+visiva viene prima dell'embed e del PNG perché quei due disegnano attorno a grafici che la
+revisione può cambiare; l'agente viene ultimo perché tutto il resto è il suo terreno.
 
-   ~~Sale qui perché **non è più
-   ipotetico**: il 22 agosto 2026 Abbas ha proposto alla Lista Unita araba un accordo di
-   eccedenza, quindici giorni prima del deposito. Il modello oggi tratta ogni lista come
-   NON apparentata, e il confine del 120° seggio è a **0,0012 di divisore**: quasi ogni
-   apparentamento ne sposta uno, e quasi sempre lo toglie a Yisrael Beitenu.
-   **Il banco di prova dice che non è un caso limite**: sulle sette istantanee storiche,
-   **174 coppie su 362 spostano un seggio (48%), e nel 64% dei casi il seggio viene
-   dall'altro blocco**. Vale **uno** su un errore dichiarato di **1,7 seggi nell'ultima
-   settimana**: più della metà dell'incertezza residua, nel momento in cui la notizia si
-   scrive. La misura completa — le coppie, le percentuali, e il perché quella araba oggi
-   vale zero — sta nel punto 2 di «Ancora da fare». **La tabella si riempie mano a mano
-   che gli accordi vengono annunciati**, non tutta insieme l'8 settembre.
-3. **La tabella dei sondaggi** (`#k-tab`, sezione 11): è la sola sezione che non è stata
-   guardata in questo giro. Ventidue colonne dentro `.scroll`, larga 1288,9px, che non
-   sfora perché scorre da sé — ma **a 380 il 74% resta fuori**, e nessuno ha misurato che
-   cosa si legga davvero: quali colonne servono su un telefono, se la data e l'istituto
-   debbano restare fissi mentre le liste scorrono, e se le 173 righe abbiano bisogno di un
-   limite o di un caricamento progressivo.
-4. **La revisione visiva della tavolozza nuova**: non l'ha ancora vista nessuna persona.
-   La prima riga della lista di controllo dice dove guardare — l'ago della bilancia, che
-   ha il pavimento dicromatico più basso, e in scuro `otzma` `#BCD2FF`.
-5. **Le quattro cose sul mobile**, appena l'autore le dice. Una delle quattro —
-   «Giudaismo Unito Torah» che va a capo — **è caduta da sé** con la tabella dell'analisi.
-6. **Modalità `?embed=1`** (punto 1 di «Ancora da fare»). L'incorporabilità tecnica è già
-   verificata; quel che manca è la modalità.
-7. **Esportazione PNG dei quattro disegni** (punto 7): inventario fatto, decisioni prese,
-   codice non scritto. **Viene dopo la revisione visiva**, non prima.
-8. **Le meta Open Graph per l'anteprima nelle condivisioni.** Oggi la pagina **non ne ha
+1. **La prosa dei quattro blocchi** — verdetto, pastiglie, istogrammi, simulatore. La
+   struttura è in [docs/testi-quattro-blocchi.md](docs/testi-quattro-blocchi.md):
+   condizione, grandezze disponibili, che cosa la frase deve dire, e accanto il testo che
+   la pagina mostra oggi. Due cose sono pronte ad accoglierla: il **ramo V4** (`psmossa`,
+   vivo proprio adesso) e `MC.primo`, che il titolo può leggere senza lavoro. Restano da
+   rileggere anche i **sei testi delle tre celle nuove** del titolo, gli unici non dettati
+   dall'autore.
+2. **La tabella dei sondaggi** (`#k-tab`, sezione 11): la sola sezione mai guardata.
+   Ventidue colonne dentro `.scroll`, larga 1288,9px, che non sfora perché scorre da sé —
+   ma **a 380 il 74% resta fuori**, e nessuno ha misurato che cosa si legga davvero: quali
+   colonne servono su un telefono, se data e istituto debbano restare fissi mentre le liste
+   scorrono, e se le 173 righe vogliano un limite o un caricamento progressivo.
+3. **La revisione visiva**, che è la lista di controllo in fondo a questo file: **sessantasei
+   schermate**, tre larghezze per due temi per undici sezioni. La prima riga dice dove
+   guardare per prima — la tavolozza nuova, l'ago della bilancia, e in scuro `otzma`
+   `#BCD2FF`. Qui dentro stanno anche **le quattro cose sul mobile** appena l'autore le
+   dice: una delle quattro, «Giudaismo Unito Torah» che va a capo, è già caduta da sé.
+4. **Modalità `?embed=1`** (punto 1 di «Ancora da fare»). L'incorporabilità tecnica è
+   verificata su origine vera con un controllo che sa fallire; quel che manca è la modalità.
+5. **Esportazione PNG dei quattro disegni** (punto 7): inventario fatto, decisioni prese,
+   codice non scritto. **Viene dopo la revisione visiva**, non prima, o si scrive due volte.
+6. **Le meta Open Graph per l'anteprima nelle condivisioni.** Oggi la pagina **non ne ha
    nessuna**: condividendo il link su Facebook, X o WhatsApp non esce nessuna immagine.
    Servono `og:title`, `og:description`, `og:image`, `og:url`, `twitter:card` e le
    varianti. Sta **dopo il PNG** perché ne riusa i pezzi, e prima della verifica a
@@ -2508,9 +2555,11 @@ il 37% del costo totale. Oggi i bersagli sotto i 44 sono **76 su 99**.
       sarebbe per definizione un'anomalia» — e quella regola andrebbe riscritta con
       un'eccezione stretta e provata, oppure le meta vanno in un frammento a parte.
       **È la decisione che pesa di più delle quattro.**
-9. **I 44px dei bersagli**, in un giro suo e con `scroll-margin-top` ricalcolato nello
-   stesso commit: vedi «Un accoppiamento da non riscoprire rompendolo» qui sopra.
-10. **La prova di regia per l'8 settembre.** Il deposito delle liste è il giorno in cui
+7. **I 44px dei bersagli**, in un giro suo e con `scroll-margin-top` ricalcolato nello
+   stesso commit: vedi «Un accoppiamento da non riscoprire rompendolo» qui sopra. Alzare le
+   sole voci dell'indice porta `.idx.on` da 97,4 a 113,4, cioè **oltre i 112** dello
+   `scroll-margin-top`: la fascia coprirebbe la sezione appena raggiunta da un'ancora.
+8. **La prova di regia per l'8 settembre.** Il deposito delle liste è il giorno in cui
    quasi tutte le cose annotate qui vengono esercitate insieme, e **non si improvvisa la
    sera stessa**: va provato prima, su una copia dell'archivio. Cosa succede quando
    arrivano liste nuove, fusioni e scissioni tutte insieme — il parser che apre una issue
@@ -2527,28 +2576,37 @@ il 37% del costo totale. Oggi i bersagli sotto i 44 sono **76 su 99**.
    16 e al 17 si guarda che le tre schermate dicano tre cose coerenti, e che il calendario
    dica «oggi» il 16 e «passato» il 17. Le prove lo verificano; nessuno l'ha ancora
    **guardato**.
-11. **La verifica a scenari** (in fondo al file): l'ultima cosa prima di pubblicare.
-12. **Un inventario delle funzionalità con i numeri veri**, per i post di lancio.
+9. **La verifica a scenari** (in fondo al file): l'ultima cosa prima di pubblicare.
+10. **Un inventario delle funzionalità con i numeri veri**, per i post di lancio.
     **Non i post — quelli li scrive l'autore — ma il materiale**: cosa fa il modello e
     come, quante simulazioni Monte Carlo, quante rilevazioni in archivio e quante nella
     finestra, il banco di prova sulle tre elezioni con l'errore per istantanea,
     l'aggiornamento notturno e che cosa fanno le sue guardie, l'incorporabilità.
     Va compilato **alla fine**, quando i numeri sono quelli definitivi: un inventario
     scritto adesso invecchierebbe prima di essere usato.
-13. **Cercare le altre strade doppie.** Ogni valore che raggiunge lo schermo per più di un
-    percorso e non ha una prova che li leghi è il prossimo colore di blocco. In questo
-    giro ne sono cadute due — la composizione del blocco Netanyahu (**quattro** copie, una
-    nel parser notturno) e il calendario elettorale — e una si è rivelata **non** essere
-    tale: la numerazione delle sezioni ha due meccanismi ma una sorgente sola.
-14. **Il campo `esito`** in archivio (punto 8-bis): senza, dopo il voto la pagina può
-    parlare solo della propria stima, e l'ottava istantanea che sposterebbe il 2,7 non
-    esiste.
-15. Minore, dal filtro dell'emiciclo: la via d'uscita al tocco.
-16. Dal parser Wikipedia: **24 righe di gennaio-aprile** con una cella unica che copre
-    Ra'am, Hadash–Ta'al e Balad. Il parser le respinge dichiarandolo: vanno mappate a mano.
-17. Sempre dal parser: **le righe-evento arrivano in inglese** in una cronologia italiana.
-18. **L'altezza uniforme delle righe della tabella dell'analisi** non è provabile in jsdom:
-    se si tocca il corpo, la colonna o il font, va rimisurata col browser.
+11. **L'agente del mattino.** Il terreno è pronto: `dati/da-fare.json` con il conto in
+    testa e il «che cosa serve per chiudere» voce per voce, i tre contratti in `docs/` coi
+    passi di giudizio marcati, le convalide che fanno fallire forte una riga sbagliata, e
+    **il confine** scritto in questo file. Quello che manca è l'agente. Viene ultimo perché
+    ogni cosa sopra è una procedura che gli si può delegare o un difetto che gli
+    farebbe sbagliare più in fretta.
+
+**E le cose minori, quando capitano sotto mano:**
+
+- **Cercare le altre strade doppie.** Ogni valore che raggiunge lo schermo per più di un
+  percorso e non ha una prova che li leghi è il prossimo colore di blocco. In questo
+  giro ne sono cadute due — la composizione del blocco Netanyahu (**quattro** copie, una
+  nel parser notturno) e il calendario elettorale — e una si è rivelata **non** essere
+  tale: la numerazione delle sezioni ha due meccanismi ma una sorgente sola.
+- **Il campo `esito`** in archivio (punto 8-bis): senza, dopo il voto la pagina può
+  parlare solo della propria stima, e l'ottava istantanea che sposterebbe il 2,7 non
+  esiste.
+- Minore, dal filtro dell'emiciclo: la via d'uscita al tocco.
+- Dal parser Wikipedia: **24 righe di gennaio-aprile** con una cella unica che copre
+  Ra'am, Hadash–Ta'al e Balad. Il parser le respinge dichiarandolo: vanno mappate a mano.
+- Sempre dal parser: **le righe-evento arrivano in inglese** in una cronologia italiana.
+- **L'altezza uniforme delle righe della tabella dell'analisi** non è provabile in jsdom:
+  se si tocca il corpo, la colonna o il font, va rimisurata col browser.
 
 ### Le due colonne «Seggi»: cosa è chiuso e cosa resta aperto
 
