@@ -93,6 +93,49 @@ export function aggiornaRegistro(registro, eventi, chiaveDi, oggi){
   return {registro: (registro || []).concat(nuove), nuove: nuove.length};
 }
 
+/* ── LE META DELLO STATO: L'UNICA COSA CHE IL JOB SCRIVE IN index.html ──
+ *
+ * Fino al 23 agosto 2026 la regola era «il job tocca solo dati/», e la regola era anche il
+ * segnale d'allarme: un commit notturno su index.html era per definizione un'anomalia. Non
+ * è stata aggirata — è stata riscritta, con l'eccezione più stretta che si potesse dare:
+ * una regione delimitata da due marcatori, dentro la quale può stare solo un elenco
+ * dichiarato di meta. Il segnale si è spostato di conseguenza, e adesso è una prova:
+ * test/struttura.mjs legge il diff e dichiara anomalo qualunque commit notturno che tocchi
+ * una riga fuori dai marcatori.
+ *
+ * IL TESTO NON NASCE QUI. og:title è titoloCortoOra() della pagina vera, cioè la stessa
+ * riga con cui render() scrive document.title: ricomporlo da formaTitolo() e blocchi()
+ * sarebbe una seconda strada per la stessa frase, e per giunta in un altro processo, dove
+ * nessuno la vedrebbe divergere.
+ *
+ * Funzione PURA: prende il file e il titolo, restituisce il file. Non legge e non scrive
+ * niente, così le prove la esercitano senza montare un DOM e senza toccare il disco. */
+export const MARCA_INIZIO = '<!-- ══ META DELLO STATO · INIZIO';
+export const MARCA_FINE   = '<!-- ══ META DELLO STATO · FINE ══ -->';
+
+export function scriviMeta(html, titolo){
+  const i = html.indexOf(MARCA_INIZIO);
+  const j = html.indexOf(MARCA_FINE);
+  /* Un marcatore mancante o invertito NON è un caso da riparare indovinando: vuol dire che
+     qualcuno ha riscritto il <head>, e allora il job non sa più dove sia la sua regione.
+     Si ferma, e la pagina resta quella di ieri — è il modo di fallire di tutto il resto. */
+  if (i < 0 || j < 0 || j <= i) return null;
+  /* la coda del marcatore d'apertura è il commento che spiega la regola a chi legge il
+     file: si conserva. Si riscrive solo quello che sta fra la fine del commento e la fine
+     della regione. */
+  const fineCommento = html.indexOf('-->', i);
+  if (fineCommento < 0 || fineCommento > j) return null;
+  const testa = html.slice(0, fineCommento + 3);
+  const coda  = html.slice(j);
+  /* Il titolo entra in un attributo HTML: virgolette, & e angolari vanno protetti, o una
+     virgoletta dritta spezza l'attributo. I testi di TIT_CORTO_* non ne hanno oggi, e
+     «oggi» non è una garanzia — l'8 settembre una lista nuova può portarne uno nel nome. */
+  const esc = t => String(t).replace(/&/g, '&amp;').replace(/"/g, '&quot;')
+                            .replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  const meta = '\n<meta property="og:title" content="' + esc(titolo) + '">\n';
+  return testa + meta + coda;
+}
+
 /* ── L'orchestrazione. Solo quando lo script è eseguito direttamente. ── */
 async function main(){
   const argomenti = process.argv.slice(2);
@@ -134,6 +177,7 @@ async function main(){
     'global.A={parseWiki:parseWiki,unisci:unisci,calcola:calcola,blocchi:blocchi,' +
     'chiaveEvento:chiaveEvento,SEG:function(){return SEG;},SOND:function(){return SOND;},' +
     'validaApparentamenti:validaApparentamenti,GAP_SONDAGGI:function(){return GAP_SONDAGGI;},' +
+    'titoloCortoOra:titoloCortoOra,' +
     'setSOND:function(v){SOND=v;},sim:function(v){SIM=v;}};carica().then(render,render)');
   eval(src);
   await new Promise(res => setTimeout(res, 2500));
@@ -213,6 +257,7 @@ async function main(){
   if (prova){
     console.log('[prova] +' + nuove + ' rilevazioni (' + archivio.length + ' → ' + A.SOND().length + '), ' +
       '+' + reg.nuove + ' voci-evento, blocchi ' + JSON.stringify(blocchi));
+    console.log('[prova] og:title: ' + A.titoloCortoOra());
     console.log('[prova] da-fare.json:\n' + JSON.stringify(daFare, null, 1));
     process.exit(0);
   }
@@ -226,6 +271,21 @@ async function main(){
      routine, e non era vero. Il prezzo è un commit al giorno anche quando non c'è niente
      di nuovo: è accettato, perché un segnale che mente è peggio di un commit in più — e
      perché da domani questo file lo legge anche un agente. */
+  /* LE META DELLO STATO, e stanno QUI e non più su perché valgono la stessa regola di
+     tutto il resto: una guardia che scatta esce senza scrivere niente, e la pagina
+     pubblicata resta quella di ieri. Un og:title aggiornato su un archivio respinto
+     direbbe il contrario di quello che la pagina calcola.
+     Il titolo esce dal modello appena ricalcolato da A.calcola(), quindi è esattamente lo
+     stato che il lettore vedrà stamattina. */
+  const pIndex = join(RADICE, 'index.html');
+  const titolo = A.titoloCortoOra();
+  const indexNuovo = scriviMeta(readFileSync(pIndex, 'utf8'), titolo);
+  if (indexNuovo === null){
+    console.error('GUARDIA: i marcatori delle meta dello stato non sono più in index.html');
+    process.exit(1);
+  }
+  writeFileSync(pIndex, indexNuovo);
+  console.log('og:title · ' + titolo);
   if (nuove) writeFileSync(join(RADICE, 'dati', 'archivio.json'), JSON.stringify(A.SOND(), null, 1) + '\n');
   writeFileSync(join(RADICE, 'dati', 'eventi-grezzi.json'), JSON.stringify(reg.registro, null, 1) + '\n');
   writeFileSync(pStato, JSON.stringify(statoNuovo, null, 1) + '\n');

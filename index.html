@@ -10,6 +10,81 @@
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjE1MCAwIDgwMCA4MDAiIHdpZHRoPSI4MDAiIGhlaWdodD0iODAwIj48cGF0aCBkPSJNIDAsMCBIIDExMDAgViA4MDAgSCAwIFoiIGZpbGw9IiNmZmYiLz48cGF0aCBkPSJNIDAsNzUgSCAxMTAwIFYgMjAwIEggMCBaIiBmaWxsPSIjMDAzOGI4Ii8+PHBhdGggZD0iTSAwLDYwMCBIIDExMDAgViA3MjUgSCAwIFoiIGZpbGw9IiMwMDM4YjgiLz48cGF0aCBkPSJNIDQyMy44MTU2Niw0NzIuODUyNTMgSCA2NzYuMTg0MzUgTCA1NTAuMDAwMDEsMjU0LjI5NDkyIFogbSAxMjYuMTg0MzUsNzIuODUyNTUgMTI2LjE4NDMsLTIxOC41NTc2NSBIIDQyMy44MTU2NiBaIiBmaWxsPSJub25lIiBzdHJva2U9IiMwMDM4YjgiIHN0cm9rZS13aWR0aD0iMjcuNSIvPjwvc3ZnPg==">
 <link rel="apple-touch-icon" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjE1MCAwIDgwMCA4MDAiIHdpZHRoPSI4MDAiIGhlaWdodD0iODAwIj48cGF0aCBkPSJNIDAsMCBIIDExMDAgViA4MDAgSCAwIFoiIGZpbGw9IiNmZmYiLz48cGF0aCBkPSJNIDAsNzUgSCAxMTAwIFYgMjAwIEggMCBaIiBmaWxsPSIjMDAzOGI4Ii8+PHBhdGggZD0iTSAwLDYwMCBIIDExMDAgViA3MjUgSCAwIFoiIGZpbGw9IiMwMDM4YjgiLz48cGF0aCBkPSJNIDQyMy44MTU2Niw0NzIuODUyNTMgSCA2NzYuMTg0MzUgTCA1NTAuMDAwMDEsMjU0LjI5NDkyIFogbSAxMjYuMTg0MzUsNzIuODUyNTUgMTI2LjE4NDMsLTIxOC41NTc2NSBIIDQyMy44MTU2NiBaIiBmaWxsPSJub25lIiBzdHJva2U9IiMwMDM4YjgiIHN0cm9rZS13aWR0aD0iMjcuNSIvPjwvc3ZnPg==">
 <meta name="theme-color" content="#0038B8">
+
+<!-- ══ QUELLO CHE VEDE CHI NON ESEGUE IL JAVASCRIPT ══
+
+     Facebook, X, WhatsApp, Slack e il primo passo di Googlebot leggono il file SERVITO:
+     non aspettano il render, quindi di questa pagina vedono soltanto il <head> e il
+     markup di ripiego. Misurato il 23 agosto 2026 con jsdom senza eseguire gli script,
+     nelle due forme in cui gli aggregatori ripiegano quando la description manca:
+       A · testo del corpo così com'è  →  «#kn26{ --paper:#F7F8FA; --card:#FFFFFF; …»
+           cioè IL FOGLIO DI STILE, perché sta dentro il body — è la trappola 4 del banco;
+
+     E UNA TRAPPOLA DI QUESTO COMMENTO, pagata scrivendolo: la prima stesura nominava i due
+     elementi con i loro tag, angolari compresi. Un commento HTML il browser non lo legge,
+     ma test/estrai.mjs e test/struttura.mjs cercano i blocchi di script con un'espressione
+     regolare sul FILE, non sull'albero — e il tag d'apertura scritto qui dentro ha spostato
+     l'inizio del blocco di 107 KB indietro: l'intero head e' finito dentro «il JavaScript»,
+     e il controllo degli URL assoluti ha dichiarato estraneo il canonical. Dentro un
+     commento di questo file i nomi dei tag si scrivono a parole. Un tag di CHIUSURA
+     sarebbe stato peggio: quello spezza il blocco anche per il browser.
+       B · testo senza il foglio e gli script  →  «Israele · Modello previsionale
+           AutoChiaroScuro — La proiezione dei 120 seggi della 26ª Knesset… — Il modello
+           non è ancora partito. Questa pagina calcola tutto nel browser: senza JavaScript
+           restano solo i titoli e i trattini…» cioè il selettore del tema, poi l'h1, poi
+           L'AVVISO DI AVVIO.
+     Le due risposte sono diverse e sono sbagliate tutte e due. La description esplicita
+     le chiude tutte e due, perché quando c'è nessun aggregatore va a cercare il ripiego.
+
+     LA DESCRIZIONE È FISSA, ED È UNA SCELTA. Dice che cosa fa il modello, non che cosa
+     dice oggi: è vera il giorno in cui è scritta e il giorno dopo il voto, e non ha
+     bisogno di nessuno che la aggiorni — è l'invariante 10 ottenuta non calcolando invece
+     che calcolando. Quello che cambia con lo stato è il TITOLO, e quello è generato:
+     vedi i due marcatori più sotto.
+
+     og:description e description portano la stessa stringa perché sono due strade per la
+     stessa cosa e nel markup non c'è modo di scriverla una volta sola: le lega un
+     controllo in test/struttura.mjs. Lo stesso vale per og:url e il canonical.
+
+     twitter:card è «summary» e NON «summary_large_image» perché og:image non c'è ancora:
+     la targa grande senza immagine si degrada in una scheda con un riquadro vuoto.
+     Diventa summary_large_image nello stesso commit in cui il lavoro notturno comincia a
+     generare l'immagine dell'emiciclo. -->
+<link rel="canonical" href="https://angrisanidj.github.io/modello-israele/">
+<meta name="description" content="Proiezione dei seggi della 26ª Knesset, aggiornata ogni notte sulla media ponderata dei sondaggi pubblicati. 20.000 simulazioni, il margine d’errore misurato su tre elezioni precedenti, e tutti i dati interrogabili.">
+<meta property="og:description" content="Proiezione dei seggi della 26ª Knesset, aggiornata ogni notte sulla media ponderata dei sondaggi pubblicati. 20.000 simulazioni, il margine d’errore misurato su tre elezioni precedenti, e tutti i dati interrogabili.">
+<meta property="og:url" content="https://angrisanidj.github.io/modello-israele/">
+<meta property="og:type" content="website">
+<meta property="og:locale" content="it_IT">
+<meta name="twitter:card" content="summary">
+
+<!-- ══ META DELLO STATO · INIZIO — LE SCRIVE IL LAVORO NOTTURNO, NON UNA PERSONA ══
+
+     Qui dentro c'è l'UNICA parte di index.html che il job ha il permesso di riscrivere, e
+     il permesso nasce con questo blocco. Fino al 23 agosto 2026 la regola era «il job
+     tocca solo dati/», e quella regola era anche il segnale d'allarme: un commit notturno
+     su index.html era per definizione un'anomalia. La regola non è stata aggirata, è
+     stata riscritta, e il segnale con lei — un commit notturno che tocchi una riga FUORI
+     da questi due marcatori resta un'anomalia, e test/struttura.mjs lo dichiara leggendo
+     il diff invece di fidarsi.
+
+     PERCHÉ IL JOB E NON IL RENDER. og:title deve dire lo stato del modello — è la stessa
+     domanda a cui risponde l'h1 — ma un aggregatore legge il file servito e non esegue
+     niente: un og:title scritto dal render sarebbe invisibile proprio a chi lo cerca.
+     Quindi lo scrive la notte, con l'archivio appena aggiornato.
+
+     E VIENE DALLA STESSA FUNZIONE DELL'H1, non da un secondo titolo per lo stesso stato:
+     il job chiama titoloCortoOra(), che è la riga con cui render() scrive document.title.
+     Una strada sola, e test/suite/meta.js la lega.
+
+     IL VALORE SCRITTO QUI SOTTO È IL RIPIEGO, e non afferma nessun risultato: è la stessa
+     ragione per cui l'h1 del markup non ne afferma. Lo leggono chi apre il file da disco,
+     chi arriva prima della prima notte e chiunque lo trovi con il job fermo, e a nessuno
+     dei tre può essere diventato falso. Il <title> statico resta questo per sempre, ed è
+     voluto: un ripiego che raccontasse lo stato scadrebbe in una data che nessuno ha
+     segnato in calendario. -->
+<meta property="og:title" content="Knesset 2026 — Modello previsionale">
+<!-- ══ META DELLO STATO · FINE ══ -->
 </head>
 <body style="margin:0;background:#e8e6e0;">
 
@@ -554,7 +629,20 @@
    dei due è 1,17 in chiaro e 1,26 in scuro, contro l'1,24 e 1,26 che il filetto ha oggi
    sul neutro. Non perde niente da nessuna parte. E restano due ombre interne, quindi la
    larghezza minima della tabella resta 941,8 esatti. */
-#kn26 .hstab .sep{box-shadow:inset 1px 0 0 var(--hair),inset 2px 0 0 var(--card);}
+/* E LA STESSA REGOLA VALE PER LA TABELLA DELL'ARCHIVIO, dal 23 agosto 2026: anche lì le
+   colonne sono raggruppate per blocco, e il confine si segna con lo stesso idioma — una
+   dichiarazione sola per due tabelle, non due copie che il giorno in cui si ritocca una
+   tinta divergono in silenzio. La sorgente dell'ordine è unica anche nel JavaScript:
+   colonneBlocco().
+   Il selettore dell'house effect resta scritto per intero e attaccato alla graffa: è la
+   forma che test/suite/house.js cerca nel foglio, e cambiarla per far posto a una virgola
+   avrebbe voluto dire toccare una prova per una ragione grafica.
+   Nell'archivio il fondo delle celle non è mai colorato — la scala divergente è
+   dell'house effect e resta lì — quindi il filetto a due tinte lì non sarebbe necessario;
+   ma è la stessa cosa, e una cosa sola si scrive una volta sola. Sul passaggio del
+   puntatore l'archivio non ha bisogno della regola combinata: lì il puntatore mette un
+   FONDO sulla riga, non un'ombra, e background e box-shadow sono due proprietà diverse. */
+#kn26 .sondtab .sep,#kn26 .hstab .sep{box-shadow:inset 1px 0 0 var(--hair),inset 2px 0 0 var(--card);}
 #kn26 .hs{border:1px solid var(--hair);background:var(--wash);padding:11px 13px;}
 /* l'istituto escluso si segna con il tratteggio e col pulsante, non con l'opacità: la
    riga esclusa della tabella usa opacity:.42 e lì nessun token arriva a 4,5 — difetto
@@ -1327,7 +1415,7 @@
  <div><b>Escludere un istituto</b><span>Ogni sondaggista può essere tolto dal calcolo dalla sua riga nella tabella <i>House effect</i>, o da qui per Direct Polls, che pubblica per Canale 14 e i24 e sopravvaluta sistematicamente il Likud. Nel modello pesa già la metà: escluderlo lo azzera del tutto.</span></div>
  <div><b>Affluenza araba</b><span>Non sposta voti fra blocchi: cambia quanti elettori arabi votano, moltiplicando le loro quote e diluendo tutte le altre. È la variabile che ha oscillato di più — dal 44,6% del 2021 al 64,8% del 2020 — e i sondaggi non la misurano, la assumono. I pulsanti sotto il cursore ancorano lo scenario alle sei elezioni dal 2015. <b>Attenzione al 2021:</b> aveva la stessa configurazione di oggi, tutti uniti tranne Ra'am, e produsse il minimo storico.</span></div>
    <div><b>Solo ultimi 7 giorni</b><span>Restringe la media alla settimana in corso: reagisce prima agli scossoni della campagna, ma su meno rilevazioni e quindi con più rumore.</span></div>
- <div><b>Apparentamenti proposti</b><span>Due liste apparentate si presentano al riparto come una lista sola e si dividono poi i seggi fra loro: è l&rsquo;accordo di eccedenza previsto da Bader-Ofer, e sposta uno o due seggi. La soglia del 3,25% resta individuale. Gli accordi <i>depositati</i> entrano sempre; questo pulsante aggiunge quelli soltanto <i>annunciati</i>, che diventano vincolanti solo con il deposito delle liste.</span></div>
+ <div><b>Apparentamenti annunciati</b><span>Due liste apparentate si presentano al riparto come una lista sola e si dividono poi i seggi fra loro: è l&rsquo;accordo di eccedenza previsto da Bader-Ofer, e sposta uno o due seggi. La soglia del 3,25% resta individuale. Gli accordi <i>depositati</i> entrano sempre; questo pulsante aggiunge quelli soltanto <i>annunciati</i>, che diventano vincolanti solo con il deposito delle liste.</span></div>
  <div><b>Lista Unita araba</b><span>Attivo per impostazione predefinita: il 19 agosto Hadash, Ta'al e Balad hanno firmato l'accordo per correre insieme, mentre Ra'am resta separata. Il modello somma le loro quote di voto rilevazione per rilevazione, così i voti di Balad — sotto soglia da soli — smettono di disperdersi. Disattivandolo si vede il controfattuale: quanto costerebbe loro correre divisi.</span></div></div></div></details>
 
 <!-- L'ARCHIVIO E' UNA LINGUETTA, NON UN PULSANTE CON UN PANNELLO ALTROVE.
@@ -2286,6 +2374,39 @@ function invD(seggi,sotto,q){
  sopra.forEach(function(i){mid[i]*=q/tt;});
  return mid;
 }
+/* L'ORDINE DELLE COLONNE DI LISTA, PER LE DUE TABELLE CHE NE HANNO UNA.
+   L'archivio dei sondaggi seguiva l'ordine di Wikipedia — cioè `P[i].o` — e quell'ordine
+   MESCOLA: misurato sull'anagrafica di oggi, i venti id danno CINQUE gruppi contigui per
+   QUATTRO blocchi, perché Yisrael Beitenu è dichiarato «opposizione» e sta a o=13, cioè
+   dopo le quattro liste dell'ago della bilancia. Ventidue colonne in ordine sparso non si
+   leggono: la domanda che un lettore fa a quella tabella è «questo istituto dove vede il
+   blocco», e la risposta va letta come una fascia.
+
+   E LA FONTE È L'ANAGRAFICA, non un elenco di posizioni. L'8 settembre le liste cambiano:
+   un ordine cablato resterebbe indietro, e resterebbe indietro in silenzio — è la copia
+   che questo progetto ha già pagato quattro volte. Qui non c'è nemmeno l'elenco dei
+   quattro blocchi: l'ordine FRA i blocchi è quello in cui l'anagrafica li presenta, cioè
+   il minimo `o` di ciascuno, e oggi dà arabi · opposizione · ago della bilancia ·
+   coalizione, che è la lettura da sinistra a destra che la pagina usa dappertutto.
+   Il minimo si calcola su IDS INTERO e non sulle colonne passate: le due tabelle filtrano
+   in modo diverso — l'archivio tiene le liste con almeno un seggio in una rilevazione,
+   l'house effect quelle con almeno tre rilevazioni — e se l'ordine dei blocchi dipendesse
+   dal filtro le due potrebbero disporli in modo diverso. L'ordine dei blocchi è una
+   proprietà dell'anagrafica, non dei dati del giorno.
+
+   UNA FUNZIONE SOLA PER LE DUE TABELLE. L'house effect era già in ordine di blocco, e lo
+   era PER FORTUNA: le quattro liste dell'ago della bilancia non hanno abbastanza
+   rilevazioni per comparire, quindi Beitenu non taglia niente. Il giorno in cui una di
+   quelle quattro arriva a tre rilevazioni, la tabella dell'house effect disegnerebbe un
+   filetto in mezzo all'opposizione — e il suo commento nel foglio direbbe ancora «le
+   colonne erano già in ordine di blocco». Da qui la funzione è chiamata da tutte e due. */
+function colonneBlocco(ids){
+ var primo={};
+ IDS.forEach(function(i){var b=P[i].b;
+  if(primo[b]===undefined||P[i].o<primo[b]) primo[b]=P[i].o;});
+ return ids.slice().sort(function(a,c){
+  return (primo[P[a].b]-primo[P[c].b])||(P[a].o-P[c].o);});
+}
 function blocchi(s){
  var b={coalizione:0,opposizione:0,arabo:0,incerto:0};
  for(var k in s) if(P[k]) b[P[k].b]+=s[k];
@@ -2529,6 +2650,19 @@ function testoTitolo(fo,dopo,mc){
  var d=datiTitolo(fo,mc);
  return (dopo?TIT_DOPO:TIT_PRIMA)[d.cella](d.X,d.P);
 }
+/* IL TITOLO CORTO DELLO STATO DI ADESSO, e la ragione per cui è una funzione e non una
+   riga dentro rTitolo(). Lo chiedono in due: il render, che lo scrive in document.title, e
+   il lavoro notturno, che lo scrive in og:title dentro index.html — perché un aggregatore
+   legge il file servito e non esegue niente, quindi un og:title scritto dal render sarebbe
+   invisibile proprio a chi lo cerca.
+   Due chiamanti per la stessa frase sono la strada doppia di sempre, e questa volta la
+   seconda strada passa per un ALTRO PROCESSO, dove nessuno la vedrebbe divergere: il job
+   avrebbe ricomposto formaTitolo(blocchi(SEG)) per conto suo e il giorno in cui rTitolo()
+   cambia il modo di scegliere la forma, la scheda di condivisione sarebbe rimasta indietro
+   senza che niente lo dicesse. test/suite/meta.js lega le due strade a questa funzione.
+   formaTitolo(blocchi(SEG)) resta chiamata due volte per render: blocchi() è una somma su
+   venti liste, e il prezzo di una riga in più è più basso di quello di una copia. */
+function titoloCortoOra(){return titoloCorto(formaTitolo(blocchi(SEG)),votoPassato());}
 function titoloCorto(fo,dopo){
  var d=datiTitolo(fo,null);
  return (dopo?TIT_CORTO_DOPO:TIT_CORTO_PRIMA)[d.cella](d.X)+TIT_CODA;
@@ -2944,7 +3078,7 @@ function puntiPer(bloc){
 function rTitolo(){
  var fo=formaTitolo(blocchi(SEG)), dopo=votoPassato();
  $('k-h1').textContent=testoTitolo(fo,dopo,MC);
- document.title=titoloCorto(fo,dopo);
+ document.title=titoloCortoOra();
  /* La fascia dichiara che la pagina non è un risultato elettorale. Il testo si scrive
     sempre, la classe decide se si vede: così una prova può leggerlo senza accendere
     niente, e il giorno in cui compare non è il giorno in cui viene scritto per la prima
@@ -3868,8 +4002,38 @@ function rApp(){
  var utile=!c.oltre&&c.ann>0;
  b.hidden=!utile;
  if(utile){
+  /* «APPARENTAMENTO» E NON «ACCORDO ANNUNCIATO», e sono due misure, non un gusto.
+     Misurato su browser vero il 23 agosto 2026, a 380px: il gruppo dei comandi vale 318px
+     con 7 di gap, le altre tre pastiglie 127,5 · 129,9 · 116,6, e la soglia perché la
+     quarta stia in fondo alla seconda riga è 191,1px. «Aggiungi 1 accordo annunciato» ne
+     misurava 195,4 — mancava il posto per QUATTRO PIXEL — e si prendeva una terza riga.
+
+     E il difetto peggiore non era l'a capo. «Togli 1 accordo annunciato» misura 171,9 e
+     rientra, quindi il gruppo passava da 3 righe a 2 PREMENDO e tornava a 3 ripremendo:
+     36px che sparivano sotto il dito, con la riga di esito e tutti i parametri del modello
+     che saltavano su e poi giù a ogni pressione. L'a capo si nota; il salto si subisce.
+
+     UNA COSA CHE NESSUNO SI ASPETTA, e che dice perché il difetto era peggiore adesso di
+     quanto sarà a ottobre: IL PLURALE È PIÙ CORTO DEL SINGOLARE. «accordi annunciati»
+     misura 188,0 contro i 195,4 di «accordo annunciato», perché scambia due «o» per due
+     «i». Con due accordi in tabella la riga sarebbe rientrata da sola: il difetto esisteva
+     SOLO con uno, cioè esattamente nella configurazione di oggi.
+
+     Adesso: 178,9px con uno e 175,2 con quattro, cioè 12,2px sotto la soglia, e 155,4 /
+     151,7 nello stato premuto — che sta in riga anche lui, quindi il gruppo non cambia più
+     altezza. A 1265 non cambia niente: lì il contenitore vale 1076 e le quattro pastiglie
+     stanno su una riga sola in tutti i casi.
+
+     QUELLO CHE SI PERDE è «annunciato», che è il canale che dice fatto-o-ipotesi, e non
+     si perde: resta nella riga di esito qui sotto, che scrive per esteso quanti sono
+     annunciati e non ancora depositati, con nomi e data. Al pulsante restano l'azione e il
+     numero, che sono le due cose che devono stare in un comando.
+     E «apparentamento» al posto di «accordo» porta la parola del concetto: «accordo» da
+     solo non dice niente a un lettore italiano, perché il meccanismo dei voti in eccedenza
+     nel nostro sistema non esiste in quella forma. La definizione sta nella guida dei
+     comandi, ed è l'unico posto in cui la pagina la dà. */
   var az=PAR.apparentamenti?'Togli':'Aggiungi',
-      testo=az+' '+f(c.ann)+' '+acc(c.ann,'accordo annunciato','accordi annunciati'),
+      testo=az+' '+f(c.ann)+' '+acc(c.ann,'apparentamento','apparentamenti'),
       quali=coppieAl(null,true).filter(function(x){return x.stato!=='depositato';})
         .map(function(x){return nm(x.a)+' e '+nm(x.b)+', '+dl(x.data);}).join('; ');
   b.textContent=testo;
@@ -4380,7 +4544,11 @@ var NIST=0;
 function rHouse(){
  var e=effettiCasa(),ist=Object.keys(e.by);
  NIST=ist.length;
- var cols=IDS.filter(function(i){return e.cons[i]>=3;});
+ /* stessa funzione dell'archivio: l'ordine di blocco è uno, non due. Qui era già così
+    PER FORTUNA — le liste dell'ago della bilancia non arrivano a tre rilevazioni — e il
+    giorno in cui una ci arriva questo filtro da solo disegnerebbe un filetto in mezzo
+    all'opposizione. Vedi colonneBlocco(). */
+ var cols=colonneBlocco(IDS.filter(function(i){return e.cons[i]>=3;}));
  /* Il colore dei valori NON dice la direzione con una COPPIA DI TINTE, e non è una svista.
     Prima erano --coal in eccesso e --neg in difetto, e tutti e due significano altro:
     --coal è il Blocco Netanyahu in cinque punti della pagina — emiciclo, legende, barra
@@ -4957,9 +5125,15 @@ function rTab(){
   selI.dataset.pronto='1';
  }
  var eraShown=false;
- var cols=IDS.filter(function(i){return l.some(function(s){return s.seggi[i];});});
- var h='<table><thead><tr><th class="l">Data</th><th class="l">Istituto</th><th>N</th>';
- cols.forEach(function(i){h+='<th title="'+E(nm(i))+'">'+E(nm(i).split(/[ –]/)[0].slice(0,8))+'</th>';});
+ /* Le colonne raggruppate per blocco, con il filetto dove il blocco cambia: la stessa
+    funzione e lo stesso idioma dell'house effect. I confini escono da P[i].b, quindi l'8
+    settembre si spostano da soli — nessuna posizione è scritta qui. */
+ var cols=colonneBlocco(IDS.filter(function(i){return l.some(function(s){return s.seggi[i];});}));
+ var confine={};
+ cols.forEach(function(i,n){ if(n && P[i].b!==P[cols[n-1]].b) confine[i]=1; });
+ var h='<table class="sondtab"><thead><tr><th class="l">Data</th><th class="l">Istituto</th><th>N</th>';
+ cols.forEach(function(i){h+='<th'+(confine[i]?' class="sep"':'')+' title="'+E(nm(i))+'">'+
+   E(nm(i).split(/[ –]/)[0].slice(0,8))+'</th>';});
  h+='<th>Coal.</th><th>Opp.</th></tr></thead><tbody>';
  l.forEach(function(s){
   var b=blocchi(s.seggi);
@@ -4970,8 +5144,10 @@ function rTab(){
      2,37, e sono cifre che si leggono. */
   h+='<tr'+(s.pre?' class="pre"':'')+'><td class="l">'+dc(s.data)+'</td><td class="l">'+E(s.istituto)+
      ' <span style="color:var(--mute)">'+E(s.testata||'')+'</span></td><td>'+(s.campione?f(s.campione):'—')+'</td>';
+  /* il colore dei valori resta quello della lista: qui cambia l'ORDINE, non la codifica */
   cols.forEach(function(i){var v=s.seggi[i];
-   h+='<td'+(v?' class="s" style="color:'+cp(P[i].c)+'"':'')+'>'+(v?f(v):'')+'</td>';});
+   var cl=(v?'s':'')+(confine[i]?(v?' sep':'sep'):'');
+   h+='<td'+(cl?' class="'+cl+'"':'')+(v?' style="color:'+cp(P[i].c)+'"':'')+'>'+(v?f(v):'')+'</td>';});
   h+='<td class="s" style="color:'+C.coal+'">'+f(b.coalizione)+'</td><td class="s" style="color:'+C.oppo+'">'+f(b.opposizione)+'</td></tr>';
  });
  $('k-tab').innerHTML=h+'</tbody></table>';

@@ -659,7 +659,15 @@ esito(!!Object.keys(A.stato().SEG).length,
   const VERE = A.APP.map(x => Object.assign({}, x));
   A.setApp([{a:'raam', b:'lista_araba', data:giorniFa(2), stato:'proposto'}]);
   const nAnn = () => A.contoApp(A.sopraSoglia()).ann;
-  const atteso = (az, n) => az + ' ' + n + ' ' + (n === 1 ? 'accordo annunciato' : 'accordi annunciati');
+  /* L'ATTESA È CAMBIATA IL 23 AGOSTO 2026, ed è cambiata per una misura: «Aggiungi 1
+     accordo annunciato» misura 195,4px a 380 contro una soglia di 191,1, quindi si
+     prendeva una riga sua — e, peggio, «Togli 1 accordo annunciato» ne misura 171,9 e
+     rientrava, cioè il gruppo dei comandi cambiava altezza di 36px SOTTO IL DITO a ogni
+     pressione. «Apparentamento» sta a 178,9 e 155,4: tutte e due in riga.
+     Quello che si prova qui non cambia: la FORMA — azione, numero, singolare o plurale —
+     e che il numero venga da contoApp(). «Annunciato» non è sparito dalla pagina, è
+     sceso nella riga di esito, e le asserzioni su quella sono più sotto e non si toccano. */
+  const atteso = (az, n) => az + ' ' + n + ' ' + (n === 1 ? 'apparentamento' : 'apparentamenti');
   A.par('apparentamenti', 0); A.render();
   esito(nAnn() > 0,
     'c\'è almeno un accordo annunciato in tabella, o le prove sull\'etichetta non guardano niente',
@@ -719,7 +727,7 @@ esito(!!Object.keys(A.stato().SEG).length,
   A.setApp([{a:'raam', b:'lista_araba', data:giorniFa(3), stato:'proposto'},
             {a:'shas', b:'utj', data:giorniFa(2), stato:'proposto'}]);
   A.render();
-  esito(B().textContent === 'Aggiungi 2 accordi annunciati',
+  esito(B().textContent === 'Aggiungi 2 apparentamenti',
     'con due accordi annunciati l\'etichetta va al plurale, e il numero è due', B().textContent);
   A.setApp(VERE); A.render();
 }
@@ -999,7 +1007,7 @@ A.render();
         '  · il comando c\'è quando e solo quando ha qualcosa da applicare',
         'hidden ' + B.hidden + ' · ann ' + c.ann);
       if (!B.hidden)
-        esito(B.textContent === 'Togli ' + c.ann + ' ' + (c.ann === 1 ? 'accordo annunciato' : 'accordi annunciati'),
+        esito(B.textContent === 'Togli ' + c.ann + ' ' + (c.ann === 1 ? 'apparentamento' : 'apparentamenti'),
           '  · e l\'etichetta concorda col conto', B.textContent);
       esito(testoRiga().length > 20, '  · la riga di esito dice qualcosa', testoRiga().slice(0, 90));
       if (atteso) esito(testoRiga().indexOf(atteso + ' accord') >= 0,

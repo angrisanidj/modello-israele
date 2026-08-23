@@ -29,7 +29,7 @@ alle prove.
 
 ```bash
 npm install          # solo la prima volta: installa jsdom per le prove
-npm test             # estrae il JS e lancia le 1348 prove
+npm test             # estrae il JS e lancia le 1602 prove
 npm run verifica     # prove + controlli strutturali
 npm run spazzola     # rilancia il banco con l'orologio al 23 ottobre: dice quali prove
                      #   danno per scontato un archivio fresco. Da rifare dopo ogni
@@ -57,10 +57,15 @@ secondo argomento (aff.js, due su due); e un'asserzione tautologica —
 
 **Nessuna modifica a `index.html` è finita finché `npm run verifica` non passa per intero.**
 
+E `npm run verifica` ha un terzo esito, dal 23 agosto 2026: `··`, per un controllo che in
+quel contesto **non si applica** — oggi ce n'è uno solo, il diff del commit notturno, che
+fuori dal lavoro notturno non ha niente da giudicare. Stamparlo OK sarebbe il falso verde di
+sempre; ometterlo cancellerebbe l'unica traccia che il controllo esiste.
+
 ## Il banco di misura su browser vero
 
 Le prove girano in jsdom, che **non fa layout**: larghezze, altezze, contrasti resi e
-sovrapposizioni non le vede nessuna delle 1348. Per quelle c'è un server statico da otto
+sovrapposizioni non le vede nessuna delle 1602. Per quelle c'è un server statico da otto
 righe, `.claude/serve.mjs`, dichiarato in `.claude/launch.json` come configurazione
 `misure`. **È sotto controllo di versione apposta: chi apre il progetto domani lo trova
 invece di rimontarlo.** Non è una dipendenza del modello — `index.html` resta un file
@@ -252,7 +257,8 @@ index.html            il modello, pubblicato così com'è come GitHub Pages
   serve.mjs           server statico per le misure su browser: node .claude/serve.mjs
   launch.json         la configurazione «misure», porta 8788
 .github/
-  workflows/aggiorna.yml   lavoro notturno: parser, guardie, commit dei soli file dati
+  workflows/aggiorna.yml   lavoro notturno: parser, guardie, commit dei file dati E della
+                           sola regione «META DELLO STATO» di index.html, dove sta og:title
   scripts/aggiorna.mjs     le guardie (valuta) e il registro, funzioni pure provate da job.js
   scripts/dafare.mjs       compone dati/da-fare.json e il corpo della issue: funzioni pure
                            provate da dafare.js. Il markdown è una VISTA del JSON, non un
@@ -279,6 +285,13 @@ test/
   suite/dafare.js     il riepilogo notturno: ogni categoria sul suo caso e NON sul caso
                       buono, il silenzio quando non c'è niente, e la tabella degli accordi
                       invalida come voce che blocca
+  suite/meta.js       le meta che legge chi non esegue il JavaScript: i due ripieghi
+                      misurati, e il legame fra og:title e titoloCortoOra() su tutte e
+                      dodici le celle. Prova anche scriviMeta(), cioè i modi in cui il
+                      job deve RIFIUTARSI di toccare index.html
+  suite/tabella.js    l'archivio dei sondaggi: colonne raggruppate per blocco, i filetti
+                      dove il blocco cambia, e le 2805 celle confrontate una per una con
+                      l'archivio — un riordino che sposta i valori non si vede a occhio
   suite/direzione.js  «a parametri identici»: che ogni leva arrivi a tutti e due i termini
                       del confronto, che la frase esca dalla proprietà invece di starle
                       accanto, e che la lettura «com'era» resti in serieModello()
@@ -310,6 +323,9 @@ docs/
   testi-quattro-blocchi.md        verdetto, pastiglie, istogrammi, simulatore: condizione,
                       grandezze disponibili e che cosa la frase deve dire — i quattro
                       blocchi che l anagrafica dei testi non copre ancora
+  tabella-sondaggi-mobile.md  le tre forme proposte per la sezione 11 sotto i 660, con le
+                      sei risposte per ciascuna e i numeri misurati a 380. NIENTE DI QUESTO
+                      È IN PAGINA: è la metà mobile del punto 2 della coda
   aggiungere-un-apparentamento.md  il contratto per la sera del 16 ottobre: i campi, il
                       percorso, i dodici modi di sbagliare la riga e che cosa dice ciascuno,
                       e i passi di giudizio marcati
@@ -1950,6 +1966,367 @@ due rami, il residuo tolto, le due incoerenze non sommate — e nessun mutante �
 sopravvissuto. Quello della scomposizione a due cause riproduce esattamente il difetto di
 partenza: `9 + 6 + 120 + 3 + 24 = 162`.
 
+## Le meta testuali, e la regola del job riscritta invece che aggirata
+
+Applicate il 23 agosto 2026. Sono la prima voce della coda perché sono quello che serve
+perché la pagina si possa mandare in giro: finora, condividendone il link, non usciva
+niente.
+
+### Che cosa prendeva un aggregatore, misurato e non dedotto
+
+Facebook, X, WhatsApp, Slack e il primo passo di Googlebot leggono il **file servito**: non
+aspettano il render e non eseguono niente. Il `<head>` aveva soltanto `charset`, `viewport`,
+`title`, due favicon in data URI e `theme-color` — **zero `og:`, zero `twitter:`, nessuna
+`description`, nessun `canonical`** — quindi ognuno ripiegava sul corpo. Costruito il DOM
+con jsdom senza eseguire gli script, i ripieghi sono **due, e sbagliati tutti e due**:
+
+| ripiego | che cosa esce |
+|---|---|
+| **A** · testo del corpo così com'è | `#kn26{ --paper:#F7F8FA; --card:#FFFFFF; --wash:#F1F5FC; …` — **il foglio di stile**, perché in questo file sta dentro il `body`: è la trappola 4 del banco che si presenta da un'altra porta |
+| **B** · testo senza foglio e script | «Israele · Modello previsionale **AutoChiaroScuro** — La proiezione dei 120 seggi della 26ª Knesset… — **Il modello non è ancora partito.** Questa pagina calcola tutto nel browser: senza JavaScript restano solo i titoli e i trattini…» |
+
+Il punto 6 della coda vecchia diceva che uno scraper avrebbe preso l'avviso di avvio.
+**Era vero a metà**: lo prende solo chi toglie prima il foglio, e prima dell'avviso incontra
+le tre parole del selettore del tema attaccate fra loro. Chi non toglie il foglio prende il
+CSS. La descrizione esplicita chiude tutti e due i casi, perché quando c'è nessun
+aggregatore va a cercare il ripiego — ed è la proprietà che `test/suite/meta.js` asserisce:
+la description **non è** nessuno dei due.
+
+### Che cosa è stato scritto
+
+`description` e `og:description` portano la stessa stringa, fissa. **Fissa è una scelta e
+non una dimenticanza**: dice che cosa fa il modello, non che cosa dice oggi, quindi è vera
+il giorno in cui è scritta e il giorno dopo il voto. È l'invariante 10 ottenuta **non
+calcolando** invece che calcolando — l'unico caso in cui quella regola si soddisfa così, e
+vale la pena saperlo perché il riflesso sarebbe l'opposto.
+
+Nel markup non c'è modo di scrivere una stringa una volta sola, quindi le due copie le lega
+un controllo: `test/struttura.mjs` verifica che `description` e `og:description` siano
+identiche, e che il `canonical` e `og:url` siano lo stesso indirizzo. È l'idioma dei token
+di blocco applicato al `<head>`.
+
+**`twitter:card` è `summary` e non `summary_large_image`**, e la ragione è che `og:image`
+non c'è: la targa grande senza immagine si degrada in una scheda con un riquadro vuoto.
+Diventa `summary_large_image` **nello stesso commit** in cui il lavoro notturno comincia a
+generare l'immagine. La prova asserisce che oggi `og:image` **non** ci sia: dichiararla
+senza generarla sarebbe una promessa che nessun file mantiene.
+
+### og:title lo scrive il job, e viene dalla stessa funzione dell'h1
+
+`og:title` deve dire lo stato del modello — è la stessa domanda a cui risponde l'h1 — ma un
+aggregatore non esegue niente: **un og:title scritto dal render sarebbe invisibile proprio a
+chi lo cerca.** Quindi lo scrive la notte, dentro `index.html`, con l'archivio appena
+aggiornato.
+
+E viene da `titoloCortoOra()`, che è la riga con cui `rTitolo()` scrive `document.title`.
+Non è un vezzo: **la seconda strada passa per un altro processo**, un modulo Node che nessun
+render esercita, dove una divergenza non la vedrebbe nessuno. Se un giorno `rTitolo()`
+cambiasse il modo di scegliere la forma, la scheda di condivisione resterebbe indietro in
+silenzio. `test/suite/meta.js` lega le due strade su **tutte e dodici le celle** del titolo
+— non sulla sola che l'archivio di oggi produce, che sarebbe un legame provato sul caso che
+c'è — e legge il **sorgente del job** per pretendere che il titolo esca da
+`titoloCortoOra()` e che `formaTitolo`, `titoloCorto`, `cellaTitolo` e le tabelle dei testi
+non compaiano affatto. È il controllo strutturale applicato alla lingua.
+
+**Il `<title>` statico resta neutro, e non è un'incoerenza.** «Knesset 2026 — Modello
+previsionale» non afferma nessun risultato, per la stessa ragione per cui l'h1 del markup
+non ne afferma: lo leggono chi apre il file da disco, chi arriva prima della prima notte e
+chiunque lo trovi con il job fermo, e a nessuno dei tre può essere diventato falso. Lo
+stesso valore sta dentro i marcatori come **ripiego** di `og:title`, e la notte lo sostituisce.
+
+### La regola del job: riscritta, non aggirata
+
+Fino al 23 agosto 2026 il lavoro notturno **toccava solo `dati/`**, e quella regola era
+anche il segnale d'allarme: un commit notturno su `index.html` era per definizione
+un'anomalia. Scrivere `og:title` la rompe, quindi la regola è stata riscritta con
+l'eccezione più stretta che si potesse dare — e il segnale con lei.
+
+- **Una regione delimitata**, fra `<!-- ══ META DELLO STATO · INIZIO` e
+  `<!-- ══ META DELLO STATO · FINE ══ -->`. Dentro può stare **solo un elenco dichiarato**:
+  oggi `og:title` e basta. `test/struttura.mjs` verifica che i marcatori ci siano una volta
+  sola e nell'ordine giusto, e che la regione non contenga nient'altro — se un giorno ci
+  finisse dell'altro, l'eccezione smetterebbe di essere stretta senza che nessuno l'abbia
+  riaperta.
+- **`scriviMeta(html, titolo)` è pura e sa rifiutarsi.** Marcatore mancante, marcatori
+  invertiti, commento non chiuso prima della fine: restituisce `null` e il job si ferma,
+  invece di indovinare dove metterlo. La parte che conta non è che scriva — è che **non**
+  scriva quando la regione non c'è più. Ed è **idempotente**: riscrivere lo stesso titolo
+  non cambia un byte, o il job committerebbe ogni notte una riga identica e un commit che
+  non cambia niente rende invisibile quello che cambia qualcosa.
+- **Il segnale nuovo è una prova, non una dichiarazione.** Con `LAVORO_NOTTURNO=1` —
+  impostato dal workflow e solo lì — `struttura.mjs` legge `git diff --unified=0` di
+  `index.html` e fallisce se una riga cambiata cade **fuori** dalla regione. Fuori dal job
+  il controllo non si applica, e allora **stampa che non si applica**: c'è un terzo esito,
+  `··`, perché un controllo saltato in silenzio è un controllo che non c'è.
+  Verificato in un repository usa-e-getta, nei quattro versi: niente cambiato → OK; solo
+  `og:title` cambiato → OK; una riga toccata fuori → **KO con uscita 1**; una riga tolta
+  fuori → **KO**.
+- **Le meta si scrivono DOPO le guardie**, insieme agli altri file. Una guardia che scatta
+  esce senza scrivere niente, ed è il contratto di tutto il resto: un `og:title` aggiornato
+  su un archivio respinto direbbe il contrario di quello che la pagina calcola.
+
+### Due difetti trovati scrivendo, e il secondo è del banco
+
+**1 · Un tag di apertura dentro un commento HTML sposta l'inizio del blocco di script.**
+La prima stesura del commento nel `<head>` nominava i due elementi con i loro tag, angolari
+compresi. Un commento il browser non lo legge — ma `test/estrai.mjs` e `test/struttura.mjs`
+cercano i blocchi di script con un'espressione regolare **sul file**, non sull'albero, e
+quel `<script>` scritto per spiegazione ha portato l'inizio del blocco 107 KB indietro:
+l'intero `<head>` è finito dentro «il JavaScript», e il controllo degli URL assoluti ha
+dichiarato estraneo il `canonical` che avevo appena scritto. **Dentro un commento di questo
+file i nomi dei tag si scrivono a parole.** Un tag di *chiusura* sarebbe stato peggio:
+quello spezza il blocco anche per il browser.
+
+**2 · Il terzo esito mancava a `struttura.mjs`.** Il file aveva due colonne, OK e KO, e un
+controllo che non si applica in un certo contesto non è né l'uno né l'altro: stamparlo OK
+sarebbe stato il falso verde di sempre, ometterlo avrebbe cancellato l'unica traccia che il
+controllo esiste. Adesso c'è `na()`, che stampa `··` e non conta in nessuna delle due
+colonne.
+
+**Mutata quattordici volte, quattordici morti**: la description tolta, `og:description`
+divergente, il canonical verso un altro indirizzo, `twitter:card` promosso senza immagine,
+`og:type` sbagliato, il marcatore di chiusura rinominato, una meta estranea infilata nella
+regione, `titoloCortoOra()` che dimentica `votoPassato()`, che perde la coda, il render che
+scrive un titolo suo, il job che ricompone il titolo per conto suo, `scriviMeta()` che non
+protegge le virgolette, che scrive coi marcatori mancanti, e che riscrive anche il commento.
+
+**E una di quelle quattordici è morta soltanto con l'orologio avanti.** Il mutante che
+spegne `votoPassato()` dentro `titoloCortoOra()` è **invisibile oggi** — prima del voto
+`votoPassato()` vale già `false`, quindi la mutazione non cambia niente — e muore con il
+calendario al 20 novembre. Non è una debolezza della prova: è l'invariante 10 vista dalla
+parte della mutazione, e l'unico modo di saperlo è spazzolare. **Una mutazione va provata
+anche nel futuro in cui il codice che tocca comincia a contare.**
+
+---
+
+## La tabella dei sondaggi: l'ordine è dei blocchi, e la fonte è l'anagrafica
+
+Applicato il 23 agosto 2026, metà desktop del punto 2 della coda.
+
+Le ventidue colonne seguivano l'ordine di Wikipedia — `P[i].o` — e quell'ordine **mescola**.
+Misurato sull'anagrafica di oggi: i venti id danno **cinque gruppi contigui per quattro
+blocchi**, perché Yisrael Beitenu è dichiarato «opposizione» e sta a `o=13`, cioè **dopo**
+le quattro liste dell'ago della bilancia. La domanda che un lettore fa a quella tabella —
+«questo istituto dove vede il blocco» — si risponde leggendo una fascia, e una fascia
+spezzata non si legge.
+
+Adesso le colonne passano da `colonneBlocco()`, con i **filetti a due tinte** dove il blocco
+cambia: lo stesso idioma dell'house effect, e la **stessa dichiarazione** nel foglio, non una
+copia.
+
+### Tre cose che questa mossa ha imposto, e nessuna era prevista
+
+**1 · Nemmeno l'ordine dei blocchi è scritto.** Non c'è l'elenco dei quattro: l'ordine
+**fra** i blocchi è quello in cui l'anagrafica li presenta, cioè il **minimo `o`** di
+ciascuno, e oggi dà arabi · opposizione · ago della bilancia · coalizione, che è la lettura
+da sinistra a destra che la pagina usa dappertutto. Un elenco scritto qui sarebbe la copia
+che l'8 settembre resta indietro.
+
+**2 · Il minimo si calcola su `IDS` intero, non sulle colonne passate.** Le due tabelle
+filtrano in modo diverso — l'archivio tiene le liste con almeno un seggio in una
+rilevazione, l'house effect quelle con almeno tre rilevazioni — e se l'ordine dei blocchi
+dipendesse dal filtro le due potrebbero disporli in modo diverso. **L'ordine dei blocchi è
+una proprietà dell'anagrafica, non dei dati del giorno.**
+
+Questo l'ha trovato una mutazione, e vale la pena dire come. Scambiando `IDS` con `ids`
+dentro `colonneBlocco()`, **nessuna prova cadeva**: il sottoinsieme che avevo scelto per la
+prova — un id ogni due — non distingue le due strade. Il caso che le separa è quello vero
+dell'8 settembre: un filtro che di un blocco tenga **solo** la lista che sta dopo un altro
+blocco nell'anagrafica. Oggi è Yisrael Beitenu; col minimo calcolato sul filtro,
+l'opposizione scivolerebbe dopo l'ago della bilancia e le due tabelle disporrebbero i
+blocchi in due ordini diversi. La prova adesso **cerca** quella lista nell'anagrafica invece
+di nominarla — scriverne il nome sarebbe la costante che l'8 settembre resta indietro.
+
+**3 · L'house effect era in ordine di blocco PER FORTUNA, e nessuno lo sapeva.** Il commento
+nel foglio diceva «le colonne erano già in ordine di blocco». È vero **solo perché le quattro
+liste dell'ago della bilancia non arrivano a tre rilevazioni**, quindi non compaiono e
+Beitenu non taglia niente. Il giorno in cui una di quelle quattro arriva a tre, quella
+tabella disegnerebbe un filetto **in mezzo all'opposizione** — nel lavoro notturno, cioè
+dove nessuno guarda. Da oggi chiama `colonneBlocco()` anche lei: una funzione sola, e la
+correttezza per costruzione invece che per coincidenza.
+
+Anche questo l'ha trovato una mutazione. Togliendo `colonneBlocco()` da `rHouse()` **niente
+cadeva**, perché oggi le due strade danno lo stesso risultato: la prova diceva «una strada
+sola» guardando un caso in cui le due coincidono. Il legame si prova dove sta, cioè nel
+sorgente — `var cols=colonneBlocco(` in tutte e due — come per `og:title` e il job.
+
+### Che cosa NON è stato toccato, e come lo si sa
+
+**Il colore dei valori resta quello della lista**: qui cambia l'ordine, non la codifica.
+
+**Il parser e l'esportazione non si sono accorti di niente**, e lo si sa per misura e non
+per deduzione. Il parser mappa le colonne di Wikipedia **per nome**, con `W_LISTA`, e non
+nomina né `colonneBlocco` né `IDS`; l'esportazione serializza `SOND`, che è un elenco di
+oggetti indicizzati per id, e ridisegnare le due tabelle **non cambia un byte** di quello
+che produce. Se l'ordine delle colonne e quello dei dati coincidevano, era per caso: adesso
+**divergono davvero**, e la prova lo asserisce prima di provare il resto.
+
+**E la cosa che un riordino rompe davvero è che i valori si spostino di colonna**, un difetto
+che non si vede — una tabella coi numeri sotto la colonna sbagliata si legge benissimo e
+dice il falso. `test/suite/tabella.js` confronta **tutte e 2805 le celle** con `s.seggi[id]`
+dell'archivio, riga per riga e per id, non per posizione. La mutazione che riordina le
+intestazioni ma non le celle muore lì.
+
+**Mutata otto volte, otto morti**: `colonneBlocco()` che non riordina, che perde l'ordine
+dentro il blocco, che prende il minimo dal filtro, le intestazioni riordinate e le celle no,
+i filetti su posizioni cablate, il filetto solo sull'intestazione, la classe `sondtab` tolta,
+e l'house effect che torna a filtrare per conto suo.
+
+---
+
+## Dove sta il concetto degli apparentamenti, e dove manca la definizione
+
+Censito il 23 agosto 2026, su richiesta dell'autore. **Il testo della definizione lo scrive
+lui; qui c'è l'inventario e il posto.**
+
+Il punto è giusto e non è una sfumatura: **«accordo» da solo non dice niente a un lettore
+italiano**, perché il meccanismo dei voti in eccedenza nel nostro sistema non esiste in
+quella forma. La pagina usa «accordi di apparentamento» e «accordi di eccedenza» come se
+fossero noti, e da nessuna parte dice che cosa siano.
+
+### Le sette occorrenze
+
+| dove | che cosa dice oggi | definisce? |
+|---|---|---|
+| **etichetta del pulsante**, `#k-app` (`rApp`) | «Aggiungi *N* accordi annunciati» | no — e non deve: è un comando |
+| **nota dei comandi** sotto le pastiglie, `.pgn` nel markup | «…o quali **accordi di apparentamento** entrano nel riparto» | **no, ed è la prima volta che la parola compare** |
+| **riga di esito**, `#k-appriga` (`rApp`) | «Nessun **accordo di eccedenza** è ancora depositato…» | no: dice lo stato, non il meccanismo |
+| **guida «Come si usano i comandi»**, voce *Apparentamenti proposti* | «Due liste apparentate si presentano al riparto come una lista sola e si dividono poi i seggi fra loro: è l'accordo di eccedenza previsto da Bader-Ofer…» | **quasi** — dice il *come*, non il *perché*: manca la frase sui voti che non bastano a eleggere un seggio |
+| **calendario**, tappa del 16 ottobre | «Ultimo giorno per depositare gli apparentamenti — *heskem odafim* — presso la Commissione elettorale centrale» | no |
+| **nota metodologica**, `notaApparentamenti()` | ripete il *come* della guida, poi il termine, poi lo stato | **quasi**, e ripete la guida |
+| **nota del riparto**, punto 3 di `rFoot` | «col metodo Bader-Ofer, cioè il d'Hondt in uso in Israele» | no |
+
+### Il posto giusto è la guida dei comandi, e la ragione è dove si arriva
+
+La voce **«Apparentamenti proposti»** dentro `<details id="k-guida">` è l'unico punto in
+cui il lettore sta già chiedendo che cosa vuol dire un comando: ci arriva perché ha visto il
+pulsante e non ha capito. È anche il testo che **già** contiene il tentativo di
+spiegazione — quindi non si aggiunge un'ottava occorrenza, si completa quella che c'è.
+
+**Che cosa manca a quella frase, esattamente.** Dice «due liste apparentate si presentano al
+riparto come una lista sola», cioè il **meccanismo**; non dice **da dove viene il seggio** —
+che è la cosa che rende l'istituto comprensibile a chi non ce l'ha nel proprio sistema: i
+voti che non bastano a eleggere un seggio, invece di andare persi, si sommano fra due liste
+che si sono accordate prima del voto, e il seggio in più va a quella con il resto maggiore.
+Una o due frasi, in testa alla voce, prima del meccanismo.
+
+**E la nota metodologica ripete la guida**, il che oggi è tollerabile — sono due contesti
+diversi e chi legge la nota può non aver aperto la guida — ma diventa una strada doppia nel
+momento in cui una delle due porta la definizione e l'altra no. Da decidere insieme al testo:
+o la definizione sta in tutte e due (e allora è una costante da legare), o la nota rimanda
+alla guida.
+
+**Il titolo della voce va cambiato insieme al testo**: dice «Apparentamenti **proposti**»,
+che è la parola scartata il 23 agosto per l'etichetta del pulsante — «annunciato» è il fatto
+verificabile, «proposto» dice anche chi ha proposto a chi, e nell'offerta unilaterale di
+Abbas non è simmetrico. La voce della guida è rimasta indietro.
+
+## L'etichetta del pulsante degli accordi andava a capo, e solo con UN accordo
+
+Misurato su browser vero il 23 agosto 2026, a 380px, tema chiaro forzato dal selettore e
+transizioni spente. **Applicata il 23 agosto 2026**: «Aggiungi / Togli N apparentamento/i»,
+con `acc()` per il plurale. Quello che segue è la misura che l'ha decisa, e le sei
+formulazioni scartate restano perché il numero che conta — il plurale più corto del
+singolare — non si ritrova ragionandoci.
+
+Il contenitore del gruppo vale **318px**, il `gap` è 7px, e le altre tre pastiglie misurano
+127,5 · 129,9 · 116,6. La soglia esatta perché la quarta stia in fondo alla seconda riga —
+misurata allargando una stringa finché non cade — è **191,1px**.
+
+### La misura, e il fatto che nessuno si aspetta
+
+| formulazione | 1 accordo | 4-5 accordi | righe (1 / 4) |
+|---|---|---|---|
+| **«Aggiungi 1 accordo annunciato»** *(oggi)* | **195,4** | 188,0 | **3** / 2 |
+| «Togli 1 accordo annunciato» *(oggi, premuto)* | 171,9 | 164,5 | 2 / 2 |
+| «Apparentamenti annunciati» | 174,2 | 174,2 | 2 / 2 |
+| «1 accordo annunciato» | 142,4 | 134,9 | 2 / 2 |
+| «+1 accordo annunciato» | 150,5 | 143,0 | 2 / 2 |
+| «Con 1 accordo» | 103,1 | 99,3 | 2 / 2 |
+| «Aggiungi 1 apparentamento» | 178,9 | 175,2 | 2 / 2 |
+| «Aggiungi 1 accordo» | 131,8 | 128,0 | 2 / 2 |
+
+**Il plurale è più CORTO del singolare**: 188,0 contro 195,4, sette punti e mezzo in meno,
+perché «accordi annunciati» scambia due `o` per due `i` e la `i` è più stretta. Quindi
+**il difetto esiste soltanto con UN accordo — cioè esattamente oggi — e si chiude da sé al
+secondo.** A metà ottobre, con quattro o cinque, la riga starebbe comunque.
+
+E **il margine è di 4,3px**: 195,4 contro 191,1. Non è una scritta lunga, è una scritta che
+manca il posto per quattro pixel.
+
+### Il difetto che nessuno aveva visto, ed è peggio dell'a capo
+
+**Il gruppo passa da 3 righe a 2 quando lo si preme, e torna a 3 quando lo si ripreme.**
+«Aggiungi 1 accordo annunciato» sta a 195,4 e va a capo; «Togli 1 accordo annunciato» sta a
+171,9 e rientra. Il pannello si accorcia di **36px sotto il dito**, e tutto quello che sta
+sotto — la riga di esito, i parametri del modello — salta su e poi giù a ogni pressione.
+L'a capo si nota; il salto si subisce.
+
+Questo esclude da solo ogni formulazione in cui i due stati hanno larghezze che cadono ai
+due lati della soglia, ed è un vincolo che i due dichiarati dall'autore non contenevano.
+
+### La risposta alla domanda: sì, ce n'è più d'una che regge tutto
+
+I vincoli sono tre — il numero, la larghezza, e il cambio di testo come unico riscontro,
+visto che il pulsante non ha `aria-pressed` per scelta (il nome dichiara l'azione, e
+`aria-pressed` direbbe il contrario di quello che si legge).
+
+| candidata | numero | riscontro | 1 accordo | 4 accordi | margine sulla soglia |
+|---|---|---|---|---|---|
+| **«Aggiungi / Togli 1 apparentamento»** | sì | il verbo | 178,9 / 155,4 | 175,2 / 151,7 | **+12,2px** |
+| **«Aggiungi / Togli 1 accordo»** | sì | il verbo | 131,8 / 108,3 | 128,0 / 104,5 | +59,3px |
+| «+1 / −1 accordo annunciato» | sì | il segno | 150,5 / 150,5 | 143,0 / 143,0 | +40,6px, e **larghezza identica nei due stati** |
+| «Aggiungi / Togli 1 annunciato» | sì | il verbo | 149,3 / 125,8 | 145,6 / 122,1 | +41,8px |
+| «Apparentamenti annunciati» | **no** | — | 174,2 | 174,2 | +16,9px |
+| «1 accordo annunciato» | sì | **nessuno** | 142,4 | 142,4 | +48,7px |
+
+Le ultime due cadono sui vincoli dichiarati: la penultima non porta il numero, l'ultima non
+cambia fra premuto e non premuto e quindi non dà nessun riscontro.
+
+**Quello che si perde, e va scelto sapendolo.** Tutte le candidate che reggono, tranne la
+terza, lasciano cadere **«annunciato»** — che è il canale che dice **fatto o ipotesi**, cioè
+la cosa che questo file dichiara di non voler accorciare per prima. Le tre uscite sono:
+
+- **«Aggiungi / Togli 1 apparentamento»** tiene il verbo e il numero, porta la parola del
+  concetto invece di «accordo» — che da solo non dice niente a un lettore italiano, ed è il
+  punto 4 dell'autore — e perde «annunciato». Margine 12,2px: il più stretto dei tre, ma
+  regge anche a 4-5 accordi, dove la parola si accorcia.
+- **«+1 / −1 accordo annunciato»** tiene tutto, compreso «annunciato», e ha la proprietà che
+  nessun'altra ha: **la stessa larghezza nei due stati**, quindi il salto di 36px non può
+  ripresentarsi nemmeno se un giorno la soglia si muove. Il prezzo è che il riscontro
+  diventa un **segno** invece di un verbo, cioè un canale più debole di quello che l'house
+  effect e questo pulsante hanno scelto — e la grammatica dell'azione andrebbe abbandonata
+  in un punto solo, che è la cosa che questo progetto chiama strada doppia.
+- **«Aggiungi / Togli 1 accordo»**, la più corta che tiene verbo e numero: 59,3px di
+  margine, e «annunciato» finisce dove sta già, cioè nella riga di esito subito sotto —
+  che oggi scrive «1 annunciato e non ancora depositato, quindi fuori dal riparto: Ra'am e
+  Lista Unita araba». È l'uscita che l'autore ha dichiarato di preferire se nessuna reggesse
+  tutto, e regge anche il numero.
+
+**Nessuna delle sette cambia niente a 1265**, dove il contenitore vale 1076 e le quattro
+pastiglie stanno su una riga sola in tutti i casi: la scelta si decide interamente a 380.
+
+### Scelta: «Aggiungi / Togli N apparentamento/i»
+
+Tiene il verbo — la grammatica dell'azione, la stessa di «Escludi / Includi» dell'house
+effect, e quindi niente `aria-pressed` — tiene il numero, e porta la **parola del concetto**
+invece di «accordo», che da solo non dice niente a un lettore italiano. Il plurale passa da
+`acc()`, come il calendario, il margine di coalizione e le altre: scriverlo a mano è la
+strada che in questo progetto ha già prodotto «1 giorni».
+
+**«Annunciato» non si perde: scende nella riga di esito**, che lo scrive per esteso con i
+nomi e la data — «1 annunciato e non ancora depositato, quindi fuori dal riparto: Ra'am e
+Lista Unita araba, 22 agosto 2026». Al pulsante restano l'azione e il numero, che sono le
+due cose che devono stare in un comando; il canale che dice fatto-o-ipotesi resta, e resta
+nel punto in cui c'è spazio per dirlo per intero invece che in una parola.
+
+**Nove asserzioni di `apparentamenti.js` sono state aggiornate nello stesso commit**, ed è
+il caso previsto: l'attesa è diventata obsoleta di proposito, la decisione l'ha presa una
+persona, e la ragione sta nel messaggio del commit. Quello che le prove verificano non è
+cambiato — la forma dell'etichetta, il numero che viene da `contoApp()` e non dalla
+tabella, il singolare e il plurale, il nome accessibile che comincia col testo visibile, le
+due preposizioni — è cambiata solo la stringa attesa.
+
 ## Calendario
 
 | Data | Cosa |
@@ -2248,8 +2625,23 @@ Due conseguenze pratiche, e sono quelle da ricordare:
 
 ### Lo stato al 23 agosto 2026, sera
 
-Scritto per ripartire senza la conversazione. Ultimo commit spinto: **`69d1c89`**, CI e
-Pages verdi. Sul banco di oggi le prove sono **1536**.
+Scritto per ripartire senza la conversazione. Ultimo commit spinto: **`9528f0a`**, CI e
+Pages verdi. Sul banco di oggi le prove sono **1602**, e le due suite nuove sono
+`meta.js` e `tabella.js`.
+
+**E l'ordine di marcia è cambiato**: la coda è stata riscritta per pubblicare prima, e la
+revisione visiva è uscita dalla coda perché è fatta. Vedi «Nell'ordine, quando si
+riprende».
+
+**Che cosa è entrato nella seconda metà della giornata.** Le **meta testuali** —
+`description` fissa, `og:description`, `og:url`, `og:type`, `og:locale`, `twitter:card` e il
+`canonical` — e **og:title generato dal lavoro notturno** dalla stessa funzione dell'h1,
+perché un aggregatore legge il file servito e non esegue niente. Con quello, **la regola
+«il job tocca solo dati/» è stata riscritta**: adesso può riscrivere una regione delimitata
+di `index.html`, e il segnale d'allarme che quella regola era è diventato una prova che
+legge il diff. E la **tabella dei sondaggi raggruppata per blocco**, con `colonneBlocco()`
+chiamata anche dall'house effect — che era in ordine di blocco per fortuna, e adesso lo è
+per costruzione.
 
 **Che cosa è entrato oggi**, in cinque commit. Gli **apparentamenti** con il loro termine —
 il **16 ottobre**, non l'8 settembre, e per tre commit il file diceva il contrario — e il
@@ -2496,112 +2888,111 @@ il 37% del costo totale. Oggi i bersagli sotto i 44 sono **76 su 99**.
 
 ### Nell'ordine, quando si riprende
 
-L'ordine è deciso, non suggerito: ogni voce dipende da quella prima. La prosa viene prima
-di tutto perché è l'unica cosa che nessun altro può fare al posto dell'autore; la revisione
-visiva viene prima dell'embed e del PNG perché quei due disegnano attorno a grafici che la
-revisione può cambiare; l'agente viene ultimo perché tutto il resto è il suo terreno.
+**Riscritta il 23 agosto 2026, e l'ordine è cambiato per una ragione sola: pubblicare
+prima.** Le prime quattro voci sono quello che serve perché la pagina si possa mandare in
+giro — un titolo e una descrizione che reggano in una scheda di condivisione, la tabella
+dei sondaggi leggibile su un telefono, l'embed, il PNG. Tutto il resto viene dopo la
+pubblicazione, e non perché conti meno: perché non la blocca.
 
-1. **La prosa dei quattro blocchi** — verdetto, pastiglie, istogrammi, simulatore. La
-   struttura è in [docs/testi-quattro-blocchi.md](docs/testi-quattro-blocchi.md):
-   condizione, grandezze disponibili, che cosa la frase deve dire, e accanto il testo che
-   la pagina mostra oggi. Due cose sono pronte ad accoglierla: il **ramo V4** (`psmossa`,
-   vivo proprio adesso) e `MC.primo`, che il titolo può leggere senza lavoro. Restano da
-   rileggere anche i **sei testi delle tre celle nuove** del titolo, gli unici non dettati
-   dall'autore.
-2. **La tabella dei sondaggi** (`#k-tab`, sezione 11): la sola sezione mai guardata.
-   Ventidue colonne dentro `.scroll`, larga 1288,9px, che non sfora perché scorre da sé —
-   ma **a 380 il 74% resta fuori**, e nessuno ha misurato che cosa si legga davvero: quali
-   colonne servono su un telefono, se data e istituto debbano restare fissi mentre le liste
-   scorrono, e se le 173 righe vogliano un limite o un caricamento progressivo.
-3. **La revisione visiva**, che è la lista di controllo in fondo a questo file: **sessantasei
-   schermate**, tre larghezze per due temi per undici sezioni. La prima riga dice dove
-   guardare per prima — la tavolozza nuova, l'ago della bilancia, e in scuro `otzma`
-   `#BCD2FF`. Qui dentro stanno anche **le quattro cose sul mobile** appena l'autore le
-   dice: una delle quattro, «Giudaismo Unito Torah» che va a capo, è già caduta da sé.
-4. **Modalità `?embed=1`** (punto 1 di «Ancora da fare»). L'incorporabilità tecnica è
-   verificata su origine vera con un controllo che sa fallire; quel che manca è la modalità.
-5. **Esportazione PNG dei quattro disegni** (punto 7): inventario fatto, decisioni prese,
-   codice non scritto. **Viene dopo la revisione visiva**, non prima, o si scrive due volte.
-6. **Le meta Open Graph per l'anteprima nelle condivisioni.** Oggi la pagina **non ne ha
-   nessuna**: condividendo il link su Facebook, X o WhatsApp non esce nessuna immagine.
-   Servono `og:title`, `og:description`, `og:image`, `og:url`, `twitter:card` e le
-   varianti. Sta **dopo il PNG** perché ne riusa i pezzi, e prima della verifica a
-   scenari.
+**La revisione visiva è uscita dalla coda: è fatta.** La lista di controllo resta più
+sotto come traccia di che cosa è stato guardato e a quali larghezze, ma non è più una cosa
+da fare.
 
-   **Una decisione già presa: non la bandiera israeliana.** È l'immagine del paese, non
-   del modello, e in un'anteprima si legge come una presa di posizione. **L'emiciclo dice
-   «proiezione parlamentare» e porta il numero che conta** — dentro il suo viewBox ci sono
-   già «MAGGIORANZA 61» e i tre totali di blocco.
+#### Prima della pubblicazione
 
-   **Quattro punti da diagnosticare quando ci si arriva**, e i primi numeri sono già presi
-   il 22 agosto 2026:
+1. ~~**`description` e `og:title` — le meta testuali**~~ — **FATTO il 23 agosto 2026.**
+   Vedi «Le meta testuali» qui sotto. Restano fuori l'immagine e le meta che ne dipendono:
+   quelle sono la voce 4 del dopo.
+2. **La tabella dei sondaggi** (`#k-tab`, sezione 11), in due metà.
+   · **Desktop: FATTO il 23 agosto 2026** — le colonne raggruppate per blocco, con i
+     filetti a due tinte dell'house effect e i confini dettati dall'anagrafica. Vedi «La
+     tabella dei sondaggi: l'ordine è dei blocchi».
+   · **Sotto i 660: DA DECIDERE.** Oggi la tabella è larga 1288,9px in un contenitore da
+     326 dentro `.scroll`: si vede il 25%, e per leggere una riga bisogna trascinare avanti
+     e indietro. Servono le stesse funzioni del desktop — ricerca, filtro per istituto,
+     filtro per periodo, i seggi lista per lista — in una forma pensata per il telefono, e
+     non nella stessa forma compressa. La premessa da abbandonare è che debba restare una
+     tabella: a 326px una griglia da ventidue colonne non ci sta. Le tre proposte sono in
+     [docs/tabella-sondaggi-mobile.md](docs/tabella-sondaggi-mobile.md), ciascuna con le sei
+     risposte — come si scorrono 173 righe, dove stanno i seggi e come si confrontano due
+     sondaggi, dove stanno ricerca e filtri e quanto costano prima del primo dato, come si
+     opera da tastiera, quanto pesa in altezza contro i 774px di oggi, e che cosa si perde.
+3. **Modalità `?embed=1`.** L'incorporabilità tecnica è verificata su origine vera con un
+   controllo che sa fallire (punto 1 di «Ancora da fare»); quel che manca è la modalità.
+4. **Esportazione PNG dei quattro disegni** (punto 7): inventario fatto, decisioni prese,
+   codice non scritto.
 
-   1. **Cosa esce oggi.** Il `<head>` ha solo `charset`, `viewport`, `title`, due favicon
-      in data URI e `theme-color`: **zero `og:`, zero `twitter:`, nessuna
-      `description`, nessun `canonical`, nessun `<img>` nel markup.** Un aggregatore
-      costruirebbe il titolo dal `<title>` e per il resto pescherebbe dal corpo — che
-      senza JavaScript comincia con l'h1 statico e poi con **l'avviso di avvio**: «Il
-      modello non è ancora partito. Questa pagina calcola tutto nel browser…». È il primo
-      paragrafo che uno scraper trova, ed è quanto di peggio potrebbe finire in
-      un'anteprima.
-   2. **L'immagine dev'essere un file statico.** Le anteprime **non eseguono
-      JavaScript**: né l'SVG reso né un PNG generato al volo servono a niente, e nemmeno
-      un `og:image` che punti a una rotta dinamica. **La genera il lavoro notturno**
-      insieme all'archivio, con gli stessi pezzi dell'esportazione PNG — serializzare
-      l'SVG, iniettare `xmlns`, `width`, `height` e `font-family`, rasterizzare. Il job
-      oggi tocca **solo `dati/`** e committa tre file; aggiungerne un quarto è dentro le
-      sue guardie, ma va deciso: serve un rasterizzatore in CI (il job gira su Node, non
-      in un browser), e va misurato cosa costa in tempo e in peso del repository.
-   3. **Le dimensioni.** Lo standard è **1200×630**, rapporto 1,9048. L'emiciclo ha
-      viewBox `0 0 430 232`, rapporto **1,8534** — quasi identico. A piena altezza entra
-      in **1168×630** con 16px di margine per lato e **zero** in verticale: nessuno spazio
-      per la targa. Con la targa, misurato: disegno largo **1000 → alto 540, restano 90**;
-      **900 → 486, restano 144**; **860 → 464, restano 166**. L'inchiostro vero è
-      386,7×217 con 21,6 unità di margine vuoto a sinistra, quindi c'è un po' di
-      ricentratura da fare prima di incorniciare.
-   4. **Titolo e descrizione: generati o fissi.** Se devono seguire lo stato del modello
-      come l'h1, **non possono cambiare a ogni render** — un aggregatore legge il file
-      servito, non la pagina calcolata. Quindi **li scrive il job**, nello stesso passaggio
-      dell'immagine, e diventano il primo caso in cui il lavoro notturno tocca
-      `index.html`: oggi è escluso per principio — «ogni commit del job su quel file
-      sarebbe per definizione un'anomalia» — e quella regola andrebbe riscritta con
-      un'eccezione stretta e provata, oppure le meta vanno in un frammento a parte.
-      **È la decisione che pesa di più delle quattro.**
-7. **I 44px dei bersagli**, in un giro suo e con `scroll-margin-top` ricalcolato nello
-   stesso commit: vedi «Un accoppiamento da non riscoprire rompendolo» qui sopra. Alzare le
-   sole voci dell'indice porta `.idx.on` da 97,4 a 113,4, cioè **oltre i 112** dello
+#### Dopo la pubblicazione
+
+5. **Le due prove di regia**, che sono prove generali e non si improvvisano la sera stessa.
+   · **L'8 settembre**, il deposito delle liste: è il giorno in cui quasi tutto quello che
+     è annotato qui viene esercitato insieme. Liste nuove, fusioni e scissioni tutte
+     insieme, il parser che apre una issue con le colonne da mappare, `COLORE.capienza()` e
+     la scala di ripiego per l'ago della bilancia (che in tema chiaro ha **zero slot
+     liberi**), la soglia delle schede dell'house effect che sale a ~1190 con quindici
+     colonne, i veti che cambiano sotto, `PRESET.netanyahu` che si aggiorna da sé, `dentro`
+     per le componenti nuove, e le 24 righe di gennaio-aprile che aspettano una mappatura a
+     mano. **E adesso anche i filetti della tabella dei sondaggi**, che si spostano da soli
+     se l'anagrafica è giusta e non si spostano affatto se non lo è.
+   · **Il 16 ottobre**, il termine degli accordi di eccedenza: quel giorno il comando
+     sparisce, la riga di esito cambia ramo e gli annunciati mai depositati smettono di
+     contare. Con l'orologio congelato al 15, al 16 e al 17 si guarda che le tre schermate
+     dicano tre cose coerenti, e che il calendario dica «oggi» il 16 e «passato» il 17. Le
+     prove lo verificano; nessuno l'ha ancora **guardato**.
+6. **La verifica a scenari** (le sei tabelle in fondo a questo file). *«Scenari» e
+   «verifica a scenari» erano elencati come due voci: sono la stessa, ed è questa.*
+7. **Le meta Open Graph con l'immagine generata dal job.** Le meta testuali ci sono già; qui
+   c'è la parte che costa. Serve un rasterizzatore in CI — il job gira su Node, non in un
+   browser — e i pezzi sono quelli dell'esportazione PNG: serializzare l'SVG dell'emiciclo,
+   iniettare `xmlns`, `width`, `height` e `font-family`, rasterizzare, committare il file.
+   **Lo standard è 1200×630**, rapporto 1,9048; l'emiciclo ha viewBox `0 0 430 232`, cioè
+   1,8534 — quasi identico, ma a piena altezza entra in **1168×630** e non resta niente per
+   la targa. Con la targa, misurato: disegno largo **1000 → alto 540, restano 90**; **900 →
+   486, restano 144**; **860 → 464, restano 166**. L'inchiostro vero è 386,7×217 con 21,6
+   unità di margine vuoto a sinistra, quindi c'è una ricentratura da fare prima di
+   incorniciare.
+   **La decisione già presa: non la bandiera israeliana.** È l'immagine del paese, non del
+   modello, e in un'anteprima si legge come una presa di posizione. L'emiciclo dice
+   «proiezione parlamentare» e porta il numero che conta — dentro il suo viewBox ci sono già
+   «MAGGIORANZA 61» e i tre totali di blocco.
+   **E la strada per scriverla è già aperta**: dal 23 agosto il job ha il permesso di
+   toccare `index.html` dentro i due marcatori, quindi `og:image` è una riga in più
+   nell'elenco ammesso e non una regola da riscrivere daccapo. `twitter:card` passa a
+   `summary_large_image` **nello stesso commit**: oggi è `summary` proprio perché
+   l'immagine non c'è, e la prova lo dichiara.
+8. **I 44px dei bersagli**, in un giro suo e con `scroll-margin-top` ricalcolato nello
+   stesso commit: vedi «Un accoppiamento da non riscoprire rompendolo». Alzare le sole voci
+   dell'indice porta `.idx.on` da 97,4 a 113,4, cioè **oltre i 112** dello
    `scroll-margin-top`: la fascia coprirebbe la sezione appena raggiunta da un'ancora.
-8. **La prova di regia per l'8 settembre.** Il deposito delle liste è il giorno in cui
-   quasi tutte le cose annotate qui vengono esercitate insieme, e **non si improvvisa la
-   sera stessa**: va provato prima, su una copia dell'archivio. Cosa succede quando
-   arrivano liste nuove, fusioni e scissioni tutte insieme — il parser che apre una issue
-   con le colonne da mappare, `COLORE.capienza()` e la scala di ripiego per l'ago della
-   bilancia (che in tema chiaro ha **zero slot liberi**), la soglia delle schede
-   dell'house effect che sale a ~1190 con quindici colonne, i veti che cambiano sotto,
-   `PRESET.netanyahu` che si aggiorna da sé, `dentro` per le componenti nuove, e le 24
-   righe di gennaio-aprile che aspettano una mappatura a mano. La riga «scenari di lista»
-   della verifica a scenari è la lista di controllo; questa è la **prova generale**.
+9. **Un inventario delle funzionalità con i numeri veri**, per i post di lancio. **Non i
+    post — quelli li scrive l'autore — ma il materiale**: cosa fa il modello e come, quante
+    simulazioni Monte Carlo, quante rilevazioni in archivio e quante nella finestra, il
+    banco di prova sulle tre elezioni con l'errore per istantanea, l'aggiornamento notturno
+    e che cosa fanno le sue guardie, l'incorporabilità. Va compilato **alla fine**, quando i
+    numeri sono quelli definitivi: un inventario scritto adesso invecchierebbe prima di
+    essere usato.
+10. **L'agente del mattino.** Il terreno è pronto: `dati/da-fare.json` con il conto in testa
+    e il «che cosa serve per chiudere» voce per voce, i tre contratti in `docs/` coi passi
+    di giudizio marcati, le convalide che fanno fallire forte una riga sbagliata, e **il
+    confine** scritto in questo file. Quello che manca è l'agente. Viene ultimo perché ogni
+    cosa sopra è una procedura che gli si può delegare o un difetto che gli farebbe
+    sbagliare più in fretta.
 
-   **E una seconda prova di regia, più piccola, per il 16 ottobre**: il termine degli
-   accordi di eccedenza. Quel giorno il comando sparisce, la riga di esito cambia ramo e
-   gli annunciati mai depositati smettono di contare — con l'orologio congelato al 15, al
-   16 e al 17 si guarda che le tre schermate dicano tre cose coerenti, e che il calendario
-   dica «oggi» il 16 e «passato» il 17. Le prove lo verificano; nessuno l'ha ancora
-   **guardato**.
-9. **La verifica a scenari** (in fondo al file): l'ultima cosa prima di pubblicare.
-10. **Un inventario delle funzionalità con i numeri veri**, per i post di lancio.
-    **Non i post — quelli li scrive l'autore — ma il materiale**: cosa fa il modello e
-    come, quante simulazioni Monte Carlo, quante rilevazioni in archivio e quante nella
-    finestra, il banco di prova sulle tre elezioni con l'errore per istantanea,
-    l'aggiornamento notturno e che cosa fanno le sue guardie, l'incorporabilità.
-    Va compilato **alla fine**, quando i numeri sono quelli definitivi: un inventario
-    scritto adesso invecchierebbe prima di essere usato.
-11. **L'agente del mattino.** Il terreno è pronto: `dati/da-fare.json` con il conto in
-    testa e il «che cosa serve per chiudere» voce per voce, i tre contratti in `docs/` coi
-    passi di giudizio marcati, le convalide che fanno fallire forte una riga sbagliata, e
-    **il confine** scritto in questo file. Quello che manca è l'agente. Viene ultimo perché
-    ogni cosa sopra è una procedura che gli si può delegare o un difetto che gli
-    farebbe sbagliare più in fretta.
+#### Fuori dalla coda, ma da decidere
+
+- **La definizione di «apparentamento» non c'è da nessuna parte in pagina**, e «accordo»
+  da solo non dice niente a un lettore italiano: il meccanismo dei voti in eccedenza nel
+  nostro sistema non esiste in quella forma. Le occorrenze e il posto giusto dove metterla
+  sono in «Dove sta il concetto degli apparentamenti, e dove manca la definizione». **Il
+  testo lo scrive l'autore**, e va in testa alla voce della guida dei comandi. Il titolo di
+  quella voce è già stato corretto da «Apparentamenti proposti» ad «Apparentamenti
+  annunciati», per la stessa ragione per cui «proposto» era stato scartato nel pulsante.
+  **Resta da decidere quale dei due posti è la sorgente** — la guida o la nota metodologica —
+  perché la definizione non va scritta due volte.
+- ~~L'etichetta del pulsante degli accordi va a capo a 380~~ — **applicata il 23 agosto
+  2026**: «Aggiungi / Togli N apparentamento/i», con `acc()` per il plurale. Le misure e le
+  sei formulazioni scartate restano nella sezione, perché il numero che ha deciso — il
+  plurale più corto del singolare — non si ritrova ragionandoci.
 
 **E le cose minori, quando capitano sotto mano:**
 
@@ -2724,18 +3115,30 @@ la regola della consegna 6».
 trovati oggi — la stella della bandiera che sconfinava nelle bande, l'occhiello a filo del
 bordo sull'ombra, il vuoto di 372px sotto le ipotesi, l'evidenziazione che competeva con
 la codifica del riempimento, il verde arabo che si leggeva nero — sono stati trovati
-**guardando la pagina**, non dalla suite. Le 1348 prove dicono che il modello non si è
+**guardando la pagina**, non dalla suite. Le 1602 prove dicono che il modello non si è
 rotto; non dicono che la pagina si veda. Dopo ogni push, aprire
 <https://angrisanidj.github.io/modello-israele/> e guardarla nei due temi.
 
 ---
 
-## Revisione visiva finale: la lista di controllo
+## Revisione visiva finale: la lista di controllo — FATTA
+
+**La passata è stata fatta, e dal 23 agosto 2026 questa lista non è più una cosa da fare:
+è la traccia di che cosa è stato guardato, a quali larghezze e in quale tema.** Resta qui
+per due ragioni. La prima è che dice che cosa è già stato visto, e quindi che cosa NON va
+riguardato quando si tocca qualcosa lì accanto. La seconda è che la sua ultima sezione —
+quella su come si annota un difetto visivo — vale ogni volta che se ne trova uno, e i
+difetti visivi si trovano ancora: sono la famiglia che nessuna delle 1602 prove vede.
+
+Quello che entra in pagina DOPO questa passata non è coperto: l'embed e l'esportazione PNG
+disegnano attorno ai grafici e vanno guardati quando ci saranno, e la forma nuova della
+tabella dei sondaggi sotto i 660 va guardata per intera — è l'unica sezione che questa
+lista dichiarava di non aver mai esaminato.
 
 Scritta il 22 agosto 2026 per una passata sola, sezione per sezione. Serve a distinguere
 **quello che qualcuno ha già guardato reso** da **quello che nessuno ha mai visto**: in due
 giorni sono entrate parecchie cose che le prove dichiarano sane e che nessun occhio ha
-ancora confermato. Le 1348 prove dicono che il modello non si è rotto; non dicono che la
+ancora confermato. Le 1602 prove dicono che il modello non si è rotto; non dicono che la
 pagina si veda.
 
 Si guarda su <https://angrisanidj.github.io/modello-israele/>, **nei due temi forzati dal
