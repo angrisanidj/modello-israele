@@ -52,32 +52,25 @@ Due elementi vicini che raccontano due cose diverse: **dove siamo** (`k-verdetto
 sotto le pastiglie) e **come ci siamo mossi** (`k-direz`, il riquadro «La direzione del
 modello»).
 
-### La cosa da sistemare prima delle parole
+### La cosa da sistemare prima delle parole — CHIUSA il 23 agosto 2026
 
-**Con la leva degli apparentamenti accesa, il riquadro della direzione attribuisce ai
-sondaggi un movimento che ha causato il lettore.** Misurato oggi:
+Era: con la leva degli apparentamenti accesa il riquadro attribuiva ai sondaggi un
+movimento causato dal lettore, perché `PREC` girava con `dhondt(qp, taglio)` e un accordo
+annunciato dopo il taglio entrava in un solo termine. **Adesso `PREC` gira con i parametri
+di adesso**, e la frase «a parametri identici» si scrive solo se le due firme coincidono.
+La storia sta in CLAUDE.md, «A parametri identici era falso per una leva su sei».
 
-| | oggi | sette giorni fa | quello che il riquadro scrive |
-|---|---|---|---|
-| leva **spenta** | coal 51 · oppo 57 · arabi 12 | coal 51 · oppo 57 · arabi 12 | invariato, ed è vero |
-| leva **accesa** | coal **50** · oppo 57 · arabi **13** | coal 51 · oppo 57 · arabi 12 | **−1 al blocco Netanyahu**, e non l'ha fatto nessun sondaggio |
+**Quello che resta e che riguarda le parole**: con l'accordo acceso il riquadro non dice
+più «invariato», dice **−1 al blocco Netanyahu e +1 all'opposizione**, e adesso è vero —
+la settimana ha spostato il seggio dell'accordo da un blocco all'altro. La frase deve
+poter reggere un movimento di questo tipo, che non è un errore ma non è nemmeno un
+sondaggio nuovo.
 
-La ragione è nel codice e non è un difetto di calcolo: `PREC` si costruisce con
-`dhondt(qp, taglio)`, cioè **alla data del taglio**, e l'accordo è annunciato il 22 agosto,
-dopo il 16. Quindi il termine di paragone non lo conosce e il termine di oggi sì. È
-corretto per la serie storica — un accordo del 22 agosto non deve retroagire su una
-proiezione del 16 — ed è **falso come confronto**, perché le due esecuzioni non sono più
-«a parametri identici», che è precisamente quello che il riquadro afferma di fare.
-
-Tre uscite possibili, in ordine di preferenza:
-
-1. **la frase dichiara la causa**: quando `contoApp().ann` entra nel riparto, il riquadro
-   dice che il movimento comprende l'accordo e non solo i sondaggi;
-2. il confronto si fa **a leva uguale nei due termini** — `PREC` ricalcolato con le stesse
-   coppie di oggi — e allora il riquadro torna a essere quello che dice di essere;
-3. il riquadro **non si mostra** a leva accesa. È la peggiore: nasconde invece di dire.
-
-Va scelta prima di scrivere le parole, perché cambia quello che le parole devono dire.
+E **la fine della linea della tendenza resta indietro rispetto alla testata** quando un
+accordo è annunciato dopo l'ultima rilevazione: 51 contro 50, perché la serie ricalcola
+ogni punto con gli accordi noti a quel giorno. Lo dichiara `notaSerie()`, sotto il
+grafico. Se la prosa del verdetto nomina la linea, deve sapere che le due letture sono
+diverse **di proposito**.
 
 ### Le condizioni, e che cosa la frase deve dire
 

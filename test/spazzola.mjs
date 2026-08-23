@@ -37,21 +37,27 @@ for (const giorno of DATE) {
   console.log('\n══ OROLOGIO AL ' + giorno + ' ══');
   const caduti = [];
   for (const f of file) {
-    let out = '';
+    let out = '', morta = false;
     try {
       out = execFileSync('node', ['--require', join(qui, 'orologio.cjs'), f], {
         encoding: 'utf8', cwd: join(qui, 'suite'),
         env: Object.assign({}, process.env, {FINTO_OGGI: giorno, TZ: 'Europe/Rome'})
       });
-    } catch (e) { out = (e.stdout || '') + (e.stderr || ''); }
+    } catch (e) { out = (e.stdout || '') + (e.stderr || ''); morta = !!(e.stderr && /Error/.test(e.stderr)); }
     const ok = (out.match(/^\s*OK\s/gm) || []).length + (out.match(/: OK/g) || []).length;
     const ko = (out.match(/^\s*KO\s/gm) || []).length + (out.match(/: FALLITO/g) || []).length;
     /* zero asserzioni vuol dire che la suite è morta prima di provare qualcosa: è la
-       stessa assenza che esegui.mjs dichiara fallita, e qui vale uguale */
-    if (ko || (!ok && !ko)) {
+       stessa assenza che esegui.mjs dichiara fallita, e qui vale uguale.
+       E MORIRE A METÀ VALE COME MORIRE: con qualche OK già stampato e nessun KO il
+       conteggio non ha niente da dire, e questo file diceva «tutte in piedi». È successo
+       il 23 agosto 2026 con direzione.js al 23 ottobre — PREC è null quando la finestra
+       dei sette giorni si svuota — cioè proprio nel caso che questo strumento esiste per
+       trovare. */
+    if (ko || (!ok && !ko) || (morta && !ko)) {
       const perche = ko
         ? (out.match(/^\s*KO.*$/gm) || []).slice(0, 2).join(' | ')
-        : 'nessuna asserzione — ' + ((out.match(/^.*Error.*$/m) || ['uscita vuota'])[0]).trim();
+        : (ok ? 'morta dopo ' + ok + ' asserzioni — ' : 'nessuna asserzione — ') +
+          ((out.match(/^.*Error.*$/m) || ['uscita vuota'])[0]).trim();
       caduti.push('  ' + f.replace('.js', '').padEnd(16) + ok + '/' + (ok + ko) + '  ' + perche.slice(0, 150));
     }
   }

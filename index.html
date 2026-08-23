@@ -1502,6 +1502,9 @@
    e le voci qui sotto sono lo stesso comando: premendone uno il grafico isola quel momento e
    accende i trenta giorni successivi. Si esce ripremendo lo stesso numero, con «Torna alla
    vista piena» o con il tasto Esc.</p>
+  <!-- Si riempie solo quando la fine della linea e il numero in cima alla pagina dicono
+       due cose diverse: vedi rTrend(). Vuoto, non occupa niente. -->
+  <p class="fn" id="k-trendnota"></p>
   <div class="crono" id="k-crono"></div>
  </div>
 </section>
@@ -2763,15 +2766,55 @@ function calcola(){
   var Lp=attiviAl(taglio);
   if(Lp.length>=3&&Lp[0].data!==L[0].data){
    var qp=quoteDa(Lp); if(SW) qp=applicaSwing(qp,SW);
-   /* la data del taglio, non oggi: un accordo annunciato ieri non deve comparire nella
-      proiezione di sette giorni fa, o il confronto misurerebbe anche l'annuncio */
-   PREC={seg:dhondt(qp,taglio),n:Lp.length,taglio:taglio,data:Lp[0].data,
-         mc:montecarlo(qp,Math.max(4000,Math.round(SIM/4)),ORIZZONTE+7,taglio)};
+   /* I PARAMETRI SONO QUELLI DI ADESSO, e qui c'era scritto il contrario.
+      Il riquadro della direzione promette «due esecuzioni complete del modello a
+      parametri identici», e con `taglio` al posto di `null` quella promessa era falsa per
+      una leva su sei: gli accordi di eccedenza sono l'unico parametro ancorato a una
+      DATA invece che allo stato, quindi il termine di paragone girava senza l'accordo del
+      22 agosto — al 16 non c'era. Misurato: a leva accesa il riquadro scriveva «−1 al
+      blocco Netanyahu» e non l'aveva fatto nessun sondaggio. Il lettore premeva un
+      pulsante e la pagina attribuiva alla settimana il movimento che aveva causato lui.
+      Le altre cinque leve non avevano il difetto, e non per attenzione: swing, affluenza,
+      esclusione di istituti, «solo ultimi 7 giorni» e Lista Unita vivono nelle variabili
+      che attiviAl() e quoteDa() leggono, quindi arrivano a tutti e due i termini da sé.
+      Verificato una per una prima di toccare il codice.
+      LA LETTURA «COM'ERA» NON SPARISCE: sta in serieModello(), che passa la data di ogni
+      punto ed è il posto in cui deve stare. Le due domande sono diverse — «che cosa
+      diceva il modello quel giorno» e «di quanto si è mosso a parità di parametri» — e da
+      oggi ciascuna ha la sua chiamata invece di condividerne una sbagliata per una delle
+      due. */
+   var sopraQp={},kq;for(kq in qp) if(qp[kq]>=SOGLIA) sopraQp[kq]=qp[kq];
+   var cpQp=coppieRiparto(sopraQp,null);
+   PREC={seg:dhondt(qp,null,cpQp),n:Lp.length,taglio:taglio,data:Lp[0].data,
+         firma:firmaRiparto(cpQp),
+         mc:montecarlo(qp,Math.max(4000,Math.round(SIM/4)),ORIZZONTE+7,null)};
   }
  }catch(e){PREC=null;}
  MC=montecarlo(QUO,SIM,ORIZZONTE);
  COALS=coalizioni(SEG);
  SOGLIE={coalizione:puntiPer('coalizione'),opposizione:puntiPer('opposizione')};
+}
+/* LA FIRMA DEI PARAMETRI: che cosa il lettore ha impostato, in una stringa.
+   Nasce come chiave della cache della serie storica — che si ricalcola quando una leva
+   cambia — e serve anche al riquadro della direzione, che afferma di confrontare due
+   esecuzioni «a parametri identici»: lì la firma è la prova di quell'affermazione, e
+   scriverla due volte sarebbe la strada doppia con dentro l'affermazione stessa.
+   Non comprende l'ARCHIVIO — SOND è un dato, non un parametro — che la serie aggiunge
+   per conto suo perché la sua cache deve cadere anche quando arriva un sondaggio. */
+function firmaPar(){
+ return JSON.stringify(PAR)+'|'+Object.keys(ESCL).sort().join(',')+'|'+SW+'|'+AFF;
+}
+/* E LA FIRMA DI UN RIPARTO: i parametri del lettore più gli accordi che vi sono entrati
+   DAVVERO. Serve a legare la frase alla proprietà invece di appaiarle: il riquadro della
+   direzione afferma «a parametri identici», e lo scrive solo se le due firme coincidono.
+   Gli accordi stanno qui e non in firmaPar() perché non sono una leva sola — la leva
+   governa i soli annunciati, i depositati entrano comunque — e perché quello che conta è
+   quali sono entrati in QUEL riparto, non che cosa il lettore ha premuto: una coppia con
+   una lista sotto soglia si scioglie, e allora i due riparti hanno ricevuto accordi
+   diversi anche a leve identiche. In quel caso la frase deve dirlo, ed è la ragione per
+   cui la firma comprende le coppie e non la sola leva. */
+function firmaRiparto(cp){
+ return firmaPar()+'|'+cp.map(function(x){return x.a+'+'+x.b;}).sort().join(',');
 }
 /* sposta s punti percentuali dall'opposizione sionista al blocco Netanyahu */
 function applicaSwing(q,s){
@@ -3330,8 +3373,18 @@ function rDirezione(){
    return '<b>'+nm(i)+'</b> ('+(v>0?'+':'−')+f(Math.abs(v))+')';}).join(', '));
  else frasi.push('Nessuna lista cambia di un seggio pieno');
  frasi.push('la proiezione di sette giorni fa era costruita su '+PREC.n+' rilevazioni, l\'ultima del '+dl(PREC.data));
- h2+='<p>'+frasi.join('; ')+'. Questo riquadro confronta due esecuzioni complete del modello a parametri identici: '+
-  'isola il movimento della proiezione da quello dei singoli sondaggi, che la tabella qui sotto mostra invece grezzo.</p></div>';
+ /* LA FRASE ESCE DALLA PROPRIETÀ, non le sta accanto. «A parametri identici» è
+    un'affermazione verificabile: le due firme dicono con che cosa i due riparti sono stati
+    fatti, e se non coincidono il riquadro dice quell'altra cosa invece di ripetere una
+    promessa che non mantiene. Finché il codice è quello di oggi le due firme coincidono
+    sempre — il ramo alternativo non si vede — ma è il ramo che rende la prima frase
+    un'affermazione invece di una decorazione, ed è quello che una prova può mutare. */
+ var stessi=PREC.firma===firmaRiparto(coppieRiparto(sopraSoglia(),null));
+ h2+='<p>'+frasi.join('; ')+'. '+(stessi
+  ? 'Questo riquadro confronta due esecuzioni complete del modello a parametri identici: '+
+    'isola il movimento della proiezione da quello dei singoli sondaggi, che la tabella qui sotto mostra invece grezzo.'
+  : 'Attenzione: i due termini del confronto non sono stati calcolati con gli stessi parametri, '+
+    'quindi una parte di questo movimento non viene dai sondaggi.')+'</p></div>';
  el.innerHTML=h2;
 }
 function rAnalisi(){
@@ -4335,7 +4388,15 @@ function rHouse(){
    sondaggi: è quello che il modello avrebbe detto quel giorno. */
 var _serie=null,_serieKey='';
 function serieModello(){
- var key=SOND.length+'|'+JSON.stringify(PAR)+'|'+Object.keys(ESCL).sort().join(',')+'|'+SW+'|'+AFF;
+ /* LA CHIAVE COMPRENDE GLI ACCORDI, e non li comprendeva. La serie ricalcola ogni punto
+    con le coppie note a quella data, quindi dipende dalla tabella; la chiave era fatta di
+    archivio più parametri del lettore, e un accordo DEPOSITATO — che entra senza toccare
+    nessuna leva — lasciava servita la serie di prima. In pagina non si vedeva perché la
+    tabella cambia solo quando si modifica il file, cioè quando la pagina si ricarica: è
+    una cache che rispondeva giusto per una ragione che non è la sua, e l'ha trovata una
+    prova che aggiungeva un accordo a mano. */
+ var key=SOND.length+'|'+firmaPar()+'|'+
+   APPARENTAMENTI.map(function(x){return x.a+'+'+x.b+':'+x.stato+':'+x.data+':'+(x.fine||'');}).join(',');
  if(_serie&&_serieKey===key) return _serie;
  var viste={},date=[];
  SOND.forEach(function(s){if(!viste[s.data]){viste[s.data]=1;date.push(s.data);}});
@@ -4354,9 +4415,36 @@ function serieModello(){
  _serie=out;_serieKey=key;
  return out;
 }
+/* LA LINEA DICE «COM'ERA», IL NUMERO IN CIMA DICE «ADESSO», e con gli accordi di
+   eccedenza le due possono divergere di un seggio senza che niente sia rotto.
+   serieModello() ricalcola ogni punto con gli accordi noti a QUELLA data — è la lettura
+   giusta per una storia, ed è l'unica cosa nella pagina che dipende da essa — mentre il
+   riquadro della direzione, che è un confronto e non una storia, usa i parametri di
+   adesso. Le due letture sono separate apposta, dal 23 agosto 2026; quello che non può
+   restare implicito è la differenza che il lettore vede fra la fine della linea e la
+   proiezione in testata. Misurato: con l'accordo del 22 agosto acceso, l'ultimo punto è
+   del 20 e vale 51, la proiezione vale 50, e non c'era niente che lo dicesse. */
+function notaSerie(S){
+ var e=$('k-trendnota'); if(!e) return;
+ var cp=coppieRiparto(sopraSoglia(),null);
+ var ult=S[S.length-1], b=blocchi(SEG);
+ var diff=[];
+ [['coalizione','g'],['opposizione','o'],['arabo','a']].forEach(function(z){
+  if(ult[z[1]]!==b[z[0]]) diff.push(BL[z[0]].n+' <b>'+f(ult[z[1]])+'</b> contro <b>'+f(b[z[0]])+'</b>');
+ });
+ /* Solo per gli accordi: una divergenza di altra origine vorrebbe un'altra diagnosi, e
+    una frase che la attribuisse a questi mentirebbe. */
+ if(!cp.length||!diff.length){e.innerHTML='';return;}
+ e.innerHTML='L\'ultimo punto della linea è del <b>'+dl(ult.d)+'</b>, e non comprende '+
+  acc(cp.length,'l\'accordo di eccedenza','gli accordi di eccedenza')+' in vigore: la linea dice '+
+  'che cosa il modello avrebbe detto ogni giorno, con gli accordi noti a quel giorno, e '+
+  acc(cp.length,'questo è stato annunciato','questi sono stati annunciati')+' dopo l\'ultima rilevazione. '+
+  'Da qui la differenza con la proiezione in cima alla pagina: '+diff.join(' · ')+'.';
+}
 function rTrend(){
  var S=serieModello();
  if(S.length<3){$('k-trend').innerHTML='';return;}
+ notaSerie(S);
  var punti=tutti().slice().sort(function(a,b){return a.data<b.data?-1:1;}).map(function(s){
   var b=blocchi(s.pre?armonizza(s):s.seggi);
   return {d:s.data,g:b.coalizione,o:b.opposizione,a:b.arabo,src:s.istituto,test:s.testata};});

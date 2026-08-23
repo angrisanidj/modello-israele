@@ -29,7 +29,7 @@ alle prove.
 
 ```bash
 npm install          # solo la prima volta: installa jsdom per le prove
-npm test             # estrae il JS e lancia le 1307 prove
+npm test             # estrae il JS e lancia le 1348 prove
 npm run verifica     # prove + controlli strutturali
 npm run spazzola     # rilancia il banco con l'orologio al 23 ottobre: dice quali prove
                      #   danno per scontato un archivio fresco. Da rifare dopo ogni
@@ -60,7 +60,7 @@ secondo argomento (aff.js, due su due); e un'asserzione tautologica —
 ## Il banco di misura su browser vero
 
 Le prove girano in jsdom, che **non fa layout**: larghezze, altezze, contrasti resi e
-sovrapposizioni non le vede nessuna delle 1307. Per quelle c'è un server statico da otto
+sovrapposizioni non le vede nessuna delle 1348. Per quelle c'è un server statico da otto
 righe, `.claude/serve.mjs`, dichiarato in `.claude/launch.json` come configurazione
 `misure`. **È sotto controllo di versione apposta: chi apre il progetto domani lo trova
 invece di rimontarlo.** Non è una dipendenza del modello — `index.html` resta un file
@@ -273,6 +273,9 @@ test/
   suite/date.js       le due date, l'orizzonte congelato, la fascia del dopo-voto e il
                       sommario a una riga: rende la pagina con l'orologio fermo e il
                       registro del lavoro notturno finto
+  suite/direzione.js  «a parametri identici»: che ogni leva arrivi a tutti e due i termini
+                      del confronto, che la frase esca dalla proprietà invece di starle
+                      accanto, e che la lettura «com'era» resti in serieModello()
   misura-consegna.mjs misuratore di tavolozza, a mano: node test/misura-consegna.mjs
 dati/
   colore-liste.js     la regola generativa dei colori di lista
@@ -1742,6 +1745,94 @@ E la mutazione ha trovato **un difetto nelle prove stesse**: due asserzioni cerc
 1 seggio» — erano verdi soltanto perché il seme di prova prendeva l'altro ramo. Sono
 ancorate alla maiuscola nessuna delle due, adesso.
 
+## «A parametri identici» era falso per una leva su sei
+
+Trovato misurando, il 23 agosto 2026, mentre si scriveva la struttura dei testi dei quattro
+blocchi. Il riquadro della direzione afferma:
+
+> Questo riquadro confronta due esecuzioni complete del modello **a parametri identici**:
+> isola il movimento della proiezione da quello dei singoli sondaggi.
+
+**Non era vero con la leva degli apparentamenti accesa.** `PREC` girava con
+`dhondt(qp, taglio)`, cioè valutando gli accordi **alla data del taglio**: un accordo
+annunciato il 22 agosto non esisteva il 16, quindi entrava nel termine di oggi e non in
+quello di paragone. Il lettore premeva un pulsante e la pagina gli attribuiva alla
+settimana un movimento che aveva causato lui — **−1 al blocco Netanyahu**, e non l'aveva
+fatto nessun sondaggio.
+
+**Le altre cinque leve non avevano il difetto, e la ragione è strutturale**: swing,
+affluenza, esclusione di istituti, «solo ultimi 7 giorni» e Lista Unita vivono nelle
+variabili che `attiviAl()` e `quoteDa()` leggono, quindi arrivano a tutti e due i termini
+da sé. **Gli accordi sono l'unico parametro ancorato a una DATA invece che allo stato**, ed
+è per questo che sono l'unico a sbagliare. Verificate una per una prima di toccare il
+codice, non dedotte:
+
+| leva | muove la proiezione | muove il termine di paragone |
+|---|---|---|
+| swing +4 · affluenza −20 · escludi Direct · Lista Unita | sì | sì |
+| solo ultimi 7 giorni | no (oggi) | sì |
+| **apparentamenti** | **sì** | **NO** ← |
+
+### Il rimedio, e la lettura che resta
+
+`PREC` usa `null` al posto di `taglio`: **i parametri sono quelli di adesso**. Ed è l'unica
+uscita che rende vera la frase che il riquadro già scrive — le altre due (dichiarare la
+causa, o nascondere il riquadro) lasciavano in piedi un confronto fra cose diverse.
+
+**La lettura «com'era» non sparisce: sta in `serieModello()`**, che passa la data di ogni
+punto, ed è **l'unica cosa nella pagina che dipende da essa**. Le due domande sono diverse
+— «che cosa diceva il modello quel giorno» e «di quanto si è mosso a parità di parametri» —
+e da oggi ciascuna ha la sua chiamata invece di condividerne una sbagliata per una delle
+due. `test/suite/direzione.js` tiene la separazione: un accordo datato in mezzo
+all'archivio non muove **nessun** punto anteriore, e muove quelli successivi.
+
+**Ma le due letture si vedono insieme, e divergevano in silenzio.** Con l'accordo acceso
+l'ultimo punto della linea vale 51 e la proiezione in cima 50: la serie non lo comprende
+perché è stato annunciato **dopo l'ultima rilevazione**, quindi non c'è nessun punto in cui
+possa comparire. È corretto e nessuna parola lo diceva. Adesso c'è `notaSerie()`, che
+scrive la spiegazione **solo quando la differenza esiste davvero e solo se ci sono accordi
+in vigore** — una divergenza di altra origine vorrebbe un'altra diagnosi, e attribuirla
+agli accordi sarebbe una frase falsa scritta con sicurezza.
+
+### La frase esce dalla proprietà, non le sta accanto
+
+`firmaRiparto(cp)` = i parametri del lettore (`firmaPar()`, che era già la chiave della
+cache della serie e adesso è una funzione sola) **più le coppie che sono entrate davvero
+in quel riparto**. `PREC` porta la sua firma; il riquadro scrive «a parametri identici»
+**solo se coincide** con quella del riparto di oggi, e altrimenti dichiara che non
+coincidono. Il ramo alternativo col codice di oggi non si vede mai — ma è quello che rende
+la prima frase un'affermazione invece di una decorazione, e la prova lo esercita
+guastando la firma.
+
+Le coppie stanno nella firma del **riparto** e non in quella dei parametri perché non sono
+una leva sola: la leva governa i soli annunciati, i depositati entrano comunque, e una
+coppia con una lista sotto soglia si scioglie. Due riparti possono ricevere accordi diversi
+**a leve identiche**, e in quel caso la frase deve dirlo.
+
+`test/suite/direzione.js`, 41 asserzioni, **nove mutanti e nove morti**: il ritorno alla
+data del taglio, `dhondt` senza le coppie passate, il Monte Carlo del paragone lasciato
+indietro, la frase scritta senza guardare la proprietà, la firma senza le coppie, la serie
+storica portata ai parametri di adesso, la nota della tendenza spenta, la nota che dà la
+colpa a un accordo che non c'è, e la chiave della cache senza gli accordi.
+
+### E due difetti del banco, trovati dalle prove di questa riparazione
+
+**La cache della serie non conosceva gli accordi.** `serieModello()` si ricalcola quando la
+chiave cambia, e la chiave era archivio più parametri del lettore: un accordo **depositato**
+— che entra senza toccare nessuna leva — lasciava servita la serie di prima. In pagina non
+si vede, perché la tabella cambia solo quando si modifica il file; è una cache che
+rispondeva giusto per una ragione che non è la sua, e l'ha trovata una prova che aggiungeva
+un accordo a mano.
+
+**Una suite che muore A METÀ contava verde**, ed è il buco rimasto aperto dopo v5.js. Il
+banco dichiara fallita una suite con **zero** asserzioni; con qualche OK già stampato e
+nessun KO, invece, il conteggio non aveva niente da dire. È successo il 23 agosto: la suite
+nuova moriva al 23 ottobre — `PREC` è `null` quando la finestra dei sette giorni si svuota —
+e `npm run spazzola` rispondeva **«tutte in piedi»**, cioè taceva proprio nel caso che
+esiste per trovare. Adesso `esegui.mjs` e `spazzola.mjs` guardano anche il codice d'uscita:
+morire dopo N asserzioni è una caduta come le altre. E `direzione.js` ribasa l'archivio con
+`frescura.js`, che è il rimedio già scritto per le sei suite del punto 13.
+
 ## Il messaggio dell'aggiornamento: due difetti che nessuna prova poteva vedere
 
 Trovati a occhio, riparati il 23 agosto 2026. Stavano nel messaggio del pulsante «Aggiorna
@@ -2078,7 +2169,7 @@ Due conseguenze pratiche, e sono quelle da ricordare:
 ### Lo stato al 23 agosto 2026, sera
 
 Scritto per ripartire senza la conversazione. Ultimo commit spinto: **`55b0b87`**, CI e
-Pages verdi. Sul banco di oggi le prove sono **1307**.
+Pages verdi. Sul banco di oggi le prove sono **1348**.
 
 **Quello che è entrato il 23 agosto**, dopo gli apparentamenti: il **termine del 16
 ottobre** — che non è l'8 settembre, e la nota diceva il contrario — con la sua riga di
@@ -2177,14 +2268,12 @@ Erano il punto 1 della coda e bloccavano il resto. La storia sta in
   `PREC.data` sono due campi distinti); negli **istogrammi** «quanti seggi mancano» si dice
   da `61 − q(MC.coal, .50)`, la mediana, **non** da `blocchi(SEG)`.
 
-  **E una decisione che tocca all'autore, prima delle parole**: con la leva degli
-  apparentamenti accesa il riquadro della direzione attribuisce ai sondaggi un movimento
-  che ha causato il lettore. `PREC` si costruisce con `dhondt(qp, taglio)`, cioè alla data
-  del taglio, e un accordo annunciato dopo quel giorno non entra nel termine di paragone:
-  misurato oggi, a leva accesa il riquadro scrive **−1 al blocco Netanyahu** e non l'ha
-  fatto nessun sondaggio. È corretto per la serie storica ed è falso come confronto, perché
-  le due esecuzioni non sono più «a parametri identici», che è quello che il riquadro
-  afferma di fare. Le tre uscite possibili sono nel §1 di quel file.
+  **La cosa che veniva prima dei testi è chiusa**: il riquadro della direzione confrontava
+  due esecuzioni con parametri diversi appena la leva degli apparentamenti era accesa, e
+  adesso `PREC` gira con i parametri di adesso. Vedi «A parametri identici era falso per
+  una leva su sei» qui sopra. Quello che resta per chi scrive: a leva accesa il riquadro
+  dice **−1 al blocco Netanyahu e +1 all'opposizione**, ed è vero — la settimana ha
+  spostato il seggio dell'accordo da un blocco all'altro.
 
 #### Le due correzioni hanno dato un risultato diverso da quello che si chiedeva
 
@@ -2485,7 +2574,7 @@ la regola della consegna 6».
 trovati oggi — la stella della bandiera che sconfinava nelle bande, l'occhiello a filo del
 bordo sull'ombra, il vuoto di 372px sotto le ipotesi, l'evidenziazione che competeva con
 la codifica del riempimento, il verde arabo che si leggeva nero — sono stati trovati
-**guardando la pagina**, non dalla suite. Le 1307 prove dicono che il modello non si è
+**guardando la pagina**, non dalla suite. Le 1348 prove dicono che il modello non si è
 rotto; non dicono che la pagina si veda. Dopo ogni push, aprire
 <https://angrisanidj.github.io/modello-israele/> e guardarla nei due temi.
 
@@ -2496,7 +2585,7 @@ rotto; non dicono che la pagina si veda. Dopo ogni push, aprire
 Scritta il 22 agosto 2026 per una passata sola, sezione per sezione. Serve a distinguere
 **quello che qualcuno ha già guardato reso** da **quello che nessuno ha mai visto**: in due
 giorni sono entrate parecchie cose che le prove dichiarano sane e che nessun occhio ha
-ancora confermato. Le 1307 prove dicono che il modello non si è rotto; non dicono che la
+ancora confermato. Le 1348 prove dicono che il modello non si è rotto; non dicono che la
 pagina si veda.
 
 Si guarda su <https://angrisanidj.github.io/modello-israele/>, **nei due temi forzati dal
