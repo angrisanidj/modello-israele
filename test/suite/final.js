@@ -11,8 +11,17 @@ global.Blob=function(){};global.URL={createObjectURL(){return''}};global.FileRea
 global.fetch=(u)=>/wikipedia/.test(u)?Promise.resolve({ok:true,text:()=>Promise.resolve(require('../../dati/fixture.js'))})
  :Promise.resolve({json:()=>Promise.resolve({content:[{type:'text',text:'{"sondaggi":[]}'}]})});
 let src=require('fs').readFileSync(__dirname+'/../app.js','utf8');
-src=src.replace('carica().then(render,render)','global.A={S:()=>({SOND,SEG,MC,L,EVENTI,COALS,SOGLIE,blocchi}),render:render,sim:v=>{SIM=v}};carica().then(render,render)');
+src=src.replace('carica().then(render,render)','global.A={S:()=>({SOND,SEG,MC,L,EVENTI,COALS,SOGLIE,blocchi}),render:render,sim:v=>{SIM=v},SOND:function(){return SOND;},setSOND:function(v){SOND=v;},EVENTI:function(){return EVENTI;}};carica().then(render,render)');
 eval(src);
+/* L'ARCHIVIO SI RIPORTA A OGGI PRIMA DI PROVARE. Questa suite legge la tabella
+   dell'analisi (o la proiezione di confronto), che vivono in una finestra di sette giorni
+   ancorata a OGGI: con l'archivio del repository letto fra un mese la finestra è vuota, la
+   tabella lo dichiara — giustamente — e la suite cade su un difetto che non c'è. Ribasare
+   sposta tutte le date della stessa quantità e non cambia niente di relativo: rende
+   esplicita l'assunzione «archivio fresco» invece di lasciarla silenziosa.
+   Vedi test/frescura.js e npm run spazzola. */
+require('../frescura.js')(global.A);
+
 global.A.sim(20000);
 const t=Date.now(); global.A.render(); const ms=Date.now()-t;
 const {SOND,SEG,MC,L,EVENTI,blocchi}=global.A.S();
@@ -33,7 +42,13 @@ store['k-calend'].innerHTML.split('</div></div>').filter(x=>x.trim()).forEach(x=
 console.log("\n── controlli ──");
 const checks={
  "sticky popolata": txt(store['k-sprobs'].innerHTML).length>5,
- "countdown sticky": /giorni/.test(store['k-scd'].textContent),
+ /* Era /giorni/, che dopo il 27 ottobre è falso e a ragione: la fascia dice «voto
+    concluso». L'attesa giusta non è la parola ma la coppia — o il conto alla rovescia, o
+    la dichiarazione che è finito — e non c'è un terzo caso in cui la riga possa restare
+    muta. Trovato con npm run spazzola al 20 novembre. */
+ "la fascia dice o quanto manca o che si è votato":
+   /^\d+ giorni al voto$/.test(store['k-scd'].textContent.trim()) ||
+   /^voto concluso$/.test(store['k-scd'].textContent.trim()),
 /* Le due date sono due grandezze diverse: k-upd è l'ultima VERIFICA riuscita, letta da
     dati/stato-job.json, k-fresh l'ultimo SONDAGGIO. Qui il fetch è respinto, quindi il
     registro non c'è e la testata deve DIRLO invece di ripiegare sulla data del sondaggio:

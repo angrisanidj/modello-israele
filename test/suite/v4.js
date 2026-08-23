@@ -13,8 +13,17 @@ global.getComputedStyle=()=>({getPropertyValue:()=>''});
 global.Blob=function(){};global.URL={createObjectURL(){return''}};global.FileReader=function(){};
 global.fetch=()=>Promise.reject(0);
 let src=require('fs').readFileSync(__dirname+'/../app.js','utf8');
-src=src.replace('carica().then(render,render)','global.A={render:render,S:()=>({SOND,SEG,MC,L,PREC,ESCL,blocchi,istituti}),sim:v=>{SIM=v},escl:o=>{Object.keys(ESCL).forEach(k=>delete ESCL[k]);Object.assign(ESCL,o);}};carica().then(render,render)');
+src=src.replace('carica().then(render,render)','global.A={render:render,SOND:function(){return SOND;},setSOND:function(v){SOND=v;},EVENTI:function(){return EVENTI;},S:()=>({SOND,SEG,MC,L,PREC,ESCL,blocchi,istituti}),sim:v=>{SIM=v},escl:o=>{Object.keys(ESCL).forEach(k=>delete ESCL[k]);Object.assign(ESCL,o);}};carica().then(render,render)');
 eval(src);
+/* L'ARCHIVIO SI RIPORTA A OGGI PRIMA DI PROVARE. Questa suite legge la tabella
+   dell'analisi (o la proiezione di confronto), che vivono in una finestra di sette giorni
+   ancorata a OGGI: con l'archivio del repository letto fra un mese la finestra è vuota, la
+   tabella lo dichiara — giustamente — e la suite cade su un difetto che non c'è. Ribasare
+   sposta tutte le date della stessa quantità e non cambia niente di relativo: rende
+   esplicita l'assunzione «archivio fresco» invece di lasciarla silenziosa.
+   Vedi test/frescura.js e npm run spazzola. */
+require('../frescura.js')(global.A);
+
 const A=global.A;A.sim(20000);
 const $=i=>D.getElementById(i);
 const tx=s=>String(s||'').replace(/<[^>]+>/g,' ').replace(/\s+/g,' ').trim();

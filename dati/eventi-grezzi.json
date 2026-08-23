@@ -98,6 +98,13 @@
   "stato": "tradotto"
  },
  {
+  "chiave": "2026-08-09|ta-al-withdraws-from-joint-list-negotiations-after-being-given-the-fewes",
+  "data": "2026-08-09",
+  "testo": "Ta'al withdraws from Joint List negotiations after being given the fewest seats on the proposed list",
+  "visto": "2026-08-22",
+  "stato": "scartato"
+ },
+ {
   "chiave": "2026-08-17|likud-conducts-a-primary-to-select-candidates-for-the-election",
   "data": "2026-08-17",
   "testo": "Likud conducts a primary to select candidates for the election",
@@ -112,10 +119,10 @@
   "stato": "tradotto"
  },
  {
-  "chiave": "2026-08-09|ta-al-withdraws-from-joint-list-negotiations-after-being-given-the-fewes",
-  "data": "2026-08-09",
-  "testo": "Ta'al withdraws from Joint List negotiations after being given the fewest seats on the proposed list",
-  "visto": "2026-08-22",
-  "stato": "nuovo"
+  "chiave": "2026-08-22|ra-am-conducts-a-primary-to-select-candidates-for-the-election",
+  "data": "2026-08-22",
+  "testo": "Ra'am conducts a primary to select candidates for the election",
+  "visto": "2026-08-23",
+  "stato": "tradotto"
  }
 ]

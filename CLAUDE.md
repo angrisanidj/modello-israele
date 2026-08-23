@@ -1907,12 +1907,21 @@ Erano il punto 1 della coda e bloccavano il resto. La storia sta in
   Costo della frequenza esatta: zero. `res.coal` e `res.oppz` sono già ordinati, quindi è
   una doppia bisezione, 0,036 ms per chiamata su 20.000 elementi. **Non aggiungere un
   istogramma nel ciclo**: sarebbe una seconda strada per lo stesso numero.
-- **La firma**: `Daniele Angrisani · Modello previsionale Knesset 2026 · Focus America ·
-  focusamerica.it`, con «Focus America» e l'indirizzo collegati a
-  `https://www.focusamerica.it/`. Sostituisce la variante `@putino` che stava qui, e
-  cambia anche il testo che accompagna l'embed: non è più un lavoro personale senza
-  testata. Contrasti misurati sulla pagina resa: testo **4,93** in chiaro e **5,54** in
-  scuro, collegamenti **8,75** e **6,45**.
+- **La firma**: `Daniele Angrisani · Modello previsionale Knesset 2026 · @putino`, con
+  `@putino` su `https://x.com/putino`, **senza FocusAmerica — è un modello personale**.
+  Il 22 agosto era passata alla variante con la testata e il 23 è tornata a questa: la
+  forma buona è questa, e la ragione non è grafica.
+  **Per l'embed**: chi incorpora incorpora un lavoro firmato da una persona, non un
+  prodotto della testata, e il testo che accompagnerà il frammento da copiare va scritto
+  di conseguenza — è la differenza fra «il modello di FocusAmerica» e «il modello di
+  Daniele Angrisani», e la seconda è quella vera.
+  Contrasti misurati sulla pagina resa: testo **4,93** in chiaro e **5,54** in scuro,
+  collegamento **8,75** e **6,45**.
+  Il controllo strutturale adesso **elenca i collegamenti esterni del markup**, non solo
+  quelli generati dal JavaScript: la riga diceva «nessuno» mentre in pagina ce n'erano
+  due. Non era un falso verde — nessuna asserzione era violata — ma era una riga che si
+  legge come un inventario e non lo era. La lista bianca delle CHIAMATE DI RETE resta
+  Wikipedia e basta: un href non carica niente e non entra lì.
 - **Il sommario è a una riga sotto i 660**, ed è la partita delle due date sciolta: vedi
   «Le due date» qui sotto.
 - **Restano senza prosa**: verdetto, pastiglie, istogrammi, simulatore. Nel **verdetto** la
@@ -2446,62 +2455,109 @@ nuova, e la prova va **mutata**, o non si sa se coglierebbe il difetto una secon
 
 ---
 
-## Le sei suite che scadono con la finestra vuota
+## Le sei suite che scadevano con la finestra vuota — CHIUSE
 
-Trovato il 23 agosto 2026 cercando le fixture stagionali, e non è quello che si cercava.
-Il conteggio delle date letterali nelle prove dà dieci file; spazzolando l'orologio dal
-23 agosto al 1º febbraio **nessuna di quelle dieci cade**. Cadono sei suite che di date
-letterali non ne hanno nessuna:
+Trovate il 23 agosto 2026 cercando le fixture stagionali, e non erano quello che si
+cercava. Il conteggio delle date letterali nelle prove dà dieci file: spazzolando
+l'orologio **nessuno di quei dieci cade**. Cadevano sei suite che di date letterali non
+ne hanno nessuna — `colonne`, `crono`, `graf`, `v4`, e `final` e `verifica` che
+sollevavano alla prima riga con **zero asserzioni**.
 
-| suite | che cosa dice |
+**Una causa sola, e l'aveva creata la riparazione del giorno prima.** Da quando
+`finestra()` si ancora a oggi invece che all'ultimo sondaggio, la finestra dei sette
+giorni **può essere vuota**: la tabella dell'analisi si svuota — dichiarandolo, ed è
+giusto così — e `PREC` non esiste, perché il taglio a sette giorni non lascia fuori
+niente. Le sei leggevano righe che non c'erano più.
+
+**E non era un problema di ottobre.** Bastano sette giorni senza una rilevazione nuova: il
+silenzio demoscopico del 23 ottobre — quattro giorni prima del voto — o il primo giorno in
+cui il lavoro notturno si ferma. E il cancello del job è proprio `npm run verifica`, che
+gira *prima* del commit: il job si sarebbe fermato da solo nella settimana in cui la
+pagina conta di più, senza che niente fosse rotto.
+
+### Come sono state chiuse, e il difetto vero che c'era sotto
+
+**Un difetto della PAGINA, non delle prove.** `final.js` e `verifica.js` non cadevano:
+sollevavano leggendo `k-deck`, il sommario di testata, che non era mai stato scritto. Il
+sommario stava **dentro `rAnalisi()`**, dopo il ramo di uscita: a finestra vuota la
+funzione usciva prima, e la testata restava senza sommario. Parla della proiezione — i
+seggi dei due blocchi, quante rilevazioni, quante simulazioni — che ha una finestra di
+sessanta giorni, non di sette. Adesso è `rSommario()`, chiamato dal render.
+
+**Le prove: si ribasa l'archivio, non si scrive una fixture.** `test/frescura.js` sposta
+tutte le date della stessa quantità — rilevazioni **e** cronologia — così che la più
+recente cada oggi. Niente di relativo cambia: distanze, pesi per recenza, grappolo di
+istituto, era pre-fusione restano identici, e cambia solo il rapporto con oggi, che è
+l'assunzione che quelle suite facevano in silenzio. Una fixture sintetica avrebbe
+cambiato quello che provano — la forma delle colonne, il testo della cronologia, il
+grafico — mentre `mediana.js` la fixture ce l'ha di diritto, perché prova il meccanismo
+della mediana e non un archivio.
+
+**Due attese sono cambiate perché erano scritte su date assolute**, e in tutti e due i
+casi la proprietà giusta era un'altra e non invecchia:
+
+| era | è |
 |---|---|
-| `colonne.js` | «la tabella dell'analisi è resa» — riga assente, poi solleva su `children` |
-| `crono.js` | «la voce di cronologia arriva in *L'analisi* invariata» |
-| `graf.js` | «affiliazione nei movers» |
-| `final.js` | solleva alla prima riga, **zero asserzioni** |
-| `verifica.js` | idem |
-| `v4.js` | «pannello direzione popolato», «PREC calcolato», «PREC usa meno rilevazioni di oggi» |
+| «la serie parte da gennaio» | «la serie copre anche l'era pre-fusione»: il confronto è fra due date d'archivio |
+| «countdown sticky» cerca la parola *giorni* | «o quanto manca, o che si è votato»: dopo il 27 ottobre la fascia dice «voto concluso», e ha ragione |
 
-**Una causa sola, e l'ha creata la riparazione del 22 agosto.** Da quando `finestra()` si
-ancora a oggi invece che all'ultimo sondaggio, la finestra dei sette giorni **può essere
-vuota**: la tabella dell'analisi si svuota — dichiarandolo, ed è giusto così — e `PREC`
-non esiste, perché il taglio a sette giorni non lascia fuori niente. Le sei suite leggono
-righe che non ci sono più.
+**Lo strumento resta, e adesso gira da solo**: `npm run spazzola` rilancia tutto il banco
+con l'orologio al 23 ottobre e dice che cosa cade. Va rifatto a mano dopo ogni modifica a
+un'àncora temporale, e dal 23 agosto 2026 **sta nel lavoro notturno**, dopo il push: i
+quattro minuti che costa non si notano in un job che gira una volta al giorno, ed è
+l'unico posto che se ne accorge PRIMA del giorno in cui scatta.
 
-**E non è un problema di ottobre.** Bastano sette giorni senza una rilevazione nuova:
-durante il silenzio demoscopico del 23 ottobre, o il primo giorno in cui il lavoro
-notturno si ferma. Da lì `npm run verifica` diventa rosso su qualunque push, e il rosso
-non è un difetto del modello ma una prova che dava per scontato un archivio fresco.
+**Non ferma il commit dell'archivio, e sta dopo il push apposta.** Una prova che cadrà fra
+due mesi non è una ragione per non pubblicare i sondaggi di stanotte: il passo cattura
+l'esito invece di propagarlo, e quando cade **apre una issue** come per le colonne di
+lista non riconosciute — titolo fisso, così non se ne accumula una per notte.
 
-**Il rimedio proposto, non ancora applicato**, e sono due mosse diverse per due famiglie:
+## Il tetto sta sul gzip, e prima contava la cosa sbagliata
 
-- le quattro suite che parlano **della tabella dell'analisi** — `colonne`, `crono`,
-  `graf`, e le due che vi si appoggiano — devono **portarsi la fixture**, con le date da
-  `giorniFa(k)` come `mediana.js`: sono prove su come la tabella è fatta, non su quanti
-  sondaggi ci siano oggi, e non hanno ragione di dipendere dall'archivio vero;
-- `v4.js` parla di `PREC`, che per esistere ha bisogno di due proiezioni distinte: lì la
-  forma giusta è quella di `giorni.js`, cioè **dichiarare il ramo** — se `PREC` non c'è,
-  si asserisce *perché* non c'è, così il conteggio non cala in silenzio.
+Cambiato il 23 agosto 2026, il giorno in cui il vecchio tetto è stato sfondato **mentre il
+file compresso era a un terzo di esso**.
 
-Vale la pena farlo **prima** del 23 ottobre, non dopo: quel giorno il silenzio demoscopico
-comincia e la finestra si svuota da sola.
+`struttura.mjs` diceva `html.length < 400*1024`, cioè contava i CARATTERI. Contava male
+per due ragioni, e la seconda è quella che importa:
 
----
+- un carattere non è un byte: con gli accenti e i trattini tipografici di questo file 400
+  KB di caratteri sono **403 KB su disco**, e i due numeri divergono man mano che la prosa
+  cresce;
+- soprattutto, **nessuno scarica i caratteri**. Pages serve gzip, e il file che il lettore
+  riceve pesa **132 KB** contro i 400 del conteggio. Il tetto aveva un margine del 200%
+  rispetto alla grandezza che l'invariante voleva proteggere — «deve poter essere salvato,
+  aperto con un doppio clic, incorporato altrove» — e nel frattempo **fermava il lavoro
+  notturno**, perché `npm run verifica` è il suo cancello.
 
-## Il file è a 398 KB su un tetto di 400
+### Il numero, ricavato
 
-Misurato il 23 agosto 2026, dopo gli apparentamenti. `test/struttura.mjs` fa cadere la
-verifica sopra i **400 KB**, e ne restano **due**. Il tetto non è arbitrario: `index.html`
-è un file autonomo che deve poter essere salvato, riaperto con un doppio clic e
-incorporato altrove, e ottanta per cento del peso è `BASE`, il seme dell'archivio.
+| | |
+|---|---|
+| il file compresso adesso | **131,7 KB** (livello 9) · 132,1 al livello predefinito |
+| **+ l'archivio da qui al voto** | **6,1 KB** — 91 byte di gzip per rilevazione, misurati a parità di formattazione, per le 61 che a 0,94 al giorno separano oggi dal 27 ottobre, più le 8 dell'allineamento pendente di `BASE` |
+| **+ quello che resta da scrivere** | **30 KB** — embed, esportazione PNG, meta Open Graph, i 44px dei bersagli, il campo `esito`: cinque interventi alla mediana misurata di 2,9 KB di gzip per commit, arrotondata per eccesso a 6 |
+| **+ un commit grosso di riserva** | **10,4 KB**, il più pesante degli ultimi otto |
+| | **= 178,6 → tetto a 179 KB**, arrotondato al KB superiore |
 
-Le tre strade, in ordine di quanto costano a chi legge:
+La crescita misurata per commit, in gzip, sugli ultimi otto: 0,2 · 1,3 · 1,8 · 6,0 · 6,0 ·
+10,4 · 4,0 · 0,7 KB. Il numero non è tondo perché non è stato scelto: è la somma di quattro
+addendi che si possono rifare, ed è scritta nel commento accanto alla regola.
 
-1. **Alzare il tetto**, che è la cosa da non fare senza dire perché: il numero esiste per
-   ricordare che ogni KB viaggia con la pagina.
-2. **Potare `BASE`.** Il seme serve a chi apre il file da disco, dove `dati/archivio.json`
-   non si carica; ma non gli serve tutto l'archivio da gennaio — le rilevazioni
-   pre-fusione entrano solo nel banco di prova e nella serie storica, che da disco è
-   comunque parziale. Va misurato che cosa si perde prima di tagliare.
-3. **Accorciare i commenti**, che è l'ultima: sono la ragione per cui questo file si può
-   ancora modificare senza rileggerlo tutto.
+**Il controllo stampa tutti e due i numeri** — gzip e caratteri — così il secondo resta
+visibile senza essere il cancello.
+
+### La potatura di BASE resta disponibile, e non è stata fatta
+
+Se un giorno il tetto del gzip venisse toccato, la strada da guardare **prima** di alzarlo
+di nuovo è togliere da `BASE` le **60 rilevazioni pre-fusione** di gennaio-aprile: valgono
+**16,3 KB di caratteri**, e si perdono **solo in modalità di ripiego** — chi apre la pagina
+da Pages carica `dati/archivio.json`, che le ha tutte.
+
+**Non è stata fatta, e la ragione è un prezzo vero**: chi apre `index.html` con un doppio
+clic vedrebbe la serie storica cominciare a maggio e la tendenza perdere quattro mesi. Col
+tetto sul gzip quel prezzo non serve pagarlo. Resta annotata qui perché il giorno in cui
+servisse, la misura c'è già.
+
+La terza strada — accorciare i commenti, 144,6 KB in 389 blocchi, il 35% del file — resta
+l'ultima, e non per sentimentalismo: sono la memoria delle trappole già pagate, e questo
+file ne ha pagate parecchie due volte.

@@ -11,6 +11,11 @@
 # Quando la guardia chiede una decisione umana (colonne di lista non riconosciute,
 # configurazioni senza contenitore) viene aperta una issue con l'elenco di cosa mappare:
 # è il segnale atteso per l'8 settembre, al deposito delle liste.
+#
+# Dopo il push c'è la spazzolata: il banco rilanciato con l'orologio al 23 ottobre, per
+# sapere quali prove scadranno prima che scadano. Non ferma niente — apre una issue e basta
+# — perché una prova che cadrà fra due mesi non è una ragione per non pubblicare i sondaggi
+# di stanotte.
 name: Aggiorna archivio
 on:
   schedule:
@@ -51,6 +56,52 @@ jobs:
             exit 1
           fi
           git push origin main
+      # LA SPAZZOLATA NON FERMA L'ARCHIVIO, ed è il motivo per cui sta DOPO il push.
+      # npm run spazzola rilancia tutto il banco con l'orologio al 23 ottobre — il silenzio
+      # demoscopico, il primo giorno in cui la finestra dei sette giorni si svuota da sola —
+      # e dice quali prove danno per scontato un archivio fresco. Costa quattro minuti, che
+      # in un job che gira una volta al giorno non si notano, ed è l'unico posto che se ne
+      # accorgerebbe PRIMA del giorno in cui scatta.
+      # Ma una prova che scadrà fra due mesi non è una ragione per smettere di pubblicare i
+      # sondaggi di stanotte: il passo cattura l'esito invece di propagarlo, e quando cade
+      # apre una issue come per le colonne di lista non riconosciute.
+      - name: Spazzolata nel futuro
+        id: spazzola
+        run: |
+          if npm run spazzola > spazzola.txt 2>&1; then
+            echo "nessuna prova scade con l'orologio avanti"
+          else
+            echo "caduta=1" >> "$GITHUB_OUTPUT"
+          fi
+          cat spazzola.txt
+      - name: Issue per la spazzolata
+        if: steps.spazzola.outputs.caduta == '1'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          TITOLO="Prove che scadono con l'orologio portato avanti"
+          if gh issue list --state open --json title --jq '.[].title' | grep -qxF "$TITOLO"; then
+            echo "issue già aperta: non ne creo una seconda"
+            exit 0
+          fi
+          {
+            echo "La spazzolata notturna ha trovato prove che cadono con l'orologio spostato avanti."
+            echo "**L'archivio è stato aggiornato lo stesso**: questo non è un guasto di oggi, è una"
+            echo "prova che dà per scontato un archivio fresco e che cadrà da sola il giorno in cui"
+            echo "l'archivio smette di esserlo — il 23 ottobre col silenzio demoscopico, o il primo"
+            echo "giorno in cui questo job si ferma."
+            echo
+            echo "Da lì in poi \`npm run verifica\` è rosso su ogni push, e questo job ha il suo"
+            echo "cancello proprio lì: smetterebbe di pubblicare i sondaggi."
+            echo
+            echo "Come si riproduce: \`npm run spazzola\`. Il rimedio sta in CLAUDE.md, «Le sei suite"
+            echo "che scadevano con la finestra vuota»."
+            echo
+            echo '```'
+            sed -n '/OROLOGIO/,$p' spazzola.txt
+            echo '```'
+          } > corpo-spazzola.md
+          gh issue create --title "$TITOLO" --body-file corpo-spazzola.md
       - name: Issue per la guardia
         if: failure()
         env:

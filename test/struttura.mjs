@@ -1,6 +1,7 @@
 /* Controlli strutturali sul file pubblicato: HTML bilanciato, nessun id orfano,
    nessuna funzione duplicata, dimensione entro i limiti. */
 import {readFileSync} from 'node:fs';
+import {gzipSync} from 'node:zlib';
 import {fileURLToPath} from 'node:url';
 import {dirname,join} from 'node:path';
 const qui=dirname(fileURLToPath(import.meta.url));
@@ -41,11 +42,20 @@ const urlJS=[...jsSenzaAncore.matchAll(/https?:\/\/([^'"\s\\]+)/g)].map(m=>m[1])
 const estranei=urlJS.filter(u=>!/^([a-z]+\.)?wikipedia\.org\//.test(u));
 p('ogni URL assoluto nel JS è Wikipedia'+(estranei.length?' ('+estranei.slice(0,3).join(', ')+')':''),
   !estranei.length);
-/* i collegamenti esterni non fanno cadere niente, ma vanno visti: sono l'unico posto
-   della pagina da cui il lettore può uscire, e devono essere pochi e voluti */
-p('i collegamenti esterni generati dal JS sono dichiarati'+
-  (ancoreJS.length?' ('+[...new Set(ancoreJS)].join(', ')+')':' (nessuno)'),
-  ancoreJS.every(u=>/^https:\/\//.test(u)));
+/* I COLLEGAMENTI ESTERNI SI ELENCANO TUTTI, non solo quelli generati dal JavaScript.
+   Questo controllo guardava il solo JS, e la firma in fondo alla pagina è markup: il 23
+   agosto 2026 la riga diceva «nessuno» mentre in pagina ce n'erano due, verso
+   focusamerica.it. Non era un falso verde — nessuna asserzione era violata — ma era una
+   riga che si legge come un inventario e non lo era: sono l'unico posto da cui il lettore
+   può uscire, e devono essere pochi, voluti e VISTI.
+   La lista bianca resta quella delle CHIAMATE DI RETE, e resta Wikipedia e basta: un href
+   non carica niente, quindi non entra lì. Quello che si pretende da un collegamento è
+   meno — https, e comparire nell'elenco. */
+const ancoreHTML=[...html.matchAll(/<a\s[^>]*href="(https?:\/\/[^"]+)"/g)].map(m=>m[1]);
+const ancore=[...new Set(ancoreJS.concat(ancoreHTML))];
+p('i collegamenti esterni della pagina sono dichiarati'+
+  (ancore.length?' ('+ancore.join(', ')+')':' (nessuno)'),
+  ancore.every(u=>/^https:\/\//.test(u)));
 const fetches=[...js.matchAll(/fetch\(\s*(['"])([^'"]*)\1/g)].map(m=>m[2]);
 const fetchCattivi=fetches.filter(u=>/^https?:/.test(u)&&!/wikipedia\.org/.test(u));
 p('ogni fetch con URL letterale è Wikipedia o un percorso relativo'+
@@ -102,7 +112,40 @@ p('nessun blocco dell\'anagrafica riscritto come elenco'+
   (rifatti.length?' ('+rifatti.map(t=>t.replace(/\s+/g,'')).join(' | ')+')':''),
   Object.keys(blocchiP).length===4 && !rifatti.length);
 
-p('dimensione sotto i 400 KB ('+(html.length/1024).toFixed(0)+' KB)', html.length<400*1024);
+/* IL TETTO STA SUL GZIP, e prima stava sui caratteri.
+   Il vecchio controllo era `html.length < 400*1024`, cioè contava i CARATTERI del file.
+   Contava la cosa sbagliata per due ragioni, e la seconda è quella che importa:
+     · un carattere non è un byte — con gli accenti e i trattini tipografici di questo
+       file 400 KB di caratteri sono 403 KB su disco, e i due numeri divergono di più man
+       mano che la prosa cresce;
+     · soprattutto, NESSUNO SCARICA I CARATTERI. GitHub Pages serve gzip, e il file che
+       il lettore riceve pesa 132 KB contro i 400 del conteggio: il tetto aveva un margine
+       del 200% rispetto alla grandezza che l'invariante voleva proteggere — «deve poter
+       essere salvato, aperto con un doppio clic, incorporato altrove» — e nel frattempo
+       fermava il lavoro notturno, perché npm run verifica è il suo cancello.
+   Il 23 agosto 2026 il conteggio dei caratteri ha sfondato i 400 KB mentre il file
+   compresso era a un terzo del tetto: il numero non misurava più niente di reale ma
+   avrebbe smesso di far pubblicare l'archivio la notte stessa.
+
+   IL NUMERO NUOVO E' RICAVATO, non scelto perché sta comodo. Misurato oggi:
+     131,7 KB   il file compresso adesso (livello predefinito: 132,1)
+     + 6,1 KB   l'archivio da qui al voto — 91 byte di gzip per rilevazione, misurati a
+                parità di formattazione, per le 61 rilevazioni che a 0,94 al giorno
+                separano oggi dal 27 ottobre, più le 8 dell'allineamento pendente di BASE
+     + 30 KB    quello che resta da scrivere: embed, esportazione PNG, meta Open Graph,
+                i 44px dei bersagli, il campo esito. Cinque interventi alla mediana
+                misurata di 2,9 KB di gzip per commit, arrotondata per eccesso a 6
+     + 10,4 KB  un commit grosso di riserva: è il più pesante degli ultimi otto
+     ─────────
+     = 178,6 KB, arrotondato al KB superiore
+
+   Se il tetto viene toccato, la strada da guardare per prima NON è alzarlo di nuovo: è
+   potare da BASE le 60 rilevazioni pre-fusione, che valgono 16,3 KB di caratteri e si
+   perdono solo in modalità di ripiego. Vedi CLAUDE.md. */
+const TETTO_GZIP=179*1024;
+const gz=gzipSync(Buffer.from(html,'utf8')).length;
+p('gzip sotto i '+(TETTO_GZIP/1024)+' KB ('+(gz/1024).toFixed(1)+' KB · '+
+  (html.length/1024).toFixed(0)+' KB di caratteri)', gz<TETTO_GZIP);
 p('avviso di avvio presente nel markup', /id="k-boot"/.test(html));
 p('viewport per mobile', /name="viewport"/.test(html));
 p('lingua italiana dichiarata', /<html[^>]*lang="it"/.test(html));

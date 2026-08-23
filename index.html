@@ -1520,12 +1520,14 @@
 </details>
 
 <!-- La firma. È testo statico: non dipende da nessun dato e non cambia a ogni render.
-     I due collegamenti puntano allo stesso sito, come chiesto; rel="noopener" perché
-     target="_blank" senza è un difetto noto, e nessuno dei due carica niente — la
-     regola del file autonomo riguarda le RISORSE, non i collegamenti. -->
+     UN MODELLO PERSONALE, NON UN PRODOTTO DELLA TESTATA, ed è la ragione per cui qui non
+     compare FocusAmerica: chi incorpora questa pagina incorpora un lavoro firmato da una
+     persona, e il testo che accompagna il frammento da copiare va scritto di conseguenza.
+     rel="noopener" perché target="_blank" senza è un difetto noto; l'href di un'ancora
+     non carica niente, e la regola del file autonomo riguarda le RISORSE, non i
+     collegamenti — il controllo strutturale li elenca a parte proprio per questo. -->
 <p class="firma">Daniele Angrisani · Modello previsionale Knesset 2026 ·
- <a href="https://www.focusamerica.it/" target="_blank" rel="noopener">Focus America</a> ·
- <a href="https://www.focusamerica.it/" target="_blank" rel="noopener">focusamerica.it</a></p>
+ <a href="https://x.com/putino" target="_blank" rel="noopener">@putino</a></p>
 </div>
 
 <script>
@@ -1672,7 +1674,8 @@ var EVENTI=[
  {data:"2026-07-20",testo:"Primarie dei Democratici"},
  {data:"2026-08-06",testo:"Erdan ed Edelstein fondano il partito Unity"},
  {data:"2026-08-17",testo:"Primarie del Likud"},
- {data:"2026-08-19",testo:"Hadash, Ta'al e Balad firmano l'accordo per la Lista Unita; Ra'am corre da sola"}
+ {data:"2026-08-19",testo:"Hadash, Ta'al e Balad firmano l'accordo per la Lista Unita; Ra'am corre da sola"},
+ {data:"2026-08-22",testo:"Ra'am sceglie i propri candidati per le elezioni"}
 ];
 /* LE DUE SOGLIE DELLA DIVERGENZA FRA LE DATE.
    Non sono ricavabili dai dati: dipendono da come è impostato il lavoro notturno, che
@@ -3343,7 +3346,17 @@ function rAnalisi(){
  testo+='La mediana è calcolata su '+f(M.n0)+' '+acc(M.n0,'rilevazione','rilevazioni')+
    (M.da?' pubblicat'+acc(M.n0,'a','e')+' fra il '+dl(M.da)+' e il '+dl(M.a):'')+'.';
  $('k-analisi').innerHTML=testo;
- /* sommario in testata */
+}
+/* IL SOMMARIO DI TESTATA NON APPARTIENE ALL'ANALISI, e stava dentro rAnalisi().
+   Parla della PROIEZIONE — i seggi dei due blocchi, quante rilevazioni la alimentano,
+   quante simulazioni — che ha una finestra di 60 giorni; l'analisi parla della mediana
+   grezza, che ne ha una di sette. Finché la seconda non poteva essere vuota la differenza
+   non si vedeva; da quando finestra() si ancora a oggi sì, e rAnalisi() usciva dal ramo
+   vuoto PRIMA di scrivere il sommario: la testata restava senza. Un difetto che il
+   calendario avrebbe fatto comparire il 23 ottobre, col silenzio demoscopico, cioè nella
+   settimana in cui la pagina viene letta di più. */
+function rSommario(){
+ var b=blocchi(SEG);
  $('k-deck').innerHTML='Proiezione dei 120 seggi della 26ª Knesset. Oggi il blocco Netanyahu è stimato a <b>'+
   f(b.coalizione)+' seggi</b>, mentre l\'opposizione sionista ne otterrebbe <b>'+f(b.opposizione)+'</b>. '+
   'Per governare senza il sostegno dei partiti arabi ne servono 61. Il modello utilizza la media ponderata di '+
@@ -4179,7 +4192,20 @@ function rTrend(){
     mesi e' 23,07, cioe' 0,09px di margine: le etichette si toccano. Diradate, il passo
     va a 46,14 e il margine a 23,16. */
  var SALTAMESI=MOB?2:1;
+ var ORD=EVENTI.slice().sort(function(a,b){return a.data<b.data?-1:1;});
  var t0=+new Date(S[0].d),t1=+new Date(S[S.length-1].d);
+ /* L'ASSE ARRIVA ALL'ULTIMO EVENTO, non all'ultima rilevazione.
+    Un evento che cade fuori dall'asse viene scartato dal disegno — c'è una guardia
+    apposta, e serve — ma l'elenco della cronologia lo numera lo stesso: il lettore
+    troverebbe la voce 17 senza nessun disco che la mostri, e i numeri delle due strade
+    smetterebbero di corrispondere. Succede ogni volta che un fatto politico arriva dopo
+    l'ultimo sondaggio, cioè spesso: il 23 agosto 2026 la primaria di Ra'am del 22 con
+    l'ultima rilevazione del 20.
+    Allungare l'asse costa due giorni su cinque mesi e lascia la linea della proiezione
+    finire prima del bordo destro, che è la cosa vera: il modello non è stato ricalcolato
+    dopo l'ultimo sondaggio. La guardia resta e protegge dall'altro verso, un evento
+    anteriore all'inizio della serie. */
+ if(ORD.length){var te=+new Date(ORD[ORD.length-1].data); if(te>t1) t1=te;}
  var vals=[];S.forEach(function(x){vals.push(x.g,x.o,x.a);});
  punti.forEach(function(x){vals.push(x.g,x.o,x.a);});
  var lo=Math.min(38,Math.floor(Math.min.apply(null,vals)/4)*4);
@@ -4192,7 +4218,6 @@ function rTrend(){
     (il comando resta la voce di cronologia, larga quanto il contenitore): diventano
     leggibili. Misurato a 380: con passo minimo 14px bastano DUE corsie; ne servirebbero
     tre solo da 16px in su. */
- var ORD=EVENTI.slice().sort(function(a,b){return a.data<b.data?-1:1;});
  var LAR=($('k-trend')&&$('k-trend').clientWidth)||(MOB?326:1070);
  /* il passo minimo si ragiona in PIXEL REALI e si converte in unità di viewBox: il
     bersaglio dello strato è largo 30px, il disco nell'SVG 12,5 a 380 e 12 fra 660 e 900 */
@@ -4758,7 +4783,7 @@ function renderInterno(){
   pc(MC.vO/MC.n)+'</b> delle simulazioni, con esito più frequente <b>'+f(i2.moda)+' seggi</b> e stima puntuale '+f(bb.opposizione)+'. '+
   'Stima puntuale e risultato più frequente non coincidono sempre, perché la soglia di sbarramento e il riparto d\'Hondt '+
   'trasformano i voti in seggi a scatti, non con continuità.';
- mostraAff();rSwAnc();rSwNota();rDiag();rAnalisi();rDirezione();rProj();rEmi();rVeti();rCoal();rPower();rChips();rHouse();rTrend();rCrono();rCalendario();rTab();rFoot();
+ mostraAff();rSwAnc();rSwNota();rDiag();rSommario();rAnalisi();rDirezione();rProj();rEmi();rVeti();rCoal();rPower();rChips();rHouse();rTrend();rCrono();rCalendario();rTab();rFoot();
 }
 
 /* ══════════ PARSER DELLA TABELLA WIKIPEDIA ══════════
