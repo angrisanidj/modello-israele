@@ -63,7 +63,9 @@ global.fetch = () => Promise.reject(0);
 let src = fs.readFileSync(__dirname + '/../app.js','utf8');
 src = src.replace('carica().then(render,render)',
   'global.A={colonneBlocco:colonneBlocco,P:P,IDS:IDS,SOND:function(){return SOND;},' +
-  'rTab:rTab,rHouse:rHouse,render:render};carica().then(render,render)');
+  'rTab:rTab,rHouse:rHouse,render:render,TAB_LIMITE:TAB_LIMITE,' +
+  'mostra:function(){return TAB_MOSTRA;},setMostra:function(v){TAB_MOSTRA=v;},' +
+  'filtri:function(){return FILTRI;},cntTab:cntTab};carica().then(render,render)');
 eval(src);
 try{ A.render(); }catch(e){ console.log('KO il render non è partito — ' + (e && e.message)); }
 
@@ -315,6 +317,380 @@ esito(colId.length >= 8, 'le colonne di lista sono ' + colId.length, colId.join(
       f + '() prende le colonne da colonneBlocco(): una strada sola, e scritta',
       (c.match(/var cols=[^;]*/) || ['(cols non trovato)'])[0].slice(0, 90));
   });
+})();
+
+
+/* ══ 6 · LE DUE VISTE DELL'ARCHIVIO ══════════════════════════════════════════
+ *
+ * Sopra i 660 la tabella, sotto un elenco di righe che si aprono. È la stessa mossa
+ * dell'house effect — due forme, un dato — e vale la stessa regola: ciascuna forma è
+ * corretta rispetto a sé stessa, quindi una divergenza non la coglie nessuna prova che ne
+ * guardi una sola. Qui si legano, valore per valore, come house.js lega tabella e schede.
+ *
+ * LA PROPRIETÀ CHE DECIDE LA FORMA, e che le altre due proposte non avevano: il piede
+ * della sezione promette che «ogni riga chiude a 120 seggi e riproduce il totale di blocco
+ * pubblicato». Perché quella promessa resti verificabile, una rilevazione deve potersi
+ * vedere INTERA: qui il sommario porta data, istituto e i due totali di blocco, il pannello
+ * porta testata, campione e i seggi, e insieme fanno esattamente la riga della tabella.
+ * La forma per lista — una colonna del tempo, una lista per volta — è stata scartata su
+ * questo e non sulla forma: là una rilevazione compariva undici volte e mai tutta, il 120
+ * non si poteva contare, e la promessa del piede sarebbe diventata inverificabile.
+ */
+(function(){
+  const css = html.match(/<style>([\s\S]*?)<\/style>/)[1];
+  const lista = D.querySelector('#k-tab .sondlist');
+  esito(!!lista, 'l\'elenco c\'è, accanto alla tabella e nello stesso contenitore');
+  const tabella = D.querySelector('#k-tab table.sondtab');
+  esito(!!tabella, 'e la tabella pure: le due forme stanno tutte e due nel DOM');
+
+  /* Il confine è nella CSS, non nel JavaScript. In jsdom non c'è layout, quindi la
+     proprietà si legge dove è scritta — ed è anche il punto: la pagina non si ridisegna al
+     ridimensionamento, quindi una forma scelta da matchMedia resterebbe quella sbagliata
+     appena si gira il telefono. */
+  esito(/#kn26 \.sondlist\{display:none;\}/.test(css),
+    'sopra il confine l\'elenco è display:none: la forma predefinita è la tabella');
+  const mq = (css.match(/@media\(max-width:660px\)\{[\s\S]*?\n\}/g) || [])
+    .find(b => /\.sondlist/.test(b) && /\.sondtab/.test(b)) || '';
+  esito(!!mq, 'e il confine è un blocco solo, a 660px come il resto del mobile');
+  esito(/#kn26 \.sondtab\{display:none;\}/.test(mq),
+    'sotto il confine sparisce la tabella', mq.slice(0, 120));
+  esito(/#kn26 \.sondlist\{display:block;\}/.test(mq),
+    'e compare l\'elenco', mq.slice(0, 120));
+  /* NIENTE SCORRIMENTO ANNIDATO: è il difetto che la forma nuova esiste per togliere —
+     un riquadro alto 480px dentro una pagina alta 10.536, e il confine non segnato da
+     niente. Se `max-height` restasse, la forma sarebbe nuova e il difetto quello di prima. */
+  esito(/#kn26 #k-tab\{[^}]*max-height:none[^}]*overflow:visible/.test(mq),
+    'e lo scorrimento annidato sparisce con lei: max-height:none e overflow:visible',
+    (mq.match(/#kn26 #k-tab\{[^}]*\}/) || [''])[0]);
+
+  /* ══ le due forme dicono gli stessi valori ══
+     L'elenco ne mostra al più TAB_LIMITE: quello che mostra è un PREFISSO di quello che
+     mostra la tabella, con gli stessi valori nello stesso ordine. */
+  const perNome2 = {};
+  IDS.forEach(k => { perNome2[P[k].n] = k; });
+  const intest2 = [].slice.call(tabella.querySelectorAll('thead th'));
+  const idCol = intest2.map(th => perNome2[th.getAttribute('title')]);
+  const righeTab = [].slice.call(tabella.querySelectorAll('tbody tr'))
+    .filter(tr => tr.children.length === intest2.length);
+  const righeEl = [].slice.call(lista.querySelectorAll('details.sondr'));
+  esito(righeEl.length > 0, 'l\'elenco ha righe', String(righeEl.length));
+  esito(righeEl.length <= righeTab.length,
+    'e non ne ha più della tabella: è un prefisso, non un altro insieme',
+    righeEl.length + ' contro ' + righeTab.length);
+
+  const testo = el => el ? el.textContent.replace(/\s+/g, ' ').trim() : null;
+  let divergenti = [], primo = '';
+  righeEl.forEach((det, r) => {
+    const tr = righeTab[r]; if (!tr) { divergenti.push('riga ' + r + ' assente in tabella'); return; }
+    const cel = [].slice.call(tr.children);
+    const sum = det.querySelector('summary'), pan = det.querySelector('.sondv');
+    const dice = (etichetta) => {
+      const s = [].slice.call(pan.querySelectorAll('span'))
+        .filter(x => testo(x.querySelector('em')) === etichetta)[0];
+      return s ? testo(s.querySelector('s')) : null;
+    };
+    const cfr = (che, a, b) => { if (a !== b){ divergenti.push(che);
+      if (!primo) primo = 'riga ' + r + ' · ' + che + ': elenco «' + a + '», tabella «' + b + '»'; } };
+    /* la data e i due totali stanno nel sommario */
+    cfr('data', testo(sum.querySelector('b')), testo(cel[0]));
+    cfr('istituto', testo(sum.querySelector('span')), testo(cel[1].firstChild));
+    const tot = [].slice.call(sum.querySelectorAll('u em')).map(testo);
+    cfr('coalizione', tot[0], testo(cel[cel.length - 2]));
+    cfr('opposizione', tot[1], testo(cel[cel.length - 1]));
+    /* testata e campione stanno nel pannello */
+    const testata = testo(cel[1].querySelector('span'));
+    if (testata) cfr('testata', dice('testata'), testata);
+    const campione = testo(cel[2]);
+    cfr('campione', dice('campione'), campione === '—' ? 'non dichiarato' : campione);
+    /* e i seggi, lista per lista e per ID, non per posizione */
+    idCol.forEach((id, c) => {
+      if (!id) return;
+      const inTab = testo(cel[c]);
+      const inEl = dice(P[id].n);
+      cfr(P[id].n, inEl === null ? '' : inEl, inTab);
+    });
+  });
+  esito(!divergenti.length,
+    'le due forme dicono gli stessi valori su tutte e ' + righeEl.length + ' le righe che condividono',
+    divergenti.length + ' divergenze, la prima: ' + primo);
+
+  /* E NELLO STESSO ORDINE, che è una proprietà a sé e l'ha trovata una mutazione.
+     Le asserzioni qui sopra cercano ogni lista PER NOME dentro il pannello, quindi passano
+     anche se il pannello elenca le liste in un ordine diverso dalle colonne: la mutazione
+     che sostituisce `cols` con `IDS` nel pannello restava VIVA. Non è un dettaglio — è il
+     raggruppamento per blocco, cioè la cosa che il desktop ha appena guadagnato: un
+     pannello in ordine di anagrafica rimetterebbe Yisrael Beitenu fra l'ago della bilancia
+     e la coalizione, e le due viste ordinerebbero le stesse liste in due modi.
+     Si confronta l'ordine dei nomi nel pannello con l'ordine delle colonne ristretto alle
+     liste che quella rilevazione riporta. */
+  let ordineKO = [];
+  righeEl.forEach((det, r) => {
+    const tr = righeTab[r]; if (!tr) return;
+    const cel = [].slice.call(tr.children);
+    const attesa = idCol.map((id, c) => (id && testo(cel[c])) ? P[id].n : null).filter(Boolean);
+    const resa = [].slice.call(det.querySelectorAll('.sondv span:not(.cmp) em')).map(testo);
+    if (attesa.join('|') !== resa.join('|'))
+      ordineKO.push('riga ' + r + ': ' + resa.join(',') + ' invece di ' + attesa.join(','));
+  });
+  esito(!ordineKO.length,
+    'e nello stesso ORDINE: il pannello elenca le liste come le colonne, cioè per blocco',
+    ordineKO[0] || '');
+  /* e il filetto del blocco cade dove cade in tabella: terzo uso della stessa
+     dichiarazione, e la prova che raggiunga anche qui */
+  const primaRiga = righeEl[0];
+  if (primaRiga){
+    const past = [].slice.call(primaRiga.querySelectorAll('.sondv span:not(.cmp)'));
+    const nomi = past.map(x => testo(x.querySelector('em')));
+    const blocchiPast = nomi.map(n => (P[perNome2[n]] || {}).b);
+    const attesiSep = nomi.filter((n, k) => k > 0 && blocchiPast[k] !== blocchiPast[k - 1]);
+    const resiSep = past.filter(x => x.classList.contains('sep'))
+      .map(x => testo(x.querySelector('em')));
+    esito(attesiSep.length > 0,
+      'nel pannello ci sono almeno due blocchi, o la prova sul filetto gira a vuoto',
+      blocchiPast.join(' '));
+    esito(resiSep.join('|') === attesiSep.join('|'),
+      'e il filetto cade dove cambia il blocco, come in tabella',
+      'attesi ' + attesiSep.join(', ') + ' · resi ' + resiSep.join(', '));
+  }
+
+  /* ══ E GLI STESSI FILTRI ══
+     Le due forme sono viste dello stesso dato anche quando il dato si restringe: un filtro
+     che agisse su una sola delle due sarebbe la divergenza peggiore, perché ciascuna forma
+     resterebbe corretta rispetto a sé stessa e il lettore ne vedrebbe una sola.
+     Si applicano i filtri uno per uno e si confronta l'insieme delle rilevazioni: non i
+     conteggi — due insiemi diversi possono avere lo stesso numero di elementi — ma le date
+     e gli istituti, riga per riga. */
+  (function(){
+    const chiaviTab = () => [].slice.call(
+        D.querySelectorAll('#k-tab table.sondtab tbody tr'))
+      .filter(tr => !tr.querySelector('td[colspan]'))
+      .map(tr => testo(tr.children[0]) + '|' + testo(tr.children[1].firstChild));
+    const chiaviEl = () => [].slice.call(D.querySelectorAll('#k-tab .sondlist details.sondr'))
+      .map(d => testo(d.querySelector('summary b')) + '|' + testo(d.querySelector('summary span')));
+    const salvaM = A.mostra();
+    A.setMostra(A.SOND().length + 10);       /* senza limite, o il confronto è di prefissi */
+    const casi = [
+      ['nessun filtro', {}],
+      ['istituto', {ist: D.getElementById('f-ist').options[1].value}],
+      ['ultimi 30 giorni', {per: '30'}],
+      ['solo era attuale', {per: 'era'}],
+      ['ricerca libera', {txt: 'a'}],
+      ['istituto e periodo insieme',
+        {ist: D.getElementById('f-ist').options[1].value, per: '90'}]
+    ];
+    let filtroKO = [];
+    casi.forEach(([nome, f]) => {
+      A.filtri().ist = f.ist || ''; A.filtri().per = f.per || '0'; A.filtri().txt = f.txt || '';
+      A.rTab();
+      const t = chiaviTab(), e = chiaviEl();
+      if (t.join('||') !== e.join('||'))
+        filtroKO.push(nome + ' (' + t.length + ' in tabella, ' + e.length + ' nell\'elenco)');
+    });
+    A.filtri().ist = ''; A.filtri().per = '0'; A.filtri().txt = '';
+    A.setMostra(salvaM); A.rTab();
+    esito(!filtroKO.length,
+      'e i filtri agiscono sulle due forme allo stesso modo, su tutti e ' + casi.length +
+      ' i casi: stesse rilevazioni, stesso ordine', filtroKO.join(' · '));
+  })();
+
+  /* LA BANDA DELL'ERA PRE-FUSIONE, e la prima stesura di questa asserzione era sbagliata.
+     Pretendeva la banda in tutte e due le forme sempre, e cadeva: le rilevazioni
+     pre-fusione sono di gennaio-aprile, cioè in fondo all'archivio, e con il limite a
+     cinquanta nell'elenco non ce n'è nemmeno una. Aveva ragione il codice — una banda che
+     dichiara un'era senza nessuna riga di quell'era sarebbe una didascalia a vuoto.
+     La proprietà giusta è condizionata: la banda c'è nell'elenco SE E SOLO SE fra le righe
+     mostrate ce n'è una pre-fusione, e quando c'è dice la stessa frase della tabella —
+     ERA_PRE, una stringa sola per le due forme. Si esercita il caso alzando il limite,
+     perché una proprietà condizionata provata solo nel ramo falso non è provata. */
+  const eraTab = tabella.querySelector('tbody td[colspan]');
+  esito(!!eraTab, 'la tabella dichiara l\'era pre-fusione: l\'archivio ne contiene');
+  const conPre = () => [].slice.call(lista.querySelectorAll('details.sondr'))
+    .some(d => d.classList.contains('pre'));
+  esito(!conPre() === !lista.querySelector('.sondera'),
+    'nell\'elenco la banda c\'è se e solo se fra le righe mostrate ce n\'è una pre-fusione',
+    'righe pre ' + conPre() + ' · banda ' + !!lista.querySelector('.sondera'));
+  /* e adesso il ramo vero */
+  const salvaM = A.mostra();
+  A.setMostra(A.SOND().length + 10); A.rTab();
+  const l2 = D.querySelector('#k-tab .sondlist'), t2 = D.querySelector('#k-tab table.sondtab');
+  const e2 = l2.querySelector('.sondera'), t2e = t2.querySelector('tbody td[colspan]');
+  esito(!!e2 && !!t2e && testo(e2) === testo(t2e),
+    'e mostrandole tutte la banda compare, con la stessa frase della tabella',
+    testo(e2) + ' / ' + testo(t2e));
+  A.setMostra(salvaM); A.rTab();
+})();
+
+/* ══ 7 · IL LIMITE, E IL COMANDO CHE LO SPOSTA ═══════════════════════════════
+ *
+ * Cinquanta, e il numero non viene dai pixel: viene da quanto MORDE sui filtri. Misurato
+ * il 23 agosto 2026, righe lasciate da ciascun filtro — otto istituti 3 · 8 · 11 · 25 ·
+ * 29 · 29 · 33 · 42, cinque periodi 32 · 62 · 84 · 111 · 173 — il limite non morde in 3
+ * stati su 13 a venti, 6 su 13 a trenta, 9 su 13 a cinquanta. Sotto i cinquanta il lettore
+ * incontra DUE TRONCAMENTI IN FILA: filtra per avere meno righe e ne trova comunque meno
+ * di quante ne ha chieste.
+ * Qui non si asserisce il 50 come numero magico: si asserisce la PROPRIETÀ da cui è stato
+ * scelto — che lasci intatta la maggioranza degli stati di filtro — così se un giorno
+ * l'archivio cresce e la proprietà smette di valere, cade. */
+(function(){
+  const nEl = () => D.querySelectorAll('#k-tab .sondlist details.sondr').length;
+  const nTab = () => [].slice.call(D.querySelectorAll('#k-tab table.sondtab tbody tr'))
+    .filter(tr => !tr.querySelector('td[colspan]')).length;
+  const cmd = () => D.getElementById('k-tabpiu');
+
+  A.setMostra(A.TAB_LIMITE); A.rTab();
+  esito(A.TAB_LIMITE === 50, 'il limite è 50', String(A.TAB_LIMITE));
+  esito(nEl() === Math.min(A.TAB_LIMITE, nTab()),
+    'l\'elenco ne mostra al più il limite, la tabella tutte',
+    nEl() + ' su ' + nTab());
+
+  /* LA PROPRIETÀ CHE HA SCELTO IL NUMERO: quanti stati di filtro il limite lascia intatti.
+     Si contano davvero, applicando i filtri uno per uno, invece di ricopiare la misura. */
+  const stati = [];
+  const sel = D.getElementById('f-ist');
+  [].slice.call(sel.options).map(o => o.value).filter(Boolean).forEach(v => {
+    A.filtri().ist = v; A.setMostra(A.TAB_LIMITE); A.rTab(); stati.push(nTab());
+  });
+  A.filtri().ist = '';
+  ['30','60','90','era'].forEach(v => {
+    A.filtri().per = v; A.setMostra(A.TAB_LIMITE); A.rTab(); stati.push(nTab());
+  });
+  A.filtri().per = '0'; A.setMostra(A.TAB_LIMITE); A.rTab();
+  const intatti = stati.filter(n => n <= A.TAB_LIMITE).length;
+  esito(stati.length >= 10, 'ci sono abbastanza stati di filtro da misurare', String(stati.length));
+  esito(intatti * 2 > stati.length,
+    'il limite lascia intatta la MAGGIORANZA degli stati di filtro (' + intatti + ' su ' +
+    stati.length + '): è la proprietà per cui è 50 e non 20',
+    stati.sort((a, b) => a - b).join(' '));
+
+  /* il comando c'è quando e solo quando il limite morde, e dice due numeri di righe */
+  A.setMostra(A.TAB_LIMITE); A.rTab();
+  const totale = nTab();
+  if (totale > A.TAB_LIMITE){
+    esito(!!cmd(), 'con più righe del limite il comando c\'è');
+    /* E QUI SI ESCE SE NON C'È, invece di leggerne il testo: la mutazione che toglie il
+       limite faceva MORIRE la suite alla riga dopo, e una suite che muore non è un rosso
+       che si legge — è uno stack trace che il conteggio non sa dove mettere. Due volte in
+       questa stessa suite, e tutte e due le volte l'asserzione giusta c'era già una riga
+       sopra: il difetto era leggere prima di aver verificato. */
+    if (!cmd()){ A.setMostra(A.TAB_LIMITE); A.rTab(); return; }
+    const t = cmd().textContent;
+    const restano = totale - A.TAB_LIMITE;
+    esito(t.indexOf(String(Math.min(A.TAB_LIMITE, restano))) >= 0 && t.indexOf(String(restano)) >= 0,
+      'e dice quante ne aggiunge e quante ne restano, che sono due numeri di righe', t);
+    /* premendolo l'elenco cresce di un limite, e non di più */
+    const prima = nEl();
+    A.setMostra(A.TAB_LIMITE * 2); A.rTab();
+    esito(nEl() === Math.min(A.TAB_LIMITE * 2, totale),
+      'premendolo l\'elenco cresce di un limite per volta', prima + ' → ' + nEl());
+    /* e alla fine il comando sparisce invece di restare a promettere altre righe */
+    A.setMostra(totale + 10); A.rTab();
+    esito(nEl() === totale && !cmd(),
+      'arrivati in fondo il comando sparisce: non promette righe che non ci sono',
+      nEl() + ' righe, comando ' + (cmd() ? 'presente' : 'assente'));
+  }
+  A.setMostra(A.TAB_LIMITE); A.rTab();
+})();
+
+/* ══ 8 · IL CONTATORE: OGNI NUMERO È UN NUMERO DI RIGHE ══════════════════════
+ *
+ * La regola è quella già pagata dal messaggio dell'aggiornamento, dove il conto non tornava
+ * davanti al lettore: ogni numero della frase è un numero di RIGHE, e il lettore deve poter
+ * rifare il conto. La prova è scritta sulla proprietà del LETTORE e non su quella del
+ * codice: si prende la frase, si estraggono i numeri, e si pretende che siano esattamente
+ * quelli che si vedono, quelli che corrispondono e quelli che ci sono — in quest'ordine e
+ * non crescenti.
+ *
+ * Le due forme del contatore stanno tutte e due nel DOM e le sceglie il foglio, come il
+ * sommario di testata: la pagina non si ridisegna al ridimensionamento, quindi un contatore
+ * scelto dal JavaScript resterebbe a dire il numero dell'altra larghezza. */
+(function(){
+  const css = html.match(/<style>([\s\S]*?)<\/style>/)[1];
+  const q = c => D.querySelector('#f-cnt .' + c);
+  const nTab = () => [].slice.call(D.querySelectorAll('#k-tab table.sondtab tbody tr'))
+    .filter(tr => !tr.querySelector('td[colspan]')).length;
+  const tot = A.SOND().length;
+
+  esito(/#kn26 \.filtri \.cnt \.c-lst\{display:none;\}/.test(css),
+    'sopra il confine il contatore è quello della tabella');
+  const mq = (css.match(/@media\(max-width:660px\)\{[\s\S]*?\n\}/g) || [])
+    .find(b => /c-lst/.test(b)) || '';
+  esito(/\.c-tab\{display:none;\}/.test(mq) && /\.c-lst\{display:inline;\}/.test(mq),
+    'e sotto quello dell\'elenco: le due forme sono nel DOM, sceglie il foglio', mq.slice(0, 200));
+
+  /* la proprietà del lettore, sui quattro casi */
+  const numeri = s => (s.match(/\d+(?:[.  ]\d{3})*/g) || [])
+    .map(x => +x.replace(/[.  ]/g, ''));
+  const casi = [
+    ['nessun filtro, limite che morde', () => { A.filtri().ist = ''; A.filtri().per = '0';
+      A.filtri().txt = ''; A.setMostra(A.TAB_LIMITE); }],
+    ['nessun filtro, nessun limite', () => { A.setMostra(tot + 10); }],
+    ['un filtro che lascia più del limite', () => { A.filtri().per = '90';
+      A.setMostra(A.TAB_LIMITE); }],
+    ['un filtro che lascia meno del limite', () => { A.filtri().per = '0';
+      A.filtri().ist = D.getElementById('f-ist').options[1].value; A.setMostra(A.TAB_LIMITE); }]
+  ];
+  casi.forEach(([nome, prepara]) => {
+    prepara(); A.rTab();
+    const filtrate = nTab(), mostrate = Math.min(A.mostra(), filtrate);
+    /* LE DUE FORME SI CERCANO PRIMA DI LEGGERLE, e non è prudenza generica: la mutazione
+       che ne lascia una sola faceva MORIRE questa suite invece di farla cadere, e una
+       suite che muore è la forma di rosso che questo banco ha imparato a diffidare — il
+       conteggio non ha niente da dire e il difetto arriva come stack trace. Un'asserzione
+       che manca vale più di un'eccezione che passa. */
+    if (!q('c-lst') || !q('c-tab')){
+      esito(false, '  · ' + nome + ': il contatore ha tutte e due le forme nel DOM',
+        'c-lst ' + !!q('c-lst') + ' · c-tab ' + !!q('c-tab'));
+      return;
+    }
+    const t = q('c-lst').textContent, n = numeri(t);
+    esito(n.length >= 1 && n.every(x => x === mostrate || x === filtrate || x === tot),
+      '  · ' + nome + ': ogni numero della frase è un conto di righe', t + ' → ' + n.join(','));
+    esito(n[0] === mostrate,
+      '  · ' + nome + ': il primo numero è quello che si vede', t);
+    esito(n[n.length - 1] === tot,
+      '  · ' + nome + ': l\'ultimo è il totale dell\'archivio', t);
+    /* e la forma della tabella dice le stesse cose senza il primo numero, perché lì si
+       vedono tutte: le due frasi non possono contraddirsi */
+    const nt = numeri(q('c-tab').textContent);
+    esito(nt[nt.length - 1] === tot && nt[0] === filtrate,
+      '  · ' + nome + ': la forma della tabella dice le filtrate e il totale',
+      q('c-tab').textContent);
+    /* nessun numero ripetuto a vuoto: «50 di 173 che corrispondono, su 173» è la frase che
+       la prima stesura scriveva senza filtri, e «che corrispondono» non voleva dire niente */
+    esito(!/che corrispondono/.test(t) || filtrate < tot,
+      '  · ' + nome + ': «che corrispondono» compare solo se qualcosa è stato chiesto', t);
+  });
+  A.filtri().ist = ''; A.filtri().per = '0'; A.filtri().txt = '';
+  A.setMostra(A.TAB_LIMITE); A.rTab();
+})();
+
+/* ══ 9 · ZERO RISULTATI: LA TABELLA DEVE DIRLO ═══════════════════════════════
+ *
+ * Misurato su browser il 23 agosto 2026: con una ricerca senza esiti restava un riquadro
+ * alto 31,7px con la sola intestazione e nessuna parola. Il contatore accanto ai filtri
+ * diceva «0 su 173», quindi non era muto — ma il posto in cui il lettore guarda è la
+ * tabella, e la tabella taceva. È il caso «archivio degenere» della verifica a scenari,
+ * prodotto da una ricerca invece che da un archivio vuoto. */
+(function(){
+  A.filtri().txt = 'zzznessuno'; A.rTab();
+  const box = D.getElementById('k-tab');
+  const msg = box.querySelector('.vuoto');
+  esito(!!msg, 'con zero risultati compare un messaggio, al posto delle due forme');
+  esito(!box.querySelector('table') && !box.querySelector('.sondlist'),
+    'e nessuna delle due forme resta come guscio vuoto');
+  if (msg){
+    const t = msg.textContent;
+    esito(/[Nn]essuna rilevazione/.test(t), 'il messaggio dice che non c\'è niente', t.slice(0, 80));
+    esito(t.indexOf(String(A.SOND().length)) >= 0,
+      'e dice quante ne contiene l\'archivio, così il lettore sa che il vuoto è del filtro '
+      + 'e non dei dati', t);
+  }
+  /* e il contatore continua a dire il suo: zero è un numero di righe come gli altri */
+  esito(/\b0\b/.test(D.querySelector('#f-cnt .c-lst').textContent),
+    'il contatore dice zero', D.querySelector('#f-cnt .c-lst').textContent);
+  A.filtri().txt = ''; A.rTab();
+  esito(D.querySelectorAll('#k-tab .sondlist details.sondr').length > 0,
+    'e togliendo la ricerca le due forme tornano');
 })();
 
 console.log('\n' + ok + '/' + (ok + ko));

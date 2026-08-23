@@ -1017,5 +1017,76 @@ A.render();
   A.setApp(ORIG); A.par('apparentamenti', 0); A.render();
 }
 
+
+/* ══ 21 · LA DEFINIZIONE STA IN UN POSTO SOLO, E LA NOTA RIMANDA ═════════════
+ *
+ * «Accordo» da solo non dice niente a un lettore italiano: il meccanismo dei voti in
+ * eccedenza nel nostro sistema non esiste in quella forma, e fino al 23 agosto 2026 la
+ * pagina non lo definiva da nessuna parte — lo nominava in sette punti e lo dava per noto.
+ *
+ * La definizione è nella guida dei comandi, alla voce «Apparentamenti annunciati», e
+ * SOLTANTO lì. La ragione non è di gusto: notaApparentamenti() è prosa GENERATA, con rami
+ * su data e stato, e una definizione non dipende da nessuno dei due — è una costante, e
+ * metterla dentro una funzione che compone prosa condizionale è la forma che poi diverge.
+ * Prima di oggi le due strade esistevano già: la nota apriva ripetendo il meccanismo che
+ * la guida descrive. Finché dicevano la stessa cosa non si vedeva; il giorno in cui una
+ * delle due si è arricchita — oggi — l'altra sarebbe rimasta indietro in silenzio.
+ *
+ * Quindi la prova è in due versi, come tutte quelle sulle strade doppie: la definizione
+ * c'è dove deve, e NON c'è dove non deve. Una sola delle due asserzioni non basterebbe —
+ * la prima passa anche se la nota la ricopia, la seconda passa anche se la definizione
+ * non esiste affatto. */
+{
+  /* Le frasi si cercano per il loro CONTENUTO e non per intero: la prosa è dell'autore e
+     può essere ritoccata, mentre quello che la prova pretende è che ci sia una frase che
+     dice da dove viene il seggio. Cercare la stringa esatta renderebbe rossa una virgola. */
+  const SEGNI = [/voti che avanzano|voti in eccedenza|resti/i,
+                 /non bastano a eleggere/i,
+                 /resto maggiore/i];
+  const guida = String(D.getElementById('k-guida').innerHTML || '')
+    .replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
+  const voce = (guida.match(/Apparentamenti annunciati([\s\S]*?)Lista Unita araba/) || ['',''])[1];
+
+  esito(/Apparentamenti annunciati/.test(guida),
+    'la voce della guida si chiama «Apparentamenti annunciati» e non più «proposti»: ' +
+    '«annunciato» è il fatto verificabile, ed è la parola scelta per il pulsante',
+    guida.slice(0, 60));
+  esito(voce.length > 200, 'la voce esiste e ha del testo', String(voce.length));
+  SEGNI.forEach(function(re, i){
+    esito(re.test(voce), '  · la definizione dice ' +
+      ['da dove vengono i voti', 'che non bastano a eleggere', 'a chi va il seggio in più'][i],
+      voce.slice(0, 120));
+  });
+  /* E VIENE PRIMA DEL MECCANISMO: dice da dove viene il seggio, che è la cosa che rende
+     l'istituto comprensibile a chi non ce l'ha nel proprio sistema. Il meccanismo — «due
+     liste si presentano al riparto come una lista sola» — risponde a una domanda che il
+     lettore si fa dopo. */
+  const iDef = voce.search(/non bastano a eleggere/i);
+  const iMecc = voce.search(/si presentano al riparto come una lista sola/i);
+  esito(iDef >= 0 && iMecc >= 0 && iDef < iMecc,
+    'e sta PRIMA del meccanismo, che è la domanda successiva',
+    'definizione a ' + iDef + ', meccanismo a ' + iMecc);
+
+  /* IL VERSO CHE CONTA: la nota metodologica NON ripete. */
+  A.rFoot();
+  const notaHTML = String(D.getElementById('k-foot').innerHTML || '');
+  const nota = notaHTML.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
+  const ripetute = SEGNI.filter(function(re){ return re.test(nota); });
+  esito(!ripetute.length,
+    'la nota metodologica NON ripete la definizione: la sorgente è una sola',
+    ripetute.map(String).join(' | '));
+  esito(!/si presentano al riparto come una lista sola/i.test(nota),
+    'e non ripete nemmeno il meccanismo, che era la copia già esistente prima di oggi',
+    nota.slice(0, 160));
+  /* ma RIMANDA, o il lettore della nota resterebbe senza: togliere una copia senza
+     lasciare la strada è peggio che tenerne due */
+  esito(/Come si usano i comandi/.test(nota) && /Apparentamenti annunciati/.test(nota),
+    'la nota rimanda alla guida per nome, così chi legge la nota sa dove andare',
+    nota.slice(0, 200));
+  esito(/simulati dal modello/i.test(nota),
+    'e dice quello che la guida non dice: che il meccanismo è simulato dal modello',
+    nota.slice(0, 160));
+}
+
 console.log('\napparentamenti: ' + ok + '/' + (ok + ko));
 if (ko) process.exit(1);

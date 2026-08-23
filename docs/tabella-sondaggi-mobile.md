@@ -1,6 +1,13 @@
 # La tabella dei sondaggi sotto i 660: tre forme, e le sei domande
 
-Scritto il 23 agosto 2026. **È una proposta: niente di quello che segue è in pagina.** La
+Scritto il 23 agosto 2026, **e rimisurato lo stesso giorno su richiesta dell'autore**: le
+due misure in fondo — il costo vero della forma A col limite, e il confronto fra la forma C
+e la sezione 9 — hanno corretto due numeri e una conclusione di questo documento. Dove i
+numeri divergono valgono quelli in fondo, e la stima sbagliata resta scritta perché si
+veda di quanto sbagliava.
+
+Scritto il 23 agosto 2026. **La forma A è stata scelta e applicata il 23 agosto 2026** — vedi in fondo,
+«La scelta, e che cosa è costata davvero». Le altre due restano scritte com'erano. La
 metà desktop del punto 2 della coda è applicata — le colonne raggruppate per blocco, i
 filetti dell'anagrafica — e questa è l'altra metà.
 
@@ -237,3 +244,230 @@ comando, invece della più capace.
 È una decisione editoriale e non tecnica, e va presa guardando quanti la aprono davvero da
 mobile — che oggi non si sa, e per saperlo servirebbe una misura che questa pagina, per
 scelta, non fa.
+
+---
+
+# Le due misure chieste il 23 agosto 2026
+
+Stesso banco: `node .claude/serve.mjs`, viewport 380, tema chiaro forzato dal selettore,
+transizioni spente. Il prototipo della forma A è stato costruito **dentro `#kn26`** — fuori
+non erediterebbe niente, è la trappola 3 — riusando `.hsh` e `.hsv`, cioè le classi delle
+schede dell'house effect, che sono l'idioma più vicino a «riga che si apre» già nel foglio.
+
+## 1 · Quanto costa la forma A, e quale limite
+
+**Le due stime scritte più sopra erano sbagliate tutte e due, e in versi opposti.**
+
+| | stimato | **misurato** |
+|---|---|---|
+| riga chiusa | ~34px | **35,1px** |
+| pannello aperto | ~260px, «venti pastiglie» | **136,3px** mediano, **167,1** massimo |
+| pastiglie in un pannello | 20 | **10–13, mediana 11** |
+
+Il pannello costa **la metà** di quanto stimato, e la ragione è che **un sondaggio non
+riporta venti liste: ne riporta dieci-tredici.** Le altre stanno sotto soglia e la cella è
+vuota. Il pannello di una rilevazione è l'insieme delle liste che quella rilevazione vede
+sopra il 3,25%, non l'anagrafica intera — che è anche il motivo per cui la promessa dei 120
+seggi si potrebbe verificare guardandolo.
+
+I 136,3px sono con i **nomi interi**. Con i nomi accorciati come nelle intestazioni della
+tabella («Hadash», «Giudaism», «Sionismo») il pannello scende a **105,4px**, ma dentro un
+pannello un nome tronco non ha la colonna che lo disambigua: **la misura buona è 136,3**.
+
+### Il limite, e il numero che lo decide
+
+Il costo della sezione, con lo scorrimento annidato **tolto** — che è il punto della forma A:
+testata 35 + filtri 97,8 + piede 57,6 + margini 104 = **294,4px di contorno**, più le righe,
+più 51px del comando «carica altre».
+
+| limite | elenco | sezione | contro i 774,4 di oggi |
+|---|---|---|---|
+| **14** | 491,4 | **836,8** | **+8%** — è il limite che costa quanto la tabella di adesso: 480/35,1 = 13,7 righe è quello che oggi si vede senza scorrere |
+| **20** | 702,0 | **1.047,4** | +35% |
+| **30** | 1.053,0 | **1.398,4** | +81% |
+| **50** | 1.755,0 | **2.100,4** | +171% |
+| nessuno | 6.072,3 | **6.366,7** | +722% |
+
+Con un pannello aperto, +136,3 su qualunque riga.
+
+**Ma il limite non si sceglie sui pixel: si sceglie su quanto morde.** Misurato quante
+rilevazioni lascia ciascun filtro, uno per uno:
+
+| istituto | righe | | periodo | righe |
+|---|---|---|---|---|
+| Direct Polls | 42 | | tutto il 2026 | 173 |
+| Lazar · Panel4All | 33 | | solo era attuale | 111 |
+| Midgam | 29 | | ultimi 90 giorni | 84 |
+| Yossi Taktika | 29 | | ultimi 60 giorni | 62 |
+| Kantar | 25 | | ultimi 30 giorni | 32 |
+| Maagar Mochot | 11 | | | |
+| Hamidgam Project | 8 | | | |
+| TrendZone | 3 | | | |
+
+Su **tredici stati di filtro** — otto istituti e cinque periodi — il limite non morde in:
+
+| limite | stati intatti | |
+|---|---|---|
+| 20 | **3 su 13 (23%)** | morde perfino su «ultimi 30 giorni» |
+| 30 | 6 su 13 (46%) | |
+| **50** | **9 su 13 (69%)** | il primo che lascia in pace la maggioranza |
+
+**Il limite giusto è 50, e la ragione non è che 2.100px vadano bene: è che sotto i 50 il
+limite morde sui filtri che il lettore usa davvero, e allora il lettore incontra due
+troncamenti in fila** — filtra per avere meno righe, e ne trova comunque meno di quante ne
+ha chieste. Un limite che scatta dopo un filtro non è un limite: è un secondo filtro che
+nessuno ha chiesto.
+
+Se 2.100px sono troppi, la risposta non è abbassare il limite: è **«carica altre» che parte
+da 20 e aggiunge 20**, così la sezione apre a 1.047 e cresce solo per chi lo chiede. Il
+prezzo è che il primo schermo mostra venti righe su centosettantatré, e per arrivare a
+cinquanta si preme due volte.
+
+### Quando un filtro ne lascia due
+
+**Nessun filtro dell'elenco arriva a due**: il più stretto è TrendZone con **3**. Ci si
+arriva solo con la ricerca libera, e lì la tabella di oggi si comporta già bene — misurato,
+`.scroll` ha `max-height` e non `height`, quindi si accorcia da sé:
+
+| ricerca | rilevazioni | riquadro | sezione |
+|---|---|---|---|
+| «trendzone» | 2 | 129,4px | 423,8px |
+| «maagar» | 10 | 398,2px | 692,5px |
+| **«zzz»** | **0** | **31,7px** | 326,1px |
+
+La forma A eredita quel comportamento e il limite semplicemente non scatta: due righe fanno
+70,2px, il comando non compare, la sezione sta sotto i 400px.
+
+**Ma la misura ha trovato due cose che non riguardano la forma A: riguardano la pagina di
+adesso, e la seconda è il costo vero del limite.**
+
+- **Con zero risultati il riquadro resta lì, alto 31,7px, con la sola intestazione e
+  nessuna parola.** Il contatore accanto ai filtri dice «0 su 173 rilevazioni», quindi non è
+  muto — ma il posto in cui il lettore guarda è la tabella, e la tabella non dice niente. È
+  lo stesso caso che la verifica a scenari elenca sotto «archivio degenere», qui prodotto da
+  una ricerca invece che da un archivio vuoto.
+- **Col limite, il contatore deve dire TRE numeri invece di due.** Oggi dice «N su 173
+  rilevazioni». Con un limite dovrebbe dire quante corrispondono, quante se ne vedono e
+  quante ce ne sono in tutto: «20 di 62 che corrispondono, su 173». È esattamente la forma
+  che il messaggio dell'aggiornamento ha già pagato — fuori dalle parentesi ogni numero è un
+  numero di righe, e devono sommare — e va scritta con quella regola invece che
+  improvvisata. **È il costo vero del limite, e non si misura in pixel.**
+
+## 2 · La forma C e la sezione 9: non è una seconda strada, ma rompe una promessa scritta
+
+La domanda era se la forma C — la colonna del tempo, una lista per volta — si sovrapponga
+alla sezione 9, che quel lavoro «lo fa già con un grafico». **Misurato: no, e la ragione è
+netta.**
+
+**La sezione 9 disegna TRE serie, e sono BLOCCHI, non liste.** La legenda dice Blocco
+Netanyahu · Opposizione sionista · Partiti arabi, più la riga della maggioranza. I 519
+puntini sono 173 rilevazioni × 3 blocchi: anche i singoli sondaggi, lì, sono aggregati per
+blocco. **Nel grafico della tendenza non esiste nessuna lista**, e la voce di legenda che si
+può isolare isola un blocco.
+
+E la lettura per lista nel tempo non esiste nemmeno altrove:
+
+| dove | che cosa dice di una lista nel tempo |
+|---|---|
+| sezione 9, tendenza | **niente**: le serie sono tre blocchi |
+| sezione 3, `k-proj` | la forbice dell'80% — cinque elementi per sparkline, **non è una serie storica** |
+| sezione 2, `k-movers` | **due numeri** (7 GG e 30 GG), e solo per le dieci liste che si sono mosse |
+| sezione 11, tabella | tutte le rilevazioni, ma lette **per riga**, non per colonna |
+
+Quindi la casella «serie storica di una singola lista dai sondaggi grezzi» **è vuota**, e la
+forma C la riempirebbe. E non duplicherebbe nessun calcolo: i numeri di C sono le celle
+dell'archivio, le stesse che la tabella mostra e le stesse che i puntini della tendenza
+sommano per blocco. **Non c'è una seconda strada di calcolo, quindi non c'è niente che possa
+divergere: c'è un grado di dettaglio in più.**
+
+**Ma C va scartata lo stesso, e per una ragione che non è la forma.** La sezione 11 fa una
+promessa, scritta nel suo piede:
+
+> «Nessun valore è ricostruito a stima: **ogni riga chiude a 120 seggi** e riproduce il
+> totale di blocco pubblicato.»
+
+Nella forma C **quella promessa non è più verificabile**. Una rilevazione non compare mai
+intera: compare undici volte, una per lista, in undici colonne che il lettore non vede mai
+insieme. Il 120 non si può contare, e i totali di blocco per riga — la seconda metà della
+promessa — non stanno da nessuna parte.
+
+È la stessa obiezione che il documento faceva sotto «che cosa si perde» — «la riga come
+unità» — ma misurata contro il testo della pagina diventa più forte: **non si perde una
+comodità di lettura, si perde la verificabilità che la sezione dichiara al lettore.**
+L'archivio esiste perché chi legge possa controllare, e una forma in cui il controllo non si
+può fare non è l'archivio in un'altra forma: è un'altra sezione.
+
+**Quello che di C vale la pena tenere** è che ha trovato una casella vuota vera — la serie
+storica per lista dai sondaggi grezzi. Se la si vuole riempire, va riempita **dove sta la
+lettura del tempo**, cioè nella sezione 9, dando alla legenda dei tre blocchi la possibilità
+di isolare una lista. Non nella sezione 11, che è l'archivio.
+
+## Che cosa resta da decidere
+
+Con C fuori, le forme in gara sono **A** e **B**, e la scelta è fra due prezzi misurati:
+
+- **A** costa **+35%** di altezza con limite 20 e **+171%** con limite 50; in cambio toglie
+  lo scorrimento annidato, tiene la riga come unità e rende il 120 contabile dentro il
+  pannello. Il costo nascosto è **il contatore a tre numeri**.
+- **B** costa **+3%** tenendo lo scorrimento annidato, oppure **+675%** togliendolo; tiene il
+  confronto verticale fra due rilevazioni qualsiasi, ed è l'unica in cui lo scorrimento
+  orizzontale è comandabile da tastiera senza aggiungere niente. Il costo è che non abbandona
+  la premessa: resta la tabella di prima con due appigli.
+
+---
+
+# La scelta, e che cosa è costata davvero
+
+Decisa dall'autore il 23 agosto 2026 e **applicata lo stesso giorno**: **forma A, limite 50**.
+C **scartata**. B resta scritta qui sopra, con i suoi numeri, per chi un giorno volesse
+rimettere in discussione la scelta senza rifare le misure.
+
+## Quello che è in pagina
+
+Il sommario porta data, istituto e i due totali di blocco; il pannello porta testata,
+campione e i seggi in pastiglie, nello stesso ordine delle colonne e con lo stesso filetto
+di blocco. **Insieme fanno esattamente la riga della tabella**, ed è la proprietà che tiene
+in piedi la promessa del piede: una rilevazione si vede intera, il 120 si conta.
+
+## I numeri veri, misurati sulla pagina applicata
+
+Le stime di questo documento erano tre, e **due erano sbagliate**. Restano scritte perché
+si veda di quanto:
+
+| | stimato | **misurato sulla pagina** |
+|---|---|---|
+| riga chiusa | 35,1px | **44–45px** — il minimo del bersaglio del dito, che qui è gratis |
+| pannello aperto | 136,3px | **171,1px** con testata e campione dentro |
+| sezione, elenco pieno a 50 | 2.100,4px | **2.567,4px** · **+232%** su 774,4 |
+| sezione con un pannello aperto | — | **2.738,4px** |
+| sezione con zero risultati | — | **386,5px** |
+| scorrimento annidato | tolto | **tolto**: `max-height:none`, `overflow:visible` |
+| sforamento orizzontale a 380 | — | **zero** |
+
+**La differenza sui 44px è la parte da sapere.** La stima usava l'altezza della riga
+dell'house effect; la riga dell'elenco è un comando, quindi il bersaglio del dito non può
+scendere sotto i 44px — ed è l'unico posto di tutto il progetto in cui quel vincolo si
+rispetta senza spostare nient'altro. I 467px di differenza fra stima e realtà sono quelli.
+
+## Due cose che la stima non aveva previsto, e le ha trovate il browser
+
+**Il pannello ha dieci-tredici pastiglie, non venti**: un sondaggio riporta solo le liste
+sopra soglia. È il motivo per cui il pannello costa la metà del previsto — ed è anche il
+motivo per cui il 120 si può contare guardandolo.
+
+**La testata non sta nel sommario.** Con «Lazar · Panel4All Maariv» dentro, la riga andava
+a capo — 62,8px invece di 46, su 18 righe delle prime 50, cioè 300px per un campo
+secondario. La testata dice chi pubblica, non chi rileva, e in tabella è già in `--mute`:
+è scesa nel pannello, e sommario più pannello continuano a fare la riga intera.
+
+## E due trappole che non c'entrano con la forma
+
+Sono nel foglio, non nell'elenco, e stanno scritte per esteso in `CLAUDE.md` sotto
+«L'archivio sotto i 660». In breve: la prima stesura usava `.sl` come nome di classe, e
+`.sl` **esiste già** — è la riga dei cursori, `display:flex` — quindi il pannello è finito
+schiacciato a 26px e le pastiglie una per riga, 524,4px invece di 171. E cinquanta
+`<details>` hanno preso ciascuno i 20px di `margin-top` della regola globale dei `details`,
+mille pixel che non erano di nessuno.
+
+**Nessuna delle due ha fallito: hanno risposto**, con numeri quattro volte più grandi e zero
+errori in console.

@@ -465,6 +465,92 @@
  background:var(--card);box-shadow:var(--sh);}
 #kn26 td.s{font-weight:700;}
 #kn26 tbody tr:hover{background:var(--wash);}
+/* ══ L'ARCHIVIO: DUE FORME, COME L'HOUSE EFFECT ══
+   Sopra i 660 la tabella, sotto un elenco di righe che si aprono. Il confine è quello che
+   la pagina usa già per il mobile, e non è misurato come i 1075 dell'house effect: lì la
+   soglia veniva da una larghezza minima da rispettare al pixel, qui la tabella non entra a
+   nessuna larghezza di telefono — 1288,9px in un contenitore da 356, cioè il 27,6% visibile
+   — e la domanda non è «da dove smette di entrare» ma «da dove si legge in un'altra forma».
+   NIENTE SCORRIMENTO ANNIDATO nell'elenco: .scroll perde max-height e overflow, e la
+   sezione è lunga quanto l'elenco. Il riquadro alto 480px dentro una pagina alta 10.536 è
+   la parte che nessuno racconta e che tutti subiscono — il dito sul riquadro scorre il
+   riquadro, il dito appena fuori scorre la pagina, e il confine non è segnato da niente. */
+#kn26 .sondlist{display:none;}
+#kn26 .vuoto{margin:0;padding:16px 14px;font-size:12.5px;color:var(--mute);}
+/* il contatore ha due forme nel DOM e le sceglie il foglio: vedi rTab() */
+#kn26 .filtri .cnt .c-lst{display:none;}
+@media(max-width:660px){
+ #kn26 #k-tab{max-height:none;overflow:visible;border:0;box-shadow:none;background:transparent;}
+ #kn26 .sondtab{display:none;}
+ #kn26 .sondlist{display:block;}
+ #kn26 .filtri .cnt .c-tab{display:none;}
+ #kn26 .filtri .cnt .c-lst{display:inline;}
+ #kn26 .vuoto{border:1px solid var(--hair);background:var(--card);box-shadow:var(--sh);}
+}
+/* I NOMI DELLE CLASSI SONO LUNGHI APPOSTA, e la prima stesura ne ha pagato uno corto.
+   L'èlenco era .sl / .slv, e .sl ESISTE GIÀ in questo foglio: è la riga dei cursori, che
+   porta display:flex e .sl b{min-width:36px}. Il <details> dell’elenco è diventato un
+   contenitore flessibile, il pannello dei seggi un elemento flessibile schiacciato a
+   26px di larghezza, e le tredici pastiglie sono finite una per riga: il pannello
+   misurava 524,4px invece di 136. NON HA FALLITO, HA RISPOSTO — con un numero quattro
+   volte più grande e nessun errore in console.
+   È la stessa famiglia della trappola dei selettori discendenti già registrata per
+   #k-evsel: un elemento nuovo eredita quello che il posto in cui arriva porta con sé,
+   e in un file unico con un foglio solo il «posto» è lo spazio dei nomi delle classi.
+   Due lettere non bastano a dichiarare un componente. */
+/* La riga chiusa: data, istituto e i due totali di blocco. Il bersaglio del dito non
+   scende sotto i 44px, che qui è gratis — la riga è alta di suo — ed è l'unico posto di
+   questo giro in cui il vincolo dei 44px si può rispettare senza spostare nient'altro. */
+/* E LA STESSA TRAPPOLA UNA SECONDA VOLTA, DAL LATO DEGLI ELEMENTI invece che delle
+   classi: questo foglio veste <details> e <summary> GLOBALMENTE — la nota metodologica,
+   la guida dei comandi e il modulo dell’archivio sono tutti details, e la regola dice
+   border, background, box-shadow e margin-top:20px, mentre summary dice padding 15/20,
+   maiuscoletto spaziato e un «+» in --acc da 20px.
+   Cinquanta righe dell’elenco sono cinquanta details: hanno preso venti pixel di margine
+   ciascuna, e l’elenco misurava 3.372px contro i 2.344 dei suoi figli — mille pixel che
+   non erano di nessuno. Anche qui NON HA FALLITO, HA RISPOSTO.
+   Quindi il componente si spoglia per intero di quello che eredita, e lo fa in un posto
+   solo: se domani la regola globale cambia, qui non cambia niente. */
+#kn26 details.sondr{border:0;box-shadow:none;margin-top:0;background:var(--card);}
+#kn26 .sondr summary{text-transform:none;letter-spacing:normal;font-family:var(--sans);color:var(--ink2);}
+#kn26 .sondr summary:hover{background:var(--wash);}
+#kn26 .sondr{border-bottom:1px solid var(--hair2);background:var(--card);}
+#kn26 .sondr:first-child{border-top:1px solid var(--hair);}
+#kn26 .sondlist{border:1px solid var(--hair);background:var(--card);box-shadow:var(--sh);margin-top:20px;}
+#kn26 .sondr summary{display:flex;align-items:baseline;gap:4px 9px;padding:11px 13px;
+ min-height:44px;box-sizing:border-box;cursor:pointer;list-style:none;font-size:12.5px;}
+#kn26 .sondr summary::-webkit-details-marker{display:none;}
+#kn26 .sondr summary::marker{content:'';}
+#kn26 .sondr summary b{font-weight:700;color:var(--ink);white-space:nowrap;}
+#kn26 .sondr summary span{color:var(--ink2);}
+#kn26 .sondr summary span i{font-style:normal;color:var(--mute);}
+/* i due totali di blocco stanno a destra, dove stanno anche in tabella */
+#kn26 .sondr summary u{margin-left:auto;text-decoration:none;white-space:nowrap;
+ font-variant-numeric:tabular-nums lining-nums;}
+#kn26 .sondr summary u em{font-style:normal;font-weight:700;}
+/* Il verso del segno È il canale dello stato aperto, e non è l'unico: <details> lo annuncia
+   da sé a un lettore di schermo. Un carattere, nessun colore, nessuna opacità. */
+#kn26 .sondr summary::after{content:'+';margin-left:9px;color:var(--mute);font-weight:700;
+ font-size:14px;line-height:1;}
+#kn26 .sondr[open] summary::after{content:'−';}
+#kn26 .sondr[open] summary{border-bottom:1px solid var(--hair2);}
+/* Il pannello: le stesse pastiglie delle schede dell'house effect, e il filetto a due
+   tinte dove cambia il blocco — terzo uso della stessa dichiarazione, che sta scritta una
+   volta sola più sopra. L'ordine delle liste è quello delle colonne, cioè colonneBlocco(). */
+#kn26 .sondv{display:flex;flex-wrap:wrap;gap:5px 7px;padding:11px 13px;background:var(--wash);}
+#kn26 .sondv span{display:inline-flex;align-items:baseline;gap:6px;font-size:11.5px;
+ border:1px solid var(--hair);background:var(--card);padding:3px 9px;border-radius:99px;}
+#kn26 .sondv em{font-style:normal;color:var(--ink2);}
+#kn26 .sondv s{text-decoration:none;font-weight:700;color:var(--ink);
+ font-variant-numeric:tabular-nums lining-nums;}
+/* il campione non è un seggio: sta in coda al gruppo di testa e non porta colore di lista */
+#kn26 .sondv .cmp em,#kn26 .sondv .cmp s{color:var(--mute);font-weight:400;}
+/* La riga dell'era pre-fusione, nella forma dell'elenco. Lo stesso testo della tabella —
+   la stringa è una sola, ERA_PRE — e la stessa grammatica: una banda che dichiara l'era a
+   parole, non un'attenuazione delle righe. */
+#kn26 .sondera{padding:8px 13px;background:var(--wash);font-size:10px;text-transform:uppercase;
+ letter-spacing:.08em;color:var(--mute);font-weight:700;border-bottom:1px solid var(--hair);}
+#kn26 #k-tabpiu{display:block;width:calc(100% - 26px);margin:13px;min-height:44px;}
 
 /* ══ HOUSE EFFECT: due forme, e il confine è misurato ══ */
 /* La tabella ha 941,8px di larghezza minima: tredici colonne con white-space:nowrap, di
@@ -1415,7 +1501,23 @@
  <div><b>Escludere un istituto</b><span>Ogni sondaggista può essere tolto dal calcolo dalla sua riga nella tabella <i>House effect</i>, o da qui per Direct Polls, che pubblica per Canale 14 e i24 e sopravvaluta sistematicamente il Likud. Nel modello pesa già la metà: escluderlo lo azzera del tutto.</span></div>
  <div><b>Affluenza araba</b><span>Non sposta voti fra blocchi: cambia quanti elettori arabi votano, moltiplicando le loro quote e diluendo tutte le altre. È la variabile che ha oscillato di più — dal 44,6% del 2021 al 64,8% del 2020 — e i sondaggi non la misurano, la assumono. I pulsanti sotto il cursore ancorano lo scenario alle sei elezioni dal 2015. <b>Attenzione al 2021:</b> aveva la stessa configurazione di oggi, tutti uniti tranne Ra'am, e produsse il minimo storico.</span></div>
    <div><b>Solo ultimi 7 giorni</b><span>Restringe la media alla settimana in corso: reagisce prima agli scossoni della campagna, ma su meno rilevazioni e quindi con più rumore.</span></div>
- <div><b>Apparentamenti annunciati</b><span>Due liste apparentate si presentano al riparto come una lista sola e si dividono poi i seggi fra loro: è l&rsquo;accordo di eccedenza previsto da Bader-Ofer, e sposta uno o due seggi. La soglia del 3,25% resta individuale. Gli accordi <i>depositati</i> entrano sempre; questo pulsante aggiunge quelli soltanto <i>annunciati</i>, che diventano vincolanti solo con il deposito delle liste.</span></div>
+
+ <!-- LA DEFINIZIONE STA QUI, E QUI SOLTANTO.
+      Tre ragioni, in ordine di peso. (1) La nota metodologica è prosa GENERATA:
+      notaApparentamenti() compone una stringa con rami su data e stato — depositati,
+      annunciati, termine passato, scarti — e una definizione non dipende da niente di
+      tutto questo: è una costante, e metterla dentro una funzione che compone prosa
+      condizionale è la forma che poi diverge. (2) La guida è il PUNTO DI BISOGNO: ci si
+      arriva perché si è visto il pulsante e non si è capito, mentre la nota sta in fondo
+      dentro un details chiuso intitolato «Nota metodologica, limiti e fonti», che chi
+      vuole sapere cosa vuol dire un comando non apre. (3) Questa voce aveva GIÀ mezza
+      spiegazione — diceva il meccanismo — quindi completarla non aggiunge un'occorrenza.
+      La definizione viene PRIMA del meccanismo: dice da dove viene il seggio, che è la
+      cosa che rende l'istituto comprensibile a chi non ce l'ha nel proprio sistema.
+      notaApparentamenti() rimanda qui invece di ripetere, e test/suite/apparentamenti.js
+      verifica che la nota NON contenga questa frase: è l'idioma degli altri controlli
+      sulle strade doppie, applicato a una definizione invece che a un colore. -->
+ <div><b>Apparentamenti annunciati</b><span>In Israele due liste possono accordarsi prima del voto per mettere insieme i voti che avanzano: quelli che ciascuna ha raccolto ma che non bastano a eleggere un altro deputato. Sommati, quei resti possono valere un seggio in più, che va alla lista con il resto maggiore fra le due. È un meccanismo che nel 2022 ha pesato sull’esito: i partiti arabi non firmarono alcun accordo, e i loro voti in eccedenza andarono persi. Due liste apparentate si presentano al riparto come una lista sola e si dividono poi i seggi fra loro: è l&rsquo;accordo di eccedenza previsto da Bader-Ofer, e sposta uno o due seggi. La soglia del 3,25% resta individuale. Gli accordi <i>depositati</i> entrano sempre; questo pulsante aggiunge quelli soltanto <i>annunciati</i>, che diventano vincolanti solo con il deposito delle liste.</span></div>
  <div><b>Lista Unita araba</b><span>Attivo per impostazione predefinita: il 19 agosto Hadash, Ta'al e Balad hanno firmato l'accordo per correre insieme, mentre Ra'am resta separata. Il modello somma le loro quote di voto rilevazione per rilevazione, così i voti di Balad — sotto soglia da soli — smettono di disperdersi. Disattivandolo si vede il controfattuale: quanto costerebbe loro correre divisi.</span></div></div></div></details>
 
 <!-- L'ARCHIVIO E' UNA LINGUETTA, NON UN PULSANTE CON UN PANNELLO ALTROVE.
@@ -5107,6 +5209,43 @@ function rDiag(){
    'gli aggiornamenti andranno persi alla ricarica. Esporta il JSON per conservarli.</p>':'')+
   '</div>';
 }
+/* IL LIMITE DELL'ELENCO, e il numero non viene dai pixel.
+   Sotto i 660 l'archivio non è più una tabella — vedi la sezione dell'elenco nel foglio —
+   e un elenco di 173 righe alte 35,1px è alto 6.072px: serve un limite. Quale, lo decide
+   quanto MORDE sui filtri, non quanto costa in altezza. Misurato il 23 agosto 2026, righe
+   lasciate da ciascun filtro: gli otto istituti danno 3 · 8 · 11 · 25 · 29 · 29 · 33 · 42,
+   i cinque periodi 32 · 62 · 84 · 111 · 173. Su tredici stati di filtro il limite non
+   morde in 3 su 13 a venti, 6 su 13 a trenta, 9 su 13 a cinquanta.
+   Cinquanta è il primo che lascia in pace la maggioranza dei filtri, e sotto quel numero
+   il lettore incontra DUE TRONCAMENTI IN FILA: filtra per avere meno righe, e ne trova
+   comunque meno di quante ne ha chieste. Un limite che scatta dopo un filtro non è un
+   limite, è un secondo filtro che nessuno ha chiesto.
+   Costa: la sezione passa da 774,4px a 2.100,4 con l'elenco pieno di cinquanta, ed è il
+   prezzo accettato. Il comando in coda ne aggiunge altre cinquanta per volta. */
+var TAB_LIMITE=50, TAB_MOSTRA=TAB_LIMITE;
+/* La riga che dichiara l'era pre-fusione compare in tutte e due le forme: una stringa
+   sola, o le due viste direbbero due cose diverse della stessa era. */
+var ERA_PRE="Era pre-fusione — Yesh Atid e Bennett 2026 corrono separati · esclusi dal modello";
+/* IL CONTATORE DICE TRE NUMERI QUANDO IL LIMITE MORDE, e la forma è quella già pagata dal
+   messaggio dell'aggiornamento: OGNI numero della frase è un numero di RIGHE, e il lettore
+   deve poter rifare il conto. Niente soglie, niente percentuali, niente numeri di un'altra
+   grandezza mescolati a quelli delle righe.
+   Le tre frasi sono una funzione sola perché sono la stessa lingua: «50 di 62 che
+   corrispondono, su 173» degrada in «62 su 173 rilevazioni» quando il limite non morde, e
+   in «173 rilevazioni» quando non c'è nessun filtro. Scriverle in tre posti le farebbe
+   divergere alla prima riscrittura, ed è la regola di acc() applicata a una frase intera. */
+function cntTab(mostrate,filtrate,totale){
+ /* QUATTRO CASI, non tre, e il quarto l'ha trovato il browser: senza nessun filtro la
+    prima stesura scriveva «50 di 173 che corrispondono, su 173» — «che corrispondono» a
+    che cosa, se non è stato chiesto niente? Un numero ripetuto due volte nella stessa
+    frase è il segnale che una delle due volte non vuol dire niente. */
+ if(mostrate<filtrate)
+  return f(mostrate)+' di '+f(filtrate)+
+   (filtrate<totale ? ' che corrispondono, su '+f(totale)
+                    : ' '+acc(filtrate,'rilevazione','rilevazioni'));
+ if(filtrate<totale) return f(filtrate)+' su '+f(totale)+' rilevazioni';
+ return f(totale)+' '+acc(totale,'rilevazione','rilevazioni');
+}
 function rTab(){
  var l=SOND.slice().sort(function(a,b){return a.data<b.data?1:-1;});
  var tot=l.length,rif=l.length?new Date(l[0].data):new Date();
@@ -5115,7 +5254,19 @@ function rTab(){
  else if(+FILTRI.per>0) l=l.filter(function(s){return gg(new Date(s.data),rif)<=+FILTRI.per;});
  if(FILTRI.txt){var t=FILTRI.txt.toLowerCase();
   l=l.filter(function(s){return ((s.istituto||'')+' '+(s.testata||'')+' '+s.data).toLowerCase().indexOf(t)>=0;});}
- var cnt=$('f-cnt'); if(cnt) cnt.textContent=l.length===tot?(f(tot)+' rilevazioni'):(f(l.length)+' su '+f(tot)+' rilevazioni');
+ /* L'ELENCO NE MOSTRA AL PIÙ TAB_MOSTRA, LA TABELLA TUTTE. Sono due viste dello stesso
+    dato e non due dati: quello che l'elenco mostra è un PREFISSO di quello che la tabella
+    mostra, con gli stessi valori nello stesso ordine, e test/suite/tabella.js lo verifica
+    riga per riga come house.js fa per tabella e schede. */
+ var vis=l.slice(0,TAB_MOSTRA);
+ /* IL CONTATORE È IN DUE FORME NEL DOM, E SCEGLIE IL FOGLIO. Non matchMedia: la pagina non
+    si ridisegna al ridimensionamento, quindi un contatore scelto dal JavaScript resterebbe
+    a dire il numero dell'altra larghezza appena si gira il telefono. È l'idioma del
+    sommario di testata, che sotto i 660 ha una forma corta e sopra una lunga, e che
+    date.js lega numero per numero. */
+ var cnt=$('f-cnt');
+ if(cnt) cnt.innerHTML='<span class="c-tab">'+E(cntTab(l.length,l.length,tot))+'</span>'+
+   '<span class="c-lst">'+E(cntTab(vis.length,l.length,tot))+'</span>';
  var selI=$('f-ist');
  if(selI&&!selI.dataset.pronto){
   var isti=[];SOND.forEach(function(s){if(isti.indexOf(s.istituto)<0)isti.push(s.istituto);});
@@ -5124,13 +5275,26 @@ function rTab(){
    return '<option value="'+E(x)+'">'+E(x)+'</option>';}).join('');
   selI.dataset.pronto='1';
  }
- var eraShown=false;
  /* Le colonne raggruppate per blocco, con il filetto dove il blocco cambia: la stessa
     funzione e lo stesso idioma dell'house effect. I confini escono da P[i].b, quindi l'8
     settembre si spostano da soli — nessuna posizione è scritta qui. */
  var cols=colonneBlocco(IDS.filter(function(i){return l.some(function(s){return s.seggi[i];});}));
  var confine={};
  cols.forEach(function(i,n){ if(n && P[i].b!==P[cols[n-1]].b) confine[i]=1; });
+ /* NIENTE RISULTATI: LA TABELLA DEVE DIRLO, e fino al 23 agosto 2026 non lo diceva.
+    Misurato: con una ricerca senza esiti restava un riquadro alto 31,7px con la sola
+    intestazione e nessuna parola. Il contatore accanto ai filtri diceva «0 su 173», quindi
+    non era muto — ma il posto in cui il lettore guarda è la tabella, e la tabella taceva.
+    È lo stesso caso che la verifica a scenari elenca sotto «archivio degenere», qui
+    prodotto da una ricerca invece che da un archivio vuoto.
+    Il messaggio vale per tutte e due le forme: è al posto loro, non dentro una delle due. */
+ if(!l.length){
+  $('k-tab').innerHTML='<p class="vuoto">Nessuna rilevazione corrisponde a questi filtri. '+
+   'L\'archivio ne contiene '+f(tot)+': prova a togliere la ricerca, a scegliere un altro '+
+   'istituto o ad allargare il periodo.</p>';
+  return;
+ }
+ var eraShown=false;
  var h='<table class="sondtab"><thead><tr><th class="l">Data</th><th class="l">Istituto</th><th>N</th>';
  cols.forEach(function(i){h+='<th'+(confine[i]?' class="sep"':'')+' title="'+E(nm(i))+'">'+
    E(nm(i).split(/[ –]/)[0].slice(0,8))+'</th>';});
@@ -5138,7 +5302,7 @@ function rTab(){
  l.forEach(function(s){
   var b=blocchi(s.seggi);
   if(s.pre&&!eraShown){eraShown=true;
-   h+='<tr><td colspan="'+(cols.length+5)+'" class="l" style="background:var(--wash);font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:var(--mute);font-weight:700">Era pre-fusione — Yesh Atid e Bennett 2026 corrono separati · esclusi dal modello</td></tr>';}
+   h+='<tr><td colspan="'+(cols.length+5)+'" class="l" style="background:var(--wash);font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:var(--mute);font-weight:700">'+ERA_PRE+'</td></tr>';}
   /* Non si attenuano: il canale è la riga di separazione qui sopra, che dice a parole di
      che era si tratta e che sono escluse dal modello. A .62 una cifra in --mute scendeva a
      2,37, e sono cifre che si leggono. */
@@ -5150,7 +5314,50 @@ function rTab(){
    h+='<td'+(cl?' class="'+cl+'"':'')+(v?' style="color:'+cp(P[i].c)+'"':'')+'>'+(v?f(v):'')+'</td>';});
   h+='<td class="s" style="color:'+C.coal+'">'+f(b.coalizione)+'</td><td class="s" style="color:'+C.oppo+'">'+f(b.opposizione)+'</td></tr>';
  });
- $('k-tab').innerHTML=h+'</tbody></table>';
+ h+='</tbody></table>';
+ /* ══ L'ALTRA FORMA: L'ELENCO CHE SI APRE ══
+    Una riga per rilevazione; premendola si aprono i seggi. La riga chiusa porta data,
+    istituto e i due totali di blocco; il pannello porta il campione e i seggi. Insieme
+    fanno esattamente la riga della tabella, e questa è la ragione della divisione: la
+    promessa scritta nel piede della sezione — «ogni riga chiude a 120 seggi e riproduce il
+    totale di blocco pubblicato» — resta verificabile, perché una rilevazione si vede
+    INTERA. È la proprietà per cui la terza forma proposta, quella per lista, è stata
+    scartata: là una rilevazione compariva undici volte e mai tutta, il 120 non si poteva
+    contare, e la promessa del piede sarebbe diventata inverificabile. Non era una
+    questione di forma.
+    <details>/<summary> nativi: apertura da tastiera con Invio e Spazio, stato annunciato
+    dal lettore di schermo, e nessun aria-expanded da tenere allineato a mano. */
+ var eraL=false;
+ h+='<div class="sondlist">';
+ vis.forEach(function(s){
+  var b=blocchi(s.seggi);
+  if(s.pre&&!eraL){eraL=true;h+='<div class="sondera">'+ERA_PRE+'</div>';}
+  /* LA TESTATA STA NEL PANNELLO E NON NEL SOMMARIO, ed è una misura. Con «Lazar ·
+     Panel4All Maariv» nel sommario la riga andava a capo: 62,8px invece di 46, su 18
+     righe delle prime 50 — cioè il gruppo si allungava di 300px per un campo secondario.
+     La testata dice CHI PUBBLICA, non chi rileva, e in tabella è già in --mute: nel
+     sommario stanno la data, l'istituto e i due totali di blocco, che sono le tre cose su
+     cui si sceglie quale riga aprire. Sommario più pannello continuano a fare esattamente
+     la riga della tabella, che è la proprietà che le due viste devono conservare. */
+  h+='<details class="sondr'+(s.pre?' pre':'')+'"><summary>'+
+    '<b>'+dc(s.data)+'</b><span>'+E(s.istituto)+'</span>'+
+    '<u><em style="color:'+C.coal+'">'+f(b.coalizione)+'</em> · '+
+    '<em style="color:'+C.oppo+'">'+f(b.opposizione)+'</em></u></summary><div class="sondv">';
+  if(s.testata) h+='<span class="cmp"><em>testata</em> <s>'+E(s.testata)+'</s></span>';
+  h+='<span class="cmp"><em>campione</em> <s>'+(s.campione?f(s.campione):'non dichiarato')+'</s></span>';
+  cols.forEach(function(i){var v=s.seggi[i]; if(!v) return;
+   h+='<span'+(confine[i]?' class="sep"':'')+'><em>'+E(nm(i))+'</em> <s style="color:'+cp(P[i].c)+'">'+f(v)+'</s></span>';});
+  h+='</div></details>';
+ });
+ /* Il comando dice QUANTE ne aggiunge e QUANTE ne restano: sono due numeri di righe, come
+    quelli del contatore, e insieme al contatore il lettore può rifare il conto intero. */
+ if(vis.length<l.length){
+  var resta=l.length-vis.length, prossime=Math.min(TAB_LIMITE,resta);
+  h+='<button class="btn g xs" id="k-tabpiu">Altre '+f(prossime)+' '+
+   acc(prossime,'rilevazione','rilevazioni')+' · ne '+acc(resta,'resta','restano')+' '+f(resta)+'</button>';
+ }
+ h+='</div>';
+ $('k-tab').innerHTML=h;
 }
 /* Che cosa la pagina dice degli accordi, ricavato dalla tabella e dalla leva invece che
    scritto. Prima diceva «non sono simulati», e quella frase è diventata falsa nel momento
@@ -5168,10 +5375,21 @@ function notaApparentamenti(){
     sono morti bisogna guardarli nella tabella, che è l'unico posto in cui restano. */
  var morti=APPARENTAMENTI.filter(function(x){return x.stato!=='depositato';});
  var nomi=function(x){return nm(x.a)+' e '+nm(x.b);};
- var t='Gli accordi di apparentamento — <i>heskem odafim</i> — sono simulati: due liste apparentate '+
-  'si presentano al riparto come una lista sola e si dividono poi fra loro i seggi che ottengono, '+
-  'con lo stesso metodo. La soglia del 3,25% resta individuale, quindi l\'accordo non aiuta nessuno '+
-  'a superarla. Spostano uno o due seggi, e spesso da un blocco all\'altro. ';
+ /* LA NOTA RIMANDA ALLA GUIDA, NON RIPETE LA DEFINIZIONE.
+    Fino al 23 agosto 2026 questa nota apriva con la stessa spiegazione del meccanismo che
+    sta nella voce «Apparentamenti annunciati» della guida dei comandi. Due copie della
+    stessa prosa, senza niente che le legasse: finché dicevano la stessa cosa non si
+    vedeva, e il giorno in cui una delle due si fosse arricchita — per esempio con la
+    definizione, che è arrivata oggi — l'altra sarebbe rimasta indietro in silenzio. È la
+    strada doppia di sempre, spostata dal colore alla lingua.
+    La sorgente è la GUIDA, e le tre ragioni stanno scritte accanto a quella voce. Qui
+    resta quello che la guida non dice: che il meccanismo è SIMULATO dal modello, con quale
+    termine e con quali accordi in tabella oggi. test/suite/apparentamenti.js verifica che
+    questa nota NON contenga la frase della definizione. */
+ var t='Gli accordi di apparentamento — <i>heskem odafim</i> — sono <b>simulati dal modello</b>. '+
+  'Che cosa siano, e perché due liste che si accordano possano ottenere un seggio in più, '+
+  'è spiegato in «Come si usano i comandi», alla voce «Apparentamenti annunciati». '+
+  'Spostano uno o due seggi, e spesso da un blocco all\'altro. ';
  /* LA DATA CHE QUESTA NOTA SBAGLIAVA. Diceva che il termine è quello del deposito delle
     liste: è falso, e il lettore che leggeva «nessuno risulta depositato» a settembre ne
     ricavava che la partita fosse chiusa. Le due date sono qui una accanto all'altra, con
@@ -6007,13 +6225,33 @@ function mostraAff(){
 $('k-aff').addEventListener('input',function(){AFF=+this.value;mostraAff();});
 $('k-aff').addEventListener('change',render);
 
+/* OGNI FILTRO RIPARTE DAL LIMITE, e non è un dettaglio: chi ha premuto «altre 50» tre
+   volte e poi filtra sta facendo una domanda nuova, e se l'elenco restasse aperto a
+   centocinquanta troverebbe la risposta in fondo a uno schermo che non ha chiesto. Sta
+   qui e non dentro rTab() perché rTab() ridisegna anche quando non è cambiato nessun
+   filtro — al render, quando arriva un sondaggio nuovo — e lì il limite non va toccato. */
+function filtraTab(f,v){ f(v); TAB_MOSTRA=TAB_LIMITE; rTab(); }
 R.addEventListener('change',function(e){
  var id=e.target&&e.target.id;
- if(id==='f-ist'){FILTRI.ist=e.target.value;rTab();}
- else if(id==='f-per'){FILTRI.per=e.target.value;rTab();}
+ if(id==='f-ist') filtraTab(function(v){FILTRI.ist=v;},e.target.value);
+ else if(id==='f-per') filtraTab(function(v){FILTRI.per=v;},e.target.value);
 });
 R.addEventListener('input',function(e){
- if(e.target&&e.target.id==='f-txt'){FILTRI.txt=e.target.value;rTab();}
+ if(e.target&&e.target.id==='f-txt') filtraTab(function(v){FILTRI.txt=v;},e.target.value);
+});
+/* «Altre 50». Il fuoco va perso perché il pulsante viene riscritto da rTab(): si rimette
+   sul comando nuovo se c'è ancora, o sull'ultima riga aggiunta se l'elenco è finito —
+   altrimenti chi naviga da tastiera si ritrova all'inizio del documento a ogni pressione.
+   È la stessa cosa che #k-house impone da sempre: un riferimento preso prima del render
+   è morto subito dopo, e il fuoco è un riferimento. */
+R.addEventListener('click',function(e){
+ var b=e.target&&e.target.closest&&e.target.closest('#k-tabpiu');
+ if(!b) return;
+ TAB_MOSTRA+=TAB_LIMITE; rTab();
+ var nuovo=$('k-tabpiu');
+ if(nuovo) nuovo.focus();
+ else { var righe=R.querySelectorAll('.sondlist details summary');
+        if(righe.length) righe[righe.length-1].focus(); }
 });
 /* Esc come via d'uscita dal filtro dell'emiciclo, da qualunque punto della pagina: è la
    terza strada per tornare indietro, accanto al nuovo clic sulla stessa voce e al

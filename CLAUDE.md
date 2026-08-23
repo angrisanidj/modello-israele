@@ -29,7 +29,7 @@ alle prove.
 
 ```bash
 npm install          # solo la prima volta: installa jsdom per le prove
-npm test             # estrae il JS e lancia le 1602 prove
+npm test             # estrae il JS e lancia le 1661 prove
 npm run verifica     # prove + controlli strutturali
 npm run spazzola     # rilancia il banco con l'orologio al 23 ottobre: dice quali prove
                      #   danno per scontato un archivio fresco. Da rifare dopo ogni
@@ -65,7 +65,7 @@ sempre; ometterlo cancellerebbe l'unica traccia che il controllo esiste.
 ## Il banco di misura su browser vero
 
 Le prove girano in jsdom, che **non fa layout**: larghezze, altezze, contrasti resi e
-sovrapposizioni non le vede nessuna delle 1602. Per quelle c'è un server statico da otto
+sovrapposizioni non le vede nessuna delle 1661. Per quelle c'è un server statico da otto
 righe, `.claude/serve.mjs`, dichiarato in `.claude/launch.json` come configurazione
 `misure`. **È sotto controllo di versione apposta: chi apre il progetto domani lo trova
 invece di rimontarlo.** Non è una dipendenza del modello — `index.html` resta un file
@@ -213,6 +213,23 @@ commit* spiegando perché nel messaggio.
 
 ## Trappole già incontrate, da non ripetere
 
+- **Il banco delle mutazioni POSSIEDE `index.html` finché gira, e non lo dice a nessuno.**
+  Un misuratore di mutanti legge il file una volta all'avvio, lo tiene in memoria, e per
+  ogni mutante scrive la versione guasta, esegue le suite e riscrive la copia buona. Finché
+  gira, **il file su disco è suo**: quello che si vede lì non è quello che si sta
+  scrivendo, ed è vero anche fra un mutante e l'altro.
+  Successo il 23 agosto 2026: un `git checkout index.html` lanciato mentre il banco girava
+  ha riportato il file a HEAD, cancellando il lavoro non committato. **Non se n'è accorto
+  nessuno per qualche minuto**, perché al mutante successivo il runner ha riscritto la sua
+  copia in memoria e tutto è tornato al suo posto — cioè il rimedio è arrivato per caso,
+  dallo stesso meccanismo che aveva reso possibile il danno. Se il banco fosse morto in
+  quell'istante, il lavoro sarebbe stato perso e basta.
+  Due regole, e la seconda è quella che salva davvero: **mentre un banco di mutazioni gira
+  non si tocca il file che muta, con nessun comando** — né git, né un editor, né una patch;
+  e **quando lo si interrompe a metà, il file resta guasto**, quindi prima di rimettersi a
+  lavorare si controllano le sedi di mutazione una per una. La seconda è già servita: il
+  runner fermato con `TaskStop` aveva lasciato `f(resta)` al posto di `f(prossime)` nel
+  comando dell'elenco, e sarebbe finito in un commit se il controllo non fosse stato fatto.
 - **Tagliare il file usando come confine una funzione che sta *prima***: duplica un blocco e la
   versione vecchia vince. Prima di un taglio, verificare che l'indice di fine sia maggiore di
   quello di inizio.
@@ -289,9 +306,13 @@ test/
                       misurati, e il legame fra og:title e titoloCortoOra() su tutte e
                       dodici le celle. Prova anche scriviMeta(), cioè i modi in cui il
                       job deve RIFIUTARSI di toccare index.html
-  suite/tabella.js    l'archivio dei sondaggi: colonne raggruppate per blocco, i filetti
-                      dove il blocco cambia, e le 2805 celle confrontate una per una con
-                      l'archivio — un riordino che sposta i valori non si vede a occhio
+  suite/tabella.js    l'archivio dei sondaggi nelle sue DUE forme. Desktop: colonne
+                      raggruppate per blocco, i filetti dove il blocco cambia, e le 2805
+                      celle confrontate una per una con l'archivio — un riordino che sposta
+                      i valori non si vede a occhio. Sotto i 660: l'elenco che si apre, il
+                      limite a 50 provato sulla PROPRIETÀ per cui è 50, il contatore a tre
+                      numeri letto come lo leggerebbe un lettore, e le due forme legate
+                      valore per valore e nello stesso ordine
   suite/direzione.js  «a parametri identici»: che ogni leva arrivi a tutti e due i termini
                       del confronto, che la frase esca dalla proprietà invece di starle
                       accanto, e che la lettura «com'era» resti in serieModello()
@@ -324,8 +345,10 @@ docs/
                       grandezze disponibili e che cosa la frase deve dire — i quattro
                       blocchi che l anagrafica dei testi non copre ancora
   tabella-sondaggi-mobile.md  le tre forme proposte per la sezione 11 sotto i 660, con le
-                      sei risposte per ciascuna e i numeri misurati a 380. NIENTE DI QUESTO
-                      È IN PAGINA: è la metà mobile del punto 2 della coda
+                      sei risposte per ciascuna e i numeri misurati a 380. La forma A è
+                      stata applicata; le altre due restano scritte con la ragione per cui
+                      non lo sono — e la terza è scartata per la promessa dei 120, non per
+                      la forma
   aggiungere-un-apparentamento.md  il contratto per la sera del 16 ottobre: i campi, il
                       percorso, i dodici modi di sbagliare la riga e che cosa dice ciascuno,
                       e i passi di giudizio marcati
@@ -2174,10 +2197,166 @@ e l'house effect che torna a filtrare per conto suo.
 
 ---
 
-## Dove sta il concetto degli apparentamenti, e dove manca la definizione
+## L'archivio sotto i 660: l'elenco che si apre, e la forma scartata
 
-Censito il 23 agosto 2026, su richiesta dell'autore. **Il testo della definizione lo scrive
-lui; qui c'è l'inventario e il posto.**
+Applicato il 23 agosto 2026, seconda metà del punto 2 della coda. Le tre forme proposte e le
+sei risposte per ciascuna stanno in [docs/tabella-sondaggi-mobile.md](docs/tabella-sondaggi-mobile.md);
+qui c'è quello che è stato scelto e perché.
+
+A 380 la tabella era larga **1288,9px in un contenitore da 356**: il 27,6% visibile, e per
+leggere una riga si trascinava avanti e indietro dentro un riquadro alto 480px che a sua
+volta stava dentro una pagina alta 10.536. Adesso sotto i 660 c'è un elenco: una riga per
+rilevazione, e premendola si aprono i seggi.
+
+### La forma A, e il limite a 50
+
+**Il sommario porta data, istituto e i due totali di blocco; il pannello porta testata,
+campione e i seggi.** La divisione non è di comodo: insieme fanno **esattamente la riga
+della tabella**, ed è la proprietà che tiene in piedi la promessa scritta nel piede della
+sezione — «ogni riga chiude a 120 seggi e riproduce il totale di blocco pubblicato».
+
+**Il limite è 50, e il numero non viene dai pixel.** Misurate le righe che ciascun filtro
+lascia: gli otto istituti danno 3 · 8 · 11 · 25 · 29 · 29 · 33 · 42, i cinque periodi 32 ·
+62 · 84 · 111 · 173. Su **tredici stati di filtro** il limite non morde in 3 su 13 a venti,
+6 su 13 a trenta, **9 su 13 a cinquanta**.
+
+Cinquanta è il primo che lascia in pace la maggioranza dei filtri, e sotto quel numero il
+lettore incontra **due troncamenti in fila**: filtra per avere meno righe, e ne trova
+comunque meno di quante ne ha chieste. Un limite che scatta dopo un filtro non è un limite,
+è un secondo filtro che nessuno ha chiesto. **Due troncamenti in fila sono peggio di una
+sezione lunga**, e la sezione lunga è il prezzo: **da 774,4px a 2.567,4**, e 2.738,4 con un
+pannello aperto.
+
+La prova non asserisce il 50 come numero magico: asserisce **la proprietà da cui è stato
+scelto** — che lasci intatta la maggioranza degli stati di filtro — applicando i filtri uno
+per uno e contando. Se l'archivio cresce e la proprietà smette di valere, cade.
+
+E **ogni filtro riazzera il limite**: chi ha premuto «altre 50» tre volte e poi filtra sta
+facendo una domanda nuova. Sta nel gestore e non in `rTab()`, perché `rTab()` ridisegna anche
+quando non è cambiato nessun filtro — al render, quando arriva un sondaggio nuovo — e lì il
+limite non va toccato.
+
+### Perché la forma per lista è stata scartata, e non per la forma
+
+La terza proposta — una **colonna del tempo**, una lista per volta, con le rilevazioni in
+verticale — era l'unica che non somigliava a niente in pagina, e non duplicava nessun
+calcolo: i suoi numeri sono le celle dell'archivio, le stesse che i puntini della tendenza
+sommano per blocco. **Non c'era una seconda strada di calcolo, quindi non c'era niente che
+potesse divergere.**
+
+**È stata scartata perché in quella forma una rilevazione non compare mai intera.** Compare
+undici volte, una per lista, in undici colonne che il lettore non vede mai insieme: **il 120
+non si può contare**, e i totali di blocco per riga non stanno da nessuna parte. La promessa
+del piede — «ogni riga chiude a 120 seggi e riproduce il totale di blocco pubblicato» —
+diventa inverificabile. Non si perde una comodità di lettura: si perde la verificabilità che
+la sezione dichiara al lettore, e l'archivio esiste perché chi legge possa controllare.
+
+**Quello che quella forma ha trovato resta, ed è annotato fra le cose minori**: nessuna
+sezione della pagina mostra la serie storica di una singola lista dai sondaggi grezzi.
+
+### I due difetti chiusi qui accanto, trovati misurando
+
+**1 · Con zero risultati la tabella taceva.** Misurato: una ricerca senza esiti lasciava un
+riquadro alto **31,7px** con la sola intestazione e nessuna parola. Il contatore accanto ai
+filtri diceva «0 su 173», quindi non era muto — **ma il posto in cui il lettore guarda è la
+tabella**. È il caso «archivio degenere» della verifica a scenari, prodotto da una ricerca
+invece che da un archivio vuoto. Adesso c'è un messaggio, al posto delle due forme e non
+dentro una delle due, e dice **quante rilevazioni contiene l'archivio**: così il lettore sa
+che il vuoto è del filtro e non dei dati.
+
+**2 · Il contatore dice tre numeri quando il limite morde.** «50 di 62 che corrispondono, su
+173», nella forma già pagata dal messaggio dell'aggiornamento: ogni numero della frase è un
+numero di **righe**, e il lettore deve poter rifare il conto. La prova è scritta sulla
+proprietà del lettore — si prende la frase, si estraggono i numeri, e si pretende che siano
+quelli che si vedono, quelli che corrispondono e quelli che ci sono, in quest'ordine.
+
+**E il quarto caso l'ha trovato il browser, non il ragionamento.** La prima stesura aveva tre
+rami e senza nessun filtro scriveva «**50 di 173 che corrispondono, su 173**»: «che
+corrispondono» a che cosa, se non è stato chiesto niente? **Un numero ripetuto due volte
+nella stessa frase è il segnale che una delle due volte non vuol dire niente.** I casi sono
+quattro: nessun filtro e nessun limite («173 rilevazioni»), filtro senza limite («62 su 173
+rilevazioni»), limite senza filtro («50 di 173 rilevazioni»), tutti e due («50 di 62 che
+corrispondono, su 173»).
+
+**Il contatore ha due forme nel DOM e le sceglie il foglio**, non `matchMedia`: la pagina non
+si ridisegna al ridimensionamento, quindi un contatore scelto dal JavaScript resterebbe a
+dire il numero dell'altra larghezza appena si gira il telefono. È l'idioma del sommario di
+testata, e `tabella.js` lega le due forme numero per numero.
+
+### Due trappole nella stessa ora, ed è la stessa trappola
+
+Sono le più istruttive di questo giro, perché **nessuna delle due ha fallito: hanno
+risposto**, con numeri quattro volte più grandi e zero errori in console.
+
+**1 · Il nome di classe corto.** L'elenco era `.sl` / `.slv`, e **`.sl` esiste già in questo
+foglio**: è la riga dei cursori, che porta `display:flex` e `.sl b{min-width:36px}`. Il
+`<details>` di ogni riga è diventato un contenitore flessibile, il pannello dei seggi un
+elemento flessibile schiacciato a **26px di larghezza**, e le tredici pastiglie sono finite
+una per riga: il pannello misurava **524,4px invece di 136**. Rinominati in `.sondr` /
+`.sondv` / `.sondera`: **due lettere non bastano a dichiarare un componente.**
+
+**2 · L'elemento vestito globalmente.** Il foglio veste `<details>` e `<summary>` per tutta
+la pagina — la nota metodologica, la guida dei comandi e il modulo dell'archivio sono tutti
+`details` — con `border`, `background`, `box-shadow`, `margin-top:20px`, e per `summary`
+padding 15/20, maiuscoletto spaziato e un «+» in `--acc` da 20px. **Cinquanta righe
+dell'elenco sono cinquanta `details`**: hanno preso venti pixel di margine ciascuna, e
+l'elenco misurava **3.372px contro i 2.344 dei suoi figli** — mille pixel che non erano di
+nessuno. Il componente adesso si spoglia per intero di quello che eredita, e in un posto
+solo.
+
+**È la stessa famiglia della trappola dei selettori discendenti già registrata per
+`#k-evsel`**, vista da due lati: là un elemento si spostava e prendeva quello che il posto
+nuovo gli metteva addosso, qui un elemento nasce e prende quello che il **nome** e il **tag**
+gli mettono addosso. In un file unico con un foglio solo, lo spazio dei nomi delle classi e
+quello degli elementi sono globali, e un componente nuovo va spogliato prima di essere
+vestito.
+
+### La definizione degli apparentamenti, e dove sta
+
+**«Accordo» da solo non dice niente a un lettore italiano**: il meccanismo dei voti in
+eccedenza nel nostro sistema non esiste in quella forma. La pagina lo nominava in **sette
+punti** — etichetta del pulsante, nota dei comandi, riga di esito, guida, calendario, nota
+metodologica, punto 3 del riparto — e **non lo definiva da nessuna parte**.
+
+La definizione è nella **guida dei comandi**, alla voce «Apparentamenti annunciati», e
+soltanto lì. Tre ragioni, in ordine di peso:
+
+1. **La nota metodologica è prosa generata.** `notaApparentamenti()` compone una stringa con
+   rami su data e stato, e una definizione non dipende da nessuno dei due: è una costante, e
+   metterla dentro una funzione che compone prosa condizionale è la forma che poi diverge.
+2. **La guida è il punto di bisogno**: ci si arriva perché si è visto il pulsante e non si è
+   capito. La nota sta in fondo, dentro un `<details>` chiuso intitolato «Nota metodologica,
+   limiti e fonti», che chi vuole sapere cosa vuol dire un comando non apre.
+3. **La voce aveva già mezza spiegazione** — diceva il meccanismo — quindi completarla non
+   aggiunge un'ottava occorrenza.
+
+E la definizione viene **prima** del meccanismo: dice da dove viene il seggio, che è la cosa
+che rende l'istituto comprensibile a chi non ce l'ha nel proprio sistema; il meccanismo
+risponde a una domanda che il lettore si fa dopo.
+
+**Il titolo della voce era «Apparentamenti proposti»**, cioè la parola scartata lo stesso
+giorno per l'etichetta del pulsante: «annunciato» è il fatto verificabile — c'è una data e
+una fonte — mentre «proposto» dice anche chi ha proposto a chi, che nell'offerta unilaterale
+di Abbas non è simmetrico. La voce era rimasta indietro, e adesso dice «Apparentamenti
+annunciati».
+
+**`notaApparentamenti()` rimanda invece di ripetere, e c'è la prova che le lega.** Le due
+strade esistevano già prima di oggi: la nota apriva ricopiando il meccanismo che la guida
+descrive. Finché dicevano la stessa cosa non si vedeva; il giorno in cui una delle due si è
+arricchita — oggi — l'altra sarebbe rimasta indietro in silenzio. La prova è in **due versi**,
+come tutte quelle sulle strade doppie: la definizione c'è dove deve e **non** c'è dove non
+deve. Una sola delle due asserzioni non basterebbe — la prima passa anche se la nota la
+ricopia, la seconda passa anche se la definizione non esiste affatto. E una terza pretende
+che la nota **rimandi**: togliere una copia senza lasciare la strada è peggio che tenerne due.
+
+## Dove stava il concetto degli apparentamenti, e dove mancava la definizione
+
+Censito il 23 agosto 2026 su richiesta dell'autore, e **chiuso lo stesso giorno**: la
+definizione è nella guida dei comandi, la nota metodologica rimanda, e una prova in due
+versi lega le due strade — vedi «La definizione degli apparentamenti, e dove sta».
+Questo è l'inventario da cui si è partiti, e resta perché dice **in quanti punti** la
+pagina nomina una cosa che non definiva: sette. Se un giorno se ne aggiunge un ottavo, la
+domanda da farsi è la stessa.
 
 Il punto è giusto e non è una sfumatura: **«accordo» da solo non dice niente a un lettore
 italiano**, perché il meccanismo dei voti in eccedenza nel nostro sistema non esiste in
@@ -2625,8 +2804,8 @@ Due conseguenze pratiche, e sono quelle da ricordare:
 
 ### Lo stato al 23 agosto 2026, sera
 
-Scritto per ripartire senza la conversazione. Ultimo commit spinto: **`9528f0a`**, CI e
-Pages verdi. Sul banco di oggi le prove sono **1602**, e le due suite nuove sono
+Scritto per ripartire senza la conversazione. Ultimo commit spinto: **`0950866`**, CI e
+Pages verdi. Sul banco di oggi le prove sono **1661**, e le due suite nuove sono
 `meta.js` e `tabella.js`.
 
 **E l'ordine di marcia è cambiato**: la coda è stata riscritta per pubblicare prima, e la
@@ -2907,7 +3086,12 @@ da fare.
    · **Desktop: FATTO il 23 agosto 2026** — le colonne raggruppate per blocco, con i
      filetti a due tinte dell'house effect e i confini dettati dall'anagrafica. Vedi «La
      tabella dei sondaggi: l'ordine è dei blocchi».
-   · **Sotto i 660: DA DECIDERE.** Oggi la tabella è larga 1288,9px in un contenitore da
+   · **Sotto i 660: FATTO il 23 agosto 2026** — la forma A col limite a 50. Vedi
+     «L'archivio sotto i 660: l'elenco che si apre, e la forma scartata». La sezione passa
+     da 774,4px a 2.567,4, ed è il prezzo accettato: due troncamenti in fila sono peggio di
+     una sezione lunga. Quello che segue è la premessa da cui si è partiti, e resta perché
+     i suoi numeri servono a leggere la scelta.
+   · Oggi la tabella era larga 1288,9px in un contenitore da
      326 dentro `.scroll`: si vede il 25%, e per leggere una riga bisogna trascinare avanti
      e indietro. Servono le stesse funzioni del desktop — ricerca, filtro per istituto,
      filtro per periodo, i seggi lista per lista — in una forma pensata per il telefono, e
@@ -2939,8 +3123,9 @@ da fare.
      contare. Con l'orologio congelato al 15, al 16 e al 17 si guarda che le tre schermate
      dicano tre cose coerenti, e che il calendario dica «oggi» il 16 e «passato» il 17. Le
      prove lo verificano; nessuno l'ha ancora **guardato**.
-6. **La verifica a scenari** (le sei tabelle in fondo a questo file). *«Scenari» e
-   «verifica a scenari» erano elencati come due voci: sono la stessa, ed è questa.*
+6. **La verifica a scenari** (le sei tabelle in fondo a questo file). *Era elencata due
+   volte, come «scenari» e come «verifica a scenari»: l'autore ha confermato il 23 agosto
+   2026 che sono la stessa cosa, e la voce doppia è stata tolta.*
 7. **Le meta Open Graph con l'immagine generata dal job.** Le meta testuali ci sono già; qui
    c'è la parte che costa. Serve un rasterizzatore in CI — il job gira su Node, non in un
    browser — e i pezzi sono quelli dell'esportazione PNG: serializzare l'SVG dell'emiciclo,
@@ -2980,15 +3165,11 @@ da fare.
 
 #### Fuori dalla coda, ma da decidere
 
-- **La definizione di «apparentamento» non c'è da nessuna parte in pagina**, e «accordo»
-  da solo non dice niente a un lettore italiano: il meccanismo dei voti in eccedenza nel
-  nostro sistema non esiste in quella forma. Le occorrenze e il posto giusto dove metterla
-  sono in «Dove sta il concetto degli apparentamenti, e dove manca la definizione». **Il
-  testo lo scrive l'autore**, e va in testa alla voce della guida dei comandi. Il titolo di
-  quella voce è già stato corretto da «Apparentamenti proposti» ad «Apparentamenti
-  annunciati», per la stessa ragione per cui «proposto» era stato scartato nel pulsante.
-  **Resta da decidere quale dei due posti è la sorgente** — la guida o la nota metodologica —
-  perché la definizione non va scritta due volte.
+- ~~La definizione di «apparentamento» non c'è da nessuna parte in pagina~~ — **scritta
+  dall'autore e applicata il 23 agosto 2026**, in testa alla voce «Apparentamenti
+  annunciati» della guida dei comandi, che è la sorgente unica: la nota metodologica
+  rimanda invece di ripetere, e una prova in due versi lega le due strade. Vedi «La
+  definizione degli apparentamenti, e dove sta».
 - ~~L'etichetta del pulsante degli accordi va a capo a 380~~ — **applicata il 23 agosto
   2026**: «Aggiungi / Togli N apparentamento/i», con `acc()` per il plurale. Le misure e le
   sei formulazioni scartate restano nella sezione, perché il numero che ha deciso — il
@@ -3001,6 +3182,18 @@ da fare.
   giro ne sono cadute due — la composizione del blocco Netanyahu (**quattro** copie, una
   nel parser notturno) e il calendario elettorale — e una si è rivelata **non** essere
   tale: la numerazione delle sezioni ha due meccanismi ma una sorgente sola.
+- **LA CASELLA VUOTA TROVATA IL 23 AGOSTO 2026: nessuna sezione mostra la serie storica di
+  una singola LISTA dai sondaggi grezzi.** Misurato: la sezione 9 disegna **tre serie, e
+  sono BLOCCHI** — Blocco Netanyahu, Opposizione sionista, Partiti arabi — e i 519 puntini
+  sono 173 rilevazioni × 3 blocchi, cioè anche i singoli sondaggi lì sono aggregati; nel
+  grafico della tendenza non esiste nessuna lista, e la voce di legenda che si isola isola
+  un blocco. Le sparkline di `k-proj` sono la forbice dell'80%, cinque elementi, non una
+  serie; `k-movers` dà **due numeri** — 7 GG e 30 GG — e solo per le dieci liste che si
+  sono mosse.
+  **Il posto per riempirla è la legenda della sezione 9**, dando ai tre blocchi la
+  possibilità di isolare una lista: NON l'archivio, che è la sezione in cui una rilevazione
+  deve potersi vedere intera. È la ragione per cui la forma per lista è stata scartata
+  dalla sezione 11, e la casella che quella forma aveva trovato resta buona lo stesso.
 - **Il campo `esito`** in archivio (punto 8-bis): senza, dopo il voto la pagina può
   parlare solo della propria stima, e l'ottava istantanea che sposterebbe il 2,7 non
   esiste.
@@ -3115,7 +3308,7 @@ la regola della consegna 6».
 trovati oggi — la stella della bandiera che sconfinava nelle bande, l'occhiello a filo del
 bordo sull'ombra, il vuoto di 372px sotto le ipotesi, l'evidenziazione che competeva con
 la codifica del riempimento, il verde arabo che si leggeva nero — sono stati trovati
-**guardando la pagina**, non dalla suite. Le 1602 prove dicono che il modello non si è
+**guardando la pagina**, non dalla suite. Le 1661 prove dicono che il modello non si è
 rotto; non dicono che la pagina si veda. Dopo ogni push, aprire
 <https://angrisanidj.github.io/modello-israele/> e guardarla nei due temi.
 
@@ -3128,7 +3321,7 @@ rotto; non dicono che la pagina si veda. Dopo ogni push, aprire
 per due ragioni. La prima è che dice che cosa è già stato visto, e quindi che cosa NON va
 riguardato quando si tocca qualcosa lì accanto. La seconda è che la sua ultima sezione —
 quella su come si annota un difetto visivo — vale ogni volta che se ne trova uno, e i
-difetti visivi si trovano ancora: sono la famiglia che nessuna delle 1602 prove vede.
+difetti visivi si trovano ancora: sono la famiglia che nessuna delle 1661 prove vede.
 
 Quello che entra in pagina DOPO questa passata non è coperto: l'embed e l'esportazione PNG
 disegnano attorno ai grafici e vanno guardati quando ci saranno, e la forma nuova della
@@ -3138,7 +3331,7 @@ lista dichiarava di non aver mai esaminato.
 Scritta il 22 agosto 2026 per una passata sola, sezione per sezione. Serve a distinguere
 **quello che qualcuno ha già guardato reso** da **quello che nessuno ha mai visto**: in due
 giorni sono entrate parecchie cose che le prove dichiarano sane e che nessun occhio ha
-ancora confermato. Le 1602 prove dicono che il modello non si è rotto; non dicono che la
+ancora confermato. Le 1661 prove dicono che il modello non si è rotto; non dicono che la
 pagina si veda.
 
 Si guarda su <https://angrisanidj.github.io/modello-israele/>, **nei due temi forzati dal
