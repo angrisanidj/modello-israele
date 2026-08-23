@@ -2248,7 +2248,7 @@ Due conseguenze pratiche, e sono quelle da ricordare:
 
 ### Lo stato al 23 agosto 2026, sera
 
-Scritto per ripartire senza la conversazione. Ultimo commit spinto: **`4eb6756`**, CI e
+Scritto per ripartire senza la conversazione. Ultimo commit spinto: **`69d1c89`**, CI e
 Pages verdi. Sul banco di oggi le prove sono **1536**.
 
 **Che cosa è entrato oggi**, in cinque commit. Gli **apparentamenti** con il loro termine —
@@ -2300,6 +2300,15 @@ lavoro, perché `datiTitolo(fo,mc)` riceve già `mc`.
   l'ordine». Sono due domande diverse su chi è primo, in due riquadri vicini, e nessuno ha
   verificato che non possano dire il contrario l'una dell'altra nello stesso schermo.
 
+**5-bis · Il JavaScript non si scrive dentro il YAML.** Due frammenti multiriga dentro un
+blocco `run: |` hanno reso `.github/workflows/aggiorna.yml` **illeggibile a GitHub**:
+esecuzione fallita in **zero secondi**, nome del workflow non riconosciuto, e il lavoro
+notturno non sarebbe partito — cioè sarebbe morto anche il riepilogo che avrebbe dovuto
+dirlo. Adesso il codice sta in `.github/scripts/riepilogo.mjs` e **`struttura.mjs` carica i
+workflow con un parser YAML**: quel file lo scrive una persona a mano e nessuna prova lo
+leggeva. Costa una `devDependency` — `js-yaml` — e vale, perché quel file pubblica ogni
+notte.
+
 **5 · Il caso V4 è vivo oggi.** Il riquadro della direzione mostra **seggi fermi** e
 l'opposizione che passa dal **16% al 21%**, +5,1 punti. Il ramo che lo riconosce c'è —
 classe `psmossa` e gli attributi con blocco e numeri — la frase no: si scrive lì.
@@ -2324,6 +2333,9 @@ classe `psmossa` e gli attributi con blocco e numeri — la frase no: si scrive 
 - **`npm run spazzola` dopo ogni modifica a un'àncora temporale**, ed è nel lavoro notturno
   dopo il push. Trova la famiglia di difetti che nessun'altra cosa trova: una prova che
   darà per scontato un archivio fresco il 23 ottobre, cioè quando la pagina conta di più.
+- **Il YAML dei workflow è provato**: `struttura.mjs` lo carica. Non scrivere JavaScript
+  multiriga dentro `run: |` — l'ha già reso invalido una volta, e un workflow invalido
+  fallisce in zero secondi portandosi via anche il canale che avvisa.
 - **E la trappola che non è del banco ma delle fixture**: da metà di `apparentamenti.js`
   l'orologio è congelato alla vigilia del **16 ottobre**, quindi lì `giorniFa(3)` è il 12
   ottobre. Una data di fixture si sceglie rispetto a quello che la prova interroga.
