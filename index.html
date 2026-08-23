@@ -1862,12 +1862,42 @@ function E(s){return String(s).replace(/[&<>"]/g,function(c){return{'&':'&amp;',
 function nm(i){return P[i]?P[i].n:i;}
 /* alcune liste vogliono l'articolo: "il Likud", "davanti al Likud", "di fronte ai Democratici" */
 var ART={likud:'il',sionismo_rel:'il',utj:'il',democratici:'i'};
-var CONTR={'a il':'al','di il':'del','a i':'ai','di i':'dei'};
+/* Le preposizioni articolate per i due soli articoli che l'anagrafica usa. Mancarne una
+   non produce un errore di stile: produce «da il Likud», che nessuno scrive. */
+var CONTR={'di il':'del','a il':'al','da il':'dal','in il':'nel','su il':'sul','con il':'col',
+           'di i':'dei','a i':'ai','da i':'dai','in i':'nei','su i':'sui','con i':'coi'};
+/* e le tre che non si fondono: «per il Likud», non «peril» */
+var SENZA_CONTR=['per','tra','fra'];
+/* IL NOME CON L'ARTICOLO, E LA PREPOSIZIONE VA DICHIARATA SEMPRE — anche vuota.
+   Il 23 agosto 2026 la pagina diceva «contro il 44% di il Likud», «In evidenza i seggi di
+   I Democratici» e avrebbe detto «seguito da Likud». Tre punti diversi, un difetto solo, e
+   NON era nelle chiamate: era nella firma. `prep` era facoltativa, quindi si poteva
+   chiamare nmA(i) e scrivere la preposizione a mano un carattere prima — e in quel modo
+   la contrazione non ha nessun posto in cui avvenire. Una funzione di lingua che si può
+   chiamare senza il parametro che la fa funzionare è una funzione che verrà chiamata così.
+   Adesso: nmA(i,'di') → «del Likud», nmA(i,'') → «il Likud», nmA(i) → errore.
+   E l'errore è un errore vero, non un ripiego silenzioso: la pagina intera non parte, il
+   banco lo trova, e nessuno pubblica «da il». La stessa scelta di COLORE oltre la
+   saturazione. Un controllo in test/struttura.mjs cerca la CLASSE — una preposizione
+   scritta a mano subito prima di un nome — perché l'istanza si ripara, la classe no. */
 function nmA(i,prep){
+ if(prep===undefined)
+  throw new Error('nmA('+i+'): la preposizione va dichiarata, anche vuota. '+
+   'Scriverla fuori dà «di il Likud»: è il difetto per cui questo controllo esiste.');
  var a=ART[i];
  if(!a) return (prep?prep+' ':'')+nm(i);
- if(!prep) return a+' '+nm(i);
- return (CONTR[prep+' '+a]||(prep+' '+a))+' '+nm(i);
+ /* L'ARTICOLO PUÒ ESSERE GIÀ DENTRO IL NOME. «I Democratici» si chiama così — è il nome
+    della lista, non una nostra aggiunta — e con ART che dichiara «i» il risultato era
+    «dei I Democratici». Si toglie quello del nome prima di metterci il proprio: è una
+    regola, non un caso particolare, e vale per qualunque lista futura che si chiami
+    «Il qualcosa». */
+ var n=nm(i), re=new RegExp('^'+a+'\\s','i');
+ if(re.test(n)) n=n.slice(a.length+1);
+ if(!prep) return a+' '+n;
+ var k=prep+' '+a;
+ if(CONTR[k]) return CONTR[k]+' '+n;
+ if(SENZA_CONTR.indexOf(prep)>=0) return prep+' '+a+' '+n;
+ throw new Error('nmA: «'+k+'» non ha una forma dichiarata in CONTR né in SENZA_CONTR');
 }
 function Maiu(s){return s.charAt(0).toUpperCase()+s.slice(1);}
 var _g=null;
@@ -1953,13 +1983,77 @@ function oggiISO(){return new Date(giornoUTC(new Date())).toISOString().slice(0,
    accordo solo» tiene il primo che incontra: se un annunciato condividesse una lista con
    un depositato, a decidere quale dei due entra sarebbe l'ordine in cui sono scritti
    nella tabella, e un'ipotesi scaccerebbe un fatto. */
+/* ══ LE CONVALIDE DELLA TABELLA ══════════════════════════════════════════════
+   Questa tabella si riempie a mano, di sera, leggendo le notizie, e nel 2022 quattro
+   accordi su quattro sono stati firmati nell'ultima settimana utile: quattro righe in una
+   volta, di fretta. Provati uno per uno i nove modi di sbagliare una riga, il 23 agosto
+   2026: TRE passavano in silenzio totale — data nel futuro, campo `data` mancante, la
+   stessa lista due volte — e DUE cambiavano il significato senza dirlo, perché uno
+   `stato` scritto male non è nessuno dei tre valori e finiva nel ramo degli annunciati.
+   Cioè: un accordo che credevi depositato non entrava nel riparto, e la sola traccia era
+   la parola «annunciato» dentro una riga che alle undici di sera nessuno rilegge.
+
+   COSA VUOL DIRE FALLIRE, QUI. La riga sbagliata NON entra da nessuna parte — né nel
+   riparto, né nel Monte Carlo, né nel conto dell'etichetta — la pagina lo dichiara con la
+   fascia rossa, e `npm run verifica` è ROSSO finché la tabella non torna valida. È
+   quest'ultima la parte che conta: il banco è il cancello del lavoro notturno, quindi con
+   una riga sbagliata non si pubblica. Meglio un archivio fermo di un seggio spostato per
+   un errore di battitura.
+
+   E IL MOTIVO DEV'ESSERE QUELLO GIUSTO. Prima un id inesistente usciva come «raamm non è
+   sopra la soglia»: vero che non è sopra la soglia — non è da nessuna parte — ma manda a
+   cercare nel posto sbagliato. Ora dice «non è in P{}».
+
+   Il modello del fallimento è quello di COLORE, che avvisa al primo slot oltre la
+   saturazione e fallisce con un errore esplicito dal secondo: qui non c'è un primo caso
+   tollerabile, quindi si fallisce e basta. */
+var APP_STATI=['proposto','depositato','ritirato'];
+/* Gli errori di UNA riga, in italiano e con il campo che li causa. Vuoto se la riga è
+   buona. È l'unica implementazione: la filtra coppieAl(), la elenca la fascia rossa e la
+   prova la legge da qui — tre strade per lo stesso giudizio sarebbero tre giudizi. */
+function erroriRiga(x){
+ var e=[];
+ if(!x||typeof x!=='object') return ['non è un oggetto'];
+ ['a','b'].forEach(function(c){
+  if(!x[c]) e.push('manca il campo «'+c+'»');
+  else if(!P[x[c]]) e.push('«'+x[c]+'» non è in P{}: nessuna lista ha questo id');
+ });
+ if(x.a&&x.b&&x.a===x.b) e.push('«'+x.a+'» è apparentata con sé stessa');
+ if(!x.data) e.push('manca il campo «data»');
+ else if(!/^\d{4}-\d{2}-\d{2}$/.test(x.data)) e.push('la data «'+x.data+'» non è nella forma AAAA-MM-GG');
+ else if(x.data>oggiISO()) e.push('la data «'+x.data+'» è nel futuro: un accordo si annota quando è annunciato');
+ if(!x.stato) e.push('manca il campo «stato»');
+ else if(APP_STATI.indexOf(x.stato)<0)
+  e.push('lo stato «'+x.stato+'» non esiste: sono ammessi solo '+APP_STATI.join(', '));
+ if(x.stato==='ritirato'&&!x.fine)
+  e.push('stato «ritirato» senza il campo «fine»: manca il giorno del ritiro');
+ if(x.fine){
+  if(!/^\d{4}-\d{2}-\d{2}$/.test(x.fine)) e.push('la data di ritiro «'+x.fine+'» non è nella forma AAAA-MM-GG');
+  else if(x.data&&x.fine<x.data) e.push('il ritiro («'+x.fine+'») precede l\'annuncio («'+x.data+'»)');
+  if(x.stato==='depositato') e.push('un accordo depositato non può avere una data di ritiro');
+ }
+ return e;
+}
+/* Tutta la tabella, riga per riga, con il numero di riga: serve alla fascia rossa e alla
+   prova, che sono i due posti in cui un errore deve arrivare a qualcuno. */
+function validaApparentamenti(){
+ var out=[];
+ APPARENTAMENTI.forEach(function(x,i){
+  var e=erroriRiga(x);
+  if(e.length) out.push({riga:i+1,x:x,errori:e});
+ });
+ return out;
+}
 function coppieAl(al,ipotesi){
  var q=al||oggiISO(), oltre=q>termineApp();
  return APPARENTAMENTI.filter(function(x){
+  if(erroriRiga(x).length) return false;    /* una riga sbagliata non entra da nessuna parte */
   if(x.data>q) return false;
   if(x.stato==='depositato') return true;
   if(x.fine&&q>=x.fine) return false;
-  if(x.stato==='ritirato'&&!x.fine) return false;   /* ritirato senza data: mai vissuto */
+  /* «ritirato» senza `fine` non arriva più fin qui — lo scarta la convalida — ma la
+     guardia resta: è la differenza fra una riga che non esiste e una che vale sempre. */
+  if(x.stato==='ritirato'&&!x.fine) return false;
   return !oltre&&!!ipotesi;
  }).sort(function(a,b){
   return (a.stato==='depositato'?0:1)-(b.stato==='depositato'?0:1);
@@ -2957,8 +3051,9 @@ function rProb(){
   f(b.opposizione)+'</b> all\'opposizione sionista'+(b.incerto?', con '+f(b.incerto)+' alle liste dell\'ago della bilancia':'')+
   '. In 8 simulazioni su 10 la prima resta fra '+f(q5)+' e '+f(q95)+' seggi, la seconda fra '+f(o5)+' e '+f(o95)+'. ';
  var pri=Object.keys(MC.primo).sort(function(a,b){return MC.primo[b]-MC.primo[a];}).filter(function(k){return MC.primo[k];});
- if(pri.length) t+='<b>'+Maiu(nmA(pri[0]))+'</b> risulta il primo partito nel '+pc(MC.primo[pri[0]]/MC.n)+' delle simulazioni'+
-  (pri[1]?', contro il '+pc(MC.primo[pri[1]]/MC.n)+' di <b>'+nmA(pri[1])+'</b>':'')+'. ';
+ if(pri.length) t+='<b>'+Maiu(nmA(pri[0],''))+'</b> risulta il primo partito nel '+pc(MC.primo[pri[0]]/MC.n)+' delle simulazioni'+
+  /* la preposizione entra nella funzione, o la contrazione non ha dove avvenire: era «di il Likud» */
+  (pri[1]?', contro il '+pc(MC.primo[pri[1]]/MC.n)+' <b>'+nmA(pri[1],'di')+'</b>':'')+'. ';
  if(MC.vA/MC.n>0.4) t+='Lo scenario più probabile resta però quello in cui <b>nessuno dei due blocchi riesce a governare da solo</b> '+
    'e la formazione di una maggioranza dipende dai partiti arabi: un\'ipotesi che, finora, nessun leader del centro '+
    'ha accettato apertamente. ';
@@ -3344,6 +3439,38 @@ function aRischio(){
 }
 /* confronto fra la proiezione di oggi e quella ricalcolata sui soli sondaggi
    disponibili una settimana fa: misura il movimento del modello, non dei sondaggi */
+/* IL CASO IN CUI I SEGGI STANNO FERMI E UNA PROBABILITÀ SI MUOVE.
+   Il riquadro mostra quattro numeri: due di seggi e due di probabilità. Possono dire cose
+   diverse — «Opposizione sionista 57 invariato» accanto a «Prob. maggioranza opposizione
+   21% +4 pt» — e oggi stanno adiacenti senza che niente li leghi. Succede quando la
+   proiezione si avvicina alla soglia dei 61 senza attraversarla: i seggi sono interi, la
+   probabilità no.
+   QUANTO SPESSO, misurato il 23 agosto 2026 rifacendo le due esecuzioni per ogni data
+   dell'archivio da marzo: su 53 confronti possibili, i seggi restano fermi e una
+   probabilità si muove di più di due punti in SEI (11%); di più di tre in TRE (6%). Non è
+   il caso normale e non è raro: è la riga che il riquadro dovrebbe dire quando c'è.
+   LA SOGLIA È TRE E NON DUE, e il motivo è il rumore. Il Monte Carlo del paragone gira su
+   5.000 simulazioni e quello di oggi su 20.000: misurate dodici esecuzioni sulle stesse
+   quote, due qualunque differiscono fino a 1,9 punti a 5.000 e 1,2 a 20.000. A due punti
+   il ramo si accenderebbe sul campionamento; a tre parla solo quando si è mosso qualcosa.
+   QUI NON C'È LA FRASE, e non è una dimenticanza: la prosa la scrive l'autore. Questo
+   riconosce il caso e lo dichiara nel DOM — classe `psmossa` e i numeri negli attributi —
+   così quando la frase arriva ha dove attaccarsi e una prova che dice quando compare. */
+var SCARTO_PS=3;
+function scartoPS(b,bp,mc,mcp){
+ if(!b||!bp||!mc||!mcp) return null;
+ var fermi=(b.coalizione===bp.coalizione&&b.opposizione===bp.opposizione);
+ var p=[['coalizione',100*mc.vC/mc.n,100*mcp.vC/mcp.n],
+        ['opposizione',100*mc.vO/mc.n,100*mcp.vO/mcp.n],
+        ['arabo',100*mc.vA/mc.n,100*mcp.vA/mcp.n]];
+ var peggio=null;
+ p.forEach(function(x){
+  var d=x[1]-x[2];
+  if(!peggio||Math.abs(d)>Math.abs(peggio.d)) peggio={blocco:x[0],d:d,ora:x[1],prima:x[2]};
+ });
+ return {fermi:fermi, soglia:SCARTO_PS, scatta:fermi&&Math.abs(peggio.d)>=SCARTO_PS,
+         blocco:peggio.blocco, d:peggio.d, ora:peggio.ora, prima:peggio.prima};
+}
 function rDirezione(){
  var el=$('k-direz'); if(!el) return;
  if(!PREC){el.innerHTML='';return;}
@@ -3361,7 +3488,12 @@ function rDirezione(){
  var po1=MC.vO/MC.n,po0=PREC.mc.vO/PREC.mc.n;
  var mossi=IDS.filter(function(i){return Math.abs((SEG[i]||0)-(PREC.seg[i]||0))>=1;})
    .sort(function(a,b){return Math.abs((SEG[b]||0)-(PREC.seg[b]||0))-Math.abs((SEG[a]||0)-(PREC.seg[a]||0));});
- var h2='<div class="dz"><h4>La direzione del modello · confronto con sette giorni fa</h4><div class="row">'+
+ /* il caso «seggi fermi, probabilità mossa»: si dichiara nel DOM, la frase arriverà dopo */
+ var ps=scartoPS(b,bp,MC,PREC.mc);
+ var h2='<div class="dz'+(ps&&ps.scatta?' psmossa':'')+'"'+
+  (ps&&ps.scatta?' data-psblocco="'+ps.blocco+'" data-psdelta="'+f(ps.d,1)+'"'+
+                 ' data-psora="'+f(ps.ora,0)+'" data-psprima="'+f(ps.prima,0)+'"':'')+
+  '><h4>La direzione del modello · confronto con sette giorni fa</h4><div class="row">'+
   '<div class="cell"><div class="lb">Blocco Netanyahu</div><div class="vl">'+f(b.coalizione)+d(b.coalizione-bp.coalizione)+'</div></div>'+
   '<div class="cell"><div class="lb">Opposizione sionista</div><div class="vl">'+f(b.opposizione)+d(b.opposizione-bp.opposizione)+'</div></div>'+
   '<div class="cell"><div class="lb">Prob. maggioranza coalizione</div><div class="vl">'+pc(pc1)+dp(pc1,pc0)+'</div></div>'+
@@ -3453,7 +3585,7 @@ function rAnalisi(){
  var giu=r.filter(function(x){return x.d30!==null&&x.d30<=-1.5;}).sort(function(x,y){return x.d30-y.d30;});
  if(su.length) t.push('nell\'ultimo mese è soprattutto <b>'+nm(su[0].id)+'</b> a guadagnare terreno, con '+
    f(su[0].d30,su[0].d30%1?1:0)+' seggi in più'+
-   (su[1]?', seguito da '+nm(su[1].id)+' (+'+f(su[1].d30,su[1].d30%1?1:0)+')':''));
+   (su[1]?', seguito '+nmA(su[1].id,'da')+' (+'+f(su[1].d30,su[1].d30%1?1:0)+')':''));
  if(giu.length) t.push('mentre <b>'+nm(giu[0].id)+'</b> ne perde '+f(Math.abs(giu[0].d30),giu[0].d30%1?1:0)+
    (giu[1]?' e '+nm(giu[1].id)+' '+f(Math.abs(giu[1].d30),giu[1].d30%1?1:0):''));
  var testo=t.join(', ')+'. ';
@@ -3475,7 +3607,7 @@ function rAnalisi(){
     exaequo.map(function(k){return '<b>'+nm(k)+'</b>';}).join(' e ')+
     ' appaiati a '+seg(SEG[capo])+'. '+metodo;
   else if(capo!==primi[0].id)
-   testo+='La proiezione del modello ribalta tuttavia l\'ordine e colloca <b>'+nmA(capo)+'</b> al primo posto. '+metodo;
+   testo+='La proiezione del modello ribalta tuttavia l\'ordine e colloca <b>'+nmA(capo,'')+'</b> al primo posto. '+metodo;
  }
  var risk=aRischio();
  if(risk.length) testo+='Sul filo dello sbarramento c\'è '+risk.map(function(i){
@@ -3962,7 +4094,7 @@ function rEmi(){
  } else {
   $('k-emileg').className='leg';
   $('k-emileg').innerHTML=IDS.filter(function(i){return SEG[i];}).map(function(i){
-   return voce(i,'In evidenza i seggi di '+nm(i)+', '+seg(SEG[i]),
+   return voce(i,'In evidenza i seggi '+nmA(i,'di')+', '+seg(SEG[i]),
     '<i style="background:'+cp(P[i].c)+'"></i>'+E(nm(i))+' '+f(SEG[i]));}).join('');
  }
  /* Lo stato del filtro è dichiarato a voce alta: la riga è aria-live, così chi usa un
@@ -4052,7 +4184,9 @@ function rCoal(){
   'quali ogni partecipante è indispensabile, poi scarta quelle incompatibili con i veti dichiarati dai leader. '+
   (ok.length
    ? 'Oggi ne restano <b>'+f(ok.length)+'</b> praticabili'+(ok.length>1?', fra i '+f(minS)+' e i '+f(maxS)+' seggi':' , con '+f(maxS)+' seggi')+
-     ', tutte guidate da <b>'+nm(ok[0].m[0])+'</b>'+
+     /* quarto caso della stessa famiglia, trovato dal controllo strutturale e non a occhio:
+        «tutte guidate da Likud» invece di «dal Likud» */
+     ', tutte guidate <b>'+nmA(ok[0].m[0],'da')+'</b>'+
      (ok.every(function(c){return c.m.indexOf('likud')<0;})?' e tutte senza il Likud':'')+'. '
    : 'Oggi <b>nessuna combinazione</b> supera i veti dichiarati: sulla carta i numeri ci sarebbero, in politica no. ')+
   'I singoli veti si possono disattivare qui sotto per vedere quali maggioranze si aprirebbero.';
@@ -5090,6 +5224,19 @@ function renderInterno(){
    if(visti[c]) doppi.push(nm(visti[c])+" e "+nm(i)); else visti[c]=i; }
   if(doppi.length) msg("<b>Colori duplicati.</b> "+doppi.join(", ")+
    " condividono lo stesso colore in questo grafico: il colore non è più un indice affidabile.","err");
+ })();
+ /* LA TABELLA DEGLI ACCORDI, se ha righe sbagliate, lo dice qui. La riga non entra in
+    nessun calcolo — lo garantisce coppieAl() — quindi la pagina resta corretta; quello
+    che non può restare è il silenzio, perché una riga scartata e un accordo che non vale
+    niente producono gli stessi numeri. La fascia nomina la riga e il campo. */
+ (function(){
+  var ko=validaApparentamenti();
+  if(!ko.length) return;
+  msg('<b>'+f(ko.length)+' '+acc(ko.length,'riga sbagliata','righe sbagliate')+
+   ' nella tabella degli accordi di eccedenza</b>, '+acc(ko.length,'esclusa','escluse')+
+   ' dal calcolo: '+ko.map(function(r){
+     return 'riga '+r.riga+' ('+(r.x&&r.x.a)+' + '+(r.x&&r.x.b)+') — '+r.errori.join('; ');
+   }).join(' · ')+'.','err');
  })();
  rTitolo();rTesta();rProb();
  $('k-htit1').innerHTML='<i style="background:'+C.coal+'"></i>Blocco Netanyahu'+

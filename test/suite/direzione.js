@@ -57,15 +57,17 @@ let src = fs.readFileSync(__dirname + '/../app.js','utf8');
 src = src.replace('carica().then(render,render)',
   'global.A={render:render,rDirezione:rDirezione,rTrend:rTrend,blocchi:blocchi,nm:nm,' +
   'firmaPar:firmaPar,firmaRiparto:firmaRiparto,coppieRiparto:coppieRiparto,sopraSoglia:sopraSoglia,' +
-  'notaSerie:notaSerie,' +
+  'notaSerie:notaSerie,scartoPS:scartoPS,SCARTO_PS:SCARTO_PS,' +
   'serie:serieModello,APP:APPARENTAMENTI,' +
   'setApp:function(v){APPARENTAMENTI.length=0;v.forEach(function(x){APPARENTAMENTI.push(x);});},' +
   'par:function(k,v){if(v===undefined)return PAR[k];PAR[k]=v;},' +
   'sw:function(v){SW=v;},aff:function(v){AFF=v;},' +
   'escl:function(o){Object.keys(ESCL).forEach(function(k){delete ESCL[k];});Object.assign(ESCL,o);},' +
   'sim:function(v){SIM=v;},SOND:function(){return SOND;},setSOND:function(v){SOND=v;},EVENTI:function(){return EVENTI;},' +
-  'stato:function(){return{SEG:SEG,PREC:PREC,QUO:QUO};},dhondt:dhondt,SOGLIA:SOGLIA,' +
-  'guastaFirma:function(v){if(PREC)PREC.firma=v;}};carica().then(render,render)');
+  'stato:function(){return{SEG:SEG,PREC:PREC,QUO:QUO,MC:MC};},dhondt:dhondt,SOGLIA:SOGLIA,' +
+  'guastaFirma:function(v){if(PREC)PREC.firma=v;},' +
+  'precMC:function(v){if(PREC)PREC.mc=v;},' +
+  'precSeg:function(){if(PREC)PREC.seg=Object.assign({},SEG);}};carica().then(render,render)');
 eval(src);
 
 const A = global.A;
@@ -333,6 +335,73 @@ esito(mossePro >= 4,
     'con la tabella degli accordi vuota la nota tace anche se la linea e la testata divergono',
     testo('k-trendnota'));
   A.setApp(ORIG); A.render();
+}
+
+/* ══ 5-ter · I SEGGI FERMI E UNA PROBABILITÀ CHE SI MUOVE ═══════════════════
+ * Il riquadro mostra quattro numeri, due di seggi e due di probabilità, e possono dire
+ * cose diverse: «Opposizione sionista 57 invariato» accanto a «Prob. maggioranza
+ * opposizione 21% +4 pt». Qui si prova il RAMO che riconosce il caso — la frase la scrive
+ * l'autore, e quando arriverà avrà dove attaccarsi.
+ * Misurato: su 53 confronti possibili da marzo, i seggi restano fermi e una probabilità si
+ * muove di più di due punti in sei (11%), di più di tre in tre (6%). La soglia è tre
+ * perché due esecuzioni identiche del Monte Carlo differiscono fino a 1,9 punti: a due, il
+ * ramo si accenderebbe sul campionamento. */
+{
+  const b = {coalizione: 51, opposizione: 57, arabo: 12, incerto: 0};
+  const mc = n => ({n: 100, vC: 2, vO: n, vA: 96 - n, st: 2});
+
+  esito(A.SCARTO_PS === 3,
+    'la soglia è tre punti, sopra il rumore di due esecuzioni identiche (1,9)', String(A.SCARTO_PS));
+
+  const su = A.scartoPS(b, b, mc(25), mc(20));
+  esito(su.fermi && su.scatta, 'seggi fermi e cinque punti di probabilità: il ramo scatta',
+    JSON.stringify(su));
+  esito(su.blocco === 'opposizione' && Math.round(su.d) === 5,
+    'e dice quale blocco e di quanto', su.blocco + ' ' + su.d.toFixed(1));
+
+  const piano = A.scartoPS(b, b, mc(22), mc(20));
+  esito(piano.fermi && !piano.scatta,
+    'due punti soli non bastano: sarebbe rumore del Monte Carlo', JSON.stringify(piano));
+
+  const mossi = A.scartoPS(b, {coalizione: 53, opposizione: 55, arabo: 12, incerto: 0}, mc(25), mc(20));
+  esito(!mossi.fermi && !mossi.scatta,
+    'e se i seggi si sono mossi il ramo non scatta: il caso è «fermi E mossa»', JSON.stringify(mossi));
+
+  /* e nel DOM: la classe c'è quando e solo quando il ramo scatta */
+  A.render();
+  const dz = D.querySelector('#k-direz .dz');
+  const S = A.stato();
+  const vero = A.scartoPS(A.blocchi(S.SEG), A.blocchi(S.PREC.seg), S.MC, S.PREC.mc);
+  esito(!!dz, 'il riquadro è reso');
+  esito(dz.classList.contains('psmossa') === vero.scatta,
+    'la classe «psmossa» compare quando e solo quando il caso c\'è',
+    'classe ' + dz.className + ' · scatta ' + vero.scatta);
+  if (vero.scatta) {
+    esito(dz.getAttribute('data-psblocco') === vero.blocco,
+      'e porta il blocco che si è mosso, per la frase che verrà', dz.getAttribute('data-psblocco'));
+    esito(dz.getAttribute('data-psora') && dz.getAttribute('data-psprima'),
+      'con i due numeri, quello di oggi e quello di sette giorni fa',
+      dz.getAttribute('data-psprima') + ' → ' + dz.getAttribute('data-psora'));
+  }
+  /* IL RAMO VA ESERCITATO SULLA PAGINA RESA, non solo sulla funzione: sul seme di prova
+     il caso può non capitare, e allora l'asserzione qui sopra passerebbe in tutti e due i
+     versi. Si forza il termine di paragone a una distribuzione lontana — è l'unico modo
+     di far scattare il caso senza aspettare l'archivio giusto — e si guarda il DOM. */
+  {
+    const S2 = A.stato();
+    const q = {n: 1000, vC: 20, vO: 20, vA: 960, st: 0};
+    A.precSeg();          /* i seggi fermi sono la metà della condizione */
+    A.precMC(q);
+    A.rDirezione();
+    const dz2 = D.querySelector('#k-direz .dz');
+    esito(dz2.classList.contains('psmossa'),
+      'forzando una probabilità lontana, la classe compare sulla pagina resa', dz2.className);
+    esito(!!dz2.getAttribute('data-psblocco'),
+      'e gli attributi con i numeri ci sono', dz2.getAttribute('data-psblocco') + ' ' + dz2.getAttribute('data-psdelta'));
+    A.render();
+  }
+  esito(!/probabilit[àa] si (?:è )?moss/i.test(testo('k-direz')),
+    'e nessuna frase è ancora scritta: il ramo è pronto, la prosa no');
 }
 
 /* ══ 6 · LA FIRMA DEI PARAMETRI È UNA SOLA ══════════════════════════════════

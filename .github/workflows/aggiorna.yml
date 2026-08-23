@@ -34,7 +34,20 @@ jobs:
         with: {node-version: '22'}
       - run: npm install
       - run: node test/estrai.mjs
+      # DA QUANTE NOTTI È FERMO non è ricavabile dai file: una notte bloccata non committa
+      # niente, quindi non lascia traccia nel repository. Lo sa solo la storia delle
+      # esecuzioni, ed è per questo che il riepilogo la legge invece di dedurlo.
+      - name: Da quante notti è fermo
+        id: notti
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          N=$(gh run list --workflow 'Aggiorna archivio' --limit 20 --json conclusion,status \n               --jq '[.[] | select(.status=="completed") | .conclusion] | index("success") // 0')
+          echo "ferme=$N" >> "$GITHUB_OUTPUT"
+          echo "notti fallite di fila prima di stanotte: $N"
       - name: Parser e guardie
+        env:
+          NOTTI_FERME: ${{ steps.notti.outputs.ferme }}
         run: node .github/scripts/aggiorna.mjs
       - name: Verifica completa con i dati nuovi
         run: npm run verifica
@@ -74,44 +87,67 @@ jobs:
             echo "caduta=1" >> "$GITHUB_OUTPUT"
           fi
           cat spazzola.txt
-      - name: Issue per la spazzolata
-        if: steps.spazzola.outputs.caduta == '1'
+      # ══ LA CONSEGNA, UNA VOLTA SOLA E IN FONDO ══
+      #
+      # Prima c'erano due issue — una per la guardia, una per la spazzolata — e le
+      # segnalazioni restanti non erano da nessuna parte. Adesso il canale è uno:
+      # dati/da-fare.json, e questa issue è la sua vista per una persona.
+      #
+      # LA REGOLA DEL SILENZIO. GitHub notifica alla CREAZIONE, al commento,
+      # all'assegnazione e alla chiusura; NON alla modifica del corpo. Quindi: una email
+      # quando la prima cosa da fare compare, silenzio finché resta pendente — il corpo si
+      # riscrive e basta — e una email quando non resta niente e la issue si chiude. Se
+      # arrivasse un'email ogni mattina, in una settimana nessuno la leggerebbe più.
+      #
+      # Sta in fondo e con if: always() perché deve uscire ANCHE quando npm run verifica è
+      # rosso: quella è precisamente la notte in cui c'è qualcosa da fare.
+      - name: Consegna il riepilogo
+        if: always()
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          TITOLO="Prove che scadono con l'orologio portato avanti"
-          if gh issue list --state open --json title --jq '.[].title' | grep -qxF "$TITOLO"; then
-            echo "issue già aperta: non ne creo una seconda"
+          [ -f dati/da-fare.json ] || exit 0
+          # la spazzolata arriva dopo il parser: si aggiunge al file già scritto
+          if [ -f spazzola.txt ] && [ "${{ steps.spazzola.outputs.caduta }}" = "1" ]; then
+            node --input-type=module -e "
+              import {readFileSync,writeFileSync} from 'node:fs';
+              import {conSpazzolata} from './.github/scripts/dafare.mjs';
+              const f=JSON.parse(readFileSync('dati/da-fare.json','utf8'));
+              writeFileSync('dati/da-fare.json',
+                JSON.stringify(conSpazzolata(f,readFileSync('spazzola.txt','utf8')),null,1)+'
+');
+            "
+          fi
+          node --input-type=module -e "
+            import {readFileSync,writeFileSync} from 'node:fs';
+            import {markdown} from './.github/scripts/dafare.mjs';
+            const f=JSON.parse(readFileSync('dati/da-fare.json','utf8'));
+            writeFileSync('corpo-dafare.md', markdown(f));
+            writeFileSync('conto.txt', String(f.conto.richiedono + f.conto.informative));
+          "
+          if ! git diff --quiet dati/da-fare.json; then
+            git config user.name "aggiornamento-notturno"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git add dati/da-fare.json
+            git commit -m "Aggiornare il riepilogo delle cose da fare (lavoro notturno)"
+            git pull --rebase origin main && git push origin main || { git rebase --abort || true; echo "rebase non pulito: il file resta locale"; }
+          fi
+          TITOLO="Cose da fare — riepilogo del lavoro notturno"
+          NUM=$(gh issue list --state open --search "\"$TITOLO\" in:title" --json number,title                   --jq ".[] | select(.title==\"$TITOLO\") | .number" | head -1)
+          if [ "$(cat conto.txt)" = "0" ]; then
+            if [ -n "$NUM" ]; then
+              gh issue comment "$NUM" --body "Non resta niente da fare: chiudo."
+              gh issue close "$NUM"
+            else
+              echo "niente da fare e nessuna issue aperta: silenzio"
+            fi
             exit 0
           fi
-          {
-            echo "La spazzolata notturna ha trovato prove che cadono con l'orologio spostato avanti."
-            echo "**L'archivio è stato aggiornato lo stesso**: questo non è un guasto di oggi, è una"
-            echo "prova che dà per scontato un archivio fresco e che cadrà da sola il giorno in cui"
-            echo "l'archivio smette di esserlo — il 23 ottobre col silenzio demoscopico, o il primo"
-            echo "giorno in cui questo job si ferma."
-            echo
-            echo "Da lì in poi \`npm run verifica\` è rosso su ogni push, e questo job ha il suo"
-            echo "cancello proprio lì: smetterebbe di pubblicare i sondaggi."
-            echo
-            echo "Come si riproduce: \`npm run spazzola\`. Il rimedio sta in CLAUDE.md, «Le sei suite"
-            echo "che scadevano con la finestra vuota»."
-            echo
-            echo '```'
-            sed -n '/OROLOGIO/,$p' spazzola.txt
-            echo '```'
-          } > corpo-spazzola.md
-          gh issue create --title "$TITOLO" --body-file corpo-spazzola.md
-      - name: Issue per la guardia
-        if: failure()
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          [ -f guardia-issue.md ] || exit 0
-          TITOLO=$(head -1 guardia-issue.md)
-          if gh issue list --state open --json title --jq '.[].title' | grep -qxF "$TITOLO"; then
-            echo "issue già aperta: non ne creo una seconda"
-            exit 0
+          if [ -n "$NUM" ]; then
+            # modifica del corpo: NON notifica, ed è quello che si vuole
+            gh issue edit "$NUM" --body-file corpo-dafare.md
+            echo "issue #$NUM aggiornata in silenzio"
+          else
+            # creazione + assegnazione: notifica, ed è l'unica volta che deve farlo
+            gh issue create --title "$TITOLO" --body-file corpo-dafare.md --assignee angrisanidj
           fi
-          tail -n +3 guardia-issue.md > corpo-issue.md
-          gh issue create --title "$TITOLO" --body-file corpo-issue.md

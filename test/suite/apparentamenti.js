@@ -75,6 +75,7 @@ src = src.replace('carica().then(render,render)',
   'ripartoVeloce:ripartoVeloce,strutturaApp:strutturaApp,bisezione:bisezione,' +
   'coppieAttive:coppieAttive,coppieRiparto:coppieRiparto,APP:APPARENTAMENTI,' +
   'coppieAl:coppieAl,contoApp:contoApp,sopraSoglia:sopraSoglia,termineApp:termineApp,' +
+  'valida:validaApparentamenti,erroriRiga:erroriRiga,APP_STATI:APP_STATI,' +
   'TERMINE_APP_GG:TERMINE_APP_GG,TAPPE:TAPPE,rApp:rApp,rCalendario:rCalendario,' +
   'SOGLIA:SOGLIA,blocchi:blocchi,nm:nm,render:render,rFoot:rFoot,PAR_DEF:PAR_DEF,' +
   'par:function(k,v){if(v===undefined)return PAR[k];PAR[k]=v;},' +
@@ -142,10 +143,24 @@ function quoteCasuali(n){
 
 esito(A.par('apparentamenti') === 0,
   'la leva degli apparentamenti proposti nasce spenta', String(A.par('apparentamenti')));
-esito(A.APP.every(x => x.stato !== 'depositato'),
-  'e oggi nessun accordo è depositato: il termine è il 16 ottobre, undici giorni prima del voto');
-esito(A.coppieRiparto(null, null).length === 0,
-  'quindi nessun accordo entra nel riparto', JSON.stringify(A.coppieRiparto(null, null)));
+/* LE ATTESE SI CALCOLANO DALLA TABELLA, non dal suo contenuto di oggi. Il 16 ottobre ne
+   arriveranno quattro insieme, e una riga in più non deve far diventare rosso il banco:
+   davanti a un rosso un agente farebbe la cosa peggiore, cioè aggiustare la prova. */
+esito(A.valida().length === 0,
+  'la tabella pubblicata è valida: nessuna riga sbagliata',
+  A.valida().map(r => 'riga ' + r.riga + ': ' + r.errori.join('; ')).join(' | '));
+{
+  /* la proprietà è «senza coppie il riparto è quello di prima», e si prova SVUOTANDO la
+     tabella invece di sperare che sia vuota: dal primo deposito non lo sarà più */
+  const vere = A.APP.map(x => Object.assign({}, x));
+  A.setApp([]);
+  esito(A.coppieRiparto(null, null).length === 0,
+    'con la tabella vuota nessun accordo entra nel riparto', JSON.stringify(A.coppieRiparto(null, null)));
+  A.setApp(vere);
+  esito(A.coppieRiparto(null, null).length === A.APP.filter(x => x.stato === 'depositato').length,
+    'e con la tabella vera, a leva spenta, entrano esattamente i depositati',
+    A.coppieRiparto(null, null).length + ' contro ' + A.APP.filter(x => x.stato === 'depositato').length + ' depositati');
+}
 
 {
   const S = A.stato();
@@ -162,8 +177,12 @@ esito(A.coppieRiparto(null, null).length === 0,
   esito(diversi.length === 0,
     'e su 300 vettori di quote generati non c\'è una sola differenza',
     diversi.length + ' diversi, primo il ' + diversi[0]);
+  /* con la tabella VUOTA: è la proprietà «senza accordi la strada è quella di prima», e
+     dal primo deposito la tabella non è più vuota da sé */
+  A.setApp([]);
   esito(A.strutturaApp(['raam','lista_araba','likud'], null) === null,
     'e il riparto veloce prende la strada di prima: senza accordi la struttura non esiste');
+  A.setApp(ORIG);
 }
 
 /* ══ 2 · LE DUE STRADE CONCORDANO ═══════════════════════════════════════════ */
@@ -193,9 +212,13 @@ A.par('apparentamenti', 0);
 
 {
   A.par('apparentamenti', 1);
-  esito(A.coppieRiparto(null, PRIMA).length === 1,
-    'accendendo la leva, alla vigilia del termine, l\'accordo annunciato entra nel riparto',
-    JSON.stringify(A.coppieRiparto(null, PRIMA).map(x => x.a + '+' + x.b)));
+  {
+    const attesi = A.APP.filter(x => x.stato !== 'ritirato' && x.data <= PRIMA).length;
+    esito(A.coppieRiparto(null, PRIMA).length === attesi,
+      'accendendo la leva, alla vigilia del termine, entrano tutti gli accordi vivi a quel giorno',
+      A.coppieRiparto(null, PRIMA).map(x => x.a + '+' + x.b).join(', ') + ' contro ' + attesi + ' attesi');
+    esito(attesi > 0, 'e ce n\'è almeno uno, o questa prova non guarda niente', String(attesi));
+  }
 
   /* il meccanismo deve poter spostare un seggio: se non lo spostasse mai, tutte le
      prove qui sopra passerebbero anche con un'implementazione che non fa niente */
@@ -453,19 +476,36 @@ esito(!!Object.keys(A.stato().SEG).length,
   esito(/Gli accordi di apparentamento .* sono simulati/.test(spento),
     'la nota metodologica non dice più «non sono simulati»');
   esito(!/Non sono simulati gli accordi/.test(spento), 'e la vecchia frase non è rimasta in giro');
-  esito(/Nessun accordo risulta ancora depositato/.test(spento),
-    'dichiara che nessuno è depositato', (spento.match(/Nessun accordo[^.]*\./) || [''])[0]);
-  esito(/Non entrano nel riparto/.test(spento),
-    'e che i proposti non entrano', (spento.match(/Annunciati[^.]*\.[^.]*\./) || [''])[0]);
+  {
+    /* il ramo atteso si deduce dalla tabella: col primo deposito la nota cambia frase, e
+       una prova ancorata alla frase di oggi direbbe «difetto» dove c'è un accordo in più */
+    const dp = A.APP.filter(x => x.stato === 'depositato').length;
+    const an = A.coppieAl(null, true).filter(x => x.stato !== 'depositato').length;
+    esito(dp
+        ? /Accordi depositati, e quindi sempre nel riparto/.test(spento)
+        : /Nessun accordo risulta ancora depositato/.test(spento),
+      dp ? 'elenca i ' + dp + ' accordi depositati' : 'dichiara che nessuno è depositato',
+      (spento.match(/(Nessun accordo|Accordi depositati)[^.]*\./) || [''])[0]);
+    esito(!an || /Non entrano nel riparto/.test(spento),
+      'e che gli annunciati non entrano', (spento.match(/Annunciati[^.]*\.[^.]*\./) || [''])[0]);
+  }
   esito(/mappa incompleta sarebbe peggio/.test(spento),
     'e dice al lettore perché una mappa a metà sarebbe peggio di nessuna mappa');
 
+  /* il controfattuale esiste solo se c'è qualcosa da applicare per ipotesi: con la
+     tabella tutta depositata la leva non ha niente da dire, e la nota giustamente non
+     cambia. La prova installa un annunciato invece di sperare che ci sia. */
+  const vere = A.APP.map(x => Object.assign({}, x));
+  A.setApp([{a:'shas', b:'utj', data:giorniFa(3), stato:'proposto'}]);
+  A.par('apparentamenti', 0); A.rFoot();
+  const spento2 = testo('k-foot');
   A.par('apparentamenti', 1); A.rFoot();
   const acceso = testo('k-foot');
   esito(/quindi entrano nel riparto/.test(acceso) && /controfattuale/.test(acceso),
     'e con la leva accesa dichiara che quello che si legge è un controfattuale',
     (acceso.match(/Il pulsante[^.]*\./) || [''])[0]);
-  esito(spento !== acceso, 'le due note non sono la stessa stringa');
+  esito(spento2 !== acceso, 'le due note non sono la stessa stringa');
+  A.setApp(vere);
   A.par('apparentamenti', 0); A.rFoot();
 
   /* quanto vale oggi, sulle quote vere: si stampa, non si asserisce — è una misura, e
@@ -540,18 +580,27 @@ esito(!!Object.keys(A.stato().SEG).length,
  * alla quale si valuta — la stessa che usa la serie storica per ricalcolare il passato —
  * e non con l'orologio, così la prova non dipende dal giorno in cui gira. */
 {
+  /* la tabella è controllata: un annunciato e nient'altro. Con quella pubblicata la prova
+     direbbe cose diverse a seconda di che cosa è stato depositato quel giorno, e la
+     proprietà — «dopo il termine un annunciato non vale più» — non dipende da questo. */
+  const vere = A.APP.map(x => Object.assign({}, x));
+  /* datato PRIMA della prima data che si interroga: da qui in giù l'orologio è congelato
+     alla vigilia del termine, quindi «tre giorni fa» sarebbe ottobre e non entrerebbe nel
+     conto del 30 settembre — la data si sceglie rispetto a quello che si chiede, non
+     rispetto a oggi */
+  A.setApp([{a:'raam', b:'lista_araba', data:giorniFa(60), stato:'proposto'}]);
   A.par('apparentamenti', 1);
   const T = A.termineApp();
   const prima = A.coppieAl('2026-09-30', true).length;
   const giorno = A.coppieAl(T, true).length;
   const dopo = A.coppieAl('2026-10-17', true).length;
   esito(prima === 1, 'prima del termine la leva accende l\'accordo annunciato', String(prima));
-  esito(giorno === 1, 'e il giorno stesso del termine ancora sì: il termine è l\'ultimo giorno utile',
-    String(giorno));
+  esito(giorno === 1, 'e il giorno stesso del termine ancora: è l\'ultimo giorno utile', String(giorno));
   esito(dopo === 0, 'il giorno dopo no, e la leva non c\'entra: non è un\'ipotesi, è una cosa che non è successa',
     String(dopo));
   esito(A.coppieAl('2026-11-10', true).length === 0,
     'e a voto avvenuto nemmeno');
+  A.setApp(vere);
   /* un DEPOSITATO invece attraversa il termine: è un fatto, non un'ipotesi */
   A.setApp([{a:'raam', b:'lista_araba', data:'2026-09-20', stato:'depositato'}]);
   esito(A.coppieAl('2026-10-17', false).length === 1,
@@ -599,8 +648,23 @@ esito(!!Object.keys(A.stato().SEG).length,
   const riga = () => String(D.getElementById('k-appriga').innerHTML || '')
     .replace(/<[^>]+>/g,' ').replace(/\s+/g,' ').trim();
 
+  /* LA TABELLA È CONTROLLATA, non quella pubblicata: l'etichetta esiste solo se c'è
+     qualcosa da applicare per ipotesi, e dal primo deposito la tabella pubblicata può non
+     avere più nessun annunciato — il comando sparirebbe e queste prove morirebbero su un
+     pulsante nascosto, dicendo «difetto» dove c'è un accordo firmato.
+     Il numero atteso esce da contoApp(), che è la stessa sorgente dell'etichetta: quello
+     che si prova qui è la FORMA — azione, numero, singolare o plurale — mentre che il
+     numero venga dal riparto e non dalla tabella lo prova la riga con la lista sotto
+     soglia, più sotto. */
+  const VERE = A.APP.map(x => Object.assign({}, x));
+  A.setApp([{a:'raam', b:'lista_araba', data:giorniFa(2), stato:'proposto'}]);
+  const nAnn = () => A.contoApp(A.sopraSoglia()).ann;
+  const atteso = (az, n) => az + ' ' + n + ' ' + (n === 1 ? 'accordo annunciato' : 'accordi annunciati');
   A.par('apparentamenti', 0); A.render();
-  esito(B().textContent === 'Aggiungi 1 accordo annunciato',
+  esito(nAnn() > 0,
+    'c\'è almeno un accordo annunciato in tabella, o le prove sull\'etichetta non guardano niente',
+    String(nAnn()));
+  esito(B().textContent === atteso('Aggiungi', nAnn()),
     'a leva spenta l\'etichetta dice l\'azione, il numero e lo stato', B().textContent);
   esito(!B().hidden, 'e il comando c\'è');
   const eti0 = B().getAttribute('aria-label');
@@ -614,7 +678,7 @@ esito(!!Object.keys(A.stato().SEG).length,
     'e non porta aria-pressed: il nome dice l\'azione e cambia premendo, quindi lo direbbe al contrario');
 
   A.par('apparentamenti', 1); A.render();
-  esito(B().textContent === 'Togli 1 accordo annunciato',
+  esito(B().textContent === atteso('Togli', nAnn()),
     'premuto, il nome cambia — ed è quello il riscontro', B().textContent);
   const eti1 = B().getAttribute('aria-label');
   esito(eti1.indexOf(B().textContent) === 0 && eti1 !== eti0,
@@ -628,10 +692,11 @@ esito(!!Object.keys(A.stato().SEG).length,
      APPARENTAMENTI.length direbbe due, e il riparto ne applicherebbe uno. */
   const sotto = Object.keys(A.stato().QUO).filter(k => A.stato().QUO[k] < SOGLIA)[0];
   esito(!!sotto, 'nell\'archivio c\'è almeno una lista sotto soglia, o questa prova non prova niente', sotto);
-  A.setApp(ORIG.concat([{a: sotto, b:'shas', data:'2026-08-01', stato:'proposto'}]));
+  const UNA = [{a:'raam', b:'lista_araba', data:giorniFa(2), stato:'proposto'}];
+  A.setApp(UNA.concat([{a: sotto, b:'shas', data:giorniFa(4), stato:'proposto'}]));
   A.render();
-  esito(A.APP.length === 2 && B().textContent === 'Aggiungi 1 accordo annunciato',
-    'con due accordi in tabella e uno sciolto dalla soglia, l\'etichetta dice UNO',
+  esito(A.APP.length === 2 && B().textContent === atteso('Aggiungi', 1),
+    'con un accordo in più sciolto dalla soglia, l\'etichetta non lo conta',
     A.APP.length + ' in tabella, etichetta «' + B().textContent + '»');
   esito(/non è sopra la soglia/.test(riga()),
     'e la riga di esito dichiara lo scarto CON LA RAGIONE', riga());
@@ -651,12 +716,12 @@ esito(!!Object.keys(A.stato().SEG).length,
   A.par('apparentamenti', 0);
 
   /* il plurale, che è la forma in cui questa etichetta vivrà da settembre */
-  A.setApp([{a:'raam', b:'lista_araba', data:'2026-08-22', stato:'proposto'},
-            {a:'shas', b:'utj', data:'2026-08-23', stato:'proposto'}]);
+  A.setApp([{a:'raam', b:'lista_araba', data:giorniFa(3), stato:'proposto'},
+            {a:'shas', b:'utj', data:giorniFa(2), stato:'proposto'}]);
   A.render();
   esito(B().textContent === 'Aggiungi 2 accordi annunciati',
     'con due accordi annunciati l\'etichetta va al plurale, e il numero è due', B().textContent);
-  A.setApp(ORIG); A.render();
+  A.setApp(VERE); A.render();
 }
 
 /* ══ 15 · LA RIGA DI ESITO DICE I DEPOSITATI, CHE NESSUN PULSANTE GOVERNA ═══
@@ -666,14 +731,25 @@ esito(!!Object.keys(A.stato().SEG).length,
   const riga = () => String(D.getElementById('k-appriga').innerHTML || '')
     .replace(/<[^>]+>/g,' ').replace(/\s+/g,' ').trim();
 
+  /* tabella controllata, per la stessa ragione del §14: qui si prova che cosa la riga
+     DICE nei tre regimi, non che cosa c'è in anagrafica stasera */
+  const VERE15 = A.APP.map(x => Object.assign({}, x));
+  A.setApp([{a:'raam', b:'lista_araba', data:giorniFa(2), stato:'proposto'}]);
   A.par('apparentamenti', 0); A.render();
   const spenta = riga();
   esito(/Nessun accordo di eccedenza è ancora depositato/.test(spenta),
     'a leva spenta dice che non c\'è niente di depositato', spenta);
   esito(/16 ottobre 2026/.test(spenta) && /non il deposito delle liste/.test(spenta),
     'e dice il termine vero, contro quello che il lettore darebbe per scontato', spenta);
-  esito(/1 annunciato/.test(spenta) && /22 agosto 2026/.test(spenta),
-    'nomina l\'accordo annunciato con la sua data', spenta);
+  {
+    const vivi = A.coppieAl(null, true).filter(x => x.stato !== 'depositato');
+    esito(spenta.indexOf(vivi.length + ' annunciat') >= 0,
+      'dice quanti sono gli annunciati', vivi.length + ' · ' + spenta);
+    esito(vivi.every(x => spenta.indexOf(A.nm(x.a)) >= 0 && spenta.indexOf(A.nm(x.b)) >= 0),
+      'e li nomina tutti', spenta);
+    esito(vivi.every(x => spenta.indexOf(String(+x.data.slice(8, 10))) >= 0),
+      'ciascuno con la sua data', spenta);
+  }
 
   A.par('apparentamenti', 1); A.render();
   const accesa = riga();
@@ -748,7 +824,7 @@ esito(!!Object.keys(A.stato().SEG).length,
     'un accordo depositato è dichiarato dalla riga anche a leva spenta', dep);
   esito(D.getElementById('k-app').hidden,
     'e il comando sparisce, perché non c\'è più niente da applicare per ipotesi');
-  A.setApp(ORIG); A.render();
+  A.setApp(VERE15); A.render();
 }
 
 /* ══ 16 · GLI ALTRI TRE PULSANTI DELLE IPOTESI HANNO L'ETICHETTA FISSA ══════
@@ -798,6 +874,11 @@ esito(!!Object.keys(A.stato().SEG).length,
  * lettore vede, che è l'altra metà: il comando sparisce e la riga smette di offrire un
  * controfattuale. */
 {
+  /* tabella controllata con un solo ANNUNCIATO: è quello che dopo il termine deve morire.
+     Con la tabella pubblicata, un accordo depositato — che dopo il termine resta, ed è
+     giusto — farebbe cadere queste prove dicendo «difetto» dove c'è un accordo firmato. */
+  const VERE18 = A.APP.map(x => Object.assign({}, x));
+  A.setApp([{a:'raam', b:'lista_araba', data:giorniFa(60), stato:'proposto'}]);
   congela(DOPO);
   A.par('apparentamenti', 1);     /* accesa apposta: dopo il termine non deve contare */
   A.render();
@@ -824,10 +905,109 @@ esito(!!Object.keys(A.stato().SEG).length,
   esito(/Gli accordi annunciati e mai depositati/.test(nota),
     'e la nota metodologica cambia ramo con lei', nota.slice(-320));
   A.par('apparentamenti', 0);
+  A.setApp(VERE18);
 }
 scongela();
 A.setApp(ORIG);
 A.render();
+
+/* ══ 19 · LE CONVALIDE: UNA RIGA SBAGLIATA NON PASSA, E DICE PERCHÉ ═════════
+ *
+ * Questa tabella si riempie a mano, di sera, e il 16 ottobre potrebbero esserci quattro
+ * righe da mettere insieme. Provati uno per uno i nove modi di sbagliarla il 23 agosto
+ * 2026, PRIMA delle convalide: tre passavano in silenzio totale — data nel futuro, campo
+ * `data` mancante, la stessa lista due volte — e due cambiavano significato senza dirlo,
+ * perché uno `stato` scritto male non è nessuno dei tre valori e finiva fra gli
+ * annunciati. Un accordo che credevi depositato non entrava nel riparto.
+ *
+ * Qui si prova che ognuno dei nove ADESSO parla, e che parla con il motivo giusto: «non è
+ * in P{}» e non «non è sopra la soglia», che mandava a cercare nel posto sbagliato. */
+{
+  const buona = {a:'shas', b:'utj', data:giorniFa(2), stato:'depositato'};
+  esito(A.erroriRiga(buona).length === 0, 'una riga buona non ha errori',
+    A.erroriRiga(buona).join('; '));
+
+  const CASI = [
+    ['id che non esiste',        {a:'raamm', b:'lista_araba', data:giorniFa(1), stato:'proposto'}, /non è in P\{\}/],
+    ['campo «a» mancante',       {b:'lista_araba', data:giorniFa(1), stato:'proposto'},            /manca il campo «a»/],
+    ['campo «b» mancante',       {a:'raam', data:giorniFa(1), stato:'proposto'},                   /manca il campo «b»/],
+    ['la stessa lista due volte',{a:'raam', b:'raam', data:giorniFa(1), stato:'proposto'},         /apparentata con sé stessa/],
+    ['campo «data» mancante',    {a:'shas', b:'utj', stato:'depositato'},                          /manca il campo «data»/],
+    ['data nel futuro',          {a:'shas', b:'utj', data:giorniFa(-30), stato:'depositato'},       /è nel futuro/],
+    ['data malformata',          {a:'shas', b:'utj', data:'22-08-2026', stato:'depositato'},        /non è nella forma/],
+    ['stato scritto male',       {a:'shas', b:'utj', data:giorniFa(1), stato:'depositatp'},        /lo stato «depositatp» non esiste/],
+    ['stato con la maiuscola',   {a:'shas', b:'utj', data:giorniFa(1), stato:'Depositato'},        /lo stato «Depositato» non esiste/],
+    ['ritirato senza «fine»',    {a:'shas', b:'utj', data:giorniFa(9), stato:'ritirato'},          /senza il campo «fine»/],
+    ['ritiro prima dell\'annuncio', {a:'shas', b:'utj', data:giorniFa(2), stato:'ritirato', fine:giorniFa(9)}, /precede l'annuncio/],
+    ['depositato con una «fine»',{a:'shas', b:'utj', data:giorniFa(9), stato:'depositato', fine:giorniFa(2)}, /non può avere una data di ritiro/]
+  ];
+  CASI.forEach(function(c){
+    const e = A.erroriRiga(c[1]);
+    esito(e.length > 0 && c[2].test(e.join(' ')),
+      'la convalida prende «' + c[0] + '» e lo dice col motivo giusto', e.join('; ') || 'nessun errore');
+    /* e la riga sbagliata non entra DA NESSUNA PARTE, che è la metà che conta */
+    A.setApp([c[1]]); A.par('apparentamenti', 1);
+    esito(A.coppieAl(null, true).length === 0 && A.coppieRiparto(A.sopraSoglia(), null).length === 0,
+      '  · e non entra né fra le coppie attive né nel riparto');
+  });
+
+  /* la fascia rossa lo dice al lettore, e nomina la riga */
+  A.setApp([{a:'raamm', b:'lista_araba', data:giorniFa(1), stato:'proposto'}]);
+  A.render();
+  const fascia = String((D.getElementById('k-msg') || {}).textContent || '');
+  esito(/riga sbagliata|righe sbagliate/.test(fascia), 'la pagina lo dichiara con la fascia rossa', fascia.slice(0, 140));
+  esito(/raamm/.test(fascia) && /non è in P\{\}/.test(fascia),
+    'nominando la riga e il motivo', fascia.slice(0, 200));
+  A.setApp(ORIG); A.par('apparentamenti', 0); A.render();
+}
+
+/* ══ 20 · ZERO, UNO E TRE ACCORDI IN CIASCUNO STATO ═════════════════════════
+ * Le prove devono reggere la tabella che ci sarà, non quella che c'è. Il 2021 ne ha visti
+ * sei, il 2022 quattro: tre righe insieme sono lo scenario normale, non l'estremo. */
+{
+  const COPPIE = [['shas','utj'], ['likud','sionismo_rel'], ['democratici','beitenu']];
+  const riga = (p, st, i) => {
+    const r = {a:p[0], b:p[1], data:giorniFa(10 + i), stato:st};
+    if (st === 'ritirato') r.fine = giorniFa(1);
+    return r;
+  };
+  const testoRiga = () => String(D.getElementById('k-appriga').innerHTML || '')
+    .replace(/<[^>]+>/g,' ').replace(/\s+/g,' ').trim();
+
+  ['proposto','depositato','ritirato'].forEach(function(st){
+    [0, 1, 3].forEach(function(n){
+      const tab = COPPIE.slice(0, n).map((p, i) => riga(p, st, i));
+      A.setApp(tab); A.par('apparentamenti', 1);
+      let vivo = true;
+      try { A.render(); } catch(e){ vivo = false; }
+      const eti = n + ' ' + st + (n === 1 ? '' : 'i');
+      esito(vivo, 'con ' + eti + ' la pagina si rende', eti);
+      if (!vivo) return;
+
+      esito(A.valida().length === 0, '  · e la tabella è valida', A.valida().map(r => r.errori.join('; ')).join(' | '));
+      const S = A.stato();
+      esito(Object.keys(S.SEG).reduce((a, k) => a + S.SEG[k], 0) === 120, '  · i seggi fanno 120');
+
+      const c = A.contoApp(A.sopraSoglia());
+      const atteso = st === 'depositato' ? n : 0;
+      esito(c.dep === atteso, '  · i depositati contati sono ' + atteso, String(c.dep));
+      /* un ritirato con `fine` nel passato non è vivo oggi: né depositato né annunciato */
+      esito(st === 'ritirato' ? c.ann === 0 : true, '  · un ritirato non conta fra gli annunciati', String(c.ann));
+
+      const B = D.getElementById('k-app');
+      esito(B.hidden === !(c.ann > 0 && !c.oltre),
+        '  · il comando c\'è quando e solo quando ha qualcosa da applicare',
+        'hidden ' + B.hidden + ' · ann ' + c.ann);
+      if (!B.hidden)
+        esito(B.textContent === 'Togli ' + c.ann + ' ' + (c.ann === 1 ? 'accordo annunciato' : 'accordi annunciati'),
+          '  · e l\'etichetta concorda col conto', B.textContent);
+      esito(testoRiga().length > 20, '  · la riga di esito dice qualcosa', testoRiga().slice(0, 90));
+      if (atteso) esito(testoRiga().indexOf(atteso + ' accord') >= 0,
+        '  · e dichiara i depositati, che nessun comando governa', testoRiga().slice(0, 120));
+    });
+  });
+  A.setApp(ORIG); A.par('apparentamenti', 0); A.render();
+}
 
 console.log('\napparentamenti: ' + ok + '/' + (ok + ko));
 if (ko) process.exit(1);

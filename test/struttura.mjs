@@ -108,6 +108,26 @@ const rifatti=[...js.matchAll(/\[\s*(?:'[a-z_0-9]+'\s*,\s*){2,}'[a-z_0-9]+'\s*\]
     return Object.keys(blocchiP).some(b=>
       JSON.stringify([...new Set(blocchiP[b])].sort())===JSON.stringify(d));
   });
+/* (2-bis) NESSUNA PREPOSIZIONE SCRITTA A MANO SUBITO PRIMA DI UN NOME DI LISTA.
+   È la classe, non l'istanza: il 23 agosto 2026 la pagina diceva «contro il 44% di il
+   Likud», «In evidenza i seggi di I Democratici» e avrebbe detto «seguito da Likud».
+   Tre punti diversi, un difetto solo, e stava nella FIRMA — nmA(i,prep) con prep
+   facoltativa si può chiamare senza, e allora la preposizione la scrive il chiamante un
+   carattere prima, dove la contrazione non ha nessun posto in cui avvenire.
+   La firma adesso pretende la preposizione, anche vuota; questo controllo impedisce
+   l'altra metà, cioè che qualcuno la scriva fuori lo stesso. Cerca un letterale che
+   finisce con una preposizione attaccato a nm( o nmA(. */
+const PREP=/(di|a|da|in|con|su|per|tra|fra|del|dello|della|dei|degli|delle|al|allo|alla|ai|agli|alle|dal|dallo|dalla|dai|dagli|dalle|nel|nella|nei|sul|sulla|sui)/;
+/* il tag di apertura in coda non conta: il difetto vero era «… 44% di <b>'+nmA(», cioè
+   con la preposizione separata dal nome da un pezzo di markup */
+const ultimaParola=t=>t.replace(/(<[^>]*>\s*)+$/,'').trim().split(/\s+/).pop()||'';
+const aMano=[...js.matchAll(/'([^']*?)'\s*\+\s*(nm|nmA)\s*\(/g)]
+  .filter(m=>new RegExp('^'+PREP.source+'$').test(ultimaParola(m[1])))
+  .map(m=>'…'+m[1].slice(-26)+"' + "+m[2]+'(');
+p('nessuna preposizione scritta a mano prima di un nome di lista'+
+  (aMano.length?' ('+aMano.join(' | ')+')':''),
+  !aMano.length);
+
 p('nessun blocco dell\'anagrafica riscritto come elenco'+
   (rifatti.length?' ('+rifatti.map(t=>t.replace(/\s+/g,'')).join(' | ')+')':''),
   Object.keys(blocchiP).length===4 && !rifatti.length);

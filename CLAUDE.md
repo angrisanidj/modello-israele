@@ -254,6 +254,9 @@ index.html            il modello, pubblicato così com'è come GitHub Pages
 .github/
   workflows/aggiorna.yml   lavoro notturno: parser, guardie, commit dei soli file dati
   scripts/aggiorna.mjs     le guardie (valuta) e il registro, funzioni pure provate da job.js
+  scripts/dafare.mjs       compone dati/da-fare.json e il corpo della issue: funzioni pure
+                           provate da dafare.js. Il markdown è una VISTA del JSON, non un
+                           secondo elenco
 test/
   estrai.mjs          estrae il JS da index.html in test/app.js
   esegui.mjs          lancia tutta la suite e riassume
@@ -273,6 +276,9 @@ test/
   suite/date.js       le due date, l'orizzonte congelato, la fascia del dopo-voto e il
                       sommario a una riga: rende la pagina con l'orologio fermo e il
                       registro del lavoro notturno finto
+  suite/dafare.js     il riepilogo notturno: ogni categoria sul suo caso e NON sul caso
+                      buono, il silenzio quando non c'è niente, e la tabella degli accordi
+                      invalida come voce che blocca
   suite/direzione.js  «a parametri identici»: che ogni leva arrivi a tutti e due i termini
                       del confronto, che la frase esca dalla proprietà invece di starle
                       accanto, e che la lettura «com'era» resti in serieModello()
@@ -287,7 +293,12 @@ dati/
   fixture.js          tabella Wikipedia di riferimento per le prove
   archivio.json       l'archivio pubblicato: la pagina lo carica con fetch relativo
   eventi-grezzi.json  registro delle voci-evento da Wikipedia, in inglese, in attesa di revisione
-  stato-job.json      i conteggi di ieri, riferimento delle guardie del lavoro notturno
+  stato-job.json      i conteggi di ieri, riferimento delle guardie del lavoro notturno.
+                      Riscritto a OGNI notte riuscita, anche a mani vuote: prima solo
+                      quando arrivavano rilevazioni, e k-upd dichiarava il falso
+  da-fare.json        il riepilogo notturno, leggibile da una macchina: il conto in testa,
+                      le voci con il testo originale e COSA SERVE PER CHIUDERLE. Esiste
+                      sempre, anche vuoto — un file che manca è ambiguo
 docs/
   stato-testi-titolo.md  i dodici testi decisi e le due correzioni che mancano
   regola-colore.md    la specifica dei colori: bande, settori, punti, distanze
@@ -299,6 +310,13 @@ docs/
   testi-quattro-blocchi.md        verdetto, pastiglie, istogrammi, simulatore: condizione,
                       grandezze disponibili e che cosa la frase deve dire — i quattro
                       blocchi che l anagrafica dei testi non copre ancora
+  aggiungere-un-apparentamento.md  il contratto per la sera del 16 ottobre: i campi, il
+                      percorso, i dodici modi di sbagliare la riga e che cosa dice ciascuno,
+                      e i passi di giudizio marcati
+  tradurre-una-voce-evento.md      il contratto della cronologia: i due file, il legame che
+                      e la data, e perche' la data si ferma dove il testo passa
+  mappare-una-lista-nuova.md       il contratto dell 8 settembre: i sette posti nell ordine
+                      giusto, il colore che avvisa e poi fallisce, i numeri da guardare
 ```
 
 ## Il modello in breve
@@ -337,6 +355,68 @@ Finestra: 60 giorni, massimo 45 rilevazioni. Direct Polls pesa la metà (sopravv
 
 Sette su sette dentro l'intervallo dell'80%. Gli intervalli sulle singole liste sono però
 ottimistici: coprono il 73% dei casi, non l'80%. È dichiarato nella nota metodologica.
+
+## Il confine dell'agente
+
+Scritto il 23 agosto 2026, prima che l'agente esista, perché è il genere di regola che si
+scrive prima o non si scrive più. Dal giorno in cui un agente prepara il lavoro del
+mattino, **queste righe valgono per lui come le invarianti valgono per il codice.**
+
+**La regola generale: l'agente prepara, una persona conferma, per tutto ciò che sposta un
+numero.** Preparare vuol dire portare il diff, le fonti e la misura di che cosa cambia;
+confermare vuol dire scrivere, o dire di scrivere.
+
+### Categoria per categoria, perché non si deduce
+
+| categoria | l'agente | perché |
+|---|---|---|
+| **accordi di eccedenza** | prepara il diff e **si ferma** | una riga sposta un seggio, e il seggio attraversa il confine fra i blocchi in venticinque stati di swing su venticinque |
+| **mappature di lista** | prepara il diff e **si ferma** | id, blocco e `dentro` decidono chi entra nel riparto e chi conta due volte |
+| **testo di una voce-evento** | può **proporre e applicare** | la prosa italiana non entra in nessun calcolo: la cronologia è un elenco di frasi |
+| **data di una voce-evento** | **si ferma** | vedi qui sotto |
+
+**La terza riga e la quarta sembrano la stessa cosa e non lo sono, ed è la ragione per cui
+questa tabella esiste.** Verrebbe da dire che gli eventi non spostano numeri: sono frasi in
+una cronologia, e infatti il testo si può cambiare senza che nulla si muova. **La data no.**
+La data colloca il marcatore sull'asse della tendenza — dove cade il disco, quale
+rilevazione gli sta accanto — e soprattutto decide la **terna dei trenta giorni** del
+riquadro dell'evento isolato: «nei 30 giorni successivi: Netanyahu 51, opposizione 47,
+arabi 11». Spostare una data di un giorno cambia tre numeri pubblicati, e li cambia in un
+riquadro che il lettore apre premendo, cioè credendo di aver chiesto un dettaglio e non un
+altro calcolo. Testo e data stanno nello stesso oggetto e sono due categorie di rischio
+diverse.
+
+E una regola che discende dalle prime due: **l'agente non sceglie mai fra `proposto` e
+`depositato`, e non sceglie mai un id per un nome inglese.** Sono i due punti in cui una
+notizia va interpretata, e interpretare è la cosa che una persona fa meglio e più
+lentamente. I contratti in `docs/` li marcano con ⚖️.
+
+### Davanti a un rosso, un agente non modifica mai una prova
+
+**Se `npm run verifica` fallisce dopo una sua modifica, l'agente si ferma e chiede. Anche
+quando il rosso è legittimo.**
+
+Non è prudenza generica: è la difesa contro l'unico modo davvero pericoloso di sbagliare in
+questo progetto. Una prova che cade dice una cosa sola — «quello che credevi non è vero» —
+e ci sono due modi di farla tornare verde: capire, oppure cambiare l'attesa. Il secondo
+costa dieci secondi, funziona sempre, e cancella l'unica misura che il progetto ha di sé
+stesso. Un agente sbaglia più in fretta di una persona, e un banco verde per costruzione
+non si distingue da un banco verde per merito **finché non lo guarda qualcuno**, che è
+esattamente la cosa che non succede la sera prima di una pubblicazione.
+
+Il rosso legittimo esiste — un'attesa può diventare obsoleta di proposito — e allora si
+aggiorna **nello stesso commit, spiegando perché nel messaggio**. Ma la decisione che
+un'attesa è obsoleta è una decisione, non una riparazione: la prende una persona.
+
+Il caso è già capitato, e non a un agente: fino al 23 agosto 2026 aggiungere un accordo
+legittimo faceva cadere **nove asserzioni** in `apparentamenti.js`, e la mossa sbagliata
+era lì a portata di mano. Quelle attese ora derivano dalla tabella e non cadono più — la
+tentazione è stata tolta invece che vietata, che è sempre la riparazione migliore — ma la
+regola vale lo stesso, perché la prossima volta la tentazione arriverà da un'altra parte.
+
+**Il corollario**: nessun commit e nessun push senza che una persona l'abbia chiesto in
+quel messaggio. Vale già per me, vale per l'agente, e vale doppio perché il file è pubblico
+e collegato a un giornale.
 
 ## Pubblicazione
 

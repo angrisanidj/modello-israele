@@ -24,6 +24,7 @@ import {readFileSync, writeFileSync, existsSync} from 'node:fs';
 import {fileURLToPath} from 'node:url';
 import {dirname, join} from 'node:path';
 import {JSDOM} from 'jsdom';
+import {componi} from './dafare.mjs';
 
 const QUI = dirname(fileURLToPath(import.meta.url));
 const RADICE = join(QUI, '..', '..');
@@ -132,6 +133,7 @@ async function main(){
   src = src.replace('carica().then(render,render)',
     'global.A={parseWiki:parseWiki,unisci:unisci,calcola:calcola,blocchi:blocchi,' +
     'chiaveEvento:chiaveEvento,SEG:function(){return SEG;},SOND:function(){return SOND;},' +
+    'validaApparentamenti:validaApparentamenti,GAP_SONDAGGI:function(){return GAP_SONDAGGI;},' +
     'setSOND:function(v){SOND=v;},sim:function(v){SIM=v;}};carica().then(render,render)');
   eval(src);
   await new Promise(res => setTimeout(res, 2500));
@@ -160,37 +162,76 @@ async function main(){
     blocchi, blocchiIeri: stato.blocchi
   });
 
-  if (esito.stop){
-    console.error('GUARDIA: ' + esito.stop);
-    if (esito.issue)
-      writeFileSync(join(RADICE, 'guardia-issue.md'), esito.issue.titolo + '\n\n' + esito.issue.corpo);
-    process.exit(1);
-  }
-
-  if (!nuove){
-    console.log('nessuna rilevazione nuova: niente da scrivere, niente da pubblicare');
-    /* lo stato si aggiorna lo stesso? No: senza commit non c'è niente da consegnare,
-       e uno stato aggiornato senza archivio aggiornato disallineerebbe i riferimenti. */
-    process.exit(0);
-  }
-
   const oggi = new Date().toISOString().slice(0, 10);
+  const archivioAl = A.SOND().map(s => s.data).sort().pop() || null;
   const registro = JSON.parse(readFileSync(join(RADICE, 'dati', 'eventi-grezzi.json'), 'utf8'));
   const reg = aggiornaRegistro(registro, out.eventi, A.chiaveEvento, oggi);
+
+  /* ── IL RIEPILOGO, SCRITTO PRIMA DELLE GUARDIE ──
+   *
+   * Le guardie escono senza scrivere niente, ed è il loro contratto. Ma il riepilogo non
+   * è un dato del modello: è il referto, e va scritto PROPRIO nelle notti in cui il job
+   * si ferma — quelle in cui c'è qualcosa da fare. Scritto dopo, mancherebbe quando serve.
+   *
+   * Le voci-evento che il riepilogo elenca sono quelle che ENTREREBBERO: il registro su
+   * disco non è ancora stato toccato, e non lo sarà se una guardia ferma tutto. È l'unica
+   * differenza fra quello che il file annuncia e quello che il repository contiene, e va
+   * saputa: il riepilogo dice «da tradurre», non «già nel registro».
+   *
+   * `notti` viene da fuori, dal workflow, che sa contare le esecuzioni fallite di fila:
+   * una notte bloccata non committa niente, quindi da qui dentro non è ricavabile. */
+  const daFare = componi({
+    oggi,
+    guardia: esito.stop || null,
+    notti: +(process.env.NOTTI_FERME || 0) || null,
+    archivioAl,
+    nuove,
+    accordiInvalidi: A.validaApparentamenti(),
+    ignote: out.ignote || [],
+    ambigue, ambigueIeri: stato.ambigue,
+    esempiAmbigui: out.scartate.filter(x => x.tipo === 'ambigua')
+      .map(x => ({data: x.data, istituto: x.istituto, motivo: x.motivo})),
+    eventiNuovi: reg.registro.filter(r => r.stato === 'nuovo' && r.visto === oggi),
+    quiete: archivioAl
+      ? Math.round((Date.parse(oggi) - Date.parse(archivioAl)) / 864e5) : 0,
+    gapSondaggi: A.GAP_SONDAGGI()
+  });
+  if (!prova) writeFileSync(join(RADICE, 'dati', 'da-fare.json'), JSON.stringify(daFare, null, 1) + '\n');
+  console.log('riepilogo: ' + daFare.riga);
+
+  if (esito.stop){
+    console.error('GUARDIA: ' + esito.stop);
+    /* La issue della guardia non si scrive più qui: il canale è uno solo, ed è il
+       riepilogo appena scritto — che porta la stessa cosa da fare, con dentro anche
+       tutto il resto della nottata. `esito.issue` resta perché è la spiegazione che
+       valuta() dà della sua decisione, e le prove la leggono da lì. */
+    process.exit(1);
+  }
 
   const statoNuovo = {data: oggi, valide: out.sondaggi.length, ambigue, blocchi};
 
   if (prova){
     console.log('[prova] +' + nuove + ' rilevazioni (' + archivio.length + ' → ' + A.SOND().length + '), ' +
       '+' + reg.nuove + ' voci-evento, blocchi ' + JSON.stringify(blocchi));
+    console.log('[prova] da-fare.json:\n' + JSON.stringify(daFare, null, 1));
     process.exit(0);
   }
 
-  writeFileSync(join(RADICE, 'dati', 'archivio.json'), JSON.stringify(A.SOND(), null, 1) + '\n');
+  /* LO STATO SI SCRIVE A OGNI NOTTE RIUSCITA, ANCHE A MANI VUOTE, e prima non era così.
+     `k-upd` dichiara «ultima verifica riuscita» e leggeva un file che veniva riscritto
+     solo quando arrivavano rilevazioni nuove: una notte in cui il job gira benissimo e
+     Wikipedia non ha niente non lasciava traccia. Misurato sull'archivio: da giugno ci
+     sono undici intervalli di tre o più giorni senza rilevazioni, il più lungo di sei,
+     quindi la testata mostrava «verificato il … · N giorni fa» nello stile «vecchio» di
+     routine, e non era vero. Il prezzo è un commit al giorno anche quando non c'è niente
+     di nuovo: è accettato, perché un segnale che mente è peggio di un commit in più — e
+     perché da domani questo file lo legge anche un agente. */
+  if (nuove) writeFileSync(join(RADICE, 'dati', 'archivio.json'), JSON.stringify(A.SOND(), null, 1) + '\n');
   writeFileSync(join(RADICE, 'dati', 'eventi-grezzi.json'), JSON.stringify(reg.registro, null, 1) + '\n');
   writeFileSync(pStato, JSON.stringify(statoNuovo, null, 1) + '\n');
-  console.log('+' + nuove + ' rilevazioni (' + archivio.length + ' → ' + A.SOND().length + '), ' +
-    '+' + reg.nuove + ' voci-evento nel registro');
+  console.log((nuove ? '+' + nuove + ' rilevazioni (' + archivio.length + ' → ' + A.SOND().length + ')'
+                     : 'nessuna rilevazione nuova') +
+    ', +' + reg.nuove + ' voci-evento nel registro');
   process.exit(0);
 }
 
