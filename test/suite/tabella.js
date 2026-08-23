@@ -384,11 +384,23 @@ esito(colId.length >= 8, 'le colonne di lista sono ' + colId.length, colId.join(
     const tr = righeTab[r]; if (!tr) { divergenti.push('riga ' + r + ' assente in tabella'); return; }
     const cel = [].slice.call(tr.children);
     const sum = det.querySelector('summary'), pan = det.querySelector('.sondv');
+    /* I SEGGI si cercano per NOME DI LISTA fra le pastiglie: è così che il pannello li
+       porta, e cercarli per posizione renderebbe verde un pannello che li ha mescolati. */
     const dice = (etichetta) => {
       const s = [].slice.call(pan.querySelectorAll('span'))
         .filter(x => testo(x.querySelector('em')) === etichetta)[0];
       return s ? testo(s.querySelector('s')) : null;
     };
+    /* I METADATI NON SONO PIÙ PASTIGLIE: dal 23 agosto 2026 sono il sottotitolo del
+       pannello — una frase, «Maariv · 501 intervistati» — perché due pastiglie identiche a
+       quelle dei seggi si leggevano come seggi.
+       L'ASSERZIONE NON CAMBIA: il pannello dice gli stessi valori della riga. Cambia solo
+       come si trovano, e si trovano CONTENUTI nella frase invece che uguali a una cella:
+       la frase è prosa, non un elenco di etichette, quindi pretendere l'uguaglianza
+       vorrebbe dire ricopiarne la punteggiatura qui — e allora la prova cadrebbe alla prima
+       virgola spostata, che è la cosa che non deve provare. */
+    const meta = testo(det.querySelector('.sondmeta')) || '';
+    const nellaFrase = v => meta.indexOf(v) >= 0 ? v : '(non nella frase: «' + meta + '»)';
     const cfr = (che, a, b) => { if (a !== b){ divergenti.push(che);
       if (!primo) primo = 'riga ' + r + ' · ' + che + ': elenco «' + a + '», tabella «' + b + '»'; } };
     /* la data e i due totali stanno nel sommario */
@@ -397,11 +409,18 @@ esito(colId.length >= 8, 'le colonne di lista sono ' + colId.length, colId.join(
     const tot = [].slice.call(sum.querySelectorAll('u em')).map(testo);
     cfr('coalizione', tot[0], testo(cel[cel.length - 2]));
     cfr('opposizione', tot[1], testo(cel[cel.length - 1]));
-    /* testata e campione stanno nel pannello */
+    /* testata e campione stanno nel sottotitolo del pannello */
     const testata = testo(cel[1].querySelector('span'));
-    if (testata) cfr('testata', dice('testata'), testata);
+    if (testata) cfr('testata', nellaFrase(testata), testata);
     const campione = testo(cel[2]);
-    cfr('campione', dice('campione'), campione === '—' ? 'non dichiarato' : campione);
+    if (campione === '—')
+      cfr('campione', /non dichiarato/.test(meta) ? 'assente' : '(non dichiarato non c\'è: «' + meta + '»)', 'assente');
+    else
+      cfr('campione', nellaFrase(campione), campione);
+    /* e non sono più pastiglie: se ci tornassero, tornerebbero anche nel flusso dei seggi */
+    const etichette = [].slice.call(pan.querySelectorAll('span em')).map(testo);
+    if (etichette.indexOf('testata') >= 0 || etichette.indexOf('campione') >= 0)
+      divergenti.push('riga ' + r + ': i metadati sono tornati fra le pastiglie dei seggi');
     /* e i seggi, lista per lista e per ID, non per posizione */
     idCol.forEach((id, c) => {
       if (!id) return;
@@ -413,6 +432,37 @@ esito(colId.length >= 8, 'le colonne di lista sono ' + colId.length, colId.join(
   esito(!divergenti.length,
     'le due forme dicono gli stessi valori su tutte e ' + righeEl.length + ' le righe che condividono',
     divergenti.length + ' divergenze, la prima: ' + primo);
+
+  /* IL SINGOLARE DEL SOTTOTITOLO, e ci è voluta una mutazione per accorgersi che non era
+     provato. «N intervistati» passa da acc(), come tutte le regole di lingua di questa
+     pagina — ma nell'archivio non esiste nessuna rilevazione con un intervistato solo,
+     quindi il ramo singolare non veniva mai eseguito e la mutazione che scrive «intervistati»
+     a mano restava VIVA. È la forma di buco che questo banco conosce: un ramo corretto che
+     nessun dato raggiunge non è un ramo provato.
+     Si esercita costruendo il caso invece di aspettarlo — una rilevazione con campione 1,
+     inserita e poi tolta. Il caso è assurdo per un sondaggio vero, e non importa: quello che
+     si prova è la REGOLA DI LINGUA, non la plausibilità del dato. */
+  (function(){
+    const SOND = A.SOND();
+    const salva = SOND.slice();
+    /* la data è LA PIÙ RECENTE dell'archivio, non quella di SOND[0]: l'archivio è ordinato
+       dal più vecchio, quindi copiare la prima rilevazione metteva la finta a gennaio —
+       cioè oltre il limite delle cinquanta, dove l'elenco non la mostra affatto. */
+    const ultima = SOND.map(x => x.data).sort().pop();
+    const modello = SOND.filter(x => x.data === ultima)[0];
+    const finto = Object.assign({}, modello, {campione: 1, istituto: 'Prova Singolare'});
+    SOND.unshift(finto);
+    A.rTab();
+    /* la riga si cerca per NOME, non per posizione: rTab() riordina per data, e la finta
+       ne condivide una con la prima vera — l'ordine fra pari non è garantito da niente */
+    const riga = [].slice.call(D.querySelectorAll('#k-tab .sondlist details.sondr'))
+      .filter(d => testo(d.querySelector('summary span')) === 'Prova Singolare')[0];
+    const meta = riga ? testo(riga.querySelector('.sondmeta')) : '(riga non trovata)';
+    SOND.length = 0; salva.forEach(x => SOND.push(x)); A.rTab();
+    esito(/\b1 intervistato\b/.test(meta) && !/intervistati/.test(meta),
+      'con un intervistato solo il sottotitolo dice «1 intervistato»: l\'accordo passa da acc()',
+      meta);
+  })();
 
   /* E NELLO STESSO ORDINE, che è una proprietà a sé e l'ha trovata una mutazione.
      Le asserzioni qui sopra cercano ogni lista PER NOME dentro il pannello, quindi passano
@@ -432,6 +482,21 @@ esito(colId.length >= 8, 'le colonne di lista sono ' + colId.length, colId.join(
     if (attesa.join('|') !== resa.join('|'))
       ordineKO.push('riga ' + r + ': ' + resa.join(',') + ' invece di ' + attesa.join(','));
   });
+  /* LA PROMINENZA DEL VALORE, che è la grandezza giusta — non il rapporto fra le
+     larghezze d'inchiostro, che confronta un nome da ventun caratteri con una cifra sola e
+     resta grande qualunque cosa si faccia. Il valore deve stare almeno un gradino sopra il
+     nome, e il gradino sta nel foglio: in jsdom non c'è layout, quindi si legge dove è
+     scritto. Il valore NON si alza: alzarlo farebbe crescere la pastiglia di 5,5px e la
+     sezione del 12,6%, ed è la misura per cui questa asserzione guarda il nome. */
+  const cssTab = html.match(/<style>([\s\S]*?)<\/style>/)[1];
+  const rEm = (cssTab.match(/#kn26 \.sondv em\{[^}]*\}/) || [''])[0];
+  const rSp = (cssTab.match(/#kn26 \.sondv span\{[^}]*\}/) || [''])[0];
+  const fsEm = +((rEm.match(/font-size:([\d.]+)px/) || [0, 0])[1]);
+  const fsSp = +((rSp.match(/font-size:([\d.]+)px/) || [0, 0])[1]);
+  esito(fsSp > 0 && fsEm > 0 && fsEm < fsSp,
+    'nel pannello il nome sta un gradino sotto il valore: la prominenza è del numero, che è il dato',
+    'nome ' + fsEm + 'px · valore ' + fsSp + 'px');
+
   esito(!ordineKO.length,
     'e nello stesso ORDINE: il pannello elenca le liste come le colonne, cioè per blocco',
     ordineKO[0] || '');

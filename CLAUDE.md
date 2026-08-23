@@ -29,7 +29,7 @@ alle prove.
 
 ```bash
 npm install          # solo la prima volta: installa jsdom per le prove
-npm test             # estrae il JS e lancia le 1661 prove
+npm test             # estrae il JS e lancia le 1734 prove
 npm run verifica     # prove + controlli strutturali
 npm run spazzola     # rilancia il banco con l'orologio al 23 ottobre: dice quali prove
                      #   danno per scontato un archivio fresco. Da rifare dopo ogni
@@ -65,7 +65,7 @@ sempre; ometterlo cancellerebbe l'unica traccia che il controllo esiste.
 ## Il banco di misura su browser vero
 
 Le prove girano in jsdom, che **non fa layout**: larghezze, altezze, contrasti resi e
-sovrapposizioni non le vede nessuna delle 1661. Per quelle c'è un server statico da otto
+sovrapposizioni non le vede nessuna delle 1734. Per quelle c'è un server statico da otto
 righe, `.claude/serve.mjs`, dichiarato in `.claude/launch.json` come configurazione
 `misure`. **È sotto controllo di versione apposta: chi apre il progetto domani lo trova
 invece di rimontarlo.** Non è una dipendenza del modello — `index.html` resta un file
@@ -306,6 +306,10 @@ test/
                       misurati, e il legame fra og:title e titoloCortoOra() su tutte e
                       dodici le celle. Prova anche scriviMeta(), cioè i modi in cui il
                       job deve RIFIUTARSI di toccare index.html
+  suite/embed.js      la modalità incorporata: che cosa va via e che cosa resta, nei due
+                      versi; la firma; la fascia della memoria; l'avviso dell'altezza; e la
+                      nona domanda — la fascia del dopo-voto dentro l'embed, con l'orologio
+                      congelato dopo il voto
   suite/tabella.js    l'archivio dei sondaggi nelle sue DUE forme. Desktop: colonne
                       raggruppate per blocco, i filetti dove il blocco cambia, e le 2805
                       celle confrontate una per una con l'archivio — un riordino che sposta
@@ -2254,6 +2258,88 @@ la sezione dichiara al lettore, e l'archivio esiste perché chi legge possa cont
 **Quello che quella forma ha trovato resta, ed è annotato fra le cose minori**: nessuna
 sezione della pagina mostra la serie storica di una singola lista dai sondaggi grezzi.
 
+### Il pannello dell'elenco: i metadati, l'ordine, e la coincidenza che scade l'8 settembre
+
+Applicato il 23 agosto 2026, guardando l'elenco reso a 380.
+
+**I metadati sono usciti dalle pastiglie.** «testata Canale 12» e «campione 502» erano due
+pastiglie identiche alle undici dei seggi — stessa forma, stesso flusso, stesso a-capo —
+quindi si leggevano come un elenco unico di tredici cose dello stesso genere, quando sono due
+categorie. L'unico canale che le distingueva era il colore, e **il colore da solo non separa
+un flusso**. Adesso sono il sottotitolo del pannello: «Maariv · 501 intervistati», testo
+semplice sopra i seggi, senza nessuna superficie in più.
+
+**Costo misurato, e la stima era sbagliata**: si diceva che fosse l'unica delle tre vie a
+costare negativo, e **non lo è**. Il pannello si accorcia di 30,8px (171,1 → 140,3) ma il
+sottotitolo ne occupa 24,9, e mediato sulle cinquanta righe l'apertura costa **+0,9px per
+riga: neutro**. Le due pastiglie tolte stavano su una riga d'a-capo loro, e quella riga il
+sottotitolo se la riprende quasi tutta. La mossa si difende sulla lettura, non sull'altezza.
+
+**La frase si compone come una frase, non come un elenco di etichette.** «testata: Maariv,
+campione: 501» avrebbe conservato le etichette, che servivano solo a disambiguare due
+pastiglie identiche: in una riga sola il nome di una testata e un numero di intervistati si
+riconoscono da soli. E l'accordo passa da `acc()`, come dappertutto.
+
+Da questo è cambiato **come la prova legge i metadati, non che cosa asserisce**: resta «il
+pannello dice gli stessi valori della riga», ma i due valori si cercano **contenuti nella
+frase** invece che uguali a una cella. Pretendere l'uguaglianza vorrebbe dire ricopiare qui
+la punteggiatura del sottotitolo, e la prova cadrebbe alla prima virgola spostata — cioè
+proprio sulla cosa che non deve provare. C'è anche il verso opposto: se le etichette
+«testata» e «campione» ricomparissero fra le pastiglie, la prova cade.
+
+#### L'ordine è già quello delle colonne, e oggi non si vede
+
+Il pannello elenca le liste con `colonneBlocco()`, la stessa funzione della tabella, e
+`tabella.js` lo asserisce riga per riga — la mutazione che sostituisce `cols` con `IDS` muore.
+
+**Ma oggi i due ordini COINCIDONO, e coincidono per una ragione che scade.** Le uniche liste
+che li distinguono sono quelle dell'ago della bilancia, e **nessuna ha seggi**: non compaiono
+nel pannello, e senza di loro l'ordine dell'anagrafica è già l'ordine di blocco — Yisrael
+Beitenu compreso, perché il pannello lo mette con l'opposizione da dove sta.
+
+Quindi **guardare il pannello non dice se la funzione giusta sia stata usata**: dice la stessa
+cosa in tutti e due i casi. L'8 settembre, se una lista dell'ago della bilancia prende seggi,
+i due ordini divergono — e allora si vede. È lo stesso genere di coincidenza dell'house
+effect, che era in ordine di blocco «per fortuna» finché quelle quattro liste non arrivavano
+a tre rilevazioni: **due volte la stessa lista assente ha nascosto due volte la stessa
+domanda.**
+
+#### La prominenza del valore: metà applicata, metà misurata e scartata
+
+Il valore è il dato, e nel pannello stava allo stesso corpo del nome: 11,5 contro 11,5,
+prominenza 1:1. Le due metà della mossa costano in modo completamente diverso, e la
+differenza è che **l'altezza della pastiglia la detta il testo più alto**.
+
+**Applicata: il nome a 10,5px, il valore fermo a 11,5.** Costo misurato: **zero, a ogni
+livello** — pastiglia 25,81 prima e dopo, pannello 140,3, riga aperta 210,2, sezione con
+cinquanta righe aperte 11.319,8, identici. La prominenza passa a **1,10:1**. È poco, ed è
+gratis.
+
+**Scartata: il valore a 15px.** Farebbe crescere la pastiglia di **5,5px**, cioè +28,5px per
+pannello e **+12,6% sulla sezione** con tutto aperto (11.319,8 → 12.742). In cambio il
+rapporto fra le larghezze d'inchiostro nel caso peggiore passerebbe da 17,55 a 12,28.
+
+**E il rapporto fra larghezze non è la grandezza giusta**, che è la ragione per cui la
+seconda metà non vale il prezzo. Confronta un nome da ventun caratteri — «Giudaismo Unito
+Torah» — con una cifra sola: perché il numero fosse largo un quarto del nome dovrebbe stare
+a **46px**. Nessun corpo ragionevole lo porta dove sembrava potesse andare, e la stima di
+«4,4» che era circolata era sbagliata di un fattore tre. Quello che si può muovere è la
+**prominenza**, e quella si è mossa quanto si poteva muovere gratis.
+
+#### Rendere visibile il blocco anche nel pannello: da valutare dopo la pubblicazione
+
+Il filetto `sep` c'è ed è provato, ma in un elenco che va a capo cade a inizio riga e si legge
+come un segno vagante: non è il canale giusto qui. Le due vie misurate, e nessuna delle due
+si applica adesso:
+
+- **una riga d'intestazione per blocco** — quattro righe da ~17px, cioè **+68px per pannello,
+  il +40%**. Legge benissimo e costa troppo;
+- **il bordo della pastiglia col token del blocco** — costo **zero** in altezza, e riusa i
+  quattro token già in pagina. Ma è **colore su colore in un punto dove il valore è già
+  colorato per lista**, quindi prima di proporlo davvero va misurato che cosa succede al
+  contrasto e alla dicromazia — che è la misura che la tavolozza pretende ogni volta che una
+  tinta entra da qualche parte.
+
 ### I due difetti chiusi qui accanto, trovati misurando
 
 **1 · Con zero risultati la tabella taceva.** Misurato: una ricerca senza esiti lasciava un
@@ -2348,6 +2434,174 @@ come tutte quelle sulle strade doppie: la definizione c'è dove deve e **non** c
 deve. Una sola delle due asserzioni non basterebbe — la prima passa anche se la nota la
 ricopia, la seconda passa anche se la definizione non esiste affatto. E una terza pretende
 che la nota **rimandi**: togliere una copia senza lasciare la strada è peggio che tenerne due.
+
+## Le nove risposte dell'embed
+
+Applicato il 23 agosto 2026. **Le domande erano state poste a voce e non erano mai finite in
+questo file**: sono state riscritte e risposte una per una, e stanno qui perché non dipendano
+da nessuna conversazione. Le prove sono in `test/suite/embed.js`.
+
+Il vincolo che le governa tutte: **`?embed=1` è pubblica, non è per FocusAmerica.** Chiunque
+deve poterla incorporare su un sito che non controlliamo — larghezza, tema, CMS, dominio — e
+l'attribuzione è una **firma personale**: chi incorpora incorpora un lavoro firmato da una
+persona, non un prodotto della testata.
+
+### Prima di tutto: le due cose misurate, perché tre risposte dipendono da quelle
+
+Un ospite vero su `localhost:8788` che inquadra la pagina, con il controllo che sa fallire
+nella stessa pagina — un iframe verso `https://github.com/`, che **deve** produrre
+`frame-ancestors 'none'`, e lo produce:
+
+| | misurato in Chrome, 23 agosto 2026 |
+|---|---|
+| `sandbox="allow-scripts"` (origine opaca) | **`localStorage.setItem` lancia `SecurityError`** |
+| `sandbox="allow-scripts allow-same-origin allow-downloads"` | scrive |
+| **`<a download>.click()` in sandbox senza `allow-downloads`** | **nessuna eccezione, e non scarica** |
+
+**Non è un caso Safari: è la condizione normale dell'embed.** Il record dice che Fanpage e
+FocusAmerica incorporano in sandbox, e lì lo storage è bloccato in Chrome come altrove;
+Safari aggiunge il caso *senza* sandbox, che su questo banco non si può provare — non c'è
+Safari, e va detto invece di dedurlo.
+
+E la pagina **lo sapeva già**: `tipoMemoria()` non deduce, prova a scrivere davvero e cattura
+l'eccezione. Ma lo **diceva dentro `#k-datapanel`**, un `<details>` chiuso per impostazione
+predefinita. Un avviso in un cassetto non è un avviso.
+
+### 1 · Che cosa sparisce
+
+Il **modulo archivio** — importa, esporta, inserimento manuale, diagnostica — e la sezione
+**«incorpora»**. Il primo è l'attrezzo dell'autore e scrive in una memoria che nell'embed non
+c'è; la seconda perché offrire il codice dell'embed dentro l'embed non vuol dire niente.
+
+**Non sparisce nient'altro: tutto quello che si legge resta**, comprese la guida dei comandi
+e la nota metodologica.
+
+E **si toglie dal DOM, non si nasconde col foglio**. Un elemento a `display:none` resta
+nell'albero: i suoi comandi restano nell'ordine di tabulazione di qualche browser, qualche
+lettore di schermo lo annuncia, e chi cerca lo trova. **Quello che l'embed non offre non deve
+esistere, non deve essere invisibile.** L'elenco è una costante sola, `VIA_NELL_EMBED`, e la
+prova lo esercita nei due versi: quello che va via non c'è nell'embed **e c'è** nella pagina
+intera — una metà sola passerebbe anche con un embed che toglie tutto.
+
+### 2 · L'altezza
+
+**Fissa, con scorrimento interno, più un avviso facoltativo per l'ospite.** L'iframe ha
+l'altezza che gli dà chi incorpora e la pagina scorre dentro: funziona anche dove il CMS
+toglie lo script dell'ospite, che è la maggior parte dei posti in cui questa pagina finirà.
+**Se l'altezza dipendesse dal messaggio, l'embed si taglierebbe proprio dove l'ospite è più
+povero.**
+
+Il messaggio si manda lo stesso, per chi sa usarlo: `{kn26:'altezza', px}` a ogni render, e
+tre righe nel frammento da copiare. Misurato su un ospite vero: arrivano **due** messaggi —
+7.026 px e poi 18.380 — perché il render gira prima e dopo che l'archivio arrivi, e a 380 di
+larghezza la pagina è alta diciottomila pixel. Un ospite che si ridimensiona lo fa due volte,
+ed è corretto.
+
+### 3 · Il selettore del tema
+
+**Resta.** §6 della verifica a scenari lo dà già per acquisito: «il tema segue il selettore,
+non l'ospite». Un riquadro che ereditasse il fondo di un sito che non conosce non saprebbe
+che contrasti sta producendo.
+
+### 4 · L'esportazione PNG dentro l'embed
+
+**Non c'è, e la ragione è quella misurata.** Dentro una sandbox senza `allow-downloads` un
+`<a download>` **non solleva niente**: `click()` ritorna e non succede nulla. **Un comando che
+finge di funzionare è peggio di un comando assente** — chi lo preme non impara niente, e non
+ha modo di capire se il difetto è suo, dell'ospite o nostro. E non possiamo pretendere
+`allow-downloads` da un ospite che non controlliamo.
+
+La regola è **provata adesso che il codice del PNG non c'è ancora**: in modalità incorporata
+nessun elemento reso porta l'attributo `download`. Quando il PNG arriverà, quella prova sarà
+già lì ad aspettarlo.
+
+### 5 · La memoria
+
+**Si dichiara in chiaro, e non solo nell'embed.** La fascia `#k-mem` compare quando il
+browser non consente di salvare — dentro un iframe di terza parte, in navigazione privata,
+con i dati dei siti bloccati — e nell'embed porta il collegamento alla pagina intera.
+
+**Il difetto non era dell'embed: l'embed lo rendeva soltanto pubblico**, quindi la
+riparazione vale per tutte e due. Ed è **una strada sola**: il paragrafo in `--neg` è uscito
+da `rDiag()`, che adesso dice il **fatto** («salvato in: nessuna») mentre la fascia dice che
+cosa comporta. Due copie dello stesso avvertimento a schermi di distanza sarebbero divergute
+alla prima riscrittura.
+
+Il filetto della fascia è `--inc` e non `--neg`: **qui non è successo niente di sbagliato**.
+Un iframe di terza parte che non concede lo storage è la condizione normale, non un guasto, e
+dipingerla come un errore direbbe al lettore una cosa falsa sul suo browser.
+
+### 6 · Che cosa È l'attribuzione
+
+**Non si può rendere impossibile toglierla, e fingere il contrario sarebbe una promessa che
+nessun codice mantiene**: chi copia il file fa quello che vuole. Quello che si può fare è che
+toglierla significhi **biforcare il file** — e chi biforca perde gli aggiornamenti notturni,
+che sono la ragione per cui questa pagina vale la pena di essere incorporata.
+
+Quindi: la firma è una **costante**, la scrive il render, e il markup ne porta una copia per
+chi ha il JavaScript spento — una firma solo renderizzata sparirebbe proprio per il lettore
+che ha meno di tutti. Le due sono legate da una prova. Nell'embed la firma porta anche la via
+d'uscita verso la pagina intera: è il posto in cui il lettore capisce di che cosa sta
+guardando un pezzo.
+
+**Niente FocusAmerica**, e la prova lo asserisce: nessuna testata compare nella firma, in
+nessuna delle due forme.
+
+### 7 · La freschezza
+
+`cache-control: max-age=600` permette a un embed di mostrare una copia vecchia **fino a dieci
+minuti**, quindi la data va detta da dentro. Restano tutte e due: **l'ultima verifica
+riuscita** (`#k-upd`) e **l'ultimo sondaggio** (`#k-fresh`), che sono due grandezze diverse e
+lo sono anche nell'embed.
+
+### 8 · Il frammento da copiare
+
+**Nella pagina intera, non nell'embed**, in un `<details>` accanto alla firma. È **testo
+statico dentro `<code>`**, non markup: chi copia deve poter copiare anche a JavaScript
+spento, e un iframe vero lì dentro sarebbe una risorsa esterna in un file che si dichiara
+autonomo.
+
+Da questo è venuta una precisazione al controllo strutturale: **il codice dentro `<code>` non
+è markup, è testo.** Il primo giro dichiarava il frammento una risorsa esterna — è la stessa
+distinzione già fatta per l'href di un'ancora e per il `canonical`, cioè fra quello che il
+browser **scarica** e quello che sta scritto in pagina.
+
+### 9 · Che cosa vede chi ha incorporato, dopo il 27 ottobre
+
+**È la sola condizione in cui l'embed direbbe qualcosa di falso senza che nessun difetto sia
+stato introdotto.** Un iframe messo in un articolo di settembre e letto a novembre mostrerebbe
+una proiezione a elezioni avvenute — e nessuno se ne accorgerebbe, perché la pagina
+funzionerebbe perfettamente.
+
+La fascia del dopo-voto esiste già: quello che è stato fatto è **provare che l'embed non la
+nasconda**, con l'orologio congelato a tre giorni dal voto e la data letta da `VOTO` invece
+che scritta nella prova. E c'è il verso che a una prova di questo tipo manca sempre: **che
+`k-postvoto` non sia nell'elenco di quello che l'embed toglie, né possa finirci per svista.**
+Non basta che oggi non ci sia — quell'elenco è una costante, e una costante si allunga.
+
+La fascia dice **esattamente** quello che dice la pagina intera: una frase sola per le due
+forme. E trenta giorni prima del voto c'è ed è spenta, perché il testo si scrive sempre e a
+comparire è solo la classe.
+
+### Due cose che il banco ha imposto, e valgono oltre l'embed
+
+**`window.location` e non il `location` nudo.** Il globale nudo esiste solo dentro un
+browser: `EMBED` letto da lì è sempre `false` in jsdom, cioè la suite proverebbe la pagina
+intera credendo di provare l'embed. È la stessa forma di `contesto()`, che `window.location`
+lo usava già.
+
+**In jsdom `localStorage` e `parent` sono GETTER, e assegnarli non fallisce: non fa niente.**
+La prima stesura di `embed.js` credeva di aver rotto lo storage e misurava una pagina sana —
+cioè dichiarava provata una cosa che non aveva mai esercitato. Si sovrascrivono con
+`Object.defineProperty`.
+
+**E quello che dipende dai globali si legge SUBITO, non dopo.** Ogni pagina montata
+sovrascrive `global.window` e `global.document`, e le funzioni dell'app li risolvono al
+momento della chiamata: chiedere `contesto()` alla prima pagina dopo aver montato la seconda
+risponde sulla seconda. Vale anche per l'orologio — `votoPassato()` chiamato dopo aver
+scongelato risponde su oggi, non sul giorno in cui la pagina è stata resa. È la stessa
+famiglia del riferimento preso prima di un `click()` su `#k-house`: **un valore letto dopo
+che il mondo si è mosso.**
 
 ## Dove stava il concetto degli apparentamenti, e dove mancava la definizione
 
@@ -2804,9 +3058,9 @@ Due conseguenze pratiche, e sono quelle da ricordare:
 
 ### Lo stato al 23 agosto 2026, sera
 
-Scritto per ripartire senza la conversazione. Ultimo commit spinto: **`0950866`**, CI e
-Pages verdi. Sul banco di oggi le prove sono **1661**, e le due suite nuove sono
-`meta.js` e `tabella.js`.
+Scritto per ripartire senza la conversazione. Ultimo commit spinto: **`5422238`**, CI e
+Pages verdi. Sul banco di oggi le prove sono **1734**, e le tre suite nuove sono
+`meta.js`, `tabella.js` ed `embed.js`.
 
 **E l'ordine di marcia è cambiato**: la coda è stata riscritta per pubblicare prima, e la
 revisione visiva è uscita dalla coda perché è fatta. Vedi «Nell'ordine, quando si
@@ -3101,8 +3355,9 @@ da fare.
      risposte — come si scorrono 173 righe, dove stanno i seggi e come si confrontano due
      sondaggi, dove stanno ricerca e filtri e quanto costano prima del primo dato, come si
      opera da tastiera, quanto pesa in altezza contro i 774px di oggi, e che cosa si perde.
-3. **Modalità `?embed=1`.** L'incorporabilità tecnica è verificata su origine vera con un
-   controllo che sa fallire (punto 1 di «Ancora da fare»); quel che manca è la modalità.
+3. ~~**Modalità `?embed=1`**~~ — **FATTA il 23 agosto 2026.** Le nove decisioni che la
+   definiscono, e le misure da cui vengono, stanno in «Le nove risposte dell'embed». Quello
+   che resta è guardarla resa dentro un ospite vero: la riga 6 della verifica a scenari.
 4. **Esportazione PNG dei quattro disegni** (punto 7): inventario fatto, decisioni prese,
    codice non scritto.
 
@@ -3194,6 +3449,12 @@ da fare.
   possibilità di isolare una lista: NON l'archivio, che è la sezione in cui una rilevazione
   deve potersi vedere intera. È la ragione per cui la forma per lista è stata scartata
   dalla sezione 11, e la casella che quella forma aveva trovato resta buona lo stesso.
+- **Il blocco reso visibile nel pannello dell'elenco dei sondaggi**, che oggi non lo è: il
+  filetto `sep` non funziona in un elenco che va a capo. Le due vie sono misurate —
+  intestazione per blocco a +68px per pannello (+40%), o bordo della pastiglia col token
+  del blocco a costo zero ma colore su colore dove il valore è già colorato per lista.
+  **Da valutare dopo la pubblicazione**, e la seconda va misurata su contrasto e dicromazia
+  prima di essere proposta. Vedi «Il pannello dell'elenco».
 - **Il campo `esito`** in archivio (punto 8-bis): senza, dopo il voto la pagina può
   parlare solo della propria stima, e l'ottava istantanea che sposterebbe il 2,7 non
   esiste.
@@ -3308,7 +3569,7 @@ la regola della consegna 6».
 trovati oggi — la stella della bandiera che sconfinava nelle bande, l'occhiello a filo del
 bordo sull'ombra, il vuoto di 372px sotto le ipotesi, l'evidenziazione che competeva con
 la codifica del riempimento, il verde arabo che si leggeva nero — sono stati trovati
-**guardando la pagina**, non dalla suite. Le 1661 prove dicono che il modello non si è
+**guardando la pagina**, non dalla suite. Le 1734 prove dicono che il modello non si è
 rotto; non dicono che la pagina si veda. Dopo ogni push, aprire
 <https://angrisanidj.github.io/modello-israele/> e guardarla nei due temi.
 
@@ -3321,7 +3582,7 @@ rotto; non dicono che la pagina si veda. Dopo ogni push, aprire
 per due ragioni. La prima è che dice che cosa è già stato visto, e quindi che cosa NON va
 riguardato quando si tocca qualcosa lì accanto. La seconda è che la sua ultima sezione —
 quella su come si annota un difetto visivo — vale ogni volta che se ne trova uno, e i
-difetti visivi si trovano ancora: sono la famiglia che nessuna delle 1661 prove vede.
+difetti visivi si trovano ancora: sono la famiglia che nessuna delle 1734 prove vede.
 
 Quello che entra in pagina DOPO questa passata non è coperto: l'embed e l'esportazione PNG
 disegnano attorno ai grafici e vanno guardati quando ci saranno, e la forma nuova della
@@ -3331,7 +3592,7 @@ lista dichiarava di non aver mai esaminato.
 Scritta il 22 agosto 2026 per una passata sola, sezione per sezione. Serve a distinguere
 **quello che qualcuno ha già guardato reso** da **quello che nessuno ha mai visto**: in due
 giorni sono entrate parecchie cose che le prove dichiarano sane e che nessun occhio ha
-ancora confermato. Le 1661 prove dicono che il modello non si è rotto; non dicono che la
+ancora confermato. Le 1734 prove dicono che il modello non si è rotto; non dicono che la
 pagina si veda.
 
 Si guarda su <https://angrisanidj.github.io/modello-israele/>, **nei due temi forzati dal

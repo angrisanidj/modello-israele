@@ -33,7 +33,15 @@ p('nessun id usato dal JS ma assente dal markup'+(orfani.length?' ('+orfani.join
    di un'ancora, e la correzione è la stessa: esce dal conto delle risorse ed entra in un
    inventario, perché una cosa che punta fuori deve restare una cosa che si vede.
    La lista bianca delle RISORSE non si allarga di un elemento: resta vuota. */
-const htmlSenzaEsenti=html.replace(/<link\s+rel="canonical"[^>]*>/g,'<link>');
+const htmlSenzaEsenti=html
+  .replace(/<link\s+rel="canonical"[^>]*>/g,'<link>')
+  /* E IL CODICE DENTRO <code> NON È MARKUP: È TESTO. Il frammento da copiare per
+     incorporare la pagina contiene un iframe scritto con le entità, quindi il browser non
+     carica niente — lo legge una persona e lo incolla altrove. Il primo giro di questo
+     controllo lo dichiarava una risorsa esterna: è la stessa distinzione già fatta per
+     l'href di un'ancora, cioè fra quello che il browser SCARICA e quello che sta scritto
+     in pagina. Si toglie prima di cercare. */
+  .replace(/<code>[\s\S]*?<\/code>/g,'<code></code>');
 p('file autonomo: nessuna risorsa esterna',
   !/(src|href)="https?:\/\//.test(htmlSenzaEsenti.replace(/<a [^>]*href="https?:[^"]*"/g,'')));
 
@@ -52,10 +60,19 @@ p('file autonomo: nessuna risorsa esterna',
    resta Wikipedia e basta. Quello che cambia è che gli href delle ancore escono dal conto
    delle chiamate — e vengono elencati a parte, così un collegamento esterno resta una
    cosa che si vede invece di una cosa che passa. */
+/* E L'INDIRIZZO DI QUESTA PAGINA NON È UN TERZO. Dal 23 agosto 2026 il JavaScript conosce
+   il proprio indirizzo — CANONICO — perché in modalità incorporata la firma porta la via
+   d'uscita verso la pagina intera. È navigazione come l'href di un'ancora, e verso noi
+   stessi: la lista bianca delle CHIAMATE DI RETE non si allarga di un elemento.
+   Non è una whitelist scritta: si LEGGE dal <link rel="canonical"> del markup, così i due
+   indirizzi non possono divergere — se un giorno il canonical cambia e la costante no,
+   questo controllo torna rosso invece di lasciar passare due indirizzi diversi. */
+const canonicoJS=(html.match(/<link\s+rel="canonical"\s+href="(https?:\/\/[^"]+)"/)||[])[1]||null;
 const ancoreJS=[...js.matchAll(/<a\s[^>]*href="(https?:\/\/[^"]+)"/g)].map(m=>m[1]);
 const jsSenzaAncore=js.replace(/<a\s[^>]*href="https?:\/\/[^"]+"/g,'<a ');
 const urlJS=[...jsSenzaAncore.matchAll(/https?:\/\/([^'"\s\\]+)/g)].map(m=>m[1]);
-const estranei=urlJS.filter(u=>!/^([a-z]+\.)?wikipedia\.org\//.test(u));
+const estranei=urlJS.filter(u=>!/^([a-z]+\.)?wikipedia\.org\//.test(u))
+  .filter(u=>!(canonicoJS&&('https://'+u)===canonicoJS));
 p('ogni URL assoluto nel JS è Wikipedia'+(estranei.length?' ('+estranei.slice(0,3).join(', ')+')':''),
   !estranei.length);
 /* I COLLEGAMENTI ESTERNI SI ELENCANO TUTTI, non solo quelli generati dal JavaScript.

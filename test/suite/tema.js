@@ -25,7 +25,7 @@ const store={};
 /* attributi veri e non finto silenzio: vedi il commento in aff.js e il punto 13 */
 function El(id){return{id,innerHTML:'',textContent:'',style:{},className:'',dataset:{},attr:{},setAttribute(k,v){this.attr[k]=v;},getAttribute(k){return k in this.attr?this.attr[k]:null;},removeAttribute(k){delete this.attr[k];},hidden:false,disabled:false,
  classList:{toggle(){},contains(){return false},add(){},remove(){}},
- addEventListener(){},querySelectorAll(){return[]},value:''};}
+ addEventListener(){},querySelectorAll(){return[]},querySelector(){return null;},value:''};}
 global.document={getElementById:id=>store[id]||(store[id]=El(id)),createElement:()=>({click(){},style:{}}),
  addEventListener(){},documentElement:{scrollTop:0},querySelectorAll(){return[]}};
 global.window={addEventListener(){},requestAnimationFrame(){},pageYOffset:0,

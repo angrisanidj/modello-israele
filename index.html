@@ -182,6 +182,25 @@
 #kn26 .postvoto.on{display:block;margin-top:18px;padding:13px 16px;background:var(--wash);
  border-left:3px solid var(--acc);font-size:14px;line-height:1.55;color:var(--ink2);}
 #kn26 .postvoto b{color:var(--ink);}
+/* LA FASCIA DELLA MEMORIA, con la stessa grammatica di quella del dopo-voto: nascosta per
+   difetto, e la classe .on la accende. Il testo si scrive SEMPRE, a comparire è solo la
+   classe — così il giorno in cui si vede non è il giorno in cui viene scritta per la prima
+   volta, che è la regola già applicata a #k-postvoto.
+   Il filetto è --inc e non --neg: qui non è successo niente di sbagliato. Un iframe di
+   terza parte che non concede lo storage è la condizione normale dell'embed, non un
+   guasto, e dipingerla come un errore direbbe al lettore una cosa falsa sul suo browser. */
+#kn26 .fascia{display:none;}
+#kn26 .fascia.on{display:block;margin-top:18px;padding:11px 14px;background:var(--wash);
+ border-left:3px solid var(--inc);font-size:12.5px;line-height:1.55;color:var(--ink2);}
+#kn26 .fascia b{color:var(--ink);}
+#kn26 .fascia a{color:var(--acc);}
+/* Il frammento da copiare. white-space:pre-wrap e non pre: a 380 una riga di iframe è più
+   larga dello schermo, e uno scorrevole dentro un <details> dentro una pagina sarebbe il
+   terzo scorrimento annidato — quello che l'archivio ha appena smesso di avere. */
+#kn26 .cod{margin:10px 0;padding:11px 13px;background:var(--wash);border:1px solid var(--hair);
+ overflow:visible;}
+#kn26 .cod code{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:11.5px;
+ line-height:1.5;color:var(--ink);white-space:pre-wrap;word-break:break-word;}
 #kn26 .firma{margin:28px 0 0;padding-top:16px;border-top:1px solid var(--hair);
  font-size:12px;color:var(--mute);line-height:1.6;}
 #kn26 .firma a{color:var(--acc);}
@@ -540,11 +559,29 @@
 #kn26 .sondv{display:flex;flex-wrap:wrap;gap:5px 7px;padding:11px 13px;background:var(--wash);}
 #kn26 .sondv span{display:inline-flex;align-items:baseline;gap:6px;font-size:11.5px;
  border:1px solid var(--hair);background:var(--card);padding:3px 9px;border-radius:99px;}
-#kn26 .sondv em{font-style:normal;color:var(--ink2);}
+/* IL NOME UN GRADINO SOTTO IL VALORE, e il valore fermo: è l'unica metà della mossa che
+   costa ZERO. L'altezza della pastiglia la detta il testo più alto, che è il valore a
+   11,5px: scendendo il solo nome a 10,5 non cambia una frazione di pixel — misurato,
+   pastiglia 25,81 prima e dopo, pannello 140,3, sezione con cinquanta righe aperte
+   11.319,8 identica.
+   QUELLO CHE COMPRA È POCO, E VA DETTO: la prominenza del valore passa da 1:1 a 1,10:1, e
+   il rapporto fra le larghezze d'inchiostro nel caso peggiore — «Giudaismo Unito Torah 8»
+   — da 17,55 a 16,02. L'altra metà, il valore a 15px, porterebbe il rapporto a 12,28 ma
+   costerebbe 5,5px di pastiglia, cioè +28,5px per pannello e il +12,6% della sezione con
+   tutto aperto: non vale, ed è annotato in CLAUDE.md.
+   E il rapporto fra larghezze non è comunque la grandezza giusta: confronta un nome da
+   ventun caratteri con una cifra sola, e perché il numero fosse largo un quarto del nome
+   dovrebbe stare a 46px. Quello che si può muovere è la prominenza, non il rapporto. */
+#kn26 .sondv em{font-style:normal;color:var(--ink2);font-size:10.5px;}
 #kn26 .sondv s{text-decoration:none;font-weight:700;color:var(--ink);
  font-variant-numeric:tabular-nums lining-nums;}
-/* il campione non è un seggio: sta in coda al gruppo di testa e non porta colore di lista */
-#kn26 .sondv .cmp em,#kn26 .sondv .cmp s{color:var(--mute);font-weight:400;}
+/* Il sottotitolo del pannello: i metadati della rilevazione, che non sono seggi. Testo
+   semplice sopra l'elenco, sul fondo del pannello — nessuna superficie in più, e due
+   pastiglie in meno. Il fondo è quello del pannello, quindi il contrasto è quello di --mute
+   su --wash, cioè 4,79 in chiaro e 4,75 in scuro: gli stessi numeri della testata delle
+   schede dell'house effect. */
+#kn26 .sondmeta{margin:0;padding:9px 13px 0;background:var(--wash);font-size:11px;
+ color:var(--mute);line-height:1.45;}
 /* La riga dell'era pre-fusione, nella forma dell'elenco. Lo stesso testo della tabella —
    la stringa è una sola, ERA_PRE — e la stessa grammatica: una banda che dichiara l'era a
    parole, non un'attenuazione delle righe. */
@@ -1424,6 +1461,13 @@
      voto: qui non c'è nessun «27 ottobre» scritto a mano — invariante 10. -->
 <div class="postvoto" id="k-postvoto"></div>
 
+<!-- LA FASCIA DELLA MEMORIA. Il testo lo scrive rMemoria(), e compare solo dove il
+     browser non consente di salvare: dentro un iframe di terza parte, in navigazione
+     privata, o con i dati dei siti bloccati. Stava dentro «Archivio dati», che è un
+     <details> chiuso: un avviso in un cassetto non è un avviso. Vale per la pagina
+     intera quanto per l'embed — l'embed rendeva pubblico un difetto che c'era già. -->
+<div class="fascia" id="k-mem"></div>
+
 <div class="boot" id="k-boot">
  <b>Il modello non è ancora partito.</b>
  <span id="k-boot-msg">Questa pagina calcola tutto nel browser: senza JavaScript restano solo i titoli e i trattini.
@@ -1724,7 +1768,33 @@
  <div class="bd"><div class="foot" id="k-foot"></div></div>
 </details>
 
-<!-- La firma. È testo statico: non dipende da nessun dato e non cambia a ogni render.
+<!-- IL FRAMMENTO DA COPIARE STA NELLA PAGINA INTERA, NON NELL'EMBED: offrire il codice
+     dell'embed dentro l'embed non vuol dire niente, e applicaEmbed() toglie questo blocco
+     dal DOM invece di nasconderlo.
+     È testo statico, non generato: chi copia deve poter copiare anche a JavaScript spento,
+     e un frammento che si scrive da solo sarebbe la sola parte della pagina che non
+     sopravvive all'anteprima di WhatsApp. -->
+<details id="k-embedcode">
+ <summary>Incorpora questo modello</summary>
+ <div class="bd">
+ <p class="fn" style="margin-top:2px">Il modello si può incorporare su qualunque sito: non serve chiedere niente e non c&rsquo;è niente da configurare. L&rsquo;archivio si aggiorna ogni notte da solo, quindi il riquadro resta aggiornato senza che tu debba rifare nulla.</p>
+ <pre class="cod"><code>&lt;iframe src="https://angrisanidj.github.io/modello-israele/?embed=1"
+        width="100%" height="900" style="border:0"
+        loading="lazy" title="Modello previsionale Knesset 2026"
+        sandbox="allow-scripts allow-popups"&gt;&lt;/iframe&gt;</code></pre>
+ <p class="fn"><b>L&rsquo;altezza.</b> Il riquadro scorre al suo interno, quindi <code>height</code> è una scelta tua e nessun valore è sbagliato: 900 sta bene su desktop, 700 su una pagina stretta. Se il tuo sito può eseguire tre righe di JavaScript, il riquadro sa dire quanto è alto e può crescere da solo:</p>
+ <pre class="cod"><code>&lt;script&gt;addEventListener('message', function (e) {
+  if (e.data &amp;&amp; e.data.kn26 === 'altezza') document.querySelector('iframe[src*="modello-israele"]').height = e.data.px;
+});&lt;/script&gt;</code></pre>
+ <p class="fn"><b>Che cosa cambia dentro il riquadro.</b> Restano tutti i grafici, i comandi, l&rsquo;archivio dei sondaggi e la nota metodologica. Non ci sono il modulo di inserimento manuale, l&rsquo;esportazione dei dati e la diagnostica: sono attrezzi di chi cura il modello, e scrivono in una memoria che dentro un riquadro di terza parte il browser non concede. Il riquadro lo dichiara in cima invece di lasciarlo scoprire.</p>
+ <p class="fn"><b>La firma resta.</b> È un modello personale, non un prodotto di una testata: chi lo incorpora incorpora un lavoro firmato da una persona, e la firma è parte di quello che viene incorporato. Non c&rsquo;è nessun meccanismo che impedisca di toglierla — chi copia il file fa quello che vuole — ma toglierla vuol dire farne una copia, e una copia smette di aggiornarsi la notte stessa.</p>
+ </div>
+</details>
+
+<!-- La firma. La scrive rFirma() da una costante, e la copia qui nel markup è quello che
+     legge chi ha il JavaScript spento: una firma solo renderizzata sparirebbe proprio per
+     il lettore che ha meno di tutti. Il controllo strutturale verifica che le due dicano
+     la stessa cosa.
      UN MODELLO PERSONALE, NON UN PRODOTTO DELLA TESTATA, ed è la ragione per cui qui non
      compare FocusAmerica: chi incorpora questa pagina incorpora un lavoro firmato da una
      persona, e il testo che accompagna il frammento da copiare va scritto di conseguenza.
@@ -3171,6 +3241,116 @@ function puntiPer(bloc){
 }
 
 /* ══════════ 5 · RENDER ══════════ */
+/* ══════════ MODALITÀ INCORPORATA ══════════
+   `?embed=1` è pubblica: non è per FocusAmerica, e chiunque deve poter incorporare questa
+   pagina su un sito che non controlliamo — larghezza, tema, CMS, dominio. Le nove decisioni
+   che la definiscono stanno in CLAUDE.md, «Le nove risposte dell'embed»; qui c'è quello che
+   serve per leggere il codice.
+
+   SI ATTIVA SOLO CON IL PARAMETRO, e non guardando se siamo dentro un iframe. Chi incorpora
+   dichiara che vuole l'embed; chi inquadra la pagina intera per un'altra ragione — un
+   archivio, un lettore, uno screenshot — deve vedere la pagina intera. Dedurlo da
+   `window.top!==window` significherebbe cambiare prodotto a chi non l'ha chiesto. */
+var EMBED=(function(){
+ /* `window.location` e non il `location` nudo: è la stessa forma che usa contesto(), ed è
+    l'unica che un banco possa montare — il globale nudo esiste solo dentro un browser. */
+ try{return /(?:^|[?&])embed=1(?:&|$)/.test(String((window.location&&window.location.search)||''));}
+ catch(e){return false;}
+})();
+/* L'ATTRIBUZIONE È PARTE DEL PRODOTTO, NON UNA DECORAZIONE, e va detto che cosa vuol dire e
+   che cosa NON vuol dire. Non si può rendere impossibile toglierla: chi copia il file fa
+   quello che vuole, ed è inutile fingere il contrario. Quello che si può fare è che
+   toglierla significhi BIFORCARE IL FILE — e chi biforca perde gli aggiornamenti notturni,
+   che sono la ragione per cui questa pagina vale la pena di essere incorporata.
+   Quindi: la firma è una costante, la scrive il render nello stesso elemento in cui il
+   markup ne porta già una copia, e un controllo strutturale verifica che le due dicano la
+   stessa cosa. La copia nel markup non è una ridondanza: è quello che legge chi ha il
+   JavaScript spento, cioè l'unico lettore a cui una firma renderizzata sparirebbe.
+   È UNA FIRMA PERSONALE: niente FocusAmerica. Chi incorpora incorpora un lavoro firmato da
+   una persona, non un prodotto della testata. */
+var FIRMA_N='Daniele Angrisani', FIRMA_T='Modello previsionale Knesset 2026';
+var CANONICO='https://angrisanidj.github.io/modello-israele/';
+function rFirma(){
+ var el=R.querySelector('.firma'); if(!el) return;
+ /* Nell'embed la firma porta anche la via d'uscita verso la pagina intera: è il posto in
+    cui il lettore capisce di che cosa sta guardando un pezzo, e l'unico collegamento che
+    l'embed deve avere per forza. */
+ el.innerHTML=E(FIRMA_N)+' · '+E(FIRMA_T)+' · '+
+  '<a href="https://x.com/putino" target="_blank" rel="noopener">@putino</a>'+
+  (EMBED?' · <a href="'+CANONICO+'" target="_blank" rel="noopener">apri la pagina intera</a>':'');
+}
+/* LA MEMORIA SI DICHIARA IN CHIARO, E NON SOLO NELL'EMBED.
+   Misurato il 23 agosto 2026 da un ospite vero che inquadra la pagina pubblicata: dentro
+   `sandbox="allow-scripts"` — cioè l'origine opaca, che è il modo in cui Fanpage e
+   FocusAmerica incorporano — `localStorage.setItem` lancia SecurityError. Non è un caso
+   Safari: è la condizione NORMALE di un embed, e Safari aggiunge il caso senza sandbox.
+   La pagina lo sapeva già: tipoMemoria() non deduce, prova a scrivere davvero e cattura
+   l'eccezione. Ma lo DICEVA dentro `#k-datapanel`, che è un <details> chiuso per
+   impostazione predefinita: un avviso in un cassetto che il lettore non apre non è un
+   avviso. Il difetto non era dell'embed — l'embed lo rendeva soltanto pubblico — quindi la
+   riparazione vale per tutte e due, ed è per questo che la fascia sta in cima e non in un
+   ramo per l'embed.
+   Una strada sola: il paragrafo in --neg è uscito da rDiag(), che adesso dice il FATTO
+   («salvato in: nessuna») e non l'avviso. Due copie dello stesso avvertimento a schermi di
+   distanza sarebbero divergute alla prima riscrittura. */
+function rMemoria(){
+ var el=$('k-mem'); if(!el) return;
+ var c=contesto();
+ if(c.memoria!=='nessuna'){el.className='fascia';el.innerHTML='';return;}
+ el.className='fascia on';
+ el.innerHTML='<b>Qui non si salva niente.</b> Questo contesto non consente al browser di '+
+  'conservare i dati fra una visita e l\'altra: quello che aggiorni o inserisci vale finché '+
+  'la pagina resta aperta. I sondaggi restano quelli pubblicati, che si aggiornano ogni notte.'+
+  (EMBED?' <a href="'+CANONICO+'" target="_blank" rel="noopener">Apri la pagina intera</a> '+
+        'per salvare e per esportare i dati.':' Esporta il JSON per conservare quello che hai inserito.');
+}
+/* CHE COSA SPARISCE NELL'EMBED, e si TOGLIE dal DOM invece di nasconderlo col foglio.
+   Un elemento nascosto con `display:none` resta nell'albero: i suoi comandi restano
+   nell'ordine di tabulazione di qualche browser, i lettori di schermo di qualche
+   configurazione lo annunciano, e soprattutto resta raggiungibile da chi cerca. Quello che
+   l'embed non offre non deve esistere, non deve essere invisibile.
+   Sparisce il MODULO ARCHIVIO — importa, esporta, inserimento manuale, diagnostica — che è
+   l'attrezzo dell'autore e scrive in una memoria che nell'embed non c'è; e sparisce la
+   sezione «incorpora», perché offrire il codice dell'embed dentro l'embed non vuol dire
+   niente.
+   NON SPARISCE NIENT'ALTRO, e due cose in particolare restano perché sono la ragione per
+   cui l'embed è onesto:
+     · la fascia del dopo-voto, che è la sola condizione in cui un embed direbbe una cosa
+       falsa senza che nessun difetto sia stato introdotto — un iframe messo in un articolo
+       di settembre e letto a novembre mostrerebbe una proiezione a elezioni avvenute;
+     · la data dell'ultima verifica riuscita, perché `cache-control: max-age=600` permette a
+       un embed di mostrare una copia vecchia fino a dieci minuti, e la freschezza va detta
+       da dentro.
+   L'ESPORTAZIONE PNG NON CI SARÀ, quando ci sarà. Misurato: dentro una sandbox senza
+   `allow-downloads` un `<a download>` non solleva NIENTE — `click()` ritorna e non succede
+   niente. Un comando che finge di funzionare è peggio di un comando assente, e non possiamo
+   pretendere `allow-downloads` da un ospite che non controlliamo. La regola è provata e non
+   solo scritta: in modalità incorporata nessun elemento reso porta l'attributo `download`. */
+var VIA_NELL_EMBED=['k-datapanel','k-embedcode'];
+function applicaEmbed(){
+ if(!EMBED) return;
+ R.classList.add('embed');
+ VIA_NELL_EMBED.forEach(function(id){
+  var el=$(id); if(el&&el.parentNode) el.parentNode.removeChild(el);
+ });
+}
+/* L'ALTEZZA: fissa con scorrimento interno, e un avviso facoltativo per l'ospite.
+   L'iframe ha l'altezza che gli dà chi incorpora, e la pagina scorre dentro: funziona
+   ovunque, anche dove il CMS toglie lo script dell'ospite — che è la maggior parte dei
+   posti in cui questa pagina finirà. Se l'altezza dipendesse dal messaggio, l'embed si
+   taglierebbe proprio dove l'ospite è più povero.
+   Il messaggio si manda lo stesso, per chi sa usarlo: tre righe nel frammento da copiare e
+   l'iframe cresce da solo. `'*'` come destinazione è corretto qui — il messaggio non porta
+   niente di privato, è un numero — e l'ospite si difende leggendo `data.kn26`. */
+function avvisaAltezza(){
+ if(!EMBED) return;
+ try{
+  if(window.parent===window) return;
+  var h=Math.ceil(document.documentElement.scrollHeight);
+  window.parent.postMessage({kn26:'altezza',px:h},'*');
+ }catch(e){}
+}
+
 /* L'h1 e il <title> escono dalla STESSA funzione. Due strade per lo stesso stato sono il
    difetto del colore di blocco, e qui la seconda è quella che si vede FUORI dalla pagina:
    nelle condivisioni sopravvive il <title>, non l'h1. Il testo che sta nel markup resta
@@ -5205,8 +5385,10 @@ function rDiag(){
   'e quindi è leggibile ovunque: dentro Claude, da un server locale o da un file aperto su disco. '+
   'Le rilevazioni pubblicate nelle ultime ore arrivano su Wikipedia con qualche giorno di ritardo: '+
   'per quelle c\'è il modulo qui sotto, che rifiuta i sondaggi la cui somma non fa 120.</p>'+
-  (c.memoria==='nessuna'?'<p class="nt" style="color:var(--neg)">Questo browser non consente di salvare: '+
-   'gli aggiornamenti andranno persi alla ricarica. Esporta il JSON per conservarli.</p>':'')+
+  /* L'AVVISO NON STA PIÙ QUI: è salito nella fascia #k-mem, che si vede senza aprire
+     niente. Questo riquadro dice il FATTO — «salvato in: nessuna» — e la fascia dice che
+     cosa comporta. Erano lo stesso avvertimento a due schermi di distanza, e uno dei due
+     stava dentro un <details> chiuso: vedi rMemoria(). */
   '</div>';
 }
 /* IL LIMITE DELL'ELENCO, e il numero non viene dai pixel.
@@ -5342,9 +5524,27 @@ function rTab(){
   h+='<details class="sondr'+(s.pre?' pre':'')+'"><summary>'+
     '<b>'+dc(s.data)+'</b><span>'+E(s.istituto)+'</span>'+
     '<u><em style="color:'+C.coal+'">'+f(b.coalizione)+'</em> · '+
-    '<em style="color:'+C.oppo+'">'+f(b.opposizione)+'</em></u></summary><div class="sondv">';
-  if(s.testata) h+='<span class="cmp"><em>testata</em> <s>'+E(s.testata)+'</s></span>';
-  h+='<span class="cmp"><em>campione</em> <s>'+(s.campione?f(s.campione):'non dichiarato')+'</s></span>';
+    '<em style="color:'+C.oppo+'">'+f(b.opposizione)+'</em></u></summary>';
+  /* I METADATI NON SONO SEGGI, E NON DEVONO AVERNE LA FORMA.
+     «testata Canale 12» e «campione 502» erano due pastiglie identiche alle undici dei
+     seggi: stessa forma, stesso flusso, stesso a-capo — quindi si leggevano come un elenco
+     unico di tredici cose dello stesso genere, quando sono due categorie. L'unico canale
+     che le distingueva era il colore (--mute), e il colore da solo non separa un flusso.
+     Adesso sono un sottotitolo del pannello, testo semplice sopra i seggi: escono dal
+     flusso senza aggiungere una superficie, e il pannello si ACCORCIA — è l'unica delle tre
+     vie proposte che costa negativo, perché toglie due pastiglie e mette una riga.
+     La riga si compone come una frase e non come un elenco di etichette: «Maariv · 501
+     intervistati» invece di «testata: Maariv, campione: 501». Le etichette servivano a
+     disambiguare due pastiglie identiche; in una riga sola il nome di una testata e un
+     numero di intervistati si riconoscono da soli.
+     L'accordo passa da acc(), come dappertutto: un sondaggio su un intervistato non esiste,
+     ma la regola non si riscrive a mano per questo — è la strada che ha già prodotto
+     «1 giorni». */
+  var meta=[];
+  if(s.testata) meta.push(E(s.testata));
+  meta.push(s.campione ? f(s.campione)+' '+acc(s.campione,'intervistato','intervistati')
+                       : 'campione non dichiarato');
+  h+='<p class="sondmeta">'+meta.join(' · ')+'</p><div class="sondv">';
   cols.forEach(function(i){var v=s.seggi[i]; if(!v) return;
    h+='<span'+(confine[i]?' class="sep"':'')+'><em>'+E(nm(i))+'</em> <s style="color:'+cp(P[i].c)+'">'+f(v)+'</s></span>';});
   h+='</div></details>';
@@ -5647,7 +5847,7 @@ function renderInterno(){
   pc(MC.vO/MC.n)+'</b> delle simulazioni, con esito più frequente <b>'+f(i2.moda)+' seggi</b> e stima puntuale '+f(bb.opposizione)+'. '+
   'Stima puntuale e risultato più frequente non coincidono sempre, perché la soglia di sbarramento e il riparto d\'Hondt '+
   'trasformano i voti in seggi a scatti, non con continuità.';
- mostraAff();rSwAnc();rSwNota();rDiag();rSommario();rAnalisi();rDirezione();rProj();rEmi();rVeti();rCoal();rPower();rChips();rApp();rHouse();rTrend();rCrono();rCalendario();rTab();rFoot();
+ mostraAff();rSwAnc();rSwNota();rDiag();rMemoria();rFirma();avvisaAltezza();rSommario();rAnalisi();rDirezione();rProj();rEmi();rVeti();rCoal();rPower();rChips();rApp();rHouse();rTrend();rCrono();rCalendario();rTab();rFoot();
 }
 
 /* ══════════ PARSER DELLA TABELLA WIKIPEDIA ══════════
@@ -6562,6 +6762,10 @@ memGet('knesset2026-tema').then(function(v){
    lettore vede da dove viene il numero che sta guardando. */
 PRESET.netanyahu.forEach(function(i){COAL[i]=1;});
 setTimeout(function(){costruisciIndice();animaSezioni();},60);
+/* applicaEmbed() PRIMA del primo render, non dopo: togliere il modulo dell'autore a
+   pagina già disegnata vorrebbe dire mostrarlo per un istante a chi ha incorporato, e
+   quello che l'embed non offre non deve nemmeno lampeggiare. */
+applicaEmbed();
 carica().then(render,render)['catch'](function(e){
  bootErr((e&&e.message)||e,'il recupero dell\'archivio salvato');
 });
