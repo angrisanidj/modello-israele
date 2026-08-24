@@ -29,7 +29,7 @@ alle prove.
 
 ```bash
 npm install          # solo la prima volta: installa jsdom per le prove
-npm test             # estrae il JS e lancia le 1826 prove
+npm test             # estrae il JS e lancia le 1862 prove
 npm run verifica     # prove + controlli strutturali
 npm run spazzola     # rilancia il banco con l'orologio al 23 ottobre: dice quali prove
                      #   danno per scontato un archivio fresco. Da rifare dopo ogni
@@ -1632,6 +1632,142 @@ il disegno cambia.
   **170,1 KB** contro i 179 del tetto: **non lo sfonda**, quindi non c'è niente da rifare.
   Il giorno in cui lo sfondasse, il tetto si rifà con i quattro addendi scritti nel commento
   accanto alla regola — non si alza.
+
+## La consegna del PNG: tre difetti, e nessuno era la rasterizzazione
+
+Trovati il 24 agosto 2026 perché l'autore ha detto «a 380 lo scarico PNG non funziona».
+La diagnosi è arrivata prima della riparazione, ed è servita: **la causa non era nessuna
+delle tre che venivano in mente.**
+
+### Quello che il banco ha detto, e che ha escluso le ipotesi facili
+
+A 380, tema chiaro forzato dal selettore, transizioni spente, per tutti e quattro i disegni:
+
+| tappa | `k-hist` | `k-hist2` | `k-emi` | `k-trend` |
+|---|---|---|---|---|
+| pulsante reso e dentro la finestra | sì | sì | sì | sì |
+| il click arriva a `#kn26` in fase 3 | sì | sì | sì | sì |
+| ridisegno a geometria **desktop** | 460×**308** | 460×308 | 430×276 | **900**×410 |
+| blob SVG | 5.606 B | 5.609 B | 15.819 B | 63.582 B |
+| `img load` | sì | sì | sì | sì |
+| `toDataURL` | 1380×924 · 141,3 KB | 1380×924 · 145,2 KB | 1290×828 · 243,6 KB | 1800×820 · 315,7 KB |
+| `a.click()` | col nome del file | idem | idem | idem |
+
+**Zero errori in console**, e la tela **non è vuota**: campionati 1.481 pixel del PNG della
+tendenza, **76 colori distinti**. Il pulsante c'era, la geometria desktop funzionava, la
+rasterizzazione pure. Le tre ipotesi ovvie erano tutte e tre false.
+
+**E due delle prime misure erano stabili e false**, il che vale più del risultato: le sonde
+catturavano l'array della traccia **per riferimento** mentre io lo riassegnavo, e il
+`MutationObserver` veniva scollegato **prima che la sua microtask scattasse**. Le due misure
+insieme dicevano «il gestore non parte affatto» — una diagnosi coerente, verosimile e
+sbagliata, che avrebbe portato a riparare il gestore. Rifatte con il riferimento risolto a
+ogni chiamata e con `takeRecords()`. È la trappola 2 del banco in una veste nuova: lì il
+browser restituiva un valore congelato, qui era la sonda a guardare l'oggetto sbagliato.
+
+### 1 · Il riscontro parlava dove nessuno guarda
+
+`msg()` scrive in `#k-msg`, che è `position:static` e sta a **1654px** nel documento. I
+quattro comandi stanno a 3195, 3637, 6634 e 12687, in una pagina alta **18.177**:
+
+| pulsante | distanza del riscontro |
+|---|---|
+| Blocco Netanyahu | **1.541px sopra** |
+| Opposizione sionista | 1.983px |
+| Emiciclo | 4.980px |
+| Tendenza | **11.033px** |
+
+Dopo il click `#k-msg` conteneva «Immagine scaricata.» con classe `msg show ok`, e nessuno
+l'ha mai letto. **Non era un comando muto: era un comando che parla dove nessuno guarda, e
+dal lato del lettore le due cose sono indistinguibili.** Valeva anche per l'errore, che è la
+metà che serviva di più.
+
+Non è specifico dei 380 — a 1265 il messaggio è ugualmente fuori vista — ma a 380 pesa due
+volte, perché la pagina è alta 18.177 invece di ~10.500.
+
+Il riscontro sta adesso **sul pulsante**: la parola cambia per 2,6 secondi e torna.
+`#k-msg` resta e continua a portare l'errore per esteso — **qui la conferma, là la
+diagnosi**. Il pulsante si **ricerca** per `data-png` invece di tenerne il riferimento, in
+tutti e due i momenti: fra il click e la risposta può esserci stato un render, ed è la
+lezione di `#k-house`.
+
+### 2 · Non si può sapere se lo scaricamento è partito
+
+Misurato, e decide la forma di tutto il resto:
+
+| | |
+|---|---|
+| `a.click()` restituisce | `undefined` — nessun segnale |
+| `ondownload` / `ondownloadend` / `ondownloaderror` | **assenti tutti e tre** |
+| `'download' in a` | `true` — ma è una **capacità dichiarata**, non un esito |
+
+Da cui due strati, e vanno tenuti distinti perché sono due cose diverse:
+
+- **dove il fatto è noto** — l'attributo non è dichiarato: lo scaricamento non parte per
+  definizione, quindi si apre l'immagine e si dice di tenerla premuta. **Il ramo scatta sul
+  fatto, non sull'identità**: niente sniffing dello user agent, che sbaglia sempre e
+  invecchia a ogni versione. `'download' in a` è una capacità, non un nome;
+- **dove il fatto non è conoscibile** — l'attributo c'è, il click parte, l'esito è muto: la
+  parola dichiara **quello che si è verificato**, cioè che l'immagine esiste.
+
+**«Immagine pronta» e non «Scaricato».** Le quattro parole sono «Non riuscita», «Immagine
+pronta», «Aperta: tienila premuta» e «Bloccata dal browser», e **nessuna promette che il
+file sia stato salvato**. L'unico caso in cui la pagina può dire con certezza che è andata
+male è il terzo: `window.open` restituisce `null`, e quello si sa.
+
+### 3 · L'ancora era staccata e portava un data: da 141-316 KB
+
+Misurato: `document.contains(a)` era **`false`**, e `a.href` era il risultato di
+`toDataURL`. Chromium tollera tutte e due le cose — è per questo che sul banco funzionava —
+ed è la combinazione che regge peggio altrove. Adesso l'ancora sta nel documento e l'href è
+un `blob:` prodotto da `canvas.toBlob`, che toglie anche **il 33% del base64**: la tendenza
+da 315,7 KB a circa 237.
+
+**Il confine di quello che è misurato va detto**: su questo banco **non c'è Safari**, quindi
+la fragilità dell'accoppiata staccata + `data:` è *nota e non misurata* qui. Quello che è
+misurato è che la forma nuova regge dove reggeva la vecchia.
+
+E l'URL **non si revoca dentro il gestore**: il browser deve poterlo leggere dopo. Un minuto
+è abbondante e non trattiene niente di grosso.
+
+### 4 · Il bersaglio era 71,9 × 12px
+
+Area **863px²**, corpo 9,5, appoggiato al bordo destro. Portato a **44px**, e non aspettando
+la voce 8 della coda: **era il comando che stava fallendo, e ripararne il riscontro
+lasciandolo impossibile da centrare non avrebbe riparato niente.**
+
+Cresce l'area, non la scritta: il corpo resta 9,5px e i 44 arrivano dall'imbottitura, con un
+margine negativo che tiene il bordo ottico dov'era.
+
+**E non tocca l'ancoraggio**, verificato e non dedotto: questi pulsanti stanno nell'h2 delle
+sezioni e nelle due didascalie degli istogrammi, non nella fascia dell'indice. `.idx` resta
+46,3 e `.idx.on` 97,4 contro i 112 dello `scroll-margin-top`. Le h2 passano da 35 a 44px —
+9px per due sezioni — e le due didascalie non si muovono, perché erano già più alte di 44.
+
+### Quello che le mutazioni hanno trovato nelle prove
+
+**Due asserzioni su tre non potevano cadere**, ed è il caso più istruttivo di questo giro.
+
+La prima elencava a mano le tre parole del riscontro e verificava che nessuna promettesse il
+salvataggio: verificava **tre stringhe che aveva scritto lei**, quindi il mutante che porta
+la parola del codice a «Scaricato» restava vivo. Adesso le parole si **estraggono dal
+sorgente** di `esportaPNG` e la proprietà è sulle parole vere.
+
+La seconda chiamava `rispostaPNG` direttamente, senza mai guardare **il punto in cui viene
+chiamata**: il mutante che rimette `msg()` al posto suo restava vivo. La callback non è
+esercitabile in jsdom, che non ha una tela, quindi il legame si prova **dove sta** — nel
+sorgente — come per `og:title` e il job.
+
+E una mutazione era **equivalente**: spegnere `toBlob` fa cadere sul ripiego, che produce
+comunque un blob. Non era un mutante vivo, era una mutazione che non toccava la proprietà.
+Rifatta mettendo un `data:` direttamente nell'ancora.
+
+**E il banco ha lasciato il file guasto.** Il runner è morto in timeout durante la nona
+mutazione, e `index.html` è rimasto con «Aperta: tienila premuta» sostituito da «Immagine
+pronta». È la trappola già scritta — *quando lo si interrompe a metà, il file resta guasto* —
+e questa volta **l'ha colta una prova**: «i quattro esiti dicono quattro cose diverse»,
+scritta un quarto d'ora prima proprio per quel mutante. Le quattordici sedi sono state
+ricontrollate una per una.
 
 ## Il calendario in flex: una griglia mostra il proprio fondo, e la forma è ricomparsa
 
@@ -3302,7 +3438,7 @@ Due conseguenze pratiche, e sono quelle da ricordare:
 ### Lo stato al 24 agosto 2026
 
 Scritto per ripartire senza la conversazione. Ultimo commit spinto: **`02e4247`**, CI e
-Pages verdi. Sul banco di oggi le prove sono **1826**, e le suite nuove degli ultimi due
+Pages verdi. Sul banco di oggi le prove sono **1862**, e le suite nuove degli ultimi due
 giorni sono cinque: `meta.js`, `tabella.js`, `embed.js`, `png.js` e `griglie.js`.
 
 **Non ancora committati**: l'esportazione PNG dei quattro disegni e il calendario in flex.
@@ -3651,7 +3787,10 @@ da fare.
    `summary_large_image` **nello stesso commit**: oggi è `summary` proprio perché
    l'immagine non c'è, e la prova lo dichiara.
 8. **I 44px dei bersagli**, in un giro suo e con `scroll-margin-top` ricalcolato nello
-   stesso commit: vedi «Un accoppiamento da non riscoprire rompendolo». Alzare le sole voci
+   stesso commit. **I quattro comandi dell'esportazione PNG sono già a 44**, portati lì il
+   24 agosto 2026 insieme alla riparazione della consegna: erano 71,9 × 12px, cioè il
+   comando che stava fallendo, e non aveva senso ripararne il riscontro lasciandolo
+   impossibile da centrare. Restano gli altri, e il pezzo grosso è sempre l'house effect: vedi «Un accoppiamento da non riscoprire rompendolo». Alzare le sole voci
    dell'indice porta `.idx.on` da 97,4 a 113,4, cioè **oltre i 112** dello
    `scroll-margin-top`: la fascia coprirebbe la sezione appena raggiunta da un'ancora.
 9. **Un inventario delle funzionalità con i numeri veri**, per i post di lancio. **Non i

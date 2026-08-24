@@ -1106,6 +1106,24 @@
 #kn26 .lnk{font-size:9.5px;letter-spacing:.09em;text-transform:uppercase;font-weight:700;
  border:0;background:none;color:var(--mute);text-decoration:underline;text-underline-offset:3px;padding:0;margin-left:auto;}
 #kn26 .lnk:hover{color:var(--ink);}
+/* IL BERSAGLIO DEL COMANDO DELL'ESPORTAZIONE È 44px, e non aspetta la voce 8 della coda:
+   è il comando che stava fallendo, e ripararne il riscontro lasciandolo impossibile da
+   centrare non avrebbe riparato niente. Misurato prima: 71,9 × 12px, cioè 863px² appoggiati
+   al bordo destro con un corpo da 9,5. Su un telefono un tocco mancato non fa niente e non
+   lo dice — che dal lato del lettore è indistinguibile da «non funziona», ed è esattamente
+   la diagnosi da cui è nato questo giro.
+   CRESCE L'AREA, NON LA SCRITTA: il corpo resta 9,5px, la parola resta la stessa, e i 44
+   arrivano dall'imbottitura. Il margine negativo tiene il bordo ottico dove stava, così la
+   scritta non si sposta rispetto al titolo accanto.
+   E NON TOCCA L'ANCORAGGIO: questi pulsanti stanno nell'h2 delle sezioni e nelle due
+   didascalie degli istogrammi, non nella fascia dell'indice — la costante che l'indice
+   accoppia a scroll-margin-top è .idx.on, che qui non è raggiunta. Verificato dopo, non
+   dedotto: .idx resta 46,3 e .idx.on 97,4 contro i 112 dello scroll-margin-top. */
+#kn26 .lnk.png{min-height:44px;display:inline-flex;align-items:center;
+ padding:0 6px;margin-right:-6px;}
+/* il riscontro non cambia colore né peso: cambia la parola, e basta quella. Una tinta in
+   più direbbe «successo» dove il codice ha appena dichiarato di non poterlo sapere. */
+#kn26 .lnk.png.detto{color:var(--ink);text-decoration:none;}
 #kn26 .pgb{display:flex;flex-wrap:wrap;gap:7px;}
 #kn26 .pgn{font-size:11.5px;color:var(--mute);line-height:1.5;margin-top:12px;}
 #kn26 .rng{margin-bottom:15px;}
@@ -3726,6 +3744,44 @@ function tagliaA(testo,fs,max,svg){
    tronca l'URI come frammento. fillRect col fondo del tema PRIMA di disegnare: la tela nasce
    trasparente, nessuno dei quattro SVG disegna un fondo, e trasparente si legge nero in gran
    parte delle applicazioni. */
+/* LA CONSEGNA È LA TAPPA PIÙ FRAGILE, e non è la rasterizzazione. Tre cose misurate il
+   24 agosto 2026 sul banco a 380, dopo che l'esportazione «non funzionava» su un telefono.
+
+   1 · NON SI PUÒ SAPERE SE LO SCARICAMENTO È PARTITO. a.click() restituisce undefined, e
+   ondownload, ondownloadend e ondownloaderror sono TUTTI E TRE assenti: non esiste nessun
+   evento. Da cui la parola cauta del riscontro — si dichiara di aver PRODOTTO l'immagine,
+   che è la cosa che si verifica, non di averla salvata, che è una promessa che nessun
+   codice qui può mantenere.
+
+   2 · L'ANCORA ERA FUORI DAL DOCUMENTO e l'href era un data: da 141 a 316 KB. Chromium
+   tollera tutte e due le cose e sul banco funzionava; è la combinazione che regge peggio
+   altrove. Ora l'ancora sta nel documento e l'href è un blob:, che toglie anche il 33% del
+   base64 — la tendenza da 315,7 KB a circa 237.
+
+   3 · IL RIPIEGO SCATTA SUL FATTO, NON SULL'IDENTITÀ. `'download' in a` dice se il browser
+   DICHIARA di sostenere l'attributo: è una capacità, non un nome, e niente sniffing — che
+   sbaglia sempre e invecchia a ogni versione. Dove l'attributo non c'è, lo scaricamento non
+   parte per definizione: si apre l'immagine e si dice di tenerla premuta. Dove c'è, si
+   tenta e non si sa; ed è per questo che il riscontro deve valere in tutti e due i casi.
+
+   L'URL non si revoca subito: il browser deve poterlo leggere DOPO che il gestore è
+   finito. Un minuto è più che sufficiente e non trattiene niente di grosso. */
+function consegnaPNG(blob,nome,poi){
+ var url=URL.createObjectURL(blob);
+ var libera=function(){setTimeout(function(){URL.revokeObjectURL(url);},60000);};
+ var a=document.createElement('a');
+ if(!('download' in a)){
+  var w=window.open(url,'_blank');
+  libera();
+  poi(null, w?'aperta':'bloccata');
+  return;
+ }
+ a.href=url; a.download=nome; a.rel='noopener';
+ a.style.position='absolute'; a.style.left='-9999px';
+ document.body.appendChild(a);
+ try{ a.click(); } finally { if(a.parentNode) a.parentNode.removeChild(a); libera(); }
+ poi(null,'tentata');
+}
 function pngDaSVG(testo,W,H,K,nome,poi){
  var b=new Blob([testo],{type:'image/svg+xml;charset=utf-8'});
  var url=URL.createObjectURL(b), img=new Image();
@@ -3737,15 +3793,27 @@ function pngDaSVG(testo,W,H,K,nome,poi){
    cx.fillStyle=C.paper||'#FFFFFF';
    cx.fillRect(0,0,cv.width,cv.height);
    cx.drawImage(img,0,0,cv.width,cv.height);
-   var a=document.createElement('a');
-   a.href=cv.toDataURL('image/png'); a.download=nome;
-   a.click();
-   poi(null);
+   /* toBlob e non toDataURL: la stessa immagine senza il 33% del base64, e quello che
+      serve alla consegna è un blob, non una stringa. Il ripiego per chi non ce l'ha passa
+      dal data URI, che è la strada di prima. */
+   if(cv.toBlob) cv.toBlob(function(bl){
+     if(!bl){ poi(new Error('la tela non ha prodotto nessuna immagine')); return; }
+     consegnaPNG(bl,nome,poi);
+   },'image/png');
+   else consegnaPNG(datiInBlob(cv.toDataURL('image/png')),nome,poi);
   }catch(e){ poi(e); }
   finally{ URL.revokeObjectURL(url); }
  };
  img.onerror=function(){ URL.revokeObjectURL(url); poi(new Error('il disegno non si è caricato')); };
  img.src=url;
+}
+/* il ripiego di toBlob: un data URI ridiventa un blob senza passare da fetch, che qui
+   sarebbe una chiamata di rete in un file che dichiara di non farne */
+function datiInBlob(dati){
+ var virg=dati.indexOf(','), bin=atob(dati.slice(virg+1));
+ var arr=new Uint8Array(bin.length), i;
+ for(i=0;i<bin.length;i++) arr[i]=bin.charCodeAt(i);
+ return new Blob([arr],{type:'image/png'});
 }
 
 /* L'ORCHESTRAZIONE, e l'ordine conta.
@@ -3805,10 +3873,55 @@ function esportaPNG(id){
     che sbaglia il giorno in cui la targa cambia. */
  var mHT=/viewBox="0 0 [\d.]+ ([\d.]+)"/.exec(testo);
  var HT=mHT?+mHT[1]:(PNG_TESTA+H+(dis.piede?PNG_PIEDE:0));
- pngDaSVG(testo,W,HT,c.K,c.nome,function(err){
-  if(err) msg('L\'esportazione non è riuscita: '+E(err.message||err),'err');
-  else msg('Immagine scaricata.','ok');
+ pngDaSVG(testo,W,HT,c.K,c.nome,function(err,esito){
+  if(err){ rispostaPNG(id,'Non riuscita'); msg('L\'esportazione non è riuscita: '+E(err.message||err),'err'); return; }
+  /* TRE ESITI E TRE PAROLE, e nessuna delle tre promette che il file sia stato salvato:
+     · «tentata» — l'attributo c'è, il click è partito, e l'esito NON È CONOSCIBILE. Si
+       dichiara quello che si è verificato, cioè che l'immagine esiste. «Scaricato» sarebbe
+       una promessa che nessun evento di questa piattaforma può confermare;
+     · «aperta» — l'attributo non c'era, quindi si SA che non si scarica, e la parola dice
+       che cosa fare adesso;
+     · «bloccata» — l'apertura è stata impedita, e questo si sa perché window.open ha
+       restituito null. È l'unico dei tre casi in cui la pagina può dire con certezza che è
+       andata male. */
+  if(esito==='aperta') rispostaPNG(id,'Aperta: tienila premuta');
+  else if(esito==='bloccata') rispostaPNG(id,'Bloccata dal browser');
+  else rispostaPNG(id,'Immagine pronta');
  });
+}
+/* IL RISCONTRO STA SUL PULSANTE, e la ragione è una misura presa il 24 agosto 2026 a 380:
+   msg() scrive in #k-msg, che è position:static e sta a 1654px nel documento, mentre i
+   quattro comandi stanno a 3195, 3637, 6634 e 12687 — cioè il riscontro compariva da 1.541
+   a 11.033 pixel SOPRA il dito che aveva premuto, in una pagina alta 18.177. Non era un
+   comando muto: era un comando che parlava dove nessuno guarda, e dal lato del lettore le
+   due cose sono indistinguibili. Valeva anche per l'errore, che era la metà che serviva di
+   più.
+   #k-msg resta e continua a portare l'errore per esteso: qui la conferma, là la diagnosi.
+   IL PULSANTE SI RICERCA per data-png invece di tenerne il riferimento: fra il click e la
+   risposta può esserci stato un render, ed è la lezione di #k-house — un riferimento preso
+   prima di un render è morto subito dopo. Vale anche per il ritorno dopo i 2,6 secondi, che
+   ne prende uno nuovo a sua volta.
+   E il testo di partenza si legge dal pulsante e si conserva, invece di essere riscritto
+   qui: scriverlo sarebbe la seconda copia di quello che bottonePNG() ha già deciso. */
+function rispostaPNG(id,testo){
+ var b=R.querySelector('button.png[data-png="'+id+'"]'); if(!b) return;
+ if(b.dataset.orig===undefined) b.dataset.orig=b.textContent;
+ var orig=b.dataset.orig;
+ b.textContent=testo; b.classList.add('detto');
+ clearTimeout(b.__t);
+ /* IL RITORNO SCRIVE SUL RIFERIMENTO, e questa è una semplificazione imposta dalle
+    mutazioni, non una svista. La prima stesura ricercava il pulsante anche qui, per la
+    lezione di #k-house — un riferimento preso prima di un render è morto subito dopo. Ma
+    il mutante che toglieva la ricerca restava VIVO, e guardando perché: se in mezzo c'è
+    stato un render, il pulsante nuovo l'ha già scritto bottonePNG() col testo di partenza,
+    quindi il ritorno non ha niente da rimettere a posto; e scrivere su un nodo staccato non
+    fa niente. Le due versioni sono indistinguibili, e una guardia che nessuna mutazione fa
+    cadere è codice che nessuna prova esercita.
+    La ricerca serve invece all'INGRESSO, tre righe più su, dove il pulsante va trovato: lì
+    è osservabile e c'è una prova che la esercita ridisegnando in mezzo. */
+ b.__t=setTimeout(function(){
+  b.textContent=orig; b.classList.remove('detto');
+ },2600);
 }
 /* Ridisegnare UN disegno solo, e non tutta la pagina: render() rifà anche il Monte Carlo, e
    ventimila simulazioni per fare un PNG sarebbero un secondo di attesa per niente — e con

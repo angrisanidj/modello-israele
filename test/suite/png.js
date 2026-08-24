@@ -65,6 +65,7 @@ src = src.replace('carica().then(render,render)',
   'montaPNG:montaPNG,rigaEventoPNG:rigaEventoPNG,dataPNG:dataPNG,piedePNG:piedePNG,' +
   'fasceIst:fasceIst,stretto:stretto,forza:function(v){FORZA_LARGO=v;},' +
   'svgEsportabile:svgEsportabile,largo:function(){return FORZA_LARGO;},' +
+  'consegnaPNG:consegnaPNG,rispostaPNG:rispostaPNG,datiInBlob:datiInBlob,' +
   'EMBED:EMBED,FIRMA_N:FIRMA_N,CANONICO:CANONICO,render:render};carica().then(render,render)');
 eval(src);
 try{ A.render(); }catch(e){ console.log('KO il render non è partito — ' + (e && e.message)); }
@@ -368,6 +369,196 @@ try{ A.render(); }catch(e){ console.log('KO il render non è partito — ' + (e 
   const nomi = Object.keys(A.PNG_DISEGNI).map(id => A.svgEsportabile(id).nome);
   esito(new Set(nomi).size === 4, 'e i quattro file hanno nomi diversi', nomi.join(' '));
   esito(nomi.every(n => /^knesset2026-.+\.png$/.test(n)), 'tutti riconoscibili', nomi.join(' '));
+}
+
+
+/* ══ 8 · LA CONSEGNA, CHE È LA TAPPA CHE FALLIVA ═══════════════════════════
+ * Trovata il 24 agosto 2026 dopo che l'esportazione «non funzionava» a 380. Sul banco la
+ * catena arrivava in fondo per tutti e quattro i disegni — blob SVG, img load, tela con un
+ * disegno vero, a.click() col nome del file — quindi il difetto non era dove sembrava.
+ *
+ * ERANO TRE, E NESSUNO DEI TRE ERA LA RASTERIZZAZIONE:
+ *   · il riscontro compariva in #k-msg, da 1.541 a 11.033 pixel SOPRA il pulsante premuto,
+ *     in una pagina alta 18.177: un comando che parla dove nessuno guarda è indistinguibile
+ *     da un comando muto;
+ *   · l'ancora era fuori dal documento e l'href era un data: da 141 a 316 KB;
+ *   · il bersaglio era 71,9 × 12px.
+ *
+ * E LA COSA CHE HA DECISO LA FORMA: non si può sapere se lo scaricamento è partito.
+ * Misurato — a.click() restituisce undefined e ondownload/ondownloadend/ondownloaderror
+ * sono tutti e tre assenti. Quindi il ramo si appoggia a un fatto sulla CAPACITÀ
+ * (`'download' in a`), mai sull'identità del browser, e la parola del riscontro dichiara
+ * quello che si è verificato — che l'immagine esiste — non che sia stata salvata. */
+{
+  const consegne = [];
+  const OA = W.HTMLAnchorElement.prototype.click;
+  W.HTMLAnchorElement.prototype.click = function(){
+    consegne.push({href:String(this.href||'').slice(0,5), download:this.getAttribute('download'),
+                   nelDocumento: D.contains(this)});
+  };
+  const revocati = [];
+  const vecchioURL = global.URL;
+  global.URL = {createObjectURL(b){ return 'blob:finto-' + (b && b.type); },
+                revokeObjectURL(u){ revocati.push(u); }};
+  const blob = new global.Blob(['x'], {type:'image/png'});
+
+  /* ── il verso normale: l'attributo c'è ── */
+  let esitoVisto = null;
+  A.consegnaPNG(blob, 'knesset2026-prova.png', (e, x) => { esitoVisto = x; });
+  esito(consegne.length === 1, 'con l\'attributo dichiarato la consegna clicca l\'ancora',
+    JSON.stringify(consegne));
+  esito(consegne[0] && consegne[0].nelDocumento === true,
+    'e l\'ancora è NEL DOCUMENTO quando viene cliccata: staccata reggeva solo su Chromium',
+    JSON.stringify(consegne[0]));
+  esito(consegne[0] && consegne[0].href === 'blob:',
+    'e l\'href è un blob:, non un data: da centinaia di KB — il 33% del base64 se ne va',
+    consegne[0] && consegne[0].href);
+  esito(consegne[0] && consegne[0].download === 'knesset2026-prova.png',
+    'e il nome del file arriva fino all\'ancora', consegne[0] && consegne[0].download);
+  esito(!D.querySelector('a[download="knesset2026-prova.png"]'),
+    'e l\'ancora viene tolta dal documento subito dopo: non resta niente in pagina');
+  /* LA PAROLA NON PROMETTE IL SALVATAGGIO, ed è la proprietà, non la stringa: qui l'esito
+     è «tentata» proprio perché non è conoscibile. */
+  esito(esitoVisto === 'tentata',
+    'e l\'esito dichiarato è «tentata», perché il salvataggio NON è conoscibile', String(esitoVisto));
+  /* l'URL non si revoca dentro il gestore: il browser deve poterlo leggere dopo */
+  esito(revocati.length === 0,
+    'e l\'URL non è revocato subito, o il browser non farebbe in tempo a leggerlo',
+    JSON.stringify(revocati));
+
+  /* ── il ramo del FATTO, non dell'identità: l'attributo non è dichiarato ── */
+  const desc = Object.getOwnPropertyDescriptor(W.HTMLAnchorElement.prototype, 'download');
+  delete W.HTMLAnchorElement.prototype.download;
+  esito(!('download' in D.createElement('a')),
+    'la prova sa togliere l\'attributo: il ramo si può esercitare davvero');
+  consegne.length = 0;
+  let aperto = null, esito2 = null;
+  W.open = (u) => { aperto = u; return {chiuso:false}; };
+  A.consegnaPNG(blob, 'knesset2026-prova.png', (e, x) => { esito2 = x; });
+  esito(consegne.length === 0,
+    'senza l\'attributo NON si clicca nessuna ancora: lo scaricamento non partirebbe e basta');
+  esito(String(aperto || '').indexOf('blob:') === 0,
+    'si apre l\'immagine invece, con lo stesso blob', String(aperto));
+  esito(esito2 === 'aperta', 'e l\'esito è «aperta», che è quello che il lettore deve sapere',
+    String(esito2));
+  /* e il caso in cui anche l'apertura viene impedita: è l'UNICO dei tre in cui la pagina
+     può dire con certezza che è andata male, perché window.open lo dichiara */
+  let esito3 = null;
+  W.open = () => null;
+  A.consegnaPNG(blob, 'x.png', (e, x) => { esito3 = x; });
+  esito(esito3 === 'bloccata',
+    'e se anche l\'apertura è impedita lo si sa: window.open restituisce null', String(esito3));
+  if (desc) Object.defineProperty(W.HTMLAnchorElement.prototype, 'download', desc);
+  W.HTMLAnchorElement.prototype.click = OA;
+  global.URL = vecchioURL;
+}
+
+/* ══ 9 · IL RISCONTRO STA SUL PULSANTE ════════════════════════════════════
+ * La prova non guarda le stringhe una per una — guarda la proprietà che le governa:
+ * nessuna delle parole del verso riuscito promette che il file sia stato SALVATO. */
+{
+  A.render();
+  const bot = () => D.querySelector('button.png[data-png="k-emi"]');
+  esito(!!bot(), 'il comando dell\'emiciclo è in pagina');
+  const partenza = bot().textContent;
+  A.rispostaPNG('k-emi', 'Immagine pronta');
+  esito(bot().textContent === 'Immagine pronta',
+    'e premendo risponde sul pulsante stesso, non a 4.980px di distanza', bot().textContent);
+  esito(bot().classList.contains('detto'), 'e si dichiara in risposta con una classe');
+  esito(bot().dataset.orig === partenza,
+    'e conserva il testo di partenza invece di riscriverlo: bottonePNG() lo decide una volta sola',
+    bot().dataset.orig);
+  /* IL TESTO DI PARTENZA SI LEGGE DAL PULSANTE, e questa asserzione l'ha imposta una
+     mutazione: quella che scriveva 'Scarica PNG' a mano restava VIVA, perché oggi il
+     pulsante dice esattamente quello — la prova non distingueva «lo legge» da «lo indovina,
+     e per ora indovina giusto». Sarebbe la seconda copia di una cosa che bottonePNG()
+     decide già, cioè la strada doppia di sempre, e divergerebbe il giorno in cui l'etichetta
+     cambia. Qui il pulsante viene fatto dire un'altra cosa, così le due strade si separano. */
+  const b0 = bot();
+  clearTimeout(b0.__t); delete b0.dataset.orig; b0.textContent = 'Un altro testo';
+  A.rispostaPNG('k-emi', 'Immagine pronta');
+  esito(bot().dataset.orig === 'Un altro testo',
+    'e lo legge davvero: se l\'etichetta cambia, il ritorno la segue',
+    bot().dataset.orig);
+  clearTimeout(bot().__t);
+  bot().textContent = partenza; delete bot().dataset.orig; bot().classList.remove('detto');
+  A.rispostaPNG('k-emi', 'Immagine pronta');
+  /* L'INGRESSO RICERCA IL PULSANTE, e questa è la metà osservabile della lezione di
+     #k-house: fra il click e la risposta può esserci stato un render, che sostituisce il
+     pulsante con un altro elemento, e un riferimento preso prima sarebbe morto. La prova lo
+     esercita RIDISEGNANDO in mezzo.
+     Il RITORNO, invece, scrive sul riferimento, e non è una svista: il mutante che toglieva
+     la ricerca là restava vivo, perché dopo un render il pulsante nuovo porta già il testo
+     di partenza e non c'è niente da rimettere a posto. Vedi il commento nel codice. */
+  A.render();
+  esito(!!bot(), 'dopo un render il pulsante c\'è ancora');
+  A.rispostaPNG('k-emi', 'Immagine pronta');
+  esito(bot().textContent === 'Immagine pronta', 'e il riscontro raggiunge quello nuovo');
+  /* LE PAROLE SI LEGGONO DAL CODICE, NON SI RISCRIVONO QUI, e questa correzione l'ha
+     imposta una mutazione: la prima stesura elencava a mano «Immagine pronta», «Aperta:
+     tienila premuta» e «Bloccata dal browser» e verificava che nessuna promettesse il
+     salvataggio. Verificava tre stringhe che aveva scritto lei — quindi il mutante che
+     porta la parola del codice a «Scaricato» restava VIVO, e l'asserzione non poteva
+     cadere per costruzione. È la stessa famiglia della tautologia di aff.js.
+     Adesso le parole si estraggono dal sorgente di esportaPNG, e la proprietà è sulle
+     parole VERE: nessuna promette che il file sia stato salvato, perché non è conoscibile. */
+  const fonte = HTML.match(/function esportaPNG\(id\)\{[\s\S]*?\n\}/)[0];
+  const parole = [...fonte.matchAll(/rispostaPNG\(id,\s*'([^']*)'/g)].map(m => m[1]);
+  esito(parole.length === 4,
+    'esportaPNG risponde sul pulsante in tutti e quattro i suoi esiti', parole.join(' · '));
+  parole.forEach(p => esito(!/scaricat|salvat/i.test(p),
+    '  · «' + p + '» non promette che il file sia salvato: non è conoscibile', p));
+  /* e le tre parole del verso riuscito sono DISTINTE: «aperta» dice al lettore che cosa
+     fare adesso, e dirgli la stessa cosa dei due casi in cui non deve fare niente
+     cancellerebbe l'unica informazione che quel ramo esiste per dare */
+  esito(new Set(parole).size === parole.length,
+    'e i quattro esiti dicono quattro cose diverse', parole.join(' · '));
+  /* IL RISCONTRO NON TORNA IN #k-msg. Il legame si prova dove sta — nel sorgente — come per
+     og:title e il job: la callback non è esercitabile in jsdom, che non ha una tela, e una
+     prova che non la guarda lascia vivo il mutante che rimette msg() al posto suo. */
+  esito(!/else\s+msg\(/.test(fonte) && !/msg\('Immagine/.test(fonte),
+    'e la conferma non passa più da msg(), che scrive a 1.541-11.033px dal pulsante', fonte.slice(-260));
+  esito(/if\(err\)\{ rispostaPNG\(id,/.test(fonte),
+    'anche l\'errore risponde sul pulsante: era la metà che serviva di più');
+  esito(/msg\('L\\'esportazione non è riuscita/.test(fonte),
+    'e #k-msg resta per la diagnosi per esteso: qui la conferma, là il perché');
+  /* E IL RITORNO SI FA SCATTARE DAVVERO. La prima stesura rimetteva il testo a mano e poi
+     verificava che fosse tornato — cioè verificava sé stessa: il mutante che toglie la
+     riga del ritorno restava VIVO. Qui si cattura la richiamata dei 2,6 secondi
+     sostituendo setTimeout, e la si esegue: è l'unico modo di esercitare un ritardo in una
+     suite sincrona senza aspettare davvero. */
+  const b2 = bot();
+  clearTimeout(b2.__t);
+  b2.textContent = partenza; delete b2.dataset.orig; b2.classList.remove('detto');
+  const OT = global.setTimeout;
+  let ritorno = null;
+  global.setTimeout = (fn, ms) => { if (ms === 2600) { ritorno = fn; return 0; } return OT(fn, ms); };
+  A.rispostaPNG('k-emi', 'Immagine pronta');
+  global.setTimeout = OT;
+  esito(typeof ritorno === 'function', 'il riscontro programma il proprio ritorno');
+  esito(bot().textContent === 'Immagine pronta', 'e prima che scatti dice la parola nuova');
+  ritorno();
+  esito(bot().textContent === partenza,
+    'e quando scatta il pulsante torna a dire l\'azione: il riscontro è transitorio, il comando resta',
+    bot().textContent);
+  esito(!bot().classList.contains('detto'), 'e la classe della risposta se ne va con la parola');
+}
+
+/* ══ 10 · IL BERSAGLIO È 44px ══════════════════════════════════════════════
+ * Non è la voce 8 della coda in anticipo: è il comando che stava fallendo, e ripararne il
+ * riscontro lasciandolo a 71,9 × 12px non avrebbe riparato niente. */
+{
+  const cssP = HTML.match(/<style>([\s\S]*?)<\/style>/)[1];
+  const r = (cssP.match(/#kn26 \.lnk\.png\{[^}]*\}/) || [''])[0];
+  esito(/min-height:44px/.test(r), 'il comando dell\'esportazione ha un bersaglio da 44px', r);
+  esito(/align-items:center/.test(r) && /inline-flex/.test(r),
+    'e la parola resta centrata: cresce l\'area, non la scritta', r);
+  /* il corpo NON cresce: i 44px si prendono dall'imbottitura, non dal testo */
+  esito(!/font-size/.test(r),
+    'e il corpo resta quello di .lnk: un bersaglio più grande non è una scritta più grande', r);
+  /* e non tocca l'ancoraggio: questi pulsanti non stanno nella fascia dell'indice */
+  esito(!/\.idx/.test(r),
+    'e la regola non raggiunge la fascia dell\'indice, che è accoppiata a scroll-margin-top');
 }
 
 console.log('\n' + ok + '/' + (ok + ko));
