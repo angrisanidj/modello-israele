@@ -4541,7 +4541,57 @@ addendi che si possono rifare, ed è scritta nel commento accanto alla regola.
 **Il controllo stampa tutti e due i numeri** — gzip e caratteri — così il secondo resta
 visibile senza essere il cancello.
 
-### La potatura di BASE resta disponibile, e non è stata fatta
+### Rifatto il 24 agosto 2026, e due delle quattro misure erano cambiate
+
+Il margine era sceso a **ottocento byte** — 178,2 su 179 — e la prima cosa applicata
+l'avrebbe sfondato a metà lavoro. Rifatto col metodo di sempre, non alzato a occhio:
+
+| | |
+|---|---|
+| il file compresso adesso | **178,2 KB** |
+| **+ l'archivio da qui al voto** | **0,8 KB** — 64 giorni a 1,03 rilevazioni al giorno fanno 66, più le 8 dell'allineamento pendente di `BASE`, a **10 byte** di gzip ciascuna |
+| **+ quello che resta da scrivere** | **35 KB** — embed compatto, card social, `og:image`, i 44px dei bersagli, il campo `esito`: cinque interventi a 7 KB, cioè la mediana misurata di **3,49** arrotondata al doppio, com'era stato fatto la volta scorsa (2,9 → 6) |
+| **+ un commit grosso di riserva** | **8,4 KB**, il più pesante dei tredici misurati |
+| | **= 222,4 → tetto a 223 KB**, arrotondato al KB superiore |
+
+La crescita misurata per commit, sugli ultimi tredici: 0,74 · 1,25 · 2,45 · 2,49 · 2,81 ·
+2,83 · 3,49 · 4,03 · 4,98 · 5,41 · 5,73 · 6,24 · 8,37 KB.
+
+**IL COSTO DI UNA RILEVAZIONE È SCESO DA 91 BYTE A 10**, e non è un errore di allora: `BASE`
+è passata a 165 elementi e il dizionario del gzip è ormai **saturo** della loro struttura,
+quindi ogni rilevazione in più costa quasi niente. L'addendo dell'archivio passa da 6,1 KB a
+0,8. È il caso esemplare in cui **riportare il numero di ieri avrebbe gonfiato il tetto per
+una ragione che non esiste più**: un addendo si rimisura, non si ricopia.
+
+E `og:image`, dei cinque interventi, vive quasi tutto in `.github/scripts/` e non in
+`index.html`: 7 KB per lui sono abbondanti. Si tengono lo stesso, perché **un tetto che
+sottostima ferma il lavoro a metà**, che è precisamente la cosa da cui questo numero difende.
+
+### La potatura di BASE NON è la strada, ed è la misura che l'ha stabilito
+
+Il testo qui sotto diceva che era **la prima strada da guardare** prima di alzare il tetto.
+Era vero quando il numero che si aveva in mano erano i **caratteri**. Misurata in gzip il 24
+agosto 2026, non lo è più:
+
+| | caratteri | gzip |
+|---|---|---|
+| `BASE` intera, 165 rilevazioni | 50,0 KB | — |
+| togliendo le **69** di gennaio-aprile | 28,9 KB (**−21,1**) | 178,2 → **176,4 KB (−1,84)** |
+| in percentuale del file | −4,0% dei caratteri | **−1,0% del compresso** |
+
+**Vale 1,84 KB, cioè meno di un commit medio**, e sono proprio le rilevazioni che il
+dizionario comprime meglio: ventuno KB di caratteri diventano meno di due di gzip. Il prezzo
+è invariato ed è vero — chi apre `index.html` da disco vedrebbe la serie storica cominciare
+il **7 maggio** e la tendenza perdere quattro mesi — ma adesso si sa che cosa si comprerebbe,
+e non vale la spesa.
+
+**La terza strada è la sola grande, e resta l'ultima**: i commenti valgono **92,7 KB di
+gzip, il 52%** del file compresso — molto più del 35% dei caratteri che era annotato qui.
+Non si prende lo stesso, e non per sentimentalismo: sono la memoria delle trappole già
+pagate, e questo file ne ha pagate parecchie due volte. Ma il numero va saputo: **se un
+giorno servisse davvero spazio, è lì che sta, non in `BASE`.**
+
+### La potatura di BASE: il testo di prima, e perché non vale più
 
 Se un giorno il tetto del gzip venisse toccato, la strada da guardare **prima** di alzarlo
 di nuovo è togliere da `BASE` le **60 rilevazioni pre-fusione** di gennaio-aprile: valgono

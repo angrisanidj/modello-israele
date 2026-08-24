@@ -189,22 +189,42 @@ p('nessun blocco dell\'anagrafica riscritto come elenco'+
    compresso era a un terzo del tetto: il numero non misurava più niente di reale ma
    avrebbe smesso di far pubblicare l'archivio la notte stessa.
 
-   IL NUMERO NUOVO E' RICAVATO, non scelto perché sta comodo. Misurato oggi:
-     131,7 KB   il file compresso adesso (livello predefinito: 132,1)
-     + 6,1 KB   l'archivio da qui al voto — 91 byte di gzip per rilevazione, misurati a
-                parità di formattazione, per le 61 rilevazioni che a 0,94 al giorno
-                separano oggi dal 27 ottobre, più le 8 dell'allineamento pendente di BASE
-     + 30 KB    quello che resta da scrivere: embed, esportazione PNG, meta Open Graph,
-                i 44px dei bersagli, il campo esito. Cinque interventi alla mediana
-                misurata di 2,9 KB di gzip per commit, arrotondata per eccesso a 6
-     + 10,4 KB  un commit grosso di riserva: è il più pesante degli ultimi otto
-     ─────────
-     = 178,6 KB, arrotondato al KB superiore
+   IL NUMERO E' RICAVATO, non scelto perché sta comodo, E SI RIFÀ INVECE DI ALZARLO.
+   Rifatto il 24 agosto 2026 col metodo di sempre — quattro addendi — perché il margine era
+   sceso a ottocento byte e la prima cosa applicata l'avrebbe sfondato a metà lavoro.
 
-   Se il tetto viene toccato, la strada da guardare per prima NON è alzarlo di nuovo: è
-   potare da BASE le 60 rilevazioni pre-fusione, che valgono 16,3 KB di caratteri e si
-   perdono solo in modalità di ripiego. Vedi CLAUDE.md. */
-const TETTO_GZIP=179*1024;
+     178,2 KB   il file compresso adesso
+     + 0,8 KB   l'archivio da qui al voto: 64 giorni a 1,03 rilevazioni al giorno fanno 66,
+                più le 8 dell'allineamento pendente di BASE, a 10 byte di gzip ciascuna
+     + 35 KB    quello che resta da scrivere: embed compatto, card social, og:image, i 44px
+                dei bersagli, il campo esito. Cinque interventi a 7 KB, cioè la mediana
+                misurata di 3,49 KB per commit arrotondata al doppio, com'era stato fatto
+                la volta scorsa (2,9 arrotondata a 6)
+     + 8,4 KB   un commit grosso di riserva: il più pesante dei tredici misurati
+     ─────────
+     = 222,4 KB, arrotondato al KB superiore
+
+   DUE MISURE SONO CAMBIATE, e vanno rimisurate invece che riportate.
+   · IL COSTO DI UNA RILEVAZIONE È SCESO DA 91 BYTE A 10. Non è un errore di allora: BASE
+     è passata a 165 elementi e il dizionario del gzip è ormai saturo della loro struttura,
+     quindi ogni rilevazione in più costa quasi niente. L'addendo dell'archivio è passato da
+     6,1 KB a 0,8, ed è il caso in cui riportare il numero di ieri avrebbe gonfiato il tetto
+     per una ragione che non esiste più.
+   · og:image, dei cinque interventi, vive quasi tutto in .github/scripts/ e non in questo
+     file: 7 KB per lui sono abbondanti. Si tengono lo stesso, perché un tetto che
+     sottostima ferma il lavoro a metà, che è precisamente la cosa da cui questo numero
+     difende.
+
+   E LA POTATURA DI BASE NON È LA STRADA, misurato lo stesso giorno: togliere le 69
+   rilevazioni di gennaio-aprile vale 21,1 KB di CARATTERI ma solo 1,84 KB di GZIP — l'1%
+   del file — perché sono proprio quelle che il dizionario comprime meglio. Costa quattro
+   mesi di serie storica a chi apre il file da disco, e frutta meno di un commit medio.
+   Il commento di prima la dava per la prima strada da guardare: era vero quando il numero
+   che si aveva in mano erano i caratteri. Vedi CLAUDE.md.
+   La terza strada — accorciare i commenti — vale il 52% del gzip, ed è la sola grande. Non
+   si prende: sono la memoria delle trappole già pagate, e questo file ne ha pagate parecchie
+   due volte. */
+const TETTO_GZIP=223*1024;
 const gz=gzipSync(Buffer.from(html,'utf8')).length;
 p('gzip sotto i '+(TETTO_GZIP/1024)+' KB ('+(gz/1024).toFixed(1)+' KB · '+
   (html.length/1024).toFixed(0)+' KB di caratteri)', gz<TETTO_GZIP);
