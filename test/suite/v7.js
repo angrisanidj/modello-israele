@@ -53,9 +53,27 @@ const ck={
    /#kn26 \.cb\{[^}]*flex:1 1 260px/.test(css) &&
    !/#kn26 \.cmd\{[^}]*grid-template-columns/.test(css) &&
    (css.match(/#kn26 \.cb\{[^}]*flex:/g)||[]).length===1,
- "calendario a 6 colonne": /#kn26 \.cal\{[^}]*grid-template-columns:repeat\(6,1fr\)/.test(css),
- "calendario a 3 e 2 colonne sotto": /max-width:1000px\)\{#kn26 \.cal\{grid-template-columns:repeat\(3/.test(css)
-   && /max-width:660px\)\{#kn26 \.cal\{grid-template-columns:repeat\(2/.test(css),
+ /* IL CALENDARIO NON È PIÙ A GRIGLIA, dal 24 agosto 2026, e queste due attese sono state
+    aggiornate nello stesso commit che l'ha cambiato. Non erano sbagliate: sono diventate
+    obsolete di proposito. Sette tappe in sei tracce fisse lasciavano scoperte 5,03 colonne
+    — 892,5 per 169,5 pixel di fondo --hair — e il rimedio è quello che la barra dei comandi
+    aveva già trovato tre righe più sopra: flex con gap di 1px e fondo del contenitore, che
+    non ha tracce e quindi non ha posizioni scoperte per nessun numero di celle.
+    Quello che si prova resta lo stesso: che le celle siano uguali fra loro, che i filetti
+    siano allineati e che non ci siano tracce fisse. */
+ "calendario in flex, senza tracce fisse":
+   /#kn26 \.cal\{[^}]*display:flex/.test(css) &&
+   !/#kn26 \.cal\{[^}]*grid-template-columns/.test(css) &&
+   /#kn26 \.cal>div\{flex:1 1 calc\(100%\/6 - 1px\)/.test(css),
+ "calendario a 3, 2 e 1 per riga sotto, come prima":
+   /max-width:1000px\)\{#kn26 \.cal>div\{flex-basis:calc\(100%\/3 - 1px\)/.test(css)
+   && /max-width:660px\)\{#kn26 \.cal>div\{flex-basis:calc\(100%\/2 - 1px\)/.test(css)
+   && /max-width:400px\)\{#kn26 \.cal>div\{flex-basis:100%/.test(css),
+ /* e i filetti sono rimasti quello che erano: il fondo del contenitore visto attraverso
+    un varco di 1px, non una proprietà della griglia */
+ "i filetti del calendario sono gap e fondo, come nella barra dei comandi":
+   /#kn26 \.cal\{[^}]*gap:1px[^}]*background:var\(--hair\)/.test(css) &&
+   /#kn26 \.cal>div\{[^}]*background:var\(--card\)/.test(css),
  "emiciclo con larghezza massima": /#kn26 #k-emi\{max-width:600px/.test(css),
  "variabili scure su classe": /#kn26\.scuro\{/.test(css),
  "auto segue il sistema": /@media \(prefers-color-scheme:dark\)\{\n #kn26\.auto\{/.test(css),

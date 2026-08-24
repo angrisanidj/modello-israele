@@ -137,6 +137,16 @@ function pagina(opz){
   esito(emb.D.querySelectorAll('[download]').length === 0,
     'nell\'embed nessun elemento reso porta l\'attributo download',
     String(emb.D.querySelectorAll('[download]').length));
+  /* E IL PULSANTE NON C'È PROPRIO, che è la guardia vera: l'<a download> dell'esportazione
+     PNG nasce e muore dentro il gestore del clic, quindi non compare mai in un conteggio
+     del DOM — l'asserzione qui sopra passerebbe anche con quattro pulsanti «Scarica PNG»
+     bene in vista, che poi non scaricherebbero niente in silenzio. */
+  esito(emb.D.querySelectorAll('button.png[data-png]').length === 0,
+    'e nessun comando di esportazione PNG viene scritto',
+    String(emb.D.querySelectorAll('button.png[data-png]').length));
+  esito(piena.D.querySelectorAll('button.png[data-png]').length === 4,
+    'mentre nella pagina intera ce ne sono quattro: il verso che rende l\'altro non banale',
+    String(piena.D.querySelectorAll('button.png[data-png]').length));
   esito(piena.D.querySelectorAll('[download]').length === 0 ||
         piena.D.querySelectorAll('[download]').length > 0,
     'e nella pagina intera la regola non si applica: lì lo scaricamento funziona');

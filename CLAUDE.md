@@ -29,7 +29,7 @@ alle prove.
 
 ```bash
 npm install          # solo la prima volta: installa jsdom per le prove
-npm test             # estrae il JS e lancia le 1734 prove
+npm test             # estrae il JS e lancia le 1826 prove
 npm run verifica     # prove + controlli strutturali
 npm run spazzola     # rilancia il banco con l'orologio al 23 ottobre: dice quali prove
                      #   danno per scontato un archivio fresco. Da rifare dopo ogni
@@ -1503,6 +1503,249 @@ si vede subito e in una prova di posizione no.
 **Resta da guardare a occhio**, ed è nella lista della revisione: la barra al 30% era anche
 quello che rendeva il disco un centro. A opacità piena l'intervallo è un'asta piena con una
 lente in mezzo, ed è la figura giusta — ma è una figura diversa da quella di ieri.
+
+## L'esportazione PNG: la geometria è una scelta del codice, il carattere no
+
+Applicata il 24 agosto 2026. Le decisioni erano già prese nel punto 7 — quattro disegni e
+non undici sezioni, `Blob` e non data URI, `fillRect` col fondo del tema prima di disegnare,
+la targa sopra e il piede sotto, un pulsante per disegno con l'`aria-label` che nomina il
+grafico — e sono state **rilette, non ricostruite a memoria**. Quello che è cambiato sono i
+numeri.
+
+### L'inventario del punto 7 era vecchio di due giorni, e va detto prima di usarlo
+
+Un inventario è una **misura con una data**, non un fatto. Rifatto prima di scrivere una
+riga:
+
+| | punto 7 (22 agosto) | **misurato il 24 agosto** |
+|---|---|---|
+| `#k-hist` / `#k-hist2` | 460×**210** | 460×**234** |
+| `#k-emi` | 430×232 | 430×232 (invariato) |
+| `#k-trend` | 520×331 | **900×336** a desktop |
+| `<text>` senza `font-family` | 45 su 67 | 47 su 71 |
+| `var(--` nei quattro disegni | 0 | 0 |
+| `foreignObject`, `currentColor`, `url(...)` | 0 | 0 |
+
+Gli istogrammi sono cresciuti di 24 unità il giorno in cui **le due fasce sono diventate
+margini del disegno**; la tendenza è quasi raddoppiata quando il viewBox desktop si è
+separato da quello stretto. Se le targhe fossero state calcolate sui numeri del punto 7, la
+tendenza avrebbe avuto una targa larga 520 su un disegno largo 900.
+
+**Da cui la regola scritta nel codice: la geometria non si scrive, si legge dal `viewBox`
+del disegno reso.** È l'unica che non invecchia.
+
+### Le quattro targhe e i due K, rifatti sulla geometria vera
+
+| disegno | viewBox | targa | piede | tela finale | K |
+|---|---|---|---|---|---|
+| `#k-hist` | 460×234 | 44 | 30 | **1380×924** | 3 |
+| `#k-hist2` | 460×234 | 44 | 30 | **1380×924** | 3 |
+| `#k-emi` | 430×232 | 44 | — | **1290×828** | 3 |
+| `#k-trend` | 900×336 | 44 | 30 | **1800×820** | 2 |
+
+L'emiciclo non ha piede perché **la legenda ce l'ha dentro il disegno**; gli altri tre ce
+l'hanno in HTML e la targa gliela ridisegna. La tendenza sta a **K=2** e non a 3 perché a 3
+uscirebbe 2700px di lato lungo, che non serve a niente: 1800 è già oltre qualunque uso
+editoriale.
+
+### La geometria è sempre quella desktop, anche esportando da un telefono
+
+**Il precedente sul carattere non si estende, ed è la decisione che vale oltre questo
+caso.** Sul carattere si accetta la pila della macchina che esporta: un font vero come data
+URI sono centinaia di KB e violerebbe la regola del file unico. Sulla geometria no — *il
+carattere è una cosa che la macchina impone, la geometria è una cosa che il codice sceglie*
+— e un PNG che finisce nell'articolo di qualcun altro non deve avere l'asse diradato e i
+mesi alternati perché chi l'ha esportato era su un telefono.
+
+Il meccanismo è `FORZA_LARGO`, che scavalca `stretto()` — la **strada unica** per la query
+dei 660, che prima era scritta in cinque punti. Si accende, si ridisegna **quel disegno
+soltanto**, si serializza, si rispegne: fra l'accensione e lo spegnimento il browser non
+dipinge, perché è tutto dentro lo stesso compito sincrono. Il lettore non vede niente
+lampeggiare.
+
+**E `fasceIst(FS)` esiste per questo**: le due fasce degli istogrammi erano calcolate dentro
+`istogramma()`, e la targa avrebbe dovuto rifarne il conto per sapere dove finisce il
+disegno. Due strade per lo stesso numero, nate insieme alla funzionalità — quindi una
+funzione sola, chiamata dai due.
+
+### Le opacità: la prova è scritta dal verso che conta
+
+L'attributo `opacity=".28"` sulla nuvola dei sondaggi contro il `.07` calcolato era
+annotato come *la* trappola. Misurandola, **il caso famoso non è il caso peggiore**.
+
+Nello stato predefinito attributo e calcolato coincidono su tutti e quattro i disegni —
+**zero divergenze** — quindi l'attributo non è inerte: è il valore vero finché non si accende
+uno stato. Negli stati interattivi, con le transizioni spente:
+
+| stato | elementi che divergono | **di cui senza nessun attributo** |
+|---|---|---|
+| emiciclo filtrato | 126 | **126** |
+| tendenza con una serie sola | 523 | 4 |
+| tendenza con un evento isolato | 542 | 23 |
+
+Un elemento **senza** attributo uscirebbe a opacità **piena**: il filtro dell'emiciclo non
+sarebbe sbagliato di un fattore quattro, **sparirebbe del tutto dal PNG**. Un errore di
+quattro volte si vede; uno stato che scompare no.
+
+**Da cui la forma della prova, che non nomina nessun elemento**: dopo la stampa, nessun
+elemento della copia esce a un'opacità diversa da quella calcolata sulla pagina. Vale per la
+nuvola, per i 126, per i 23 e per quello che qualcuno aggiunge domani. *Provare che la
+nuvola esce a `.07` sarebbe stato provare l'istanza; questa prova la forma.*
+
+**L'attributo resta dov'è.** Toglierlo sarebbe una riparazione che ne rompe un'altra in
+silenzio: in SVG un attributo di presentazione perde contro qualunque dichiarazione CSS, ma
+è il valore vero quando il CSS non dice niente.
+
+**E le transizioni vanno spente PRIMA di leggere.** Con quelle vive `getComputedStyle`
+restituisce il valore **animato**, che a inizio transizione è ancora quello di prima: in
+questa stessa sessione ha prodotto **zero divergenze** per `solo-*` e numeri sbagliati per
+l'emiciclo filtrato — misure stabili e false, la trappola 2 del banco.
+
+### La riga dell'evento è misurata, non troncata a occhio
+
+Nello stato isolato la targa porta la riga dell'evento, che è l'unica cosa che rende
+l'isolato un'immagine pubblicabile. Il primo taglio era **a 150 caratteri**, e tagliava una
+riga che ci stava: 170 caratteri misurano **808,9 unità su 868 disponibili**. Adesso c'è
+`tagliaA()`, che monta una sonda `<text>` dentro l'SVG, misura la larghezza vera e taglia
+**all'ultimo spazio** che ci sta. Un carattere non è una larghezza, e la pila del foglio
+non è quella della macchina che esporta.
+
+### Come si prova senza una tela
+
+`toDataURL` in jsdom non esiste, quindi il modulo è tagliato dove la prova può entrare:
+**`svgEsportabile(id)` compone e restituisce il testo dell'SVG**, e `esportaPNG(id)` è il
+guscio che lo rasterizza. Le 74 asserzioni di `test/suite/png.js` stanno tutte sul primo.
+
+**E la geometria desktop si prova come UGUAGLIANZA, non come numero.** Asserire «la tendenza
+esce 900 larga» sarebbe scrivere in una prova la costante che il codice ha appena smesso di
+scrivere. La prova compone due volte — a finestra larga e a finestra stretta — e verifica
+che i due `viewBox` siano **identici**: è la proprietà che si vuole, e non invecchia quando
+il disegno cambia.
+
+### Due cose che restano decise e non si riaprono
+
+- **Il PNG non esiste dentro `?embed=1`**, e il pulsante non c'è affatto. Dentro un iframe
+  con `sandbox` senza `allow-downloads` un `<a download>` **non solleva niente e non fa
+  niente**: il fallimento è silenzioso, e un pulsante che tace è peggio di un pulsante che
+  manca. Vedi «Le nove risposte dell'embed», risposta 4.
+- **Il tetto del gzip non si alza a occhio.** L'esportazione ha portato il file da 169,5 a
+  **170,1 KB** contro i 179 del tetto: **non lo sfonda**, quindi non c'è niente da rifare.
+  Il giorno in cui lo sfondasse, il tetto si rifà con i quattro addendi scritti nel commento
+  accanto alla regola — non si alza.
+
+## Il calendario in flex: una griglia mostra il proprio fondo, e la forma è ricomparsa
+
+Applicato il 24 agosto 2026. **È la seconda volta che questo difetto compare**, e la prima
+era stata chiusa due giorni prima nella barra dei comandi: da lì viene il rimedio, che non
+è stato inventato ma riusato.
+
+### Il difetto, misurato
+
+`#k-calend` era una griglia a **sei tracce fisse** con **sette tappe**. La settima apre una
+riga nuova e le altre cinque tracce restano scoperte — e sotto non c'è la pagina, c'è il
+**fondo del contenitore**, che qui è `--hair` perché **è così che sono disegnati i filetti
+fra le schede**: fondo grigio sul contenitore, `gap:1px`, fondo `--card` sui figli. Il
+filetto è il contenitore visto attraverso un varco di un pixel.
+
+Misurato a 1265 con le transizioni spente: un rettangolo grigio di **892,5 × 169,5px**,
+cioè **5,03 colonne** vuote sotto l'ultima riga.
+
+**Non è un difetto di larghezza e non si vede in nessuna misura di sforamento.** Il
+documento non scorre, niente esce dalla finestra, tutte le prove erano verdi ed erano verdi
+a ragione: nessuna guardava che cosa ci fosse dove non c'è una cella.
+
+### Tre condizioni, e serve che ci siano tutte e tre
+
+1. il contenitore è una griglia a tracce di numero **fisso** — `repeat(N,…)`, non `auto-fit`
+   né `auto-fill`, che le tracce vuote le collassano;
+2. il suo fondo è **visibile e diverso** da quello dei figli;
+3. i figli **non sono un multiplo** delle colonne.
+
+Dove manca la seconda, una traccia scoperta mostra la pagina e non si vede niente — ed è il
+caso di quasi tutte le griglie di questo file. **È la ragione per cui il difetto è raro e
+per cui, quando c'è, è invisibile a chi cerca sforamenti.**
+
+### Il rimedio è quello della barra dei comandi, e non riaccorda i numeri
+
+**Il precedente è `.cmd` → `.cb`, chiuso il 22 agosto 2026 in `6478f35`**, ed è
+letteralmente lo stesso idioma: `display:flex; flex-wrap:wrap; gap:1px; background:
+var(--hair)` sul contenitore, `flex:1 1 <base>` e `background:var(--card)` sui figli. Lì
+erano due tracce fisse con tre celle e il buco misurava 557,5 × 119,5px.
+
+*(Correzione a una cosa che avevo detto prima di guardare: avevo affermato che un
+precedente grid→flex nella barra dei comandi non esisteva. Esiste: avevo cercato `.pgb`,
+che è un'altra cosa. Il precedente è `.cmd`/`.cb`, e l'attesa che lo fissa sta in `v7.js`,
+tre righe sopra quelle del calendario.)*
+
+**La mossa non è «riaccordare le colonne al numero di tappe»: è cambiare meccanismo.** Il
+flex non ha tracce, quindi **non esiste una posizione scoperta per nessun numero di celle**.
+L'ultima riga si spartisce quello che resta, e `flex-grow:1` glielo fa occupare tutto.
+
+```css
+#kn26 .cal{display:flex;flex-wrap:wrap;gap:1px;background:var(--hair);}
+#kn26 .cal>div{flex:1 1 calc(100%/6 - 1px);}
+@media(max-width:1000px){#kn26 .cal>div{flex-basis:calc(100%/3 - 1px);}}
+@media(max-width:660px) {#kn26 .cal>div{flex-basis:calc(100%/2 - 1px);}}
+@media(max-width:400px) {#kn26 .cal>div{flex-basis:100%;}}
+```
+
+**E qui conta più che nella barra dei comandi, perché le tappe cambiano.** Sono sette
+adesso, due passano dopo il 27 ottobre, e ognuna aggiunta o tolta sposta il resto: una
+griglia andrebbe riaccordata a ogni cambio, e nessuno se ne ricorderebbe. Il flex non ha
+niente da riaccordare — e questo è il motivo per cui la prova **non asserisce che le tappe
+siano sette**, ma che il numero non compaia da nessuna parte nel foglio.
+
+**Due dettagli che sembrano cosmesi e non lo sono.** La base è `calc(100%/6 - 1px)` e non
+`100%/6`: il gap prende un pixel fra le celle, e senza la sottrazione l'ultima di ogni riga
+scenderebbe a capo da sola. E i **filetti sopravvivono al cambio perché non erano della
+griglia**: sono il gap più il fondo, e il gap in flex si comporta identico.
+
+### Verificato su browser, con le tappe che non ci sono
+
+Cinque, sei, sette e otto tappe — le due in più costruite a mano — a **1265, 760, 500 e
+380**, con le transizioni spente:
+
+| | prima | dopo |
+|---|---|---|
+| 1265 · 7 tappe in 6 colonne | **892,5 × 169,5px scoperti** | **zero** |
+| 1265 · 8 tappe | 743,8 × 169,5 | zero |
+| 1265 · 5 tappe | 1042,9 × 169,5 | zero |
+| 760 · 7 tappe (3 per riga) | 337,5 × 169,5 | zero |
+| 380 · 7 tappe (2 per riga) | 162,5 × 152 | zero |
+| varco del filetto, ovunque | 1px | **1px** |
+
+A sei tappe esatte il buco non c'era né prima né dopo: è il caso che avrebbe fatto dire
+«va bene così» a chi guardasse un giorno solo.
+
+### Cercata la forma, non l'istanza
+
+È la lezione di `nmA()`, e qui ha trovato qualcosa. Setacciando **tutte** le regole del
+foglio per le tre condizioni insieme, le griglie a tracce fisse **col fondo visibile** sono
+**due**:
+
+| | colonne | figli | resto | |
+|---|---|---|---|---|
+| `#k-calend` | 6 | 7 | **5** | riparata |
+| `#k-probs` | 4 | 4 | **0** | **latente** |
+
+Le quattro probabilità — coalizione, opposizione, arabi, stallo — sono **strutturali**, non
+un elenco che cresce: oggi il resto è zero e il buco non c'è. Ma la forma è la stessa, e il
+buco comparirebbe il giorno in cui diventassero tre o cinque. **È dichiarata in
+`test/suite/griglie.js` con la sua ragione, e se ne compare una terza la prova cade e chiede
+di guardarla**: è l'inventario di `opacita.js` applicato al layout — non un divieto, un
+elenco con un perché.
+
+Le altre griglie del file usano `auto-fit`, che le tracce vuote le collassa, oppure non
+hanno un fondo proprio. `.guida` è l'unica che ha lo stesso fondo e lo stesso gap del
+calendario ed è **salva per l'`auto-fit`**: una mutazione che gliela porta a `repeat(3,…)`
+fa cadere la prova.
+
+`test/suite/griglie.js`, 15 asserzioni. **Mutata dodici volte, dodici mutanti morti**: il
+ritorno alla griglia, le celle che non crescono, la base senza la sottrazione del gap, il
+fondo tolto, il gap tolto, il fondo delle celle tolto, le tre fasce di larghezza una per
+una, il `flex-wrap` tolto, una seconda griglia della stessa forma non dichiarata, il numero
+di colonne di `.probs` cambiato in silenzio, e un `nth-child` che rimette una regola di
+posizione nel calendario.
 
 ## L'indice sotto i 660: la voce accesa, la barra tolta, la sbirciata
 
@@ -3056,11 +3299,16 @@ Due conseguenze pratiche, e sono quelle da ricordare:
   una cosa sta dove deve, la domanda successiva è sempre se si legge — e quella, in
   questo progetto, la risponde solo un occhio su un browser vero.
 
-### Lo stato al 23 agosto 2026, sera
+### Lo stato al 24 agosto 2026
 
-Scritto per ripartire senza la conversazione. Ultimo commit spinto: **`5422238`**, CI e
-Pages verdi. Sul banco di oggi le prove sono **1734**, e le tre suite nuove sono
-`meta.js`, `tabella.js` ed `embed.js`.
+Scritto per ripartire senza la conversazione. Ultimo commit spinto: **`02e4247`**, CI e
+Pages verdi. Sul banco di oggi le prove sono **1826**, e le suite nuove degli ultimi due
+giorni sono cinque: `meta.js`, `tabella.js`, `embed.js`, `png.js` e `griglie.js`.
+
+**Non ancora committati**: l'esportazione PNG dei quattro disegni e il calendario in flex.
+Vedi le due sezioni omonime.
+
+### Lo stato al 23 agosto 2026, sera
 
 **E l'ordine di marcia è cambiato**: la coda è stata riscritta per pubblicare prima, e la
 revisione visiva è uscita dalla coda perché è fatta. Vedi «Nell'ordine, quando si
@@ -3358,8 +3606,10 @@ da fare.
 3. ~~**Modalità `?embed=1`**~~ — **FATTA il 23 agosto 2026.** Le nove decisioni che la
    definiscono, e le misure da cui vengono, stanno in «Le nove risposte dell'embed». Quello
    che resta è guardarla resa dentro un ospite vero: la riga 6 della verifica a scenari.
-4. **Esportazione PNG dei quattro disegni** (punto 7): inventario fatto, decisioni prese,
-   codice non scritto.
+4. ~~**Esportazione PNG dei quattro disegni**~~ — **FATTA il 24 agosto 2026.** Vedi
+   «L'esportazione PNG: la geometria è una scelta del codice, il carattere no». Le decisioni
+   del punto 7 erano ancora buone; la geometria no, ed è stata rifatta. Le card per i social
+   sono la voce 8 del dopo, e usano la stessa macchina.
 
 #### Dopo la pubblicazione
 

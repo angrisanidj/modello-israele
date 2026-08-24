@@ -3,7 +3,7 @@
 const {JSDOM}=require('jsdom');const dom=new JSDOM('');global.DOMParser=dom.window.DOMParser;
 /* attributi veri e non finto silenzio: vedi il commento in aff.js e il punto 13 */
 const store={};function El(i){return{id:i,innerHTML:'',textContent:'',style:{},className:'',dataset:{},attr:{},setAttribute(k,v){this.attr[k]=v;},getAttribute(k){return k in this.attr?this.attr[k]:null;},removeAttribute(k){delete this.attr[k];},hidden:false,value:'',
- classList:{toggle(){},contains(){return false},add(){},remove(){}},addEventListener(){},querySelectorAll(){return[]},querySelector(){return null;}};}
+ classList:{toggle(){},contains(){return false},add(){},remove(){}},addEventListener(){},querySelectorAll(){return[]},querySelector(){return null;},insertAdjacentHTML(){},closest(){return null;}};}
 global.document={getElementById:i=>store[i]||(store[i]=El(i)),createElement:()=>({click(){},style:{}}),
  addEventListener(){},documentElement:{scrollTop:0},querySelectorAll(){return[]}};
 global.window={addEventListener(){},requestAnimationFrame(){},pageYOffset:0,location:{protocol:'https:'},

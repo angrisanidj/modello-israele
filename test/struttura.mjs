@@ -71,8 +71,17 @@ const canonicoJS=(html.match(/<link\s+rel="canonical"\s+href="(https?:\/\/[^"]+)
 const ancoreJS=[...js.matchAll(/<a\s[^>]*href="(https?:\/\/[^"]+)"/g)].map(m=>m[1]);
 const jsSenzaAncore=js.replace(/<a\s[^>]*href="https?:\/\/[^"]+"/g,'<a ');
 const urlJS=[...jsSenzaAncore.matchAll(/https?:\/\/([^'"\s\\]+)/g)].map(m=>m[1]);
+/* UNO SPAZIO DEI NOMI XML NON È UN INDIRIZZO: è un NOME che sembra un indirizzo, e nessun
+   browser lo ha mai richiesto. `http://www.w3.org/2000/svg` è quello che va scritto in
+   `xmlns` perché `new Image()` accetti un SVG serializzato — senza, fallisce in silenzio —
+   e non produce nessuna chiamata di rete. È la terza volta che questo controllo incontra la
+   stessa distinzione: l'href di un'ancora, il canonical, e adesso il namespace. La lista
+   bianca delle CHIAMATE DI RETE resta Wikipedia e basta; quello che cresce è l'elenco delle
+   cose che non sono chiamate. */
+const NAMESPACE=/^www\.w3\.org\/\d{4}\//;
 const estranei=urlJS.filter(u=>!/^([a-z]+\.)?wikipedia\.org\//.test(u))
-  .filter(u=>!(canonicoJS&&('https://'+u)===canonicoJS));
+  .filter(u=>!(canonicoJS&&('https://'+u)===canonicoJS))
+  .filter(u=>!NAMESPACE.test(u));
 p('ogni URL assoluto nel JS è Wikipedia'+(estranei.length?' ('+estranei.slice(0,3).join(', ')+')':''),
   !estranei.length);
 /* I COLLEGAMENTI ESTERNI SI ELENCANO TUTTI, non solo quelli generati dal JavaScript.

@@ -330,10 +330,27 @@
  flex:none;margin-top:1px;}
 #kn26 .crono>button em{font-style:normal;color:var(--mute);}
 
-#kn26 .cal{display:grid;grid-template-columns:repeat(6,1fr);gap:1px;background:var(--hair);}
-@media(max-width:1000px){#kn26 .cal{grid-template-columns:repeat(3,1fr);}}
-@media(max-width:660px){#kn26 .cal{grid-template-columns:repeat(2,1fr);}}
-@media(max-width:400px){#kn26 .cal{grid-template-columns:1fr;}}
+/* IL CALENDARIO È IN FLEX E NON A GRIGLIA, e la ragione è un buco misurato.
+   Una griglia a tracce FISSE con un numero di celle che non è multiplo delle colonne lascia
+   scoperte le tracce di coda, e lì si vede il fondo del CONTENITORE — che qui è --hair,
+   perché è così che si disegnano i filetti fra le schede: un fondo grigio e un gap di 1px.
+   Misurato il 24 agosto 2026 a 1265: sette tappe in sei colonne lasciavano un rettangolo
+   grigio di 892,5px per 169,5, cioè 5,03 colonne vuote sotto l'ultima riga.
+   IL FLEX NON HA TRACCE: non esiste una posizione scoperta per nessun numero di celle.
+   L'ultima riga si distribuisce quello che resta, e con flex-grow:1 lo occupa tutta.
+   CONTA PIÙ CHE ALTROVE PERCHÉ LE TAPPE CAMBIANO: sono sette adesso, due passano dopo il
+   27 ottobre, e ognuna aggiunta o tolta sposta il resto. Una griglia andrebbe riaccordata a
+   ogni cambio; il flex non ha niente da riaccordare.
+   I FILETTI SOPRAVVIVONO PERCHÉ NON SONO DELLA GRIGLIA: sono il fondo del contenitore che
+   si vede attraverso il gap, e il gap in flex si comporta identico. Verificato a 1265, 760
+   e 380 con cinque, sei, sette e otto tappe.
+   La base è calc(100%/N - 1px) e non 100%/N: il gap prende 1px fra le celle, e senza la
+   sottrazione l'ultima di ogni riga scenderebbe a capo da sola. */
+#kn26 .cal{display:flex;flex-wrap:wrap;gap:1px;background:var(--hair);}
+#kn26 .cal>div{flex:1 1 calc(100%/6 - 1px);}
+@media(max-width:1000px){#kn26 .cal>div{flex-basis:calc(100%/3 - 1px);}}
+@media(max-width:660px){#kn26 .cal>div{flex-basis:calc(100%/2 - 1px);}}
+@media(max-width:400px){#kn26 .cal>div{flex-basis:100%;}}
 #kn26 .cal>div{background:var(--card);padding:17px 18px;}
 #kn26 .cal .dt{font-size:10px;text-transform:uppercase;letter-spacing:.12em;color:var(--acc);
  font-weight:700;margin-bottom:10px;}
@@ -3241,6 +3258,30 @@ function puntiPer(bloc){
 }
 
 /* ══════════ 5 · RENDER ══════════ */
+/* ══ LA LARGHEZZA STRETTA, IN UNA FUNZIONE SOLA ══
+   `matchMedia('(max-width:660px)')` era scritto in cinque punti — il conto alla rovescia,
+   gli istogrammi, la tendenza, la collocazione del riquadro dell'evento e il suo
+   scorrimento — cioè cinque strade per la stessa domanda. Finché rispondevano tutte allo
+   stesso modo non si vedeva; l'esportazione PNG ha bisogno di rispondere «no» a tre di
+   loro e di lasciare stare le altre due, e con cinque copie non c'era nessun posto in cui
+   dirlo.
+
+   FORZA_LARGO È ACCESA SOLO DENTRO UNA REDAZIONE SINCRONA. L'esportazione la accende,
+   ridisegna il disegno che le serve, serializza e la rispegne ridisegnando di nuovo: fra
+   le due cose il browser non dipinge, perché è tutto dentro lo stesso compito. Il lettore
+   di un telefono non vede niente lampeggiare, e il PNG esce con la geometria desktop.
+
+   PERCHÉ LA GEOMETRIA DEL PNG NON SEGUE LA MACCHINA, mentre il carattere sì: il carattere
+   è una cosa che la macchina impone — non possiamo incorporarne uno senza violare la
+   regola del file unico — mentre la geometria è una cosa che il codice sceglie. Un PNG che
+   finisce in un articolo non deve avere l'asse diradato e i mesi alternati perché chi l'ha
+   esportato era su un telefono. */
+var FORZA_LARGO=0;
+function stretto(){
+ if(FORZA_LARGO) return false;
+ try{return !!(window.matchMedia&&window.matchMedia('(max-width:660px)').matches);}
+ catch(e){return false;}
+}
 /* ══════════ MODALITÀ INCORPORATA ══════════
    `?embed=1` è pubblica: non è per FocusAmerica, e chiunque deve poter incorporare questa
    pagina su un sito che non controlliamo — larghezza, tema, CMS, dominio. Le nove decisioni
@@ -3383,8 +3424,8 @@ function rTesta(){
     La larghezza si legge a ogni render con matchMedia, come fanno già l'istogramma, la
     tendenza e il riquadro dell'evento: la pagina non ha un ascoltatore di resize, e
     aggiungerne uno qui solo per questa riga sarebbe una sesta strada. */
- var stretto=!!(window.matchMedia&&window.matchMedia('(max-width:660px)').matches);
- $('k-cd').innerHTML=d>0?('<b>'+f(d)+'</b> giorni'+(stretto?'':' al voto')):'Voto concluso';
+ var str=stretto();
+ $('k-cd').innerHTML=d>0?('<b>'+f(d)+'</b> giorni'+(str?'':' al voto')):'Voto concluso';
  $('k-scd').textContent=d>0?(f(d)+' giorni al voto'):'voto concluso';
  /* LE DUE DATE, e perché non erano una.
     «aggiornato al 20 agosto» diceva la data dell'ULTIMO SONDAGGIO in archivio, non quella
@@ -3404,7 +3445,7 @@ function rTesta(){
   : 'ultima verifica non nota';
  eu.className=(v&&ritardo>=GAP_VERIFICA)||!v?'vecchio':'';
  var quiete=v?ggCal(new Date(u+'T00:00:00'),new Date(v+'T00:00:00')):null;
- $('k-fresh').innerHTML=(stretto?'sondaggi al <b>'+dc(u)+'</b>':'ultimo sondaggio <b>'+dl(u)+'</b>')+
+ $('k-fresh').innerHTML=(str?'sondaggi al <b>'+dc(u)+'</b>':'ultimo sondaggio <b>'+dl(u)+'</b>')+
   (quiete!==null&&quiete>=GAP_SONDAGGI
    ? ', e da <b>'+f(quiete)+' '+acc(quiete,'giorno','giorni')+'</b> non ne arrivano di nuovi' : '');
  Array.prototype.forEach.call(R.querySelectorAll('[data-escl]'),function(b){
@@ -3424,7 +3465,7 @@ function rTesta(){
      dice l'AZIONE e cambia premendo, quindi aria-pressed direbbe il contrario di quello
      che si legge. Lo esclude rApp(), che quel nome lo scrive. */
   if(b.id!=='k-app') b.setAttribute('aria-pressed',PAR[b.dataset.par]?'true':'false');});
- $('k-n').innerHTML=stretto
+ $('k-n').innerHTML=str
   ? '<b>'+L.length+'</b>/<b>'+f(SOND.length)+'</b> rilevazioni'
   : '<b>'+L.length+'</b> rilevazioni nel modello · <b>'+f(SOND.length)+'</b> in archivio dal 1º gennaio';
  $('k-simn').textContent=f(SIM)+' simulazioni · orizzonte '+f(ORIZZONTE)+' giorni';
@@ -3497,6 +3538,346 @@ function rProb(){
      'e la mediana degli esiti non è l\'esito calcolato sulla media.' : '.');
  if(SW) $('k-simn').textContent=f(SIM)+' simulazioni · swing '+(SW>0?'+':'')+f(SW,1)+' pt verso la coalizione';
 }
+/* ══════════ ESPORTAZIONE PNG DEI QUATTRO DISEGNI ══════════
+   Le decisioni stanno nel punto 7 di CLAUDE.md e non si rifanno qui; qui c'è quello che
+   serve a leggere il codice, più i numeri che sono cambiati da quando furono prese.
+
+   QUATTRO DISEGNI E NON UNDICI SEZIONI: gli istogrammi, l'emiciclo e la tendenza. Tutto il
+   resto della pagina è HTML, e rasterizzarlo vorrebbe dire foreignObject — che contamina
+   la tela in Safari — oppure un secondo renderer da tenere allineato al primo.
+
+   LA GEOMETRIA È SEMPRE QUELLA DESKTOP, anche esportando da un telefono. Il precedente sul
+   carattere non si estende: il carattere è una cosa che la macchina impone, la geometria è
+   una cosa che il codice sceglie, e un PNG che finisce in un articolo non deve avere l'asse
+   diradato e i mesi alternati perché chi l'ha esportato era su un telefono. Si ottiene
+   accendendo FORZA_LARGO e ridisegnando: fra l'accensione e lo spegnimento il browser non
+   dipinge, perché è tutto dentro lo stesso compito.
+
+   E LA CORNICE È UN PARAMETRO, non una costante: la targa, il piede e il rapporto della
+   tela arrivano da fuori. Oggi serve una cornice sola, ma il motore che la disegna è lo
+   stesso che servirà a qualunque altra — e un motore che regge una cornice sola si scopre
+   che non ne regge due il giorno in cui se ne chiede una seconda. */
+
+/* Le due fasce della targa, in unità di viewBox del disegno. La testata porta il titolo
+   della sezione, la data dell'ultima verifica e la firma; il piede porta la legenda per i
+   disegni che ce l'hanno in HTML — l'emiciclo la porta dentro e non ne ha bisogno. */
+var PNG_TESTA=44, PNG_PIEDE=30;
+/* La pila della macchina che esporta, dichiarata e non incorporata: un carattere vero come
+   data URI sono centinaia di KB e violerebbe la regola del file unico. Il PNG coincide con
+   quello che vede chi lo esporta, non con quello che vedrebbe un altro — ed è scritto anche
+   nella nota metodologica, perché è una proprietà del file che qualcuno riceve. */
+var PNG_FONT='-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif';
+
+/* I QUATTRO DISEGNI, con la loro cornice. La geometria NON è scritta: si legge dal viewBox
+   del disegno reso a larghezza desktop, perché quella è la sola che non invecchia — gli
+   istogrammi sono passati da 210 a 234 quando le fasce sono diventate margini, e la
+   tendenza da 520 a 900 quando il viewBox desktop si è separato da quello mobile.
+   `piede` dice se la legenda va sotto: l'emiciclo ce l'ha dentro il disegno. */
+var PNG_DISEGNI={
+ 'k-hist':  {sez:'Il verdetto del modello', tit:'Blocco Netanyahu',      piede:1, K:3},
+ 'k-hist2': {sez:'Il verdetto del modello', tit:'Opposizione sionista',  piede:1, K:3},
+ 'k-emi':   {sez:'La prossima Knesset',     tit:'Proiezione dei 120 seggi', piede:0, K:3},
+ /* la tendenza è il doppio più larga degli altri: a K=3 uscirebbe 2700px di lato lungo,
+    e non serve a niente. K=2 dà 1800×820, che è già oltre qualunque uso editoriale. */
+ 'k-trend': {sez:'Come si è mossa la proiezione', tit:'Il modello giorno per giorno', piede:1, K:2}
+};
+
+/* LE OPACITÀ SI STAMPANO CALCOLATE, MAI LETTE DALL'ATTRIBUTO, e la ragione misurata è più
+   grande di come era stata annotata. Nello stato predefinito attributo e calcolato
+   coincidono su tutti e quattro i disegni — zero divergenze — quindi l'attributo non è
+   inerte: è il valore vero finché non si accende uno stato. Ma negli stati interattivi,
+   misurati il 23 agosto 2026 con le transizioni spente:
+     · emiciclo filtrato: 126 elementi divergono, e TUTTI E 126 non hanno nessun attributo;
+     · tendenza con una serie sola: 523, di cui 4 senza attributo;
+     · tendenza con un evento isolato: 542, di cui 23 senza attributo.
+   La nuvola dei sondaggi è il caso famoso — `opacity=".28"` contro `.07` calcolato, quattro
+   volte troppo — ma NON è il caso peggiore: gli elementi senza attributo uscirebbero a
+   opacità PIENA, cioè il filtro dell'emiciclo sparirebbe del tutto dal PNG invece di essere
+   sbagliato di un fattore. Un errore di quattro volte si vede; uno stato che scompare no.
+   Da cui la proprietà che la prova verifica, e che non nomina nessun elemento: dopo la
+   stampa, nessun elemento della copia esce a un'opacità diversa da quella calcolata sulla
+   pagina. Vale per la nuvola, per i 126, per i 23 e per quello che qualcuno aggiunge domani.
+   E le transizioni vanno spente PRIMA di leggere: con quelle vive getComputedStyle
+   restituisce il valore ANIMATO, che a inizio transizione è ancora quello di prima. È la
+   trappola 2 del banco, e in questa stessa sessione ha prodotto due misure stabili e false. */
+function stampaOpacita(orig,copia){
+ var a=orig.querySelectorAll('*'), b=copia.querySelectorAll('*'), i;
+ for(i=0;i<a.length&&i<b.length;i++){
+  var c=1;
+  try{c=parseFloat(getComputedStyle(a[i]).opacity);}catch(e){c=1;}
+  if(!isFinite(c)) c=1;
+  if(c<1) b[i].setAttribute('opacity',String(+c.toFixed(4)));
+  else b[i].removeAttribute('opacity');
+ }
+}
+
+/* La copia serializzabile di un disegno: quello che il browser deve ricevere e che l'SVG in
+   pagina non ha, perché in pagina ha un antenato e un foglio di stile e dentro un <img> non
+   ha né l'uno né l'altro.
+     · xmlns — senza, new Image() fallisce IN SILENZIO: nessun errore, solo un onerror;
+     · width e height — i quattro hanno solo il viewBox;
+     · font-family sulla radice — 45 dei 68 <text> non ce l'hanno e lo ereditano da #kn26.
+   Non c'è niente da risolvere sui colori: leggiTema() ha già messo esadecimali letterali,
+   e nei quattro disegni `var(--` compare zero volte. */
+function svgPerPNG(id){
+ var box=$(id), orig=box&&box.querySelector('svg');
+ if(!orig) return null;
+ var copia=orig.cloneNode(true);
+ stampaOpacita(orig,copia);
+ copia.setAttribute('xmlns','http://www.w3.org/2000/svg');
+ copia.setAttribute('font-family',PNG_FONT);
+ return copia;
+}
+
+/* La targa. Il disegno entra come <svg> ANNIDATO, non come contenuto trasposto: così
+   conserva il suo sistema di coordinate e la targa non deve sapere niente di lui — che è
+   la sola forma in cui una cornice diversa non obbliga a rifare il disegno. */
+function targaPNG(dis,inner,W,H,sonda){
+ var testa=PNG_TESTA, piede=dis.piede?PNG_PIEDE:0;
+ /* la riga dell'evento allunga il piede invece di stringere il disegno: PH non si tocca,
+    che è la regola delle fasce degli istogrammi applicata alla targa. */
+ var evr=(dis.tit==='Il modello giorno per giorno')?rigaEventoPNG():'';
+ if(evr) piede+=PNG_PIEDE;
+ var HT=testa+H+piede;
+ var fondo=C.paper||'#FFFFFF';
+ var s='<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 '+W+' '+HT+'" '+
+   'width="'+W+'" height="'+HT+'" font-family="'+E(PNG_FONT)+'">';
+ s+='<rect width="'+W+'" height="'+HT+'" fill="'+fondo+'"/>';
+ /* testata: la sezione, il titolo del disegno, e a destra la data dell'ultima verifica */
+ s+='<text x="16" y="19" font-size="11" font-weight="700" fill="'+C.mute+'" '+
+    'letter-spacing="1.1">'+E(dis.sez.toUpperCase())+'</text>';
+ s+='<text x="16" y="35" font-size="15" font-weight="700" fill="'+C.ink+'">'+E(dis.tit)+'</text>';
+ s+='<text x="'+(W-16)+'" y="19" text-anchor="end" font-size="10.5" fill="'+C.mute+'">'+
+    E(dataPNG())+'</text>';
+ /* la firma è la stessa costante della pagina, e l'indirizzo con lei: un PNG che gira senza
+    la pagina attorno è il caso in cui l'attribuzione conta di più, non di meno */
+ s+='<text x="'+(W-16)+'" y="35" text-anchor="end" font-size="10.5" fill="'+C.mute+'">'+
+    E(FIRMA_N)+' · '+E(CANONICO.replace(/^https?:\/\//,'').replace(/\/$/,''))+'</text>';
+ s+='<svg x="0" y="'+testa+'" width="'+W+'" height="'+H+'">'+inner+'</svg>';
+ if(piede) s+='<text x="16" y="'+(testa+H+19)+'" font-size="10.5" fill="'+C.mute+'">'+
+    E(piedePNG(dis))+'</text>';
+ if(evr) s+='<text x="16" y="'+(testa+H+19+PNG_PIEDE)+'" font-size="11" fill="'+C.ink2+'">'+
+    E(tagliaA(evr,11,W-32,sonda))+'</text>';
+ return s+'</svg>';
+}
+/* La data che la targa scrive è quella dell'ULTIMA VERIFICA RIUSCITA, non quella
+   dell'ultimo sondaggio: sono due grandezze diverse — la testata della pagina le dice tutte
+   e due — e su un'immagine che gira da sola quella che conta è «a quando è aggiornato», che
+   è la verifica. Se il registro non c'è si ripiega sull'ultimo sondaggio dichiarandolo. */
+function dataPNG(){
+ if(JOB&&JOB.data) return 'aggiornato al '+dl(JOB.data);
+ var u=SOND.map(function(s){return s.data;}).sort().pop();
+ return u?'ultimo sondaggio '+dl(u):'data non disponibile';
+}
+/* Il piede porta quello che in pagina sta in HTML accanto al disegno: per gli istogrammi la
+   didascalia dell'80%, per la tendenza le tre serie. L'emiciclo non ha piede perché la
+   legenda ce l'ha dentro il disegno. */
+function piedePNG(dis){
+ if(dis.tit==='Il modello giorno per giorno')
+  return BL.coalizione.n+' · '+BL.opposizione.n+' · '+BL.arabo.n+
+   ' — la linea è la proiezione ricalcolata giorno per giorno, i puntini i singoli sondaggi';
+ return 'La fascia chiara è l\'intervallo in cui cade l\'esito in 8 simulazioni su 10; il triangolo è la stima puntuale';
+}
+
+/* LA RIGA DELL'EVENTO NELLA TARGA, e senza di lei l'isolato non è pubblicabile.
+   Deciso il 22 agosto 2026: si esporta quello che si vede, e per lo stato isolato quello
+   che si vede è un disegno quasi tutto grigio con una scheggia accesa di 36,8px su un asse
+   da 274. Senza la riga che dice QUALE evento e CHE COSA è successo dopo, l'immagine non
+   dice niente a chi la trova fuori dalla pagina.
+   Si LEGGE dal riquadro reso — la riga del fatto e quella dei trenta giorni — invece di
+   ricomporla: sono le stesse due frasi che il lettore ha davanti, quindi non possono
+   divergere da quello che sta guardando. Ricomporle da EVENTI e serieAl() sarebbe una
+   seconda strada per una frase che esiste già, ed è la strada doppia di sempre. */
+function rigaEventoPNG(){
+ var el=$('k-evsel');
+ if(!el||!/\bon\b/.test(el.className||'')) return '';
+ var a=el.querySelector('.ed'), b=el.querySelector('.em2');
+ var t=[a?a.textContent:'', b?b.textContent:''].join(' — ').replace(/\s+/g,' ').trim();
+ return t.replace(/^—\s*|\s*—$/g,'');
+}
+/* QUANTO CI STA IN UNA RIGA SI MISURA, NON SI INDOVINA.
+   La prima stesura tagliava la riga dell'evento a 150 caratteri: misurato, la voce del 22
+   gennaio ne ha 170 e a corpo 11 occupa 808,9 unità su 868 disponibili — ci stava tutta, e
+   veniva tagliata a metà di «Opposizione sionista», perdendo il terzo blocco. Un numero di
+   caratteri non è una larghezza: dipende da quali caratteri, e le diciassette voci della
+   cronologia hanno lunghezze diverse.
+   Si misura con una sonda dentro l'SVG vero, dove il carattere è quello che il PNG userà, e
+   si taglia all'ULTIMO SPAZIO che ci sta: una parola intera in meno è meglio di una parola
+   spezzata, e i puntini dicono che manca qualcosa. */
+function tagliaA(testo,fs,max,svg){
+ if(!svg||!svg.ownerDocument) return testo;
+ var t=svg.ownerDocument.createElementNS('http://www.w3.org/2000/svg','text');
+ t.setAttribute('font-size',fs); t.setAttribute('font-family',PNG_FONT);
+ t.setAttribute('visibility','hidden');
+ svg.appendChild(t);
+ function largo(x){t.textContent=x;try{return t.getBBox().width;}catch(e){return 0;}}
+ var out=testo;
+ if(largo(testo)>max){
+  var n=testo.length;
+  while(n>12&&largo(testo.slice(0,n)+'…')>max) n-=4;
+  var sp=testo.lastIndexOf(' ',n);
+  out=testo.slice(0,sp>12?sp:n).replace(/[\s,·—-]+$/,'')+'…';
+ }
+ if(t.parentNode) t.parentNode.removeChild(t);
+ return out;
+}
+/* La rasterizzazione, provata su browser il 22 agosto 2026 e non cambiata.
+   Blob e NON data URI: la tendenza fa 94.473 caratteri, e un `#` di colore non codificato
+   tronca l'URI come frammento. fillRect col fondo del tema PRIMA di disegnare: la tela nasce
+   trasparente, nessuno dei quattro SVG disegna un fondo, e trasparente si legge nero in gran
+   parte delle applicazioni. */
+function pngDaSVG(testo,W,H,K,nome,poi){
+ var b=new Blob([testo],{type:'image/svg+xml;charset=utf-8'});
+ var url=URL.createObjectURL(b), img=new Image();
+ img.onload=function(){
+  try{
+   var cv=document.createElement('canvas');
+   cv.width=Math.round(W*K); cv.height=Math.round(H*K);
+   var cx=cv.getContext('2d');
+   cx.fillStyle=C.paper||'#FFFFFF';
+   cx.fillRect(0,0,cv.width,cv.height);
+   cx.drawImage(img,0,0,cv.width,cv.height);
+   var a=document.createElement('a');
+   a.href=cv.toDataURL('image/png'); a.download=nome;
+   a.click();
+   poi(null);
+  }catch(e){ poi(e); }
+  finally{ URL.revokeObjectURL(url); }
+ };
+ img.onerror=function(){ URL.revokeObjectURL(url); poi(new Error('il disegno non si è caricato')); };
+ img.src=url;
+}
+
+/* L'ORCHESTRAZIONE, e l'ordine conta.
+   Si accende FORZA_LARGO, si ridisegna quel disegno soltanto, si serializza, si rispegne e
+   si ridisegna di nuovo. Le due redazioni stanno nello stesso compito, quindi il browser non
+   dipinge in mezzo: chi esporta da un telefono non vede niente cambiare.
+   Le transizioni si spengono per il tempo della lettura, o getComputedStyle restituisce il
+   valore animato invece di quello vero — trappola 2 del banco. */
+/* LA COMPOSIZIONE È SEPARATA DALLA RASTERIZZAZIONE, e non per eleganza: la
+   rasterizzazione ha bisogno di una tela e di new Image(), che in jsdom non esistono,
+   quindi una prova non può chiamare esportaPNG(). Con tutto dentro una funzione sola, il
+   pezzo che decide la geometria — accendere FORZA_LARGO, ridisegnare, comporre la targa,
+   rispegnere — non era esercitato da nessuna prova: due mutazioni che lo guastavano
+   restavano VIVE, e la geometria desktop è la decisione centrale di tutta questa voce.
+   svgEsportabile() è puro rispetto al disegno: entra un id, esce il testo dell'SVG con la
+   sua targa e le sue misure, e la pagina resta com'era. Si prova senza una tela.
+   E servirà due volte: la stessa composizione è quella che il lavoro notturno dovrà
+   rasterizzare per l'immagine Open Graph, dove una tela non c'è per definizione. */
+function svgEsportabile(id){
+ var dis=PNG_DISEGNI[id]; if(!dis) return null;
+ /* le transizioni si spengono per il tempo della lettura, o getComputedStyle restituisce
+    il valore ANIMATO invece di quello vero — trappola 2 del banco, che in questa stessa
+    sessione ha prodotto due misure stabili e false */
+ var st=document.createElement('style');
+ st.textContent='#kn26 *{transition:none !important;animation:none !important}';
+ document.body.appendChild(st);
+ FORZA_LARGO=1;
+ var testo=null,W=0,H=0;
+ try{
+  ridisegna(id);
+  var copia=svgPerPNG(id);
+  if(copia){
+   var vb=String(copia.getAttribute('viewBox')||'').split(/\s+/);
+   W=+vb[2]||0; H=+vb[3]||0;
+   copia.removeAttribute('id');
+   testo=targaPNG(dis,copia.innerHTML,W,H,$(id).querySelector('svg'));
+  }
+ } finally {
+  FORZA_LARGO=0;
+  try{ridisegna(id);}catch(e){}
+  if(st.parentNode) st.parentNode.removeChild(st);
+ }
+ if(!testo||!W||!H) return null;
+ /* l'altezza si LEGGE dalla targa appena composta, non si ricalcola: la targa sa se ha
+    dovuto aggiungere la riga dell'evento, e rifare il conto qui sarebbe la seconda strada
+    che sbaglia il giorno in cui la targa cambia. */
+ var mHT=/viewBox="0 0 [\d.]+ ([\d.]+)"/.exec(testo);
+ return {testo:testo, W:W, H:H, HT:mHT?+mHT[1]:(PNG_TESTA+H+(dis.piede?PNG_PIEDE:0)),
+         K:dis.K, nome:'knesset2026-'+id.replace(/^k-/,'')+'.png'};
+}
+function esportaPNG(id){
+ var c=svgEsportabile(id);
+ if(!c){ msg('Non è stato possibile preparare il disegno.','err'); return; }
+ var testo=c.testo, HT=c.HT, W=c.W, dis=PNG_DISEGNI[id];
+ /* l'altezza si LEGGE dalla targa appena composta, non si ricalcola: la targa sa se ha
+    dovuto aggiungere la riga dell'evento, e rifare il conto qui sarebbe la seconda strada
+    che sbaglia il giorno in cui la targa cambia. */
+ var mHT=/viewBox="0 0 [\d.]+ ([\d.]+)"/.exec(testo);
+ var HT=mHT?+mHT[1]:(PNG_TESTA+H+(dis.piede?PNG_PIEDE:0));
+ pngDaSVG(testo,W,HT,c.K,c.nome,function(err){
+  if(err) msg('L\'esportazione non è riuscita: '+E(err.message||err),'err');
+  else msg('Immagine scaricata.','ok');
+ });
+}
+/* Ridisegnare UN disegno solo, e non tutta la pagina: render() rifà anche il Monte Carlo, e
+   ventimila simulazioni per fare un PNG sarebbero un secondo di attesa per niente — e con
+   numeri diversi da quelli che il lettore sta guardando, perché il Monte Carlo è casuale.
+   Il PNG deve mostrare ESATTAMENTE quello che c'è sullo schermo. */
+function ridisegna(id){
+ if(id==='k-emi') rEmi();
+ else if(id==='k-trend') rTrend();
+ else {
+  istogramma(MC.coal,C.coal,'k-hist','Distribuzione coalizione',blocchi(SEG).coalizione);
+  istogramma(MC.oppz,C.oppo,'k-hist2','Distribuzione opposizione',blocchi(SEG).opposizione);
+ }
+}
+/* IL COMANDO: uno per disegno, e il nome accessibile NOMINA IL GRAFICO. Quattro pulsanti
+   chiamati tutti «Scarica PNG» sono indistinguibili in un elenco di comandi — è la lezione
+   dei bersagli dei marcatori e dei quattro «Escludi». aria-label e title sono la stessa
+   stringa, nata una volta sola: idioma di ETI.
+   NIENTE PULSANTE UNICO DI PAGINA (quattro scaricamenti in un gesto) e niente scorciatoia da
+   tastiera: un tasto nudo collide col filtro dell'archivio e una combinazione con la pagina
+   ospite. Il pulsante nell'ordine di tabulazione È l'accesso da tastiera.
+   E NIENTE PNG DENTRO L'EMBED: <a download> in una sandbox senza allow-downloads non
+   solleva niente e non scarica — misurato — e un comando che finge di funzionare è peggio di
+   un comando assente. Il pulsante non viene proprio scritto. */
+function bottonePNG(id){
+ if(EMBED) return '';
+ var d=PNG_DISEGNI[id]; if(!d) return '';
+ var eti='Scarica il grafico «'+d.tit+'» come immagine PNG';
+ return '<button class="lnk png" data-png="'+E(id)+'" title="'+E(eti)+'" aria-label="'+E(eti)+
+   '">Scarica PNG</button>';
+}
+/* I QUATTRO PULSANTI, montati dove ciascun disegno ha già la sua testata.
+   Gli istogrammi ne hanno una loro — le due figcaption che rHist riscrive — e i due
+   pulsanti vanno lì, non nell'h2: la sezione del verdetto contiene DUE disegni, e un
+   pulsante nel titolo della sezione non direbbe quale dei due.
+   L'emiciclo e la tendenza hanno un disegno per sezione, e vanno nell'h2, che è già un
+   contenitore flessibile: `.lnk` porta margin-left:auto e si appoggia a destra da sé.
+   Il montaggio è idempotente perché render() gira molte volte: si toglie prima di mettere.
+   La sezione si trova risalendo dal disegno, non con un id nuovo nel markup: un id in più
+   sarebbe un quinto posto in cui la stessa cosa è scritta. */
+function montaPNG(){
+ Array.prototype.forEach.call(R.querySelectorAll('button.png'),function(b){
+  if(b.parentNode) b.parentNode.removeChild(b);});
+ /* UNA GUARDIA SOLA per l'embed, e sta in bottonePNG() che è quella che scrive il markup.
+    Ce n'erano due — una qui e una là — e due guardie per la stessa regola non sono più
+    sicure di una: sono una regola che si può togliere a metà senza che niente cambi. La
+    mutazione che toglieva quella di bottonePNG() restava viva proprio per questo.
+    Qui non serve niente: bottonePNG() restituisce '' e '' non inserisce nulla. */
+ var dove={'k-hist':$('k-htit1'),'k-hist2':$('k-htit2')};
+ ['k-emi','k-trend'].forEach(function(id){
+  var box=$(id), sez=box&&box.closest?box.closest('section'):null;
+  dove[id]=sez?sez.querySelector('h2'):null;
+ });
+ Object.keys(PNG_DISEGNI).forEach(function(id){
+  var t=dove[id]; if(!t) return;
+  t.insertAdjacentHTML('beforeend',bottonePNG(id));
+ });
+}
+/* LE FASCE DELL'ISTOGRAMMA, IN UNA FUNZIONE SOLA, e non è una raffinatezza: la targa
+   dell'esportazione PNG si aggancia a T e a B — è una delle cinque ragioni per cui le
+   fasce sono state fatte così — e se le ricalcolasse per conto suo sarebbero due strade
+   per lo stesso margine, cioè esattamente la cosa che le fasce esistono per non avere.
+   fascia alta = 3 di margine + inchiostro dell'etichetta (circa 1,25 corpi sotto la cima)
+   + uno stacco di 0,6 corpi + il triangolo + 2. Dà 32 a corpo 10 e 42 a corpo 15,5.
+   PH non cambia MAI: pagare i margini con i dati — la barra più alta da 107,7 a 67,3px
+   resi a 380 — sarebbe il contrario di quello che si vuole. */
+function fasceIst(FS){
+ var fe=10*FS, T=Math.round(13+1.85*fe), PH=152, B=Math.round(50*FS);
+ return {fe:fe, TRI:8, T:T, PH:PH, B:B, H:T+PH+B, AY:T+PH};
+}
 function istogramma(arr,col,el,lab,centr,soglia){
  /* IL DOMINIO COMPRENDE SEMPRE LA SOGLIA DEI 61.
     Il difetto, misurato il 22 agosto 2026 e mai registrato prima: mn e mx uscivano dai
@@ -3525,7 +3906,7 @@ function istogramma(arr,col,el,lab,centr,soglia){
     Da sola questa mossa PEGGIORA: a corpo 15,5 l'etichetta passa da 85,7 a 132,7 unita'
     e il taglio a destra sale da 9 stati su 26 a 13. Vale solo insieme al ribaltamento
     piu' sotto, ed e' il motivo per cui le tre mosse sono un blocco solo. */
- var FS=(window.matchMedia&&window.matchMedia('(max-width:660px)').matches)?1.55:1;
+ var FS=stretto()?1.55:1;
  /* LE DUE FASCE SONO MARGINI DEL DISEGNO, non posizioni dei singoli elementi.
     Prima l'etichetta della soglia stava DENTRO l'area delle barre: misurato su 50 stati,
     si sovrapponeva a delle barre in 33 e alla fascia dell'80% in 48 — cioe' quasi sempre.
@@ -3551,14 +3932,8 @@ function istogramma(arr,col,el,lab,centr,soglia){
 
     Le fasce scalano col corpo, l'area del disegno no. Il triangolo e' una forma, non un
     testo: non scala. */
- var fe=10*FS;                          /* corpo dell'etichetta e dei numeri d'asse */
- var TRI=8;                             /* altezza del triangolo della stima puntuale */
- /* fascia alta = 3 di margine + inchiostro dell'etichetta (circa 1,25 corpi sotto la
-    cima) + uno stacco di 0,6 corpi + il triangolo + 2. Da' 32 e 42. */
- var T=Math.round(13+1.85*fe);
- var PH=152;                            /* l'area del disegno: invariata, sempre */
- var B=Math.round(50*FS);               /* fascia bassa: 50 e 78 */
- var H=T+PH+B, AY=T+PH;                 /* 234 e 272; asse a 184 e 194 */
+ var fa=fasceIst(FS), fe=fa.fe, TRI=fa.TRI;
+ var T=fa.T, PH=fa.PH, B=fa.B, H=fa.H, AY=fa.AY;
  var bins={},i;for(i=mn;i<=mx;i++)bins[i]=0;
  arr.forEach(function(v){if(v>=mn&&v<=mx)bins[v]++;});
  var top=0;for(i in bins) top=Math.max(top,bins[i]);
@@ -4073,7 +4448,7 @@ function rSommario(){
 function collocaEvSel(){
  var el=$('k-evsel'), cr=$('k-crono'), casa=$('k-trendwrap');
  if(!el||!cr||!casa) return;
- var mob=(window.matchMedia&&window.matchMedia('(max-width:660px)').matches);
+ var mob=stretto();
  if(mob&&EVSEL){
   var b=cr.querySelector('[data-ev="'+EVSEL+'"]');
   if(b&&b.nextSibling!==el) cr.insertBefore(el,b.nextSibling);
@@ -4805,8 +5180,12 @@ function rChips(){
     zero) vale il ripiego in seggi. */
  if(g.classList&&g.classList.toggle){
   var px=g.clientWidth||0, tw=($('k-gv').getBoundingClientRect&&px)?$('k-gv').getBoundingClientRect().width:0;
-  var stretto=px?(px*tot/120<tw+24):(tot<14);
-  g.classList.toggle('vuota',stretto);
+  /* nome diverso da stretto(): un locale che ombreggia una funzione globale è la
+     trappola della classe .sl spostata dal foglio al JavaScript — qui funziona perché
+     questa funzione non chiama stretto(), e «funziona perché nessuno lo chiama» è
+     esattamente quello che smette di essere vero il giorno dopo. */
+  var poco=px?(px*tot/120<tw+24):(tot<14);
+  g.classList.toggle('vuota',poco);
  }
  $('k-gv').style.left=(g.classList&&g.classList.contains('vuota'))?('calc('+(100*tot/120).toFixed(2)+'% + 14px)'):'';
  var confl=[];
@@ -5035,7 +5414,7 @@ function rTrend(){
  /* Su schermo stretto si riduce la larghezza del riquadro invece dei caratteri:
     l'SVG scala alla larghezza del contenitore, quindi un viewBox più stretto
     rende il testo proporzionalmente più grande. */
- var MOB=(window.matchMedia&&window.matchMedia('(max-width:660px)').matches);
+ var MOB=stretto();
  /* MOB governa la geometria del disegno (viewBox più stretto, caratteri più grandi).
     STRATO è un'altra cosa: dice se i marcatori sono <button> in uno strato HTML sopra il
     grafico — che è comodo ma costa corsie in verticale — o dischi dentro l'SVG. Fra 660 e
@@ -5839,6 +6218,7 @@ function renderInterno(){
   '<em>Yashar · B\'Yachad · Democratici · Yisrael Beitenu — senza i partiti arabi</em>';
  var i1=istogramma(MC.coal,C.coal,'k-hist','Distribuzione coalizione',blocchi(SEG).coalizione);
  var i2=istogramma(MC.oppz,C.oppo,'k-hist2','Distribuzione opposizione',blocchi(SEG).opposizione);
+ montaPNG();
  var bb=blocchi(SEG);
  $('k-cap1').innerHTML='Ogni barra è un possibile risultato, alta quanto è frequente nelle '+f(SIM)+' simulazioni. '+
   'Il blocco Netanyahu supera quota 61 nel <b>'+pc(MC.vC/MC.n)+'</b> dei casi: sono le barre in tinta piena. '+
@@ -6444,6 +6824,13 @@ R.addEventListener('input',function(e){
    altrimenti chi naviga da tastiera si ritrova all'inizio del documento a ogni pressione.
    È la stessa cosa che #k-house impone da sempre: un riferimento preso prima del render
    è morto subito dopo, e il fuoco è un riferimento. */
+/* Il comando dell'esportazione. Delegato come tutto il resto: i quattro pulsanti vengono
+   riscritti a ogni render, quindi un ascoltatore appeso a ciascuno morirebbe subito dopo —
+   è la stessa ragione per cui #k-house non tiene riferimenti fra un render e l'altro. */
+R.addEventListener('click',function(e){
+ var p=e.target&&e.target.closest&&e.target.closest('[data-png]');
+ if(p) esportaPNG(p.getAttribute('data-png'));
+});
 R.addEventListener('click',function(e){
  var b=e.target&&e.target.closest&&e.target.closest('#k-tabpiu');
  if(!b) return;
@@ -6499,7 +6886,7 @@ R.addEventListener('click',function(e){
   /* Sotto i 660 il riquadro è già comparso sotto la voce premuta: scorrere sarebbe
      muovere la pagina sotto il dito per portarlo dove è già. Sopra, il riquadro sta in
      cima al grafico e «nearest» lo avvicina del minimo indispensabile. */
-  var mob=(window.matchMedia&&window.matchMedia('(max-width:660px)').matches);
+  var mob=stretto();
   if(EVSEL&&!mob) $('k-evsel').scrollIntoView({behavior:'smooth',block:'nearest'});
   return;}
  if((t=e.target.closest('[data-sw]'))){

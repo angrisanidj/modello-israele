@@ -1,7 +1,7 @@
 const {JSDOM}=require('jsdom');const dom=new JSDOM('');global.DOMParser=dom.window.DOMParser;
 /* attributi veri e non finto silenzio: vedi il commento in aff.js e il punto 13 */
 const store={};function El(id){return{id,innerHTML:'',textContent:'',style:{},className:'',dataset:{},attr:{},setAttribute(k,v){this.attr[k]=v;},getAttribute(k){return k in this.attr?this.attr[k]:null;},removeAttribute(k){delete this.attr[k];},hidden:false,
- classList:{toggle(){},contains(){return false},add(){},remove(){}},addEventListener(){},querySelectorAll(){return[]},querySelector(){return null;},value:''};}
+ classList:{toggle(){},contains(){return false},add(){},remove(){}},addEventListener(){},querySelectorAll(){return[]},querySelector(){return null;},insertAdjacentHTML(){},closest(){return null;},value:''};}
 global.document={getElementById:id=>store[id]||(store[id]=El(id)),createElement:()=>({click(){},style:{}}),addEventListener(){},documentElement:{scrollTop:0}};
 global.window={addEventListener(){},requestAnimationFrame(){},pageYOffset:0,matchMedia:()=>({matches:false,addEventListener(){},addListener(){}})};
 global.getComputedStyle=()=>({getPropertyValue:()=>''});
