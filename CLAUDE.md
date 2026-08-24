@@ -29,7 +29,7 @@ alle prove.
 
 ```bash
 npm install          # solo la prima volta: installa jsdom per le prove
-npm test             # estrae il JS e lancia le 1987 prove
+npm test             # estrae il JS e lancia le 2090 prove
 npm run verifica     # prove + controlli strutturali
 npm run spazzola     # rilancia il banco con l'orologio al 23 ottobre: dice quali prove
                      #   danno per scontato un archivio fresco. Da rifare dopo ogni
@@ -1877,6 +1877,389 @@ ordini coincidano **misura l'ordinamento credendo di misurare i totali**.
 `tabella.js` da 88 a 183 asserzioni. **Ventuno mutazioni fra i tre punti, tutte morte**:
 sette sulla sigla, quattordici su totali, gruppo, filetto e piede.
 
+## La forma compatta dell'embed: una figura, e la soglia che non è scritta
+
+Applicata il 24 agosto 2026. Chi incorpora in un articolo vuole **una figura**, non undici
+sezioni. `?embed=sintesi` porta l'emiciclo, la riga di sintesi, le quattro probabilità in
+forma corta e la firma con le due date.
+
+| pezzo | 380 | 600 |
+|---|---|---|
+| emiciclo | 209 | 327,7 |
+| riga di sintesi | 18 | 18 |
+| probabilità corte | 17 | 17 |
+| firma e le due date | 36 | 18 |
+| **totale** | **419** | **502** |
+
+Contro i **18.270px** della pagina intera. Sopra i 600 non cresce più: l'emiciclo ha
+`max-width:600px`.
+
+### Due misure hanno cambiato il progetto rispetto alla proposta
+
+**Le probabilità corte esistevano già.** `#k-sprobs` è scritto da `rProbs()` dallo **stesso
+array `items`** nello stesso passaggio della forma piena: **17px**, contro i 150,8 stimati
+per una griglia a quattro colonne e i **665,1** della forma piena. Non serviva la leva che
+avevo proposto — serviva accorgersi che la strada c'era.
+
+**La prosa è l'unico pezzo che cresce quando la colonna si stringe**: il verdetto passa da
+306,8 a **485,7** andando da 600 a 380, mentre ogni altro pezzo si dimezza. In un riquadro
+stretto la prosa è il materiale sbagliato, ed è controintuitivo perché sembra il più
+leggero. Da lì la riga corta invece del verdetto.
+
+### La forma la sceglie il valore, non un secondo parametro
+
+`?embed=1` è la forma intera ed è **identica a prima** — chi l'ha già incollata in un
+articolo deve continuare a vedere quello che vedeva, e questo viene prima di tutto.
+`?embed=sintesi` è la compatta. Un secondo parametro permetterebbe di scrivere
+`?embed=0&sintesi=1`, che è uno stato che non vuol dire niente e che qualcuno prima o poi
+scriverà. E le forme sono **dichiarate in un elenco**: un valore che non c'è non è un embed,
+esattamente come prima.
+
+### La riduzione non ha una soglia scritta
+
+Scrivere «sotto i 320px si tolgono le probabilità» vorrebbe dire mettere in una costante un
+numero che dipende da quanto sono alti oggi l'emiciclo, la firma e le due date — lo stesso
+errore del punto 7 dell'esportazione, dove le targhe erano calcolate su un viewBox vecchio
+di due giorni. Si **misura**: si compone la forma A, si guarda se ci sta in
+`window.innerHeight` — che dentro un iframe *è* l'altezza del riquadro — e se non ci sta si
+tolgono le probabilità, che è il pezzo più sacrificabile.
+
+Verificato: a **380×460** resta A (419px), a **380×360** passa a C (**401px**). Se non ci sta
+nemmeno C non resta niente da togliere, e il riquadro scorre come fa oggi.
+
+Non lampeggia: misura e potatura stanno nello stesso compito sincrono, e il browser non
+dipinge in mezzo — è l'argomento di `FORZA_LARGO`.
+
+### Si pota, non si sposta — e dopo l'ULTIMO render
+
+**Nessun elemento cambia genitore**: si tiene la catena degli antenati dei pezzi dichiarati e
+si toglie il resto. Spostarli li farebbe atterrare sotto selettori discendenti che non
+conoscono, ed è la trappola di `#k-evsel`.
+
+E la potatura sta **dopo l'ultimo render**, non dentro `applicaEmbed()`: là il render non è
+ancora passato, e potando prima `rEmi()` non trova la legenda che gli serve — **il render
+muore a metà e l'emiciclo resta vuoto, senza un errore in console**. Successo alla prima
+stesura. I render sono due — uno sul seme `BASE` e uno sui dati veri — e potare dopo il primo
+congelerebbe la pagina sui numeri del seme.
+
+### La riga di sintesi è la frase dell'h1, e la coda si è separata
+
+`TIT_CODA` — « · Knesset 2026» — serve alla linguetta del browser e alla scheda di
+condivisione, dove il titolo va riconosciuto fuori dalla pagina. Dentro il riquadro sarebbe
+la **terza volta** che si legge «Knesset 2026» in trecento pixel, perché la firma lo dice
+già. Da qui `fraseCorta()` separata da `titoloCorto()`: **una frase, quattro consumatori** —
+`document.title`, `og:title`, la riga della sintesi e il verdetto delle card.
+
+### Che cosa ha imposto il banco
+
+- **la sintesi si monta per ultima** nelle prove: `potaSintesi()` cerca i pezzi con la
+  scorciatoia dell'app, che risolve `document` **al momento della chiamata** sul globale,
+  mentre la catena degli antenati parte dall'`R` della sua chiusura. Montandola per prima e
+  chiamando `finiSintesi()` dopo aver costruito altre due pagine, i pezzi si cercavano nel
+  documento dell'ultima: **otto asserzioni cadute su un difetto che non c'era**;
+- **`window.navigator` e non il `navigator` nudo**, che è la stessa lezione di
+  `window.location`: il globale nudo esiste anche fuori da un browser — Node ne ha uno suo —
+  e tre asserzioni leggevano `null` negli appunti;
+- **due asserzioni fragili corrette**: una cercava `<p class="firma">` alla lettera e si è
+  rotta quando il paragrafo ha preso un id; l'altra prendeva 200 caratteri dopo
+  `$('k-sprobs').innerHTML` e ci trovava dentro **l'istruzione successiva** — una finestra di
+  caratteri non è un confine sintattico.
+
+**«Aggiorna i sondaggi» è uscito dall'embed**, e la ragione che viene prima è di chi ospita:
+quel comando fa partire una richiesta a **Wikipedia** dalla pagina di qualcun altro, che non
+l'ha chiesta e non lo sa. E c'è l'altra metà: misurato, fa `salva()` e `render()`, e
+`memSet()` **cattura l'eccezione invece di lanciare** — quindi dove lo storage è bloccato il
+salvataggio fallisce in silenzio e la vista si aggiorna lo stesso. Il lettore vede numeri che
+svaniscono al primo ricaricamento, **tre righe sotto una fascia che dichiara «qui non si
+salva niente»**. Va via la **cella**, non il solo pulsante: la frase che lo spiega resterebbe
+a descrivere un comando che non c'è.
+
+**Il tema resta**, benché abbia la stessa forma — scrive in memoria e il salvataggio
+fallisce allo stesso modo. La differenza è **che cosa** fallisce: il tema si applica subito e
+a non sopravvivere è solo la memoria della scelta; l'aggiornamento prometteva di integrare
+l'archivio, e l'archivio tornava quello di prima. *Uno fallisce sulla comodità, l'altro sulla
+cosa che promette.*
+
+### La barra di scorrimento: diagnosticata, e non c'era niente da riparare
+
+| | `scrollHeight` | `clientHeight` | sfora |
+|---|---|---|---|
+| completa a 600×900 | **15.462** | 900 | +14.562 |
+| compatta a 600×520 | 520 | 520 | **0** |
+| compatta a 380×520 | 520 | 520 | **0** |
+
+Nella compatta **non c'è nessuna barra**, e la barra orizzontale non compare mai. Nella
+completa è il **caso 1** — la barra è onesta, e nasconderla renderebbe irraggiungibili
+quattordicimila pixel. La forma completa è per costruzione un contenuto che scorre: chi vuole
+un riquadro in un articolo usa la sintesi, che è esattamente perché esiste.
+
+E la barra in questo browser è **in sovrimpressione**: `innerWidth − clientWidth = 0`, non
+occupa spazio. Una comparsa al passaggio non servirebbe a niente su un telefono, dove il
+passaggio non esiste — e togliendola resterebbe senza segnale un caso in cui c'è davvero
+dell'altro sotto.
+
+---
+
+## L'immagine Open Graph: il carattere non entra nell'SVG, e la tavolozza veniva prima
+
+Applicata il 24 agosto 2026. La genera `.github/scripts/anteprima.mjs`, sta in
+`dati/anteprima.png`, e `twitter:card` è passata a `summary_large_image` **nello stesso
+commit in cui la prima immagine è stata pubblicata davvero**: dichiararla prima sarebbe stata
+una promessa che nessun file mantiene.
+
+### La domanda del carattere si è dissolta invece di trovare risposta
+
+Provato installando resvg, con un controllo che sa fallire:
+
+| prova | esito |
+|---|---|
+| `@font-face` con data URI dentro l'SVG | **A e B identici byte per byte** → resvg lo **ignora** |
+| woff / woff2 passati a `fontFiles` | identici a nessun font → ignorati |
+| **TTF** passato a `fontFiles` | **A ≠ B** → **usato davvero** |
+
+resvg non vuole il font *dentro* l'SVG: lo vuole come **file passato al rasterizzatore**.
+Quindi il carattere non entra mai nell'SVG, e nell'SVG non entrerebbe comunque nel file
+servito, che riceve solo pixel. **La regola del file unico non morde**: `index.html`
+guadagna quattro righe di meta.
+
+I pesi, per il giorno in cui servissero: Inter latin 600 intero 23,9 KB in woff2, il
+sottoinsieme dei 28 glifi dell'emiciclo **3,40 KB** (14,2%), 17,1 KB in TTF. Siccome vive nel
+repository e non nella pagina, **il sottoinsieme non serve**: si spedisce il TTF intero e c'è
+un pezzo mobile in meno. I due file stanno in `.github/font/`, sono Inter con licenza SIL
+OFL, e pesano 686 KB in tutto.
+
+**E i numeri grandi vanno nella sans, non in un serif sostitutivo.** In pagina sono
+`Georgia,serif`, ma Georgia è un font Microsoft e non si può spedire in un repository
+pubblico: **la scelta non era fra Georgia e un altro serif — era fra un sostituto e la
+coerenza**. Un serif «vicino a Georgia» somiglia senza esserlo, e la differenza si nota solo
+nei casi in cui stona.
+
+### Ma prima del rasterizzatore c'era la tavolozza, ed era una terza tavolozza
+
+`leggiTema()` legge le variabili CSS con `getComputedStyle` e cade su `C_FALL` quando non
+può — cioè in jsdom, cioè **nelle prove e nel lavoro notturno**. Misurato token per token:
+
+| token | in pagina, chiaro | nel ripiego |
+|---|---|---|
+| `--coal` | `#143EDB` | `#1D4E89` |
+| `--oppo` | `#78002D` | `#0E8388` |
+| `--arab` | `#007B4C` | `#3E7A4A` |
+
+**14 valori su 16 divergevano**, e `--oppo` era di un'altra **tinta**. L'`og:image` sarebbe
+uscita in colori che nessun lettore vede — l'opposizione verde acqua — e sarebbe stata la
+prima cosa che si incontra condividendo il link. È la strada doppia del colore di blocco
+ricomparsa dalla porta più difficile da guardare: quella di chi non ha un motore di stile.
+
+**Nessuna prova se ne accorgeva, e non perché fossero deboli: nessuna guardava la tavolozza
+in jsdom.** Il legame andava **aggiunto**, non riparato — ed è la risposta alla domanda
+«quante asserzioni cambiano valore»: **zero**. Adesso i valori sono quelli veri, sono **due
+tabelle** perché la pagina ha due temi, e `struttura.mjs` li confronta con le variabili del
+foglio. Quattro mutazioni, quattro morte.
+
+**E il fondo della targa è lo stesso tema dell'SVG**, non una scelta a parte: con la targa
+scura e la tavolozza chiara «MAGGIORANZA 61» usciva nero su nero. È la lezione del `fillRect`
+col fondo del tema — il fondo e i colori sono una decisione sola.
+
+**Il tema è chiaro, e scelto invece che ereditato.** Le anteprime compaiono dentro le
+interfacce dei social, che sono chiare o scure a seconda dell'app e dell'ora, quindi un tema
+giusto non esiste; il chiaro regge meglio su fondo bianco, che è il caso più frequente, e
+soprattutto **una scelta dichiarata vale più di un default di jsdom**.
+
+### Il resto, misurato
+
+| | |
+|---|---|
+| rasterizzatore | `@resvg/resvg-js`, **4,4 MB** installato, **34 ms** — l'unico dei tre che non porta in CI un motore di rendering intero per disegnare centoventi cerchi |
+| PNG | **1200×630, 74 KB** |
+| cornice | testata 96, piede 40, area 1120×494, scala 2,276, inchiostro reso **880×494** |
+| ogni notte | 64 PNG × 74 KB = **4,7 MB** nella storia di git, accettati: un'anteprima senza data invecchia in silenzio |
+
+**L'inchiostro è già centrato in orizzontale** — 21,6 unità vuote a sinistra e 21,7 a destra
+— e **non lo è in verticale**: 0,4 sopra e 14,6 sotto. La nota che stava nella coda diceva il
+contrario perché guardava un margine solo.
+
+**Il confronto dei byte prima di scrivere**: senza, il job committerebbe un'immagine anche
+quando gira a vuoto, e un commit che non cambia niente rende invisibile quello che cambia
+qualcosa. È la ragione per cui `scriviMeta()` è idempotente.
+
+**Le due guardie**, e la seconda è quella che conta: la prima coglie il buffer vuoto, la
+seconda **la tela uniforme** — un PNG grande e tutto di un colore, che è esattamente quello
+che produce un rasterizzatore che non trova i font o sbaglia il viewBox. Se una scatta non si
+scrive niente: **un og:image vecchio è meglio di un og:image vuoto**.
+
+**Le quattro meta stanno FUORI dalla regione del job**, e me ne sono accorto perché il
+controllo strutturale è diventato rosso: il job riscrive il **file**, non quelle righe, che
+sono costanti come `og:url`. L'eccezione resta la più stretta che si potesse dare — `og:title`
+e basta. Da sapere: gli aggregatori mettono in cache per indirizzo, e l'indirizzo non cambia
+mai; se un giorno pesa, il rimedio è un indirizzo con la data, che però riporterebbe quella
+riga dentro la regione del job.
+
+---
+
+## Le card e la condivisione: una targa sola, e il comando che non c'è
+
+Applicate il 24 agosto 2026. **Sono la stessa macchina del PNG**, e la mossa che le tiene
+insieme è una: **`targaPNG()` prende l'altezza come parametro invece che come risultato.**
+Nell'esportazione l'altezza si ricava dal disegno; in una card è imposta dal formato e il
+disegno si scala in quello che resta. Sono la stessa targa vista dai due versi, e tenerne due
+sarebbe la strada doppia che diverge al primo ritocco.
+
+### Quello che ha deciso la forma, misurato
+
+- **`navigator.share` e `canShare` sono `undefined` su desktop**, con `isSecureContext` vero.
+  Non è un'API che rifiuta i file: **è un'API che non esiste**, e il ramo senza comando è il
+  caso **normale**, non il limite;
+- **i link di intent non allegano niente**: `twitter.com/intent/tweet` prende `text` e `url`,
+  `facebook.com/sharer` prende `u`, `t.me/share` prende `url` e `text`. Nessun parametro per
+  un file. **Su desktop la condivisione dipende da `og:image`, non dalle card** — ed è la
+  ragione per cui l'anteprima veniva prima;
+- **Instagram non ha né l'una né l'altra**: si scarica la card e si carica a mano, ed è la
+  ragione per cui l'indirizzo dev'essere dentro l'immagine;
+- **in griglia su Instagram non si legge niente**: una miniatura è larga **161px**, cioè un
+  corpo da 30 rende **4,0px**. Quello che identifica il modello lì è la forma dell'emiciclo
+  coi tre colori, non una parola.
+
+### I quattro formati, e la regola sola
+
+| formato | tela | inchiostro reso | avanza |
+|---|---|---|---|
+| X | 1200×675 | 943×529 | 0 |
+| Facebook e Telegram | 1200×630 | 880×494 | 0 |
+| **Instagram quadrata** | 1080×1080 | 1000×561 | **286px** |
+| **Instagram verticale** | 1080×1350 | 1000×561 | **498px** |
+
+L'emiciclo è largo e piatto (386,7 × 217), quindi nei formati larghi la larghezza si
+esaurisce prima dell'altezza. La regola è una: **si riempie lo spazio che avanza con i pezzi
+che esistono già** — la riga di sintesi e i tre totali di blocco, cioè gli stessi due della
+forma compatta dell'embed. **Quinto consumatore di `fraseCorta()`, non un testo nuovo.** E
+serve proprio dove non c'è un link: Instagram non ne ammette.
+
+### Il comando non c'è dove l'API non c'è
+
+Un comando che apre un foglio di condivisione senza poter allegare l'immagine **prometterebbe
+una cosa che non fa**. Il ramo guarda la **capacità** — `canShare({files})` con un file vero
+— non il nome del browser: la stessa grammatica di `'download' in a` e di
+`navigator.clipboard`.
+
+`share()` restituisce una promessa, quindi l'esito è **conoscibile**, come per la copia e a
+differenza dello scarico. Ma con una distinzione che l'esportazione non aveva: **annullare non
+è un errore**. Se il lettore chiude il foglio la promessa viene rifiutata con `AbortError`, e
+allora non si dice niente — dichiarare un fallimento dove qualcuno ha cambiato idea è dire il
+falso sul suo gesto.
+
+**Il testo che accompagna non porta l'indirizzo**: `text` e `url` sono due parametri separati
+in tutti e tre gli intent, e ripeterlo lo farebbe comparire due volte nel messaggio
+pubblicato. I giorni al voto vengono da `ggCal()`, la stessa del conto alla rovescia — e
+l'inventario di `giorni.js` è passato da dodici a **tredici** chiamate, perché la cosa contata
+è cresciuta, non perché la regola sia cambiata.
+
+### Il mutante che ha trovato un caso, non un difetto
+
+Delle quattordici mutazioni ne moriva una sola in meno: togliere la guardia
+`!nav.share || !nav.canShare` non faceva cadere niente, perché il `try/catch` copre già l'API
+assente. **Guardando perché sopravviveva è saltato fuori il caso che la guardia esiste per
+cogliere e che nessuna prova esercitava**: un browser che dichiara `canShare` ma **non ha
+`share`**. Lì il `try/catch` non serve — `canShare` non lancia, risponde `true` — quindi il
+comando comparirebbe e premendolo chiamerebbe una funzione che non esiste. È una **capacità
+dichiarata per un'azione che manca**, e adesso è nell'elenco dei casi provati.
+
+### La targa, e i due testi che non si conoscevano
+
+Sulla riga del titolo ci sono **due testi** — titolo a sinistra, firma a destra — e nessuno
+dei due sapeva quanto occupasse l'altro. Misurato in unità di viewBox:
+
+| disegno | titolo + firma | spazio | esito |
+|---|---|---|---|
+| Blocco Netanyahu | 386,9 | 428 | ci sta per 41,1 |
+| Opposizione sionista | 404,8 | 428 | ci sta per 23,2 |
+| **Proiezione dei 120 seggi** | **430,9** | **398** | **sovrappone di 32,9** |
+| Il modello giorno per giorno | 459,8 | 868 | larghissimo |
+
+**Si rompeva uno solo, e gli altri due lo mancavano per 41 e 23 unità**: erano a un titolo più
+lungo dal romperlo. Quindi la regola è **della targa**, non dell'emiciclo: si misura con la
+sonda e, se i due non ci stanno, **la firma scende su una riga sua** — la targa cresce di 16
+unità. Non si accorcia né la firma né il titolo: sono le due cose per cui la targa esiste.
+Dove non si può misurare — jsdom, che non fa layout — `largoA()` restituisce 0 e non si
+cambia niente: **non si decide su una misura che non si ha**.
+
+### E una cosa che il banco ha imposto due volte
+
+Togliendo un blocco duplicato ho **tagliato la coda di `embed.js`** — il conteggio e l'uscita
+diversa da zero. La suite contava lo stesso, perché il banco legge lo stdout, ma chi
+l'avesse lanciata da sola avrebbe visto verde con asserzioni fallite. **È il difetto di
+`v5.js`, rifatto da me.** Rimessa e verificata: esce 1 quando qualcosa cade.
+
+### E due difetti che ha trovato l'occhio, non il banco
+
+**1 · La didascalia degli istogrammi finiva nell'emiciclo.** `targaPNG` usava `piede` per
+**due cose**: la bandiera «questo disegno ha una didascalia» e l'altezza della fascia bassa.
+Nel ramo della cornice l'altezza sovrascriveva la bandiera, e la targa dell'emiciclo — che è
+la **A**, senza didascalia — si metteva a scrivere quella degli istogrammi: «la fascia chiara
+è l'intervallo… il triangolo è la stima puntuale», sopra i seggi, a parlare di due cose che
+nell'emiciclo non esistono. **Due significati sulla stessa variabile è il difetto, non il
+valore**: adesso sono due.
+
+**2 · La testata era nel sistema di coordinate sbagliato.** Le posizioni erano assolute —
+`x="16"`, `y="19"`, `font-size="11"` — e funzionavano perché nell'esportazione **la tela
+coincide con la larghezza del disegno**. Sulla prima card la tela è diventata 1200 e le stesse
+costanti hanno prodotto tre righe da 11px accatastate nell'angolo, con la data a **x 414**
+invece che al bordo destro.
+
+Non era una strada doppia: era **una strada sola con l'unità di misura sbagliata**, ed è la
+terza volta che questo file incontra la stessa forma — l'house effect in ordine di blocco «per
+fortuna», l'ordine del pannello che coincide finché nessuna lista dell'ago della bilancia ha
+seggi, e adesso `CW` uguale a `W` finché non esiste una card.
+
+Adesso le quote stanno **in un posto solo** e si scalano: `1` nell'esportazione, `CW/PNG_RIF`
+in una card. Verificato nei due versi che il rimedio chiedeva:
+
+| | |
+|---|---|
+| i viewBox dell'esportazione | **identici**: 460×308, 460×308, 430×292, 900×410 |
+| la firma dell'emiciclo | **scende ancora**, perché lì il titolo sfora davvero di 32,9 unità |
+| la firma degli altri tre | resta al bordo destro, come prima |
+
+**E la resa ha trovato quello che i numeri non avevano trovato.** Con le quote giuste la firma
+si sovrapponeva ancora al titolo *nella card generata dal job*, perché il mio commento diceva
+«dove non si può misurare non si cambia niente» — vero nel browser, dove la sonda c'è, **falso
+nel lavoro notturno, che non ne ha**. Là `largoA()` restituisce 0, la somma è 0, e non
+decidere **era** una decisione: quella sbagliata.
+
+Adesso si stima per eccesso, con i rapporti **misurati** e arrotondati in su: **0,433 corpi per
+carattere** per la firma e **0,533** per il titolo in grassetto, usati come 0,48 e 0,56.
+Sovrastimare costa una riga, sottostimare fa sovrapporre — lo stesso argomento di `ETIW`
+nell'etichetta dei 61. E non si sovrastima *troppo*: con 0,55 e 0,60 gli istogrammi mandavano
+la firma sotto mentre nel browser resta in riga, cioè **la stima diceva una cosa diversa dalla
+misura sullo stesso disegno**.
+
+### L'indice leggeva i comandi montati negli h2
+
+«**4La prossima Knesset Scarica PNG**» e «Scarica PNG**Condividi**» — due `textContent`
+adiacenti concatenati senza spazio. La causa: `costruisciIndice()` prendeva l'intero
+`textContent` dell'h2 e **sottraeva la stringa dell'`<em>`**, cioè un'esclusione per nome che
+esisteva già. Togliere anche «Scarica PNG» sarebbe stata la stessa riparazione, e il comando
+successivo sarebbe ricomparso.
+
+**Non era cosmetico**: quella stringa è anche il nome accessibile del collegamento, quindi un
+lettore di schermo diceva «La prossima Knesset Scarica PNG Condividi, collegamento».
+
+La regola è strutturale: **il titolo è il testo che l'h2 contiene direttamente**, e tutto
+quello che là dentro è un *elemento* non ne fa parte. Cercata la forma, gli altri testi
+derivati sono a posto: gli `aria-label` dei pulsanti e la targa del PNG prendono sezione e
+titolo da `PNG_DISEGNI`, che è una costante dichiarata, non dall'h2.
+
+**E la prova copre il caso generale**: monta un comando che oggi non esiste dentro un h2 e
+pretende che non compaia in nessuna voce.
+
+### Sette mutazioni su dieci sopravvissute al primo giro
+
+Dicevano una cosa sola: **le prove esercitavano la targa dell'esportazione, dove la tela
+coincide col disegno**, quindi tutto ciò che distingue i due sistemi di coordinate era
+invisibile — e dell'indice non c'era nessuna prova. Colmati i due buchi, `png.js` è passata da
+155 a 161 asserzioni.
+
+---
+
 ## La consegna del PNG: tre difetti, e nessuno era la rasterizzazione
 
 Trovati il 24 agosto 2026 perché l'autore ha detto «a 380 lo scarico PNG non funziona».
@@ -3682,7 +4065,7 @@ Due conseguenze pratiche, e sono quelle da ricordare:
 ### Lo stato al 24 agosto 2026
 
 Scritto per ripartire senza la conversazione. Ultimo commit spinto: **`02e4247`**, CI e
-Pages verdi. Sul banco di oggi le prove sono **1987**, e le suite nuove degli ultimi due
+Pages verdi. Sul banco di oggi le prove sono **2090**, e le suite nuove degli ultimi due
 giorni sono cinque: `meta.js`, `tabella.js`, `embed.js`, `png.js` e `griglie.js`.
 
 **Non ancora committati**: l'esportazione PNG dei quattro disegni e il calendario in flex.
@@ -4018,9 +4401,12 @@ da fare.
    **Lo standard è 1200×630**, rapporto 1,9048; l'emiciclo ha viewBox `0 0 430 232`, cioè
    1,8534 — quasi identico, ma a piena altezza entra in **1168×630** e non resta niente per
    la targa. Con la targa, misurato: disegno largo **1000 → alto 540, restano 90**; **900 →
-   486, restano 144**; **860 → 464, restano 166**. L'inchiostro vero è 386,7×217 con 21,6
-   unità di margine vuoto a sinistra, quindi c'è una ricentratura da fare prima di
-   incorniciare.
+   486, restano 144**; **860 → 464, restano 166**. L'inchiostro vero è 386,7×217 dentro un viewBox da 430×232,
+   con **21,6 unità vuote a sinistra e 21,7 a destra**: rimisurato il 24 agosto 2026, **è
+   già centrato in orizzontale**, e la riga che stava qui diceva il contrario perché
+   guardava un margine solo. In VERTICALE non lo è — 0,4 sopra e 14,6 sotto — ed è lì che
+   serve la ricentratura. Misurato con la cornice: testata 96, piede 40, area del disegno
+   1120×494, scala 2,276, inchiostro reso 880×494.
    **La decisione già presa: non la bandiera israeliana.** È l'immagine del paese, non del
    modello, e in un'anteprima si legge come una presa di posizione. L'emiciclo dice
    «proiezione parlamentare» e porta il numero che conta — dentro il suo viewBox ci sono già

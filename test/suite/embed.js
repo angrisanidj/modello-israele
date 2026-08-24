@@ -75,6 +75,8 @@ function pagina(opz){
     'applicaEmbed:applicaEmbed,rMemoria:rMemoria,rFirma:rFirma,' +
     'contesto:contesto,votoPassato:votoPassato,' +
     'copiaTesto:copiaTesto,montaCopia:montaCopia,rispostaCopia:rispostaCopia,' +
+    'SINTESI:SINTESI,FORME_EMBED:FORME_EMBED,SINT_TIENI:SINT_TIENI,TIT_CODA:TIT_CODA,' +
+    'finiSintesi:finiSintesi,potaSintesi:potaSintesi,titoloCortoOra:titoloCortoOra,' +
     'selezionaBlocco:selezionaBlocco};carica().then(render,render)');
   eval(src);
   const A = global.A;
@@ -202,7 +204,13 @@ function pagina(opz){
     'e nella pagina intera no, che sarebbe un collegamento a sé stessa');
   /* la copia nel markup dice la stessa cosa: è quella che legge chi ha il JavaScript
      spento, e una firma solo renderizzata sparirebbe proprio per il lettore che ha meno */
-  const nelMarkup = (HTML.match(/<p class="firma">([\s\S]*?)<\/p>/) || ['',''])[1]
+  /* il taglio cerca la CLASSE, non l'attributo esatto: la prima stesura chiedeva
+     `<p class="firma">` alla lettera, e il giorno in cui il paragrafo ha preso anche un id
+     — perché la forma compatta dell'embed deve poterlo nominare — la firma nel markup è
+     diventata la stringa vuota e due asserzioni sono cadute su un difetto che non c'era.
+     Un'espressione che descrive il markup carattere per carattere prova la formattazione,
+     non la proprietà. */
+  const nelMarkup = (HTML.match(/<p [^>]*class="firma"[^>]*>([\s\S]*?)<\/p>/) || ['',''])[1]
     .replace(/<[^>]+>/g, '').replace(/\s+/g, ' ').trim();
   esito(nelMarkup.length > 25,
     'il markup ne porta una copia per chi non esegue il JavaScript', nelMarkup);
@@ -557,5 +565,189 @@ function pagina(opz){
     mod2.slice(0, 120));
 }
 
-console.log('\n' + ok + '/' + (ok + ko));
+
+/* ══ LA FORMA COMPATTA: ?embed=sintesi ════════════════════════════════════
+ * Chi incorpora in un articolo vuole una figura, non undici sezioni. Misurato il 24 agosto
+ * 2026 sulla pagina vera: la forma compatta costa 419px a 380 — emiciclo 209, riga di
+ * sintesi 18, probabilità corte 17, firma 36 — contro i 18.270 della pagina intera.
+ *
+ * LA FORMA LA SCEGLIE IL VALORE del parametro, non un secondo parametro: `?embed=1&
+ * sintesi=1` permetterebbe di scrivere `?embed=0&sintesi=1`, che è uno stato che non vuol
+ * dire niente e che qualcuno prima o poi scriverà. E `?embed=1` resta identico a prima.
+ */
+{
+  /* le forme dichiarate, e nessun'altra */
+  const {A: Ai} = pagina({});
+  esito(Array.isArray(Ai.FORME_EMBED) && Ai.FORME_EMBED.join(',') === '1,sintesi',
+    'le forme dell\'embed sono dichiarate in un elenco, non dedotte da un valore qualunque',
+    String(Ai.FORME_EMBED));
+
+  const piena = pagina({search: '?embed=1'});
+  const ignota = pagina({search: '?embed=2'});
+  /* LA SINTESI SI MONTA PER ULTIMA, e non è un dettaglio d'ordine: potaSintesi() cerca i
+     pezzi da tenere con la scorciatoia dell'app, che risolve «document» AL MOMENTO DELLA
+     CHIAMATA sul globale, mentre la catena degli
+     antenati parte dall'R della sua chiusura. Montandola per prima e chiamando finiSintesi()
+     dopo aver costruito altre due pagine, i pezzi da tenere si cercavano nel documento
+     dell'ULTIMA pagina, non si trovavano, e la potatura svuotava tutto: otto asserzioni
+     cadute su un difetto che non c'era. È la stessa trappola già registrata per contesto()
+     e per votoPassato() — un valore letto dopo che il mondo si è mosso. */
+  const sint = pagina({search: '?embed=sintesi'});
+  try { sint.A.finiSintesi(); } catch(e){ console.log('KO finiSintesi è morta — ' + e.message); }
+  esito(piena.A.EMBED === true && piena.A.SINTESI === false,
+    '?embed=1 è un embed e NON è la sintesi: chi l\'ha già incollata vede quello che vedeva');
+  esito(sint.A.EMBED === true && sint.A.SINTESI === true,
+    '?embed=sintesi è un embed nella forma compatta');
+  esito(ignota.A.EMBED === false,
+    'e un valore che non è nell\'elenco non è un embed, esattamente come prima di oggi');
+
+  /* ══ CHE COSA RESTA, E CHE COSA VA VIA ══
+     La prova guarda tutti e due i versi, come per la forma intera: una metà sola passerebbe
+     anche con una sintesi che toglie tutto o che non toglie niente. */
+  const Ds = sint.D;
+  const c = id => !!Ds.getElementById(id);
+  ['k-sintriga', 'k-emi', 'k-sprobs', 'k-firma', 'k-upd', 'k-fresh'].forEach(id =>
+    esito(c(id), '  · nella sintesi resta «' + id + '»'));
+  ['k-trend', 'k-hist', 'k-tab', 'k-house', 'k-probs', 'k-calend', 'k-crono', 'k-coal']
+    .forEach(id => esito(!c(id), '  · e va via «' + id + '»'));
+  /* e nella forma INTERA quegli stessi pezzi ci sono: senza questo verso la prova passerebbe
+     anche con una pagina che non ha mai avuto quei blocchi */
+  ['k-trend', 'k-hist', 'k-tab', 'k-probs'].forEach(id =>
+    esito(!!piena.D.getElementById(id), '  · e nella forma intera «' + id + '» c\'è'));
+
+  /* NIENTE COMANDI: le leve cambiano numeri che il lettore di un articolo altrui non ha il
+     contesto per interpretare, e un controfattuale senza la sua spiegazione è peggio di
+     nessun controfattuale. */
+  esito(Ds.querySelectorAll('#kn26 button').length === 0,
+    'nella sintesi non resta nessun comando', String(Ds.querySelectorAll('#kn26 button').length));
+  /* ma la via d'uscita verso la pagina intera resta, ed è nella firma */
+  esito(Ds.querySelectorAll('.firma a').length > 0,
+    'e la via d\'uscita verso la pagina intera resta nella firma');
+
+  /* LA FASCIA DEL DOPO-VOTO NON PUÒ FINIRE FRA I POTATI: è la sola condizione in cui
+     l'embed direbbe qualcosa di falso senza che nessun difetto sia stato introdotto. Non
+     basta che oggi resti — l'elenco è una costante, e una costante si allunga. */
+  esito(Ai.SINT_TIENI.indexOf('k-postvoto') >= 0,
+    'k-postvoto è fra i pezzi che la sintesi tiene, e non può finirci per svista',
+    Ai.SINT_TIENI.join(', '));
+  esito(Ai.SINT_TIENI.indexOf('k-mem') >= 0,
+    'e la fascia della memoria pure: dentro un iframe di terza parte è la condizione normale');
+
+  /* LA RIGA DI SINTESI È LA FRASE DELL'h1, NON UNA FRASE NUOVA — quarto consumatore della
+     stessa strada. E non porta la coda « · Knesset 2026», che serve alla linguetta del
+     browser e alla scheda di condivisione: dentro il riquadro sarebbe la terza volta che si
+     legge «Knesset 2026» in trecento pixel, perché la firma lo dice già. */
+  const riga = (Ds.getElementById('k-sintriga') || {}).textContent || '';
+  esito(riga.length > 10, 'la riga di sintesi è scritta', riga);
+  esito(riga.indexOf(Ai.TIT_CODA) < 0,
+    'e non porta la coda del titolo: quella serve fuori dalla pagina, non dentro il riquadro',
+    riga);
+  esito(sint.A.titoloCortoOra().indexOf(riga) === 0,
+    'ma è la STESSA frase del titolo: cambia solo la coda',
+    riga + ' ⊂ ' + sint.A.titoloCortoOra());
+  /* e la si scrive anche nella pagina intera, dove il foglio la tiene invisibile: così il
+     giorno in cui compare non è il giorno in cui viene scritta per la prima volta */
+  esito(((piena.D.getElementById('k-sintriga') || {}).textContent || '').length > 10,
+    'e si scrive sempre, anche dove non si vede: come la fascia del dopo-voto');
+
+  /* LE PROBABILITÀ CORTE VENGONO DA rProbs(), non da una funzione nuova: #k-sprobs è
+     scritto dallo stesso array `items` nello stesso passaggio della forma piena. Il legame
+     si prova nel sorgente, perché è lì che una seconda strada nascerebbe. */
+  /* l'asserzione è legata all'ISTRUZIONE, non a una finestra di caratteri intorno: la prima
+     stesura prendeva i 200 caratteri dopo `$('k-sprobs').innerHTML` e cercava `items.map`
+     lì dentro — ma dentro quei 200 caratteri ci finiva l'istruzione SUCCESSIVA, che è
+     `$('k-probs').innerHTML=items.map(...)`. Il mutante che dava alle probabilità corte un
+     array tutto suo restava vivo perché la prova leggeva la riga della forma piena e la
+     trovava sana. Una finestra di caratteri non è un confine sintattico. */
+  esito(/\$\('k-sprobs'\)\.innerHTML=items\.map/.test(HTML),
+    'le probabilità corte escono dallo stesso array della forma piena',
+    (HTML.match(/\$\('k-sprobs'\)\.innerHTML=[^;]{0,40}/) || [''])[0]);
+  esito((HTML.match(/\$\('k-sprobs'\)\.innerHTML/g) || []).length === 1,
+    'e sono scritte in un posto solo');
+
+  /* LA POTATURA NON SPOSTA NIENTE: spostare un elemento gli fa ereditare i selettori
+     discendenti del posto nuovo — è la trappola di #k-evsel. Si tiene la catena degli
+     antenati e si toglie il resto. */
+  const fonteT = HTML.match(/function potaSintesi\(\)\{[\s\S]*?\n\}/)[0];
+  esito(!/appendChild|insertBefore|insertAdjacent/.test(fonteT),
+    'la potatura toglie e basta: non sposta nessun elemento sotto selettori che non conosce',
+    fonteT.slice(0, 120));
+
+  /* LA RIDUZIONE NON HA UNA SOGLIA SCRITTA: si misura contro l'altezza che l'ospite ha dato
+     al riquadro. Un numero scritto qui invecchierebbe come il 210 del punto 7 del PNG. */
+  const fonteR = HTML.match(/function riduciSintesi\(\)\{[\s\S]*?\n\}/)[0];
+  esito(/window\.innerHeight/.test(fonteR),
+    'la riduzione guarda l\'altezza vera del riquadro, non una soglia scritta', fonteR.slice(0, 130));
+  esito(!/\b(3[0-9][0-9]|4[0-9][0-9])\b/.test(fonteR),
+    'e nel suo corpo non compare nessun numero di pixel', fonteR);
+  /* e l'avviso dell'altezza va DOPO la riduzione, o dichiarerebbe l'altezza di prima */
+  const fonteF = HTML.match(/function finiSintesi\(\)\{[\s\S]*?\n\}/)[0];
+  esito(fonteF.indexOf('riduciSintesi') < fonteF.indexOf('avvisaAltezza'),
+    'e si dice all\'ospite quanto siamo alti solo dopo aver ridotto', fonteF);
+  esito(fonteF.indexOf('potaSintesi') < fonteF.indexOf('riduciSintesi'),
+    'e si misura dopo aver potato, non prima');
+}
+
+
+/* ══ NESSUN COMANDO DELL'EMBED CHIAMA UN TERZO ═══════════════════════════
+ * «Aggiorna i sondaggi» è uscito dall'embed il 24 agosto 2026, e la ragione che viene
+ * prima è di chi OSPITA: quel comando fa partire una richiesta a Wikipedia dalla pagina di
+ * qualcun altro, che non l'ha chiesta e non lo sa.
+ * E c'è l'altra metà, che è di chi legge: misurato, il comando fa salva() e render(), e
+ * memSet() cattura l'eccezione invece di lanciare — quindi dove lo storage è bloccato, che
+ * dentro un iframe di terza parte è la condizione normale, il salvataggio fallisce in
+ * silenzio e la vista si aggiorna lo stesso. Il lettore vede numeri che svaniscono al primo
+ * ricaricamento, TRE RIGHE SOTTO una fascia che dichiara «qui non si salva niente».
+ *
+ * QUESTA PROVA GUARDA LA FORMA, non l'istanza: nell'embed non deve restare NESSUN comando
+ * che chiami un'origine terza. Se domani ne nasce un altro, cade qui invece di finire in
+ * produzione dentro l'articolo di qualcuno.
+ */
+{
+  const piena = pagina({});
+  const emb = pagina({search: '?embed=1'});
+
+  /* il comando non c'è, e la sua CELLA nemmeno: togliendo il solo pulsante resterebbe la
+     frase che lo spiega, cioè la didascalia di un comando che non c'è */
+  esito(!emb.D.getElementById('k-refresh'), 'nell\'embed non c\'è il comando di aggiornamento');
+  esito(!emb.D.getElementById('k-aggcell'), 'e nemmeno la sua cella, con la frase che lo spiega');
+  esito(!!piena.D.getElementById('k-refresh') && !!piena.D.getElementById('k-aggcell'),
+    'e nella pagina intera ci sono tutti e due');
+  /* passa dalla costante unica, come k-postvoto: quell'elenco si allunga, e ogni voce nuova
+     deve passare di lì invece di essere tolta a mano da qualche altra parte */
+  esito(emb.A.VIA_NELL_EMBED.indexOf('k-aggcell') >= 0,
+    'e ci passa dalla costante, non da una riga sparsa', emb.A.VIA_NELL_EMBED.join(', '));
+
+  /* ══ LA FORMA ══
+     L'unico URL assoluto che il JavaScript chiama è Wikipedia — lo prova struttura.mjs — e
+     l'unico comando che lo chiama era questo. Qui si verifica che nell'embed non resti
+     nessun elemento il cui gestore porti a WIKI_URL: si cerca nel sorgente quali id
+     compaiono nello stesso gestore della chiamata, e si pretende che nessuno di quelli sia
+     ancora in pagina. */
+  const gestore = HTML.match(/fetch\(WIKI_URL[\s\S]{0,2400}/);
+  esito(!!gestore, 'il gestore che chiama Wikipedia si trova nel sorgente');
+  if (gestore) {
+    const idNelGestore = [...gestore[0].matchAll(/\$\('([\w-]+)'\)/g)].map(m => m[1]);
+    const rimasti = idNelGestore.filter(id => !!emb.D.getElementById(id));
+    /* i soli id ammessi sono quelli che NON sono comandi: la riga dei messaggi, che è un
+       riquadro di testo, non fa partire niente */
+    const AMMESSI = ['k-msg'];
+    const cattivi = rimasti.filter(id => AMMESSI.indexOf(id) < 0 &&
+      emb.D.getElementById(id).tagName === 'BUTTON');
+    esito(cattivi.length === 0,
+      'e nell\'embed non resta nessun comando che porti a quella chiamata',
+      cattivi.join(', ') || '(nessuno)');
+  }
+
+  /* IL TEMA RESTA, benché abbia la stessa forma — scrive in memoria e il salvataggio
+     fallisce nello stesso modo. La differenza è CHE COSA fallisce: il tema si applica
+     subito e a non sopravvivere è solo la memoria della scelta; l'aggiornamento prometteva
+     di integrare l'archivio, e l'archivio tornava quello di prima.
+     Uno fallisce sulla comodità, l'altro sulla cosa che promette. */
+  esito(emb.D.querySelectorAll('#kn26 [data-tema]').length === 3,
+    'il selettore del tema invece resta: fallisce sulla comodità, non su quello che promette',
+    String(emb.D.querySelectorAll('#kn26 [data-tema]').length));
+}
+
+console.log(String.fromCharCode(10) + ok + '/' + (ok + ko));
 if (ko) process.exit(1);

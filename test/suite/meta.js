@@ -66,12 +66,34 @@ const HTML = fs.readFileSync(path.join(RADICE, 'index.html'), 'utf8');
   esito(!!canon && canon.getAttribute('href') === meta('og:url') &&
         /^https:\/\//.test(meta('og:url') || ''),
     'canonical e og:url sono lo stesso indirizzo https');
-  /* NIENTE og:image, E VA DETTO: finché l'immagine non la genera il lavoro notturno,
-     dichiararla sarebbe una promessa che nessun file mantiene. Quando arriverà, questa
-     asserzione si gira e twitter:card diventa summary_large_image nello stesso commit. */
-  esito(!meta('og:image'),
-    'og:image NON c\'e\' ancora, e twitter:card e\' coerente con la sua assenza',
-    'og:image=' + meta('og:image'));
+  /* L'ASSERZIONE SI È GIRATA, come diceva il commento che stava qui: fino al 24 agosto 2026
+     pretendeva che og:image NON ci fosse, perché dichiarare un'immagine che nessun file
+     produce è una promessa che nessuno mantiene. Adesso l'immagine c'è, la genera
+     .github/scripts/anteprima.mjs, e twitter:card è passata a summary_large_image NELLO
+     STESSO COMMIT. Non è un'attesa riparata: è un'attesa diventata obsoleta di proposito.
+     Quello che si prova adesso è la stessa proprietà dal verso opposto — i due valori
+     restano coerenti fra loro, e il file dichiarato esiste davvero. */
+  esito(!!meta('og:image'), 'og:image c\'è', 'og:image=' + meta('og:image'));
+  esito(meta('twitter:card') === 'summary_large_image',
+    'e twitter:card è coerente con la sua presenza', meta('twitter:card'));
+  esito(meta('og:image:width') === '1200' && meta('og:image:height') === '630',
+    'e ne dichiara le misure, che è quello che gli aggregatori leggono per riservare il posto',
+    meta('og:image:width') + '×' + meta('og:image:height'));
+  esito(!!meta('og:image:alt') && meta('og:image:alt').length > 30,
+    'e ha un testo alternativo: l\'anteprima la incontra anche chi non la vede',
+    meta('og:image:alt'));
+  /* IL FILE DICHIARATO ESISTE. Una meta che punta a un'immagine che non c'è è peggio di
+     nessuna meta: l'aggregatore riserva il posto e mostra un riquadro rotto. */
+  {
+    const percorso = require('path').join(__dirname, '..', '..', 'dati', 'anteprima.png');
+    esito(require('fs').existsSync(percorso),
+      'e il file che dichiara esiste davvero nel repository', percorso);
+    /* e l'indirizzo dichiarato è quello del file, non un altro: si compone dal canonical */
+    const can = meta('og:url') || '';
+    esito(meta('og:image').indexOf(can) === 0 && /dati\/anteprima\.png$/.test(meta('og:image')),
+      'e l\'indirizzo si compone sul canonical, invece di essere un secondo indirizzo',
+      meta('og:image'));
+  }
 
   /* IL DIFETTO CHE LA DESCRIPTION CHIUDE, misurato invece che dedotto: che cosa
      prenderebbe un aggregatore se dovesse ripiegare sul corpo. Le due forme di ripiego. */

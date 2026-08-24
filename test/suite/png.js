@@ -66,6 +66,11 @@ src = src.replace('carica().then(render,render)',
   'fasceIst:fasceIst,stretto:stretto,forza:function(v){FORZA_LARGO=v;},' +
   'svgEsportabile:svgEsportabile,largo:function(){return FORZA_LARGO;},' +
   'consegnaPNG:consegnaPNG,rispostaPNG:rispostaPNG,datiInBlob:datiInBlob,' +
+  'largoA:largoA,tagliaA:tagliaA,' +
+  'costruisciIndice:costruisciIndice,' +
+  'CARD:CARD,svgCard:svgCard,testoCondivisione:testoCondivisione,' +
+  'fraseCorta:fraseCorta,formaTitolo:formaTitolo,blocchi:blocchi,SEG:function(){return SEG;},' +
+  'votoPassato:votoPassato,puoiCondividere:puoiCondividere,' +
   'EMBED:EMBED,FIRMA_N:FIRMA_N,CANONICO:CANONICO,render:render};carica().then(render,render)');
 eval(src);
 try{ A.render(); }catch(e){ console.log('KO il render non è partito — ' + (e && e.message)); }
@@ -217,9 +222,20 @@ try{ A.render(); }catch(e){ console.log('KO il render non è partito — ' + (e 
   const root = d.documentElement;
   esito(root.tagName === 'svg', 'la targa è un SVG');
   esito(root.getAttribute('xmlns') === 'http://www.w3.org/2000/svg', 'con xmlns');
-  esito(root.getAttribute('viewBox') === '0 0 430 ' + (A.PNG_TESTA + 232),
-    'e l\'altezza è testata più disegno: l\'emiciclo non ha piede',
-    root.getAttribute('viewBox'));
+  /* L'ALTEZZA SI DERIVA DALLA TESTATA RESA, non dalla costante. Prima l'attesa era
+     PNG_TESTA + 232, e valeva finché la testata era alta sempre uguale; da quando la firma
+     scende su una riga sua quando non ci sta, la testata cresce di una riga — e in jsdom la
+     stima per eccesso la fa scendere, come la fa scendere il browser. Legare le due cose
+     RESE invece di ripetere una costante è la mossa del colspan dell'intestazione di
+     gruppo: il numero lo dichiara il markup, la prova lo legge. */
+  const dentroSvg = root.querySelector('svg');
+  const testaResa = dentroSvg ? +dentroSvg.getAttribute('y') : -1;
+  esito(root.getAttribute('viewBox') === '0 0 430 ' + (testaResa + 232),
+    'e l\'altezza è la testata resa più il disegno: l\'emiciclo non ha piede',
+    root.getAttribute('viewBox') + ' con testata ' + testaResa);
+  esito(testaResa >= A.PNG_TESTA,
+    'e la testata non è mai più bassa di quella dichiarata',
+    testaResa + ' contro ' + A.PNG_TESTA);
   const testi = [].slice.call(root.children).filter(x => x.tagName === 'text').map(x => x.textContent);
   esito(testi.some(t => t.indexOf(dis.tit) >= 0), 'la targa nomina il disegno', testi.join(' | '));
   esito(testi.some(t => t.toUpperCase().indexOf(dis.sez.toUpperCase()) >= 0),
@@ -236,13 +252,14 @@ try{ A.render(); }catch(e){ console.log('KO il render non è partito — ' + (e 
      sapere niente di lui — che è la sola forma in cui una cornice diversa non obbliga a
      rifare il disegno */
   const dentro = root.querySelector('svg');
-  esito(!!dentro && dentro.getAttribute('y') === String(A.PNG_TESTA),
-    'il disegno entra come SVG annidato, spostato in giù della testata',
+  esito(!!dentro && +dentro.getAttribute('y') === testaResa,
+    'il disegno entra come SVG annidato, spostato in giù di tutta la testata',
     dentro ? dentro.getAttribute('y') : '(nessuno)');
   /* il piede c'è dove è dichiarato e non dove non lo è */
   const conPiede = A.targaPNG(A.PNG_DISEGNI['k-hist'], '<g/>', 460, 234, null);
   const d2 = new W.DOMParser().parseFromString(conPiede, 'image/svg+xml');
-  esito(d2.documentElement.getAttribute('viewBox') === '0 0 460 ' + (A.PNG_TESTA + 234 + A.PNG_PIEDE),
+  const dentro2 = d2.documentElement.querySelector('svg');
+  esito(d2.documentElement.getAttribute('viewBox') === '0 0 460 ' + (+dentro2.getAttribute('y') + 234 + A.PNG_PIEDE),
     'l\'istogramma invece ha anche il piede, e l\'altezza lo dice',
     d2.documentElement.getAttribute('viewBox'));
 }
@@ -560,6 +577,383 @@ try{ A.render(); }catch(e){ console.log('KO il render non è partito — ' + (e 
   esito(!/\.idx/.test(r),
     'e la regola non raggiunge la fascia dell\'indice, che è accoppiata a scroll-margin-top');
 }
+
+
+/* ══ 11 · DUE TESTI SU UNA RIGA CHE NON SI CONOSCONO ══════════════════════
+ * Il titolo della targa sta a sinistra e la firma a destra, e nessuno dei due sapeva quanto
+ * occupasse l'altro. Misurato il 24 agosto 2026 con la sonda, in unità di viewBox:
+ *
+ *   disegno                        titolo + firma   spazio   esito
+ *   Blocco Netanyahu               127,9 + 259      428      ci sta per 41,1
+ *   Opposizione sionista           145,8 + 259      428      ci sta per 23,2
+ *   Proiezione dei 120 seggi       171,9 + 259      398      SOVRAPPONE di 32,9
+ *   Il modello giorno per giorno   200,8 + 259      868      larghissimo
+ *
+ * SI ROMPEVA UNO SOLO, e gli altri due lo mancavano per 41 e 23 unità: erano a un titolo
+ * più lungo dal romperlo. Quindi la regola è DELLA TARGA e non dell'emiciclo, e questa
+ * prova lo dice nel modo che conta — allungando un titolo e pretendendo che la firma
+ * scenda invece di sovrapporsi. È la stessa famiglia della riga dell'evento tagliata a 150
+ * caratteri: un numero di caratteri non è una larghezza.
+ */
+{
+  /* la sonda vera non c'è in jsdom, che non fa layout: largoA() restituisce 0 e la firma
+     resta in riga. Qui si monta una sonda FINTA che misura come un browser — 0,5 volte il
+     corpo per carattere, il peso conta per il 7% — così il ramo si può esercitare davvero.
+     È la stessa scelta dello storage guasto di embed.js: si riproduce la CAUSA, non si
+     stubba il risultato. */
+  const misura = (t, fs, peso) => t.length * fs * 0.5 * (peso === 700 ? 1.07 : 1);
+  const finta = {
+    ownerDocument: {
+      createElementNS: () => {
+        const e = {attr: {}, textContent: '',
+          setAttribute(k, v){ this.attr[k] = v; },
+          getBBox(){ return {width: misura(this.textContent, +this.attr['font-size'] || 10,
+                                           +this.attr['font-weight'] || 0)}; },
+          get parentNode(){ return null; }};
+        return e;
+      }
+    },
+    appendChild(){}, removeChild(){}
+  };
+  const dis = A.PNG_DISEGNI['k-emi'];
+  const corto = Object.assign({}, dis, {tit: 'Seggi'});
+  const lungo = Object.assign({}, dis, {tit: 'Proiezione dei 120 seggi della 26ª Knesset con i tre blocchi'});
+
+  /* LE POSIZIONI NON SI CERCANO COME NUMERI, e questa correzione l'ha imposta il rimedio
+     stesso: le quote della targa adesso si derivano dalla tela, quindi un'asserzione che
+     cerca x="16" y="51" prova la FORMATTAZIONE e non la proprietà — ed è caduta al primo
+     ritocco pur essendo il codice giusto.
+     Quello che si vuole è la forma: la firma o sta a destra sulla riga del titolo
+     (text-anchor="end"), o sta a sinistra su una riga PIÙ IN BASSO di quella del titolo. */
+  const firmaDi = t => {
+    const m = [...t.matchAll(/<text x="([\d.]+)" y="([\d.]+)"([^>]*)>([^<]*)</g)]
+      .find(x => x[4].indexOf(A.FIRMA_N) === 0);
+    const tit = [...t.matchAll(/<text x="([\d.]+)" y="([\d.]+)"[^>]*font-weight="700"[^>]*>([^<]*)</g)]
+      .filter(x => !/[A-Z]{4}/.test(x[3])).pop();
+    if (!m) return null;
+    return {y: +m[2], destra: /text-anchor="end"/.test(m[3]), yTit: tit ? +tit[2] : null};
+  };
+  const inRiga = t => { const f = firmaDi(t); return !!f && f.destra; };
+  const sottoRiga = t => { const f = firmaDi(t);
+    return !!f && !f.destra && f.yTit !== null && f.y > f.yTit; };
+
+  const sC = A.targaPNG(corto, '<g/>', 430, 232, finta);
+  const sL = A.targaPNG(lungo, '<g/>', 430, 232, finta);
+  esito(inRiga(sC) && !sottoRiga(sC),
+    'con un titolo corto la firma resta sulla riga del titolo', sC.slice(0, 60));
+  esito(sottoRiga(sL) && !inRiga(sL),
+    'e con un titolo che non lascia spazio SCENDE su una riga sua, invece di sovrapporsi');
+  /* e la targa cresce di quello che serve, invece di far crescere il disegno */
+  const hC = +(/viewBox="0 0 [\d.]+ ([\d.]+)"/.exec(sC) || [])[1];
+  const hL = +(/viewBox="0 0 [\d.]+ ([\d.]+)"/.exec(sL) || [])[1];
+  esito(hL - hC === 16, 'e la targa cresce di 16 unità, quante ne serve la riga in più',
+    hC + ' → ' + hL);
+  /* NÉ LA FIRMA NÉ IL TITOLO SI ACCORCIANO: sono le due cose per cui la targa esiste —
+     l'attribuzione e il nome del disegno. Se una delle due venisse troncata, il rimedio
+     avrebbe tolto proprio quello che doveva proteggere. */
+  esito(sL.indexOf(A.FIRMA_N) >= 0, 'la firma resta intera', A.FIRMA_N);
+  esito(sL.indexOf(lungo.tit) >= 0, 'e il titolo pure', lungo.tit);
+
+  /* DOVE NON SI PUÒ MISURARE SI STIMA PER ECCESSO, e questa attesa si è girata perché
+     quella di prima codificava il comportamento sbagliato. Diceva «senza una sonda la targa
+     resta com'era: non si decide su una misura che non si ha» — vero nel browser, dove la
+     sonda c'è sempre. Ma IL LAVORO NOTTURNO NON NE HA UNA, perché jsdom non fa layout: là
+     la vecchia regola lasciava la firma sulla riga del titolo, e sulla prima card resa si
+     leggeva «Daniele Angrisani · angrisanidj.github.io/…» scritto SOPRA «Proiezione dei
+     120 seggi». Non decidere era una decisione, ed era quella sbagliata.
+     Adesso si stima a 0,55 corpi per carattere, 0,60 per il grassetto: più largo di
+     qualunque pila reale. Sovrastimare costa una riga, sottostimare fa sovrapporre — lo
+     stesso argomento di ETIW nell'etichetta dei 61. */
+  const senzaSonda = A.targaPNG(lungo, '<g/>', 430, 232, null);
+  esito(sottoRiga(senzaSonda),
+    'senza una sonda la firma scende lo stesso: la stima per eccesso decide invece di rinunciare');
+  const cortoSenza = A.targaPNG(corto, '<g/>', 430, 232, null);
+  esito(inRiga(cortoSenza),
+    'e con un titolo corto resta in riga: la stima non manda tutto sotto per prudenza');
+  /* la stima è PIÙ LARGA della misura vera, non più stretta: è la proprietà che rende
+     sicuro il verso in cui sbaglia */
+  const fonteS = HTML.match(/var stimaL=function[^;]*;/)[0];
+  const rap = [...fonteS.matchAll(/0\.\d+/g)].map(Number);
+  esito(rap.length === 2 && rap[0] > rap[1],
+    'e il grassetto si stima più largo del tondo, come è', fonteS);
+  /* e tutti e due stanno SOPRA il rapporto misurato sulla pila del foglio — 0,433 corpi per
+     carattere per la firma, 0,533 per il titolo in grassetto — perché sovrastimare costa una
+     riga e sottostimare fa sovrapporre. Cercare le cifre «0.6» e «0.55» provava i caratteri
+     scritti, non la proprietà: è caduta appena i due numeri sono stati ricalibrati, pur
+     restando giusti. */
+  esito(rap.length === 2 && rap[1] > 0.433 && rap[0] > 0.533,
+    'e stanno sopra i rapporti misurati: si sbaglia dalla parte che costa una riga',
+    rap.join(' e '));
+
+  /* la misura è una funzione sua, usata da tagliaA() e dalla targa: una seconda sonda
+     scritta a parte sarebbe la strada doppia di sempre */
+  esito(/function largoA\(/.test(HTML) &&
+        (HTML.match(/largoA\(/g) || []).length >= 3,
+    'e la sonda è una funzione sola, chiamata da chi la usa',
+    String((HTML.match(/largoA\(/g) || []).length) + ' occorrenze');
+}
+
+
+/* ══ 12 · LE CARD E LA CONDIVISIONE ═══════════════════════════════════════
+ * Sono la stessa macchina del PNG: targaPNG() prende l'altezza come PARAMETRO invece che
+ * come risultato, e una card è la stessa targa con la tela imposta. Una targa sola —
+ * esportazione, anteprima Open Graph e card — perché due divergono al primo ritocco.
+ *
+ * QUELLO CHE HA DECISO LA FORMA, misurato il 24 agosto 2026:
+ *   · navigator.share e canShare sono `undefined` su desktop, con isSecureContext vero:
+ *     non è un'API che rifiuta i file, è un'API che non esiste, e il ramo senza comando è
+ *     il caso NORMALE;
+ *   · i link di intent non hanno nessun parametro per un file — X prende text e url,
+ *     Facebook u, Telegram url e text — quindi su desktop la condivisione dipende da
+ *     og:image e non da qui;
+ *   · in griglia su Instagram una card è larga 161px: un corpo da 30 rende 4,0px, cioè
+ *     nulla di testuale si legge. L'indirizzo c'è per chi apre la card, non per la griglia.
+ */
+{
+  const F = A.CARD;
+  esito(Array.isArray(F) && F.length === 4, 'i formati delle card sono quattro', String(F && F.length));
+  esito(F.map(x => x.W + '×' + x.H).join(' ') === '1200×675 1200×630 1080×1080 1080×1350',
+    'e sono quelli che le piattaforme chiedono', F.map(x => x.W + '×' + x.H).join(' '));
+  /* LA COMPOSIZIONE B STA DOVE AVANZA SPAZIO, e non altrove: l'emiciclo è largo e piatto,
+     quindi nei due formati larghi la larghezza si esaurisce prima dell'altezza e non
+     avanza niente, mentre il quadrato avanza 286px e il verticale 498. */
+  const conB = F.filter(x => x.B).map(x => x.n);
+  esito(conB.join(',') === 'quadrata,verticale',
+    'e il verdetto sta solo nei due formati che avanzano spazio', conB.join(','));
+  /* i due che portano B sono anche i due senza link: Instagram non ne ammette */
+  esito(F.filter(x => x.B).every(x => /Instagram/.test(x.eti)),
+    'che sono i due di Instagram, dove un link non si può mettere');
+
+  /* ══ LA CARD È LA TARGA, CON LA TELA IMPOSTA ══ */
+  const c = A.svgCard('quadrata');
+  esito(!!c, 'la card si compone');
+  if (c) {
+    esito(/width="1080" height="1080"/.test(c.testo),
+      'e la tela è quella del formato, non quella ricavata dal disegno',
+      (c.testo.match(/width="\d+" height="\d+"/) || [])[0]);
+    esito(c.W === 1080 && c.H === 1080, 'e le misure dichiarate coincidono con la tela');
+    esito(/knesset2026-quadrata\.png$/.test(c.nome), 'e il nome del file dice quale formato è', c.nome);
+    /* IL VERDETTO VIENE DA fraseCorta(), non da un testo nuovo: quinto consumatore della
+       stessa strada. Si prova che la frase resa SIA quella, non che le somigli. */
+    const frase = A.fraseCorta(A.formaTitolo(A.blocchi(A.SEG())), A.votoPassato());
+    const dentro = c.testo.indexOf(frase.slice(0, 18)) >= 0;
+    esito(dentro, 'e il verdetto della card è la frase del titolo, non un testo nuovo',
+      frase.slice(0, 40));
+    /* e i tre totali sono quelli di blocchi(), con i colori dei tre blocchi */
+    const b = A.blocchi(A.SEG());
+    esito(c.testo.indexOf('Netanyahu ' + b.coalizione) >= 0 &&
+          c.testo.indexOf('opposizione ' + b.opposizione) >= 0 &&
+          c.testo.indexOf('arabi ' + b.arabo) >= 0,
+      'e porta i tre totali di blocco, gli stessi della pagina',
+      b.coalizione + '/' + b.opposizione + '/' + b.arabo);
+  }
+  /* e nei formati larghi il verdetto NON c'è: se ci fosse, non ci starebbe */
+  const largo = A.svgCard('social');
+  if (largo) {
+    const b2 = A.blocchi(A.SEG());
+    esito(largo.testo.indexOf('Netanyahu ' + b2.coalizione) < 0,
+      'nei formati larghi il verdetto non c\'è: lo spazio non avanza');
+    esito(/width="1200" height="630"/.test(largo.testo), 'e la tela è 1200×630');
+  }
+  /* un formato che non esiste non produce niente, invece di produrre una tela a caso */
+  esito(A.svgCard('quadratissima') === null, 'un formato non dichiarato non produce niente');
+
+  /* ══ IL TESTO CHE ACCOMPAGNA ══
+     L'indirizzo NON sta nella frase: `text` e `url` sono due parametri separati in tutti e
+     tre gli intent, e ripeterlo lo farebbe comparire due volte nel messaggio pubblicato. */
+  const t = A.testoCondivisione();
+  esito(t.indexOf(A.CANONICO) < 0 && !/https?:\/\//.test(t),
+    'il testo della condivisione non porta l\'indirizzo: è l\'altro parametro', t);
+  const b3 = A.blocchi(A.SEG());
+  esito(t.indexOf('Netanyahu ' + b3.coalizione) >= 0 &&
+        t.indexOf('opposizione ' + b3.opposizione) >= 0 &&
+        t.indexOf('partiti arabi ' + b3.arabo) >= 0,
+    'e porta i tre totali veri, non ricontati altrove', t);
+  esito(/\d+ giorni dal voto/.test(t), 'e i giorni al voto', t);
+  /* i giorni vengono da ggCal, che conta giorni di CALENDARIO: la stessa funzione del
+     conto alla rovescia, non una sottrazione di millisecondi scritta qui */
+  esito(/ggCal\(new Date\(\),VOTO\)/.test(HTML.match(/function testoCondivisione\(\)\{[\s\S]*?\n\}/)[0]),
+    'e li conta con ggCal, come il conto alla rovescia della testata');
+
+  /* ══ IL COMANDO C'È SOLO DOVE LA CAPACITÀ C'È ══
+     Un comando che apre un foglio di condivisione senza poter allegare l'immagine
+     prometterebbe una cosa che non fa. Il ramo guarda la CAPACITÀ, non il nome del
+     browser: è la stessa grammatica di 'download' in a e di navigator.clipboard. */
+  const fonte = HTML.match(/function puoiCondividere\(\)\{[\s\S]*?\n\}/)[0];
+  esito(/canShare\(\{files:/.test(fonte),
+    'la capacità si chiede con canShare({files}), cioè con un file vero', fonte.slice(0, 120));
+  esito(!/userAgent|platform|iPhone|Android/.test(fonte),
+    'e non si guarda mai il nome del browser', fonte);
+  esito(/if\(EMBED\) return false;/.test(fonte),
+    'e dentro l\'embed il comando non c\'è: in sandbox un <a download> non fa niente');
+  /* E LA CAPACITÀ SI ESERCITA, non si legge soltanto nel sorgente. In jsdom l'API manca
+     comunque, quindi il mutante che toglie la guardia restava VIVO: puoiCondividere()
+     rispondeva false, ma per un'altra ragione. Si finge la capacità — come si finge lo
+     storage guasto in embed.js — e si guarda la risposta nei due versi. */
+  {
+    const vero = W.navigator;
+    Object.defineProperty(W, 'navigator', {configurable: true,
+      value: {share(){ return Promise.resolve(); }, canShare(){ return true; }}});
+    const conAPI = A.puoiCondividere();
+    Object.defineProperty(W, 'navigator', {configurable: true, value: {}});
+    const senzaAPI = A.puoiCondividere();
+    Object.defineProperty(W, 'navigator', {configurable: true, value: vero});
+    esito(conAPI === true, 'dove la capacità c\'è, il comando si può mettere', String(conAPI));
+    esito(senzaAPI === false,
+      'e dove non c\'è NON si mette: un comando che apre un foglio senza immagine prometterebbe una cosa che non fa',
+      String(senzaAPI));
+    /* IL CASO CHE LA GUARDIA ESISTE PER COGLIERE, e che nessuna prova esercitava: canShare
+       che risponde SÌ mentre share non c'è. Il try/catch da solo non lo vede — canShare
+       non lancia, risponde — quindi il comando comparirebbe, e premendolo chiamerebbe una
+       funzione che non esiste. È una capacità DICHIARATA per un'azione che manca, ed è la
+       ragione per cui la guardia non è ridondante: la mutazione che la toglieva restava
+       viva proprio perché il caso non era nell'elenco di quelli provati. */
+    Object.defineProperty(W, 'navigator', {configurable: true, value: {canShare(){ return true; }}});
+    const soloCanShare = A.puoiCondividere();
+    Object.defineProperty(W, 'navigator', {configurable: true, value: vero});
+    esito(soloCanShare === false,
+      'e se il browser dichiara la capacità ma non ha l\'azione, il comando non si mette lo stesso',
+      String(soloCanShare));
+  }
+
+  /* ══ ANNULLARE NON È UN ERRORE ══
+     share() restituisce una promessa, quindi l'esito è conoscibile — come per la copia.
+     Ma se il lettore chiude il foglio la promessa viene rifiutata con AbortError, e
+     dichiarare un fallimento dove qualcuno ha cambiato idea è dire il falso sul suo gesto. */
+  const fc = HTML.match(/function condividi\(\)\{[\s\S]*?\n\}/)[0];
+  esito(/AbortError/.test(fc), 'l\'annullamento si riconosce', fc.slice(-200));
+  esito(/if\(!e\|\|e\.name!=='AbortError'\) rispostaCond/.test(fc),
+    'e non dice niente: annullare non è un errore', fc.slice(-200));
+  esito(/rispostaCond\('Condiviso'\)/.test(fc),
+    'mentre la riuscita si dichiara, perché la promessa si risolve solo a condivisione avvenuta');
+}
+
+
+/* ══ 13 · LA TARGA DENTRO UNA CORNICE, E L'INDICE ═════════════════════════
+ * Sette mutazioni su dieci sono sopravvissute al primo giro, e dicevano una cosa sola: le
+ * prove esercitavano la targa dell'ESPORTAZIONE, dove la tela coincide con il disegno,
+ * quindi tutto ciò che distingue i due sistemi di coordinate era invisibile. E dell'indice
+ * non c'era nessuna prova.
+ * È la coincidenza che nasconde il difetto, per la terza volta in questo file: l'house
+ * effect in ordine di blocco «per fortuna», l'ordine del pannello che coincide finché
+ * nessuna lista dell'ago della bilancia ha seggi, e adesso CW che è uguale a W finché non
+ * esiste una card.
+ */
+{
+  const dis = A.PNG_DISEGNI['k-emi'];
+  const ink = {x: 21.6, y: 0.4, w: 386.7, h: 217};
+  const cornice = {W: 1200, H: 630, ink: ink, B: 0};
+  const c = A.targaPNG(dis, '<g/>', 430, 232, null, cornice);
+  const dc = new W.DOMParser().parseFromString(c, 'image/svg+xml');
+  const rc = dc.documentElement;
+  const testiC = [].slice.call(rc.children).filter(x => x.tagName === 'text');
+
+  esito(rc.getAttribute('viewBox') === '0 0 1200 630',
+    'con una cornice la tela è quella imposta, non quella ricavata dal disegno',
+    rc.getAttribute('viewBox'));
+
+  /* LA DATA STA AL BORDO DELLA TELA, non a quello del disegno: misurandola su W finiva a
+     x 414 su una tela larga 1200, cioè a un terzo della larghezza. */
+  const data = testiC.find(t => /aggiornato al|ultimo sondaggio|non disponibile/.test(t.textContent));
+  esito(!!data && data.getAttribute('text-anchor') === 'end' && +data.getAttribute('x') > 1000,
+    'la data si allinea al bordo destro della TELA, non a quello del disegno',
+    data ? data.getAttribute('x') : '(nessuna)');
+
+  /* LA TESTATA SI SCALA CON LA TELA: con i corpi assoluti dell'esportazione, su 1200 unità
+     diventavano tre righe da 11px accatastate nell'angolo. */
+  const tit = testiC.find(t => t.textContent === dis.tit);
+  const sez = testiC.find(t => t.textContent === dis.sez.toUpperCase());
+  esito(!!tit && +tit.getAttribute('font-size') > 30,
+    'il titolo si scala con la tela invece di restare al corpo del disegno',
+    tit ? tit.getAttribute('font-size') : '(nessuno)');
+  esito(!!sez && +sez.getAttribute('font-size') > +tit.getAttribute('font-size') * 0.6,
+    'e la sezione con lui, nella stessa proporzione di sempre',
+    sez ? sez.getAttribute('font-size') : '(nessuna)');
+  /* e la proporzione È quella dell'esportazione: la scala non cambia il disegno della targa,
+     lo ingrandisce. Si confronta il rapporto, non i due numeri. */
+  const e = A.targaPNG(dis, '<g/>', 430, 232, null);
+  const de = new W.DOMParser().parseFromString(e, 'image/svg+xml');
+  const titE = [].slice.call(de.documentElement.children)
+    .find(x => x.tagName === 'text' && x.textContent === dis.tit);
+  const sezE = [].slice.call(de.documentElement.children)
+    .find(x => x.tagName === 'text' && x.textContent === dis.sez.toUpperCase());
+  const rC = +sez.getAttribute('font-size') / +tit.getAttribute('font-size');
+  const rE = +sezE.getAttribute('font-size') / +titE.getAttribute('font-size');
+  esito(Math.abs(rC - rE) < 0.001,
+    'e il rapporto fra i corpi è lo stesso: la scala ingrandisce, non ridisegna',
+    rC.toFixed(4) + ' contro ' + rE.toFixed(4));
+
+  /* LA DIDASCALIA NON SI SCRIVE DOVE IL DISEGNO NON NE HA. «piede» era due cose insieme —
+     la bandiera e l'altezza della fascia — e nel ramo della cornice l'altezza sovrascriveva
+     la bandiera: la targa dell'emiciclo, che è la A, si metteva a scrivere la didascalia
+     degli istogrammi, «la fascia chiara è l'intervallo… il triangolo è la stima puntuale»,
+     sopra i seggi, a parlare di due cose che nell'emiciclo non esistono. */
+  esito(c.indexOf('fascia chiara') < 0,
+    'e la didascalia degli istogrammi non finisce nella targa dell\'emiciclo, che non ne ha');
+  const cH = A.targaPNG(A.PNG_DISEGNI['k-hist'], '<g/>', 460, 234, null, cornice);
+  esito(cH.indexOf('fascia chiara') >= 0,
+    'mentre nell\'istogramma, che ne ha una, c\'è: la bandiera è tornata una bandiera');
+
+  /* IL CONTROLLO DELLA FIRMA MISURA CONTRO LA TELA: contro il disegno, una card larga 1200
+     decideva sui 398 del disegno e mandava la firma sotto dove ci stava comodamente. Il
+     titolo corto su una tela larga deve restare in riga. */
+  const cortoC = A.targaPNG(Object.assign({}, dis, {tit: 'Seggi'}), '<g/>', 430, 232, null, cornice);
+  const dcc = new W.DOMParser().parseFromString(cortoC, 'image/svg+xml');
+  const firmaC = [].slice.call(dcc.documentElement.children)
+    .find(x => x.tagName === 'text' && x.textContent.indexOf(A.FIRMA_N) === 0);
+  esito(!!firmaC && firmaC.getAttribute('text-anchor') === 'end',
+    'e con un titolo corto su una tela larga la firma resta in riga: si misura contro la tela',
+    firmaC ? (firmaC.getAttribute('text-anchor') || '(inizio)') : '(nessuna)');
+}
+
+/* ══ 14 · L'INDICE NON LEGGE I COMANDI MONTATI NEGLI h2 ════════════════════
+ * Montando i comandi dell'esportazione e della condivisione dentro gli h2, l'indice ha
+ * cominciato a dire «La prossima Knesset Scarica PNG» e «Scarica PNGCondividi» — due
+ * textContent adiacenti concatenati senza spazio. E non era cosmetico: quella stringa è
+ * anche il nome accessibile del collegamento, quindi un lettore di schermo diceva
+ * «La prossima Knesset Scarica PNG Condividi, collegamento».
+ * LA PROVA COPRE IL CASO GENERALE, non i due comandi di oggi: si monta un comando NUOVO in
+ * un h2 e si pretende che non compaia in nessun testo derivato. Se la regola tornasse a
+ * essere un'esclusione per nome, il comando successivo ricomparirebbe — ed è esattamente
+ * quello che questa prova impedisce. */
+{
+  A.render(); A.costruisciIndice();
+  const voci = () => [].slice.call(D.querySelectorAll('#kn26 .idx a')).map(a => a.textContent);
+  const primaDi = voci();
+  esito(primaDi.length > 5, 'l\'indice ha le sue voci', String(primaDi.length));
+  esito(!primaDi.some(v => /Scarica PNG|Condividi/.test(v)),
+    'e nessuna porta il testo dei comandi montati negli h2', primaDi.join(' | '));
+
+  /* il caso generale: un comando che non esiste ancora */
+  const h2 = D.querySelector('#kn26 section h2');
+  const finto = D.createElement('button');
+  finto.className = 'lnk';
+  finto.textContent = 'Comando inventato';
+  h2.appendChild(finto);
+  A.render(); A.costruisciIndice();
+  const dopo = voci();
+  esito(!dopo.some(v => /Comando inventato/.test(v)),
+    'e un comando aggiunto oggi in un h2 non compare in nessuna voce: la regola è strutturale',
+    dopo.join(' | '));
+  /* e il titolo non si è accorciato: si prende il testo dell'h2, non si sottrae qualcosa */
+  esito(dopo[0] === primaDi[0],
+    'e la voce resta identica a prima: il titolo non dipende da che cosa c\'è accanto',
+    dopo[0] + ' contro ' + primaDi[0]);
+  if (finto.parentNode) finto.parentNode.removeChild(finto);
+  A.render(); A.costruisciIndice();
+
+  /* E IL SOTTOTITOLO IN <em> NON C'È MAI STATO, ma prima veniva tolto per SOTTRAZIONE della
+     sua stringa: la stessa forma di esclusione per nome che i comandi hanno fatto cadere. */
+  const conEm = [].slice.call(D.querySelectorAll('#kn26 section h2')).filter(h => h.querySelector('em'));
+  esito(conEm.length > 3, 'ci sono h2 con un sottotitolo in <em>', String(conEm.length));
+  const sporche = voci().filter(v => conEm.some(h => {
+    const em = h.querySelector('em');
+    return em && em.textContent.length > 4 && v.indexOf(em.textContent.trim()) >= 0;
+  }));
+  esito(sporche.length === 0,
+    'e nessuna voce porta il testo del sottotitolo', sporche.join(' | '));
+}
+
 
 console.log('\n' + ok + '/' + (ok + ko));
 if (ko) process.exit(1);

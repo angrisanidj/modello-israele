@@ -46,17 +46,33 @@
      stessa cosa e nel markup non c'è modo di scriverla una volta sola: le lega un
      controllo in test/struttura.mjs. Lo stesso vale per og:url e il canonical.
 
-     twitter:card è «summary» e NON «summary_large_image» perché og:image non c'è ancora:
-     la targa grande senza immagine si degrada in una scheda con un riquadro vuoto.
-     Diventa summary_large_image nello stesso commit in cui il lavoro notturno comincia a
-     generare l'immagine dell'emiciclo. -->
+     twitter:card è «summary_large_image» dal 24 agosto 2026, e ci è passata NELLO STESSO
+     COMMIT in cui la prima immagine è stata pubblicata davvero. Prima era «summary»
+     proprio perché og:image non c'era: la targa grande senza immagine si degrada in una
+     scheda con un riquadro vuoto, e dichiararla prima sarebbe stata una promessa che
+     nessun file mantiene. -->
 <link rel="canonical" href="https://angrisanidj.github.io/modello-israele/">
 <meta name="description" content="Proiezione dei seggi della 26ª Knesset, aggiornata ogni notte sulla media ponderata dei sondaggi pubblicati. 20.000 simulazioni, il margine d’errore misurato su tre elezioni precedenti, e tutti i dati interrogabili.">
 <meta property="og:description" content="Proiezione dei seggi della 26ª Knesset, aggiornata ogni notte sulla media ponderata dei sondaggi pubblicati. 20.000 simulazioni, il margine d’errore misurato su tre elezioni precedenti, e tutti i dati interrogabili.">
 <meta property="og:url" content="https://angrisanidj.github.io/modello-israele/">
 <meta property="og:type" content="website">
 <meta property="og:locale" content="it_IT">
-<meta name="twitter:card" content="summary">
+<meta name="twitter:card" content="summary_large_image">
+<!-- og:image sta FUORI dalla regione del lavoro notturno, e non per distrazione:
+     il job riscrive il FILE, non questa riga. L'indirizzo è fisso, le misure sono fisse e
+     il testo alternativo pure — sono costanti come og:url, e metterle dentro i marcatori
+     avrebbe allargato l'eccezione senza che niente lo richiedesse. L'eccezione resta la
+     più stretta che si potesse dare: og:title e basta.
+     DA SAPERE: gli aggregatori mettono in cache l'immagine per indirizzo, e l'indirizzo
+     non cambia mai. Una scheda già vista può restare quella di ieri finché la piattaforma
+     non rilegge — e siccome la data è DENTRO l'immagine, si vedrebbe. Se un giorno pesa,
+     il rimedio è un indirizzo con la data, che però riporterebbe questa riga dentro la
+     regione del job: è la ragione per cui non si fa adesso. -->
+<meta property="og:image" content="https://angrisanidj.github.io/modello-israele/dati/anteprima.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="L'emiciclo della Knesset con i seggi proiettati per i tre blocchi e la linea della maggioranza a 61.">
+
 
 <!-- ══ META DELLO STATO · INIZIO — LE SCRIVE IL LAVORO NOTTURNO, NON UNA PERSONA ══
 
@@ -1152,6 +1168,21 @@
 #kn26 .cpy{min-height:44px;display:inline-flex;align-items:center;padding:0 6px;
  margin:0 0 10px;}
 #kn26 .cpy.detto{color:var(--ink);text-decoration:none;}
+/* LA FORMA COMPATTA DELL'EMBED, ?embed=sintesi. La riga di sintesi si scrive sempre e si
+   vede solo qui, come la fascia del dopo-voto: il giorno in cui compare non è il giorno in
+   cui viene scritta per la prima volta.
+   Le probabilità in forma corta vivono in #k-sprobs, dentro la barra appiccicata che sotto
+   una certa larghezza è display:none — nella sintesi la barra è tutto quello che resta di
+   quel ramo, quindi la si rimette in flusso invece di spostare l'elemento altrove: uno
+   spostamento si porterebbe dietro i selettori discendenti del posto nuovo, ed è la
+   trappola di #k-evsel. */
+#kn26 .sintriga{display:none;}
+#kn26.sintesi .sintriga{display:block;font-size:14px;line-height:1.35;color:var(--ink);
+ margin:0 0 10px;font-weight:600;}
+#kn26.sintesi .bar{display:flex !important;}
+#kn26.sintesi #k-sprobs{display:flex !important;flex-wrap:wrap;gap:2px 14px;}
+#kn26.sintesi{padding:14px 12px;}
+#kn26.sintesi .firma{margin-top:14px;padding-top:12px;}
 #kn26 .pgb{display:flex;flex-wrap:wrap;gap:7px;}
 #kn26 .pgn{font-size:11.5px;color:var(--mute);line-height:1.5;margin-top:12px;}
 #kn26 .rng{margin-bottom:15px;}
@@ -1549,7 +1580,7 @@
 </div>
 
 <div class="cmd">
- <div class="cb az">
+ <div class="cb az" id="k-aggcell">
   <button class="btn big" id="k-refresh">↻ Aggiorna i sondaggi</button>
   <span class="hint">L'archivio si aggiorna da solo ogni notte. Questo pulsante rilegge Wikipedia adesso, per le rilevazioni delle ultime ore, e le valida riga per riga.</span>
  </div>
@@ -1709,6 +1740,12 @@
  <h2>La prossima Knesset <em>proiezione centrale dei 120 seggi</em></h2>
  <div class="box">
   <div class="sw2"><button data-emi="blocchi" class="on">Per blocco</button><button data-emi="partiti">Per lista</button></div>
+  <!-- La riga della forma compatta. Si scrive SEMPRE e si vede solo in ?embed=sintesi, come
+       la fascia del dopo-voto: così il giorno in cui compare non è il giorno in cui viene
+       scritta per la prima volta. Il testo non è nuovo — è titoloCorto(formaTitolo(...)),
+       cioè la stessa riga di document.title e di og:title, che diventa il quarto
+       consumatore della stessa strada invece di un quinto posto che riscrive lo stato. -->
+  <p id="k-sintriga" class="sintriga"></p>
   <div id="k-emi"></div>
   <div class="leg" id="k-emileg" role="group" aria-label="Filtro dei seggi per gruppo"></div>
   <div class="emif">
@@ -1840,16 +1877,30 @@
 <details id="k-embedcode">
  <summary>Incorpora questo modello</summary>
  <div class="bd">
- <p class="fn" style="margin-top:2px">Il modello si può incorporare su qualunque sito: non serve chiedere niente e non c&rsquo;è niente da configurare. L&rsquo;archivio si aggiorna ogni notte da solo, quindi il riquadro resta aggiornato senza che tu debba rifare nulla.</p>
- <pre class="cod" data-copia="il codice dell&rsquo;iframe"><code>&lt;iframe src="https://angrisanidj.github.io/modello-israele/?embed=1"
+ <p class="fn" style="margin-top:2px">Il modello si può incorporare su qualunque sito: non serve chiedere niente e non c&rsquo;è niente da configurare. L&rsquo;archivio si aggiorna ogni notte da solo, quindi il riquadro resta aggiornato senza che tu debba rifare nulla. Ci sono <b>due forme</b>, e si scelgono col valore del parametro.</p>
+ <!-- LE DUE FORME, CIASCUNA COL SUO FRAMMENTO E LA SUA ALTEZZA. Un blocco solo con una riga
+      che spiega come cambiare il parametro avrebbe chiesto a chi incorpora di modificare a
+      mano quello che ha appena copiato — e l'altezza giusta è diversa fra le due, quindi
+      quel blocco unico sarebbe stato comunque sbagliato per una delle due.
+      Le altezze sono MISURATE sulla pagina resa, non scelte: la sintesi sta in 419px a 380
+      e in 502 a 600, e sopra i 600 non cresce più perché l'emiciclo ha max-width:600px —
+      520 è il massimo con un margine. La completa scorre al suo interno a qualunque
+      altezza, e 900 resta il valore che sta bene su desktop. -->
+ <p class="fn"><b>Il modello intero: undici sezioni</b> con i grafici, i comandi, l&rsquo;archivio dei sondaggi e la nota metodologica. È la scelta giusta per una pagina dedicata alle elezioni israeliane.</p>
+ <pre class="cod" data-copia="il codice del modello intero"><code>&lt;iframe src="https://angrisanidj.github.io/modello-israele/?embed=1"
         width="100%" height="900" style="border:0"
         loading="lazy" title="Modello previsionale Knesset 2026"
         sandbox="allow-scripts allow-popups"&gt;&lt;/iframe&gt;</code></pre>
- <p class="fn"><b>L&rsquo;altezza.</b> Il riquadro scorre al suo interno, quindi <code>height</code> è una scelta tua e nessun valore è sbagliato: 900 sta bene su desktop, 700 su una pagina stretta. Se il tuo sito può eseguire tre righe di JavaScript, il riquadro sa dire quanto è alto e può crescere da solo:</p>
+ <p class="fn"><b>Una figura sola:</b> l&rsquo;emiciclo con i tre blocchi, la riga che dice come sta andando, e la data. È la scelta giusta per un riquadro dentro un articolo.</p>
+ <pre class="cod" data-copia="il codice della figura sola"><code>&lt;iframe src="https://angrisanidj.github.io/modello-israele/?embed=sintesi"
+        width="100%" height="520" style="border:0"
+        loading="lazy" title="Modello previsionale Knesset 2026"
+        sandbox="allow-scripts allow-popups"&gt;&lt;/iframe&gt;</code></pre>
+ <p class="fn"><b>L&rsquo;altezza.</b> Il riquadro scorre al suo interno, quindi <code>height</code> è una scelta tua e nessun valore è sbagliato: per il modello intero 900 sta bene su desktop e 700 su una pagina stretta; la figura sola è alta 419 pixel in una colonna da 380 e 502 in una da 600, e sopra non cresce. Se il tuo sito può eseguire tre righe di JavaScript, il riquadro sa dire quanto è alto e può crescere da solo:</p>
  <pre class="cod" data-copia="lo script dell&rsquo;altezza"><code>&lt;script&gt;addEventListener('message', function (e) {
   if (e.data &amp;&amp; e.data.kn26 === 'altezza') document.querySelector('iframe[src*="modello-israele"]').height = e.data.px;
 });&lt;/script&gt;</code></pre>
- <p class="fn"><b>Che cosa cambia dentro il riquadro.</b> Restano tutti i grafici, i comandi, l&rsquo;archivio dei sondaggi e la nota metodologica. Non ci sono il modulo di inserimento manuale, l&rsquo;esportazione dei dati e la diagnostica: sono attrezzi di chi cura il modello, e scrivono in una memoria che dentro un riquadro di terza parte il browser non concede. Il riquadro lo dichiara in cima invece di lasciarlo scoprire.</p>
+ <p class="fn"><b>Che cosa cambia dentro il riquadro.</b> Nel modello intero restano tutti i grafici, i comandi, l&rsquo;archivio dei sondaggi e la nota metodologica; nella figura sola non c&rsquo;è nessun comando, perché una leva cambia numeri che chi legge un articolo non ha il contesto per interpretare. Non ci sono il modulo di inserimento manuale, l&rsquo;esportazione dei dati e la diagnostica: sono attrezzi di chi cura il modello, e scrivono in una memoria che dentro un riquadro di terza parte il browser non concede. Il riquadro lo dichiara in cima invece di lasciarlo scoprire.</p>
  <p class="fn"><b>La firma resta.</b> È un modello personale, non un prodotto di una testata: chi lo incorpora incorpora un lavoro firmato da una persona, e la firma è parte di quello che viene incorporato. Non c&rsquo;è nessun meccanismo che impedisca di toglierla — chi copia il file fa quello che vuole — ma toglierla vuol dire farne una copia, e una copia smette di aggiornarsi la notte stessa.</p>
  </div>
 </details>
@@ -1864,7 +1915,7 @@
      rel="noopener" perché target="_blank" senza è un difetto noto; l'href di un'ancora
      non carica niente, e la regola del file autonomo riguarda le RISORSE, non i
      collegamenti — il controllo strutturale li elenca a parte proprio per questo. -->
-<p class="firma">Daniele Angrisani · Modello previsionale Knesset 2026 ·
+<p class="firma" id="k-firma">Daniele Angrisani · Modello previsionale Knesset 2026 ·
  <a href="https://x.com/putino" target="_blank" rel="noopener">@putino</a></p>
 </div>
 
@@ -2067,10 +2118,29 @@ try{
 /* i grafici sono SVG generati a runtime: i colori non possono restare cablati,
    altrimenti in tema scuro restano quelli chiari e spariscono sul fondo nero. */
 var SCURO=false, C={};
-var C_FALL={ink:'#0E1013',ink2:'#3F464E',mute:'#8A9099',hair:'#E4E0D8',hair2:'#F0EDE6',
- paper:'#FCFBF8',card:'#FFFFFF',wash:'#F5F3ED',coal:'#1D4E89',oppo:'#0E8388',arab:'#3E7A4A',
- inc:'#9AA1AA',pos:'#1B6B45',neg:'#A32A2A',acc:'#0B4F8A',
- 'on-color':'#FFFFFF'};
+/* IL RIPIEGO DELLA TAVOLOZZA ERA UNA TERZA TAVOLOZZA, ed è la strada doppia del colore di
+   blocco ricomparsa dalla porta più difficile da guardare: quella di chi non ha un motore
+   di stile. leggiTema() legge le variabili CSS con getComputedStyle e cade qui quando non
+   può — cioè in jsdom, cioè NELLE PROVE e nel lavoro notturno.
+   Misurato il 24 agosto 2026, token per token: 14 valori su 16 divergevano dal tema chiaro,
+   e --oppo era di un'altra TINTA — #0E8388 verde acqua contro il #78002D della pagina.
+   Rasterizzando l'emiciclo per l'immagine Open Graph, il modello usciva in colori che
+   nessun lettore vede: l'opposizione verde acqua, la coalizione blu scuro. Sarebbe stata la
+   prima cosa che si vede quando qualcuno condivide il link.
+   Adesso i valori sono quelli veri e sono DUE, uno per tema, perché la pagina ha due temi e
+   una tabella sola non poteva essere giusta per tutti e due.test/struttura.mjs verifica
+   che ogni valore coincida con la variabile CSS corrispondente: è l'idioma di
+   description/og:description applicato al colore, e chiude l'ultima delle tre strade — le
+   variabili CSS, COLORE.token() e questa, di cui solo le prime due erano legate. */
+var C_FALL_T={
+ chiaro:{ink:'#0A1730',ink2:'#33435A',mute:'#626D7E',hair:'#E2E7EF',hair2:'#EFF2F7',
+  paper:'#F7F8FA',card:'#FFFFFF',wash:'#F1F5FC',coal:'#143EDB',oppo:'#78002D',arab:'#007B4C',
+  inc:'#B57600',pos:'#066E3E',neg:'#AE3232',acc:'#0038B8','on-color':'#FFFFFF'},
+ scuro:{ink:'#E8EDF6',ink2:'#A3B3C8',mute:'#7D8A9B',hair:'#1F2B41',hair2:'#16202F',
+  paper:'#070D18',card:'#0F1727',wash:'#131E32',coal:'#77A7FF',oppo:'#FF5084',arab:'#009059',
+  inc:'#FFB035',pos:'#59C58D',neg:'#FE9390',acc:'#6994E5','on-color':'#070D18'}
+};
+var C_FALL=C_FALL_T.chiaro;
 var TEMA='auto';
 function applicaTema(t){
  TEMA=t||'auto';
@@ -2087,9 +2157,12 @@ function leggiTema(){
  else if(TEMA==='chiaro') SCURO=false;
  else{try{SCURO=!!(window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches);}catch(e){SCURO=false;}}
  var cs=null; try{cs=getComputedStyle(R);}catch(e){}
- Object.keys(C_FALL).forEach(function(k){
+ /* il ripiego SEGUE IL TEMA: senza, una pagina in tema scuro senza motore di stile uscirebbe
+    con i colori del chiaro, cioè con testo scurissimo su fondo scurissimo. */
+ var fall=C_FALL_T[SCURO?'scuro':'chiaro'];
+ Object.keys(fall).forEach(function(k){
   var v=cs?String(cs.getPropertyValue('--'+k)||'').trim():'';
-  C[k]=v||C_FALL[k];
+  C[k]=v||fall[k];
  });
 }
 /* mescola un colore verso il bianco: rende leggibili i colori di lista sul fondo
@@ -2854,7 +2927,7 @@ var TIT_FONTE_P={f1:'esatta',f2:'esatta',f3:null,f4:null,
 var TIT_PRIMA={
  f1:function(X,P){return 'Il blocco Netanyahu raggiunge la maggioranza: la proiezione lo porta a '+X+' seggi, '+P+' delle simulazioni.';},
  f2:function(X,P){return 'L’opposizione raggiunge la maggioranza senza i partiti arabi: '+X+' seggi, '+P+' delle simulazioni.';},
- f3:function(){return 'Nessun blocco ha la maggioranza: i partiti arabi sono decisivi.';},
+ f3:function(){return 'Nessun blocco ha la maggioranza: i partiti arabi potrebbero essere decisivi.';},
  f4:function(){return 'Nessun blocco ha la maggioranza, e non l’ha nemmeno l’opposizione con i partiti arabi: a decidere sono le liste dell’ago della bilancia.';},
  f5c:function(X,P){return 'Il blocco Netanyahu si ferma a '+X+' seggi, uno dalla maggioranza — e '+P+' delle simulazioni nessun campo ha i numeri per governare.';},
  f5o3:function(X,P){return 'L’opposizione si ferma a '+X+' seggi, uno dalla maggioranza autonoma: le serve l’appoggio dei partiti arabi, come '+P+' delle simulazioni.';},
@@ -2868,7 +2941,7 @@ var TIT_PRIMA={
 var TIT_DOPO={
  f1:function(X,P){return 'Alla vigilia del voto, il modello dava al blocco Netanyahu '+X+' seggi e la maggioranza: questo scenario compariva '+P+' delle simulazioni.';},
  f2:function(X,P){return 'Alla vigilia del voto, il modello dava all’opposizione '+X+' seggi e la maggioranza senza i partiti arabi: '+P+' delle simulazioni.';},
- f3:function(){return 'Alla vigilia del voto, nessun blocco aveva la maggioranza: i partiti arabi risultavano decisivi.';},
+ f3:function(){return 'Alla vigilia del voto, nessun blocco aveva la maggioranza: i partiti arabi potevano essere decisivi.';},
  f4:function(){return 'Alla vigilia del voto, nessun blocco aveva la maggioranza, e non l’aveva nemmeno l’opposizione con i partiti arabi: a decidere restavano le liste dell’ago della bilancia.';},
  f5c:function(X,P){return 'Alla vigilia del voto, il blocco Netanyahu si fermava a '+X+' seggi, uno dalla maggioranza — e '+P+' delle simulazioni nessun campo aveva i numeri per governare.';},
  f5o3:function(X,P){return 'Alla vigilia del voto, l’opposizione si fermava a '+X+' seggi, uno dalla maggioranza autonoma: le serviva l’appoggio dei partiti arabi, come '+P+' delle simulazioni.';},
@@ -2905,10 +2978,10 @@ var TIT_CORTO_PRIMA={
 var TIT_CORTO_DOPO={
  f1:function(X){return 'Vigilia: Netanyahu a '+X+' e la maggioranza';},
  f2:function(X){return 'Vigilia: opposizione a '+X+' e la maggioranza';},
- f3:function(){return 'Vigilia: decisivi i partiti arabi';},
+ f3:function(){return "Vigilia: serve l'appoggio dei partiti arabi";},
  f4:function(){return 'Vigilia: nessuna maggioranza possibile';},
  f5c:function(X){return 'Vigilia: Netanyahu a '+X+', stallo pieno';},
- f5o3:function(X){return 'Vigilia: opposizione a '+X+' e arabi decisivi';},
+ f5o3:function(X){return 'Vigilia: opposizione a '+X+', non bastava';},
  f5o4:function(X){return 'Vigilia: opposizione a '+X+', stallo pieno';},
  f5e:function(X){return 'Vigilia: due blocchi a '+X+', stallo pieno';},
  f6c:function(){return 'Vigilia: maggioranza minima a Netanyahu';},
@@ -2946,10 +3019,19 @@ function testoTitolo(fo,dopo,mc){
    formaTitolo(blocchi(SEG)) resta chiamata due volte per render: blocchi() è una somma su
    venti liste, e il prezzo di una riga in più è più basso di quello di una copia. */
 function titoloCortoOra(){return titoloCorto(formaTitolo(blocchi(SEG)),votoPassato());}
-function titoloCorto(fo,dopo){
+/* LA FRASE E LA CODA SONO DUE COSE, e si sono separate il 24 agosto 2026 perché la forma
+   compatta dell'embed ha bisogno della prima senza la seconda. TIT_CODA — « · Knesset
+   2026» — esiste per la linguetta del browser e per la scheda di condivisione, dove il
+   titolo va riconosciuto fuori dalla pagina; dentro il riquadro compatto sarebbe la terza
+   volta che si legge «Knesset 2026» in trecento pixel, perché la firma lo dice già.
+   La frase resta una sola, e i tre consumatori — document.title, og:title e la riga della
+   sintesi — la prendono da qui. Ricavarla altrove con un replace su TIT_CODA sarebbe la
+   strada doppia mascherata da riparazione. */
+function fraseCorta(fo,dopo){
  var d=datiTitolo(fo,null);
- return (dopo?TIT_CORTO_DOPO:TIT_CORTO_PRIMA)[d.cella](d.X)+TIT_CODA;
+ return (dopo?TIT_CORTO_DOPO:TIT_CORTO_PRIMA)[d.cella](d.X);
 }
+function titoloCorto(fo,dopo){ return fraseCorta(fo,dopo)+TIT_CODA; }
 function montecarlo(base,N,giorni,al){
  var ids=Object.keys(base),n=ids.length,i,j;
  /* GLI ACCORDI VANNO NEL MONTE CARLO INSIEME ALLA PROIEZIONE, non dopo. Toccarne uno
@@ -3386,12 +3468,27 @@ function stretto(){
    dichiara che vuole l'embed; chi inquadra la pagina intera per un'altra ragione — un
    archivio, un lettore, uno screenshot — deve vedere la pagina intera. Dedurlo da
    `window.top!==window` significherebbe cambiare prodotto a chi non l'ha chiesto. */
-var EMBED=(function(){
- /* `window.location` e non il `location` nudo: è la stessa forma che usa contesto(), ed è
-    l'unica che un banco possa montare — il globale nudo esiste solo dentro un browser. */
- try{return /(?:^|[?&])embed=1(?:&|$)/.test(String((window.location&&window.location.search)||''));}
- catch(e){return false;}
+/* LA FORMA LA SCEGLIE IL VALORE DEL PARAMETRO, NON UN SECONDO PARAMETRO.
+   `?embed=1` è la forma intera ed è IDENTICA A PRIMA — chi l'ha già incollata in un
+   articolo deve continuare a vedere quello che vedeva, e questo viene prima di ogni altra
+   considerazione. `?embed=sintesi` è la forma compatta.
+   Un secondo parametro — `?embed=1&sintesi=1` — permetterebbe di scrivere
+   `?embed=0&sintesi=1`, che è uno stato che non vuol dire niente e che qualcuno prima o
+   poi scriverà. Col valore, gli stati possibili sono esattamente quelli che hanno un senso.
+   E LE FORME SONO DICHIARATE, non dedotte: un valore che non è nell'elenco non è un embed,
+   esattamente come prima di oggi, invece di diventarlo per caso.
+   `window.location` e non il `location` nudo: il globale nudo esiste solo dentro un
+   browser, e un banco che sostituisce la finestra non lo intercetterebbe. */
+var FORME_EMBED=['1','sintesi'];
+var FORMA_EMBED=(function(){
+ try{
+  var m=/(?:^|[?&])embed=([^&]*)/.exec(String((window.location&&window.location.search)||''));
+  var v=m?decodeURIComponent(m[1]):'';
+  return FORME_EMBED.indexOf(v)>=0?v:'';
+ }catch(e){return '';}
 })();
+var EMBED=!!FORMA_EMBED;
+var SINTESI=FORMA_EMBED==='sintesi';
 /* L'ATTRIBUZIONE È PARTE DEL PRODOTTO, NON UNA DECORAZIONE, e va detto che cosa vuol dire e
    che cosa NON vuol dire. Non si può rendere impossibile toglierla: chi copia il file fa
    quello che vuole, ed è inutile fingere il contrario. Quello che si può fare è che
@@ -3461,13 +3558,45 @@ function rMemoria(){
    niente. Un comando che finge di funzionare è peggio di un comando assente, e non possiamo
    pretendere `allow-downloads` da un ospite che non controlliamo. La regola è provata e non
    solo scritta: in modalità incorporata nessun elemento reso porta l'attributo `download`. */
-var VIA_NELL_EMBED=['k-datapanel','k-embedcode'];
+/* «AGGIORNA I SONDAGGI» NON C'È NELL'EMBED, e la ragione che viene prima è di chi ospita:
+   quel comando fa partire una richiesta a WIKIPEDIA — un sito esterno — DALLA PAGINA DI
+   QUALCUN ALTRO, che non l'ha chiesta e non lo sa. Chi legge un embed non è chi cura
+   l'archivio, e un riquadro incorporato non deve mettere l'ospite in relazione con terzi.
+
+   E c'è l'altra metà, che è di chi legge: misurato il 24 agosto 2026, il comando fa
+   salva() e render(), e memSet() cattura l'eccezione e restituisce null invece di
+   lanciare. Quindi dove lo storage è bloccato — cioè dentro un iframe di terza parte, che
+   è la condizione normale — il salvataggio fallisce in silenzio e la vista si aggiorna lo
+   stesso: il lettore vede numeri nuovi che svaniscono al primo ricaricamento, senza che
+   niente glielo dica. E lo vede TRE RIGHE SOTTO una fascia che dichiara «qui non si salva
+   niente». Le due cose si contraddicono a tre righe di distanza.
+   Va via la CELLA e non il solo pulsante: la frase che lo spiega resterebbe a descrivere
+   un comando che non c'è.
+
+   IL TEMA RESTA, benché abbia la stessa forma — scrive in memoria e il salvataggio
+   fallisce nello stesso modo. La differenza è che cosa fallisce: il tema si APPLICA
+   subito, e a non sopravvivere è solo la memoria della scelta; l'aggiornamento invece
+   promette di integrare l'archivio, e l'archivio torna quello di prima.
+   Uno fallisce sulla comodità, l'altro sulla cosa che promette. */
+var VIA_NELL_EMBED=['k-datapanel','k-embedcode','k-aggcell'];
 function applicaEmbed(){
  if(!EMBED) return;
  R.classList.add('embed');
  VIA_NELL_EMBED.forEach(function(id){
   var el=$(id); if(el&&el.parentNode) el.parentNode.removeChild(el);
  });
+ /* la forma compatta toglie MOLTO di più, e per la stessa ragione della forma intera:
+    quello che non si offre non deve esistere, non deve essere invisibile. Un elemento a
+    display:none resta nell'ordine di tabulazione di qualche browser e qualche lettore di
+    schermo lo annuncia. */
+ /* LA CLASSE SÌ, LA POTATURA NO: qui il render non è ancora passato, e potando adesso
+    rEmi() non troverebbe la legenda che gli serve — il render morirebbe a metà e la pagina
+    resterebbe con l'emiciclo vuoto. Misurato, non dedotto: è successo alla prima stesura,
+    e senza un errore in console perché il render è protetto.
+    La potatura sta dopo l'ULTIMO render, cioè quello che segue l'arrivo dell'archivio: i
+    render sono due — uno sul seme BASE e uno sui dati veri — e potare dopo il primo
+    congelerebbe la pagina sui numeri del seme. Vedi in fondo al file. */
+ if(SINTESI) R.classList.add('sintesi');
 }
 /* L'ALTEZZA: fissa con scorrimento interno, e un avviso facoltativo per l'ospite.
    L'iframe ha l'altezza che gli dà chi incorpora, e la pagina scorre dentro: funziona
@@ -3632,6 +3761,235 @@ function rProb(){
      'e la mediana degli esiti non è l\'esito calcolato sulla media.' : '.');
  if(SW) $('k-simn').textContent=f(SIM)+' simulazioni · swing '+(SW>0?'+':'')+f(SW,1)+' pt verso la coalizione';
 }
+/* ══════════ LA FORMA COMPATTA DELL'EMBED ══════════
+   Chi incorpora in un articolo vuole UNA FIGURA, non undici sezioni. La forma compatta
+   porta l'emiciclo — che dentro il suo viewBox ha già i tre totali di blocco, la linea
+   della maggioranza e la legenda: 175,9px a 380, il pezzo più denso della pagina — la riga
+   di sintesi, le quattro probabilità in forma corta e la firma con le due date.
+
+   MISURATO il 24 agosto 2026, componendo con i pezzi veri:
+
+     pezzo                    380      600
+     emiciclo               175,9    290,3
+     riga di sintesi         ~35      ~20
+     probabilità corte       44,9     34,2
+     firma + le due date       52       52
+     ─────────────────────────────────────
+     totale                  ≈313     ≈417
+
+   E DUE NUMERI CHE HANNO CAMBIATO IL PROGETTO.
+   · LE QUATTRO PROBABILITÀ IN FORMA PIENA COSTANO PIÙ DI TUTTO IL RESTO: 665,1px a 380,
+     contro i 460,8 di emiciclo più tendenza più firma. Il costo non è il numero, è la
+     descrizione — 36px per pastiglia. Ma la forma corta ESISTE GIÀ ed è #k-sprobs, che
+     rProbs() scrive dallo stesso array `items` nello stesso passaggio: 44,9px. Non serviva
+     nessuna leva e non serviva nessuna funzione nuova — serviva accorgersi che la strada
+     c'era.
+   · LA PROSA È L'UNICO PEZZO CHE CRESCE QUANDO LA COLONNA SI STRINGE: il verdetto passa da
+     306,8 a 485,7 andando da 600 a 380, mentre ogni altro pezzo si dimezza. In un riquadro
+     stretto la prosa è il materiale sbagliato, ed è controintuitivo perché sembra il più
+     leggero. Da qui la riga di sintesi CORTA e non il verdetto.
+
+   NIENTE COMANDI. Le leve cambiano numeri che il lettore di un articolo altrui non ha il
+   contesto per interpretare: un controfattuale senza la sua spiegazione è peggio di nessun
+   controfattuale. Resta il collegamento alla pagina intera, che la firma porta già. */
+var SINT_TIENI=['k-sintriga','k-emi','k-sprobs','k-firma','k-postvoto','k-mem','k-upd','k-fresh'];
+/* SI POTA, NON SI SPOSTA, ed è una scelta e non una comodità. Comporre la sintesi
+   spostando i pezzi in un contenitore nuovo li farebbe atterrare sotto selettori
+   discendenti che non conoscono: è la trappola di #k-evsel, l'unico elemento che si sposta
+   in tutto il file, che finendo dentro #k-crono si è preso `.crono b` e `.crono button`.
+   Qui nessun elemento cambia genitore. Si tiene la catena degli antenati dei pezzi
+   dichiarati e si toglie tutto il resto — una regola sola, che vale anche per i pezzi che
+   qualcuno aggiungerà. */
+function potaSintesi(){
+ var tieni=[],salvi=[];
+ SINT_TIENI.forEach(function(id){var e=$(id); if(e) tieni.push(e);});
+ tieni.forEach(function(e){ for(var p=e;p&&p!==R;p=p.parentNode) salvi.push(p); });
+ (function pota(n){
+  Array.prototype.slice.call(n.children).forEach(function(c){
+   if(tieni.indexOf(c)>=0) return;
+   if(salvi.indexOf(c)>=0){ pota(c); return; }
+   if(c.parentNode) c.parentNode.removeChild(c);
+  });
+ })(R);
+}
+/* LA RIDUZIONE NON HA UNA SOGLIA SCRITTA, e questa è la decisione che vale oltre il caso.
+   Scrivere «sotto i 320px si tolgono le probabilità» vorrebbe dire mettere in una costante
+   un numero che dipende da quanto sono alti oggi l'emiciclo, la firma e le due date — cioè
+   lo stesso errore del punto 7 dell'esportazione, dove le targhe erano calcolate su un
+   viewBox vecchio di due giorni. Qui si MISURA: si compone la forma A, si guarda se ci sta
+   nell'altezza che l'ospite ha dato al riquadro, e se non ci sta si tolgono le probabilità,
+   che è il pezzo più sacrificabile — l'emiciclo porta già i tre totali, la riga dice lo
+   stato, la firma è obbligatoria.
+   `window.innerHeight` dentro un iframe È l'altezza del riquadro: è un fatto, non una
+   stima, ed è la stessa grammatica del ramo sulla capacità invece che sull'identità.
+   NON LAMPEGGIA: la misura e la potatura stanno nello stesso compito sincrono del render,
+   e il browser non dipinge in mezzo — è l'argomento di FORZA_LARGO.
+   E SE NON CI STA NEMMENO C, non resta niente da togliere: il riquadro scorre al suo
+   interno come fa oggi, che è il comportamento dichiarato dell'embed. */
+function riduciSintesi(){
+ if(!SINTESI) return 'A';
+ var sp=$('k-sprobs'); if(!sp) return 'C';
+ var h=0;
+ try{ h=window.innerHeight||0; }catch(e){ h=0; }
+ if(!h) return 'A';
+ var alto=Math.ceil(document.documentElement.scrollHeight);
+ if(alto<=h) return 'A';
+ if(sp.parentNode) sp.parentNode.removeChild(sp);
+ return 'C';
+}
+/* La riga di sintesi: la stessa di document.title e di og:title. Si scrive sempre — anche
+   nella pagina intera, dove il foglio la tiene invisibile — così il giorno in cui compare
+   non è il giorno in cui viene scritta per la prima volta. */
+/* IL PUNTO IN CUI LA SINTESI DIVENTA SÉ STESSA, e sta fuori da render() apposta.
+   I render sono due — uno sul seme BASE mentre l'archivio arriva, uno sui dati veri — e la
+   potatura si fa dopo il secondo: potando dopo il primo la pagina resterebbe congelata sui
+   numeri del seme, perché il render successivo non troverebbe più gli elementi da riempire.
+   Dopo, nella forma compatta non c'è nessun comando che possa chiedere un render nuovo: è
+   la ragione per cui potare una volta sola è sicuro, e non una scommessa.
+   L'ordine conta: prima si pota, poi si misura per la riduzione, e solo alla fine si dice
+   all'ospite quanto siamo alti — un avviso mandato prima dichiarerebbe l'altezza di prima. */
+function finiSintesi(){
+ if(!SINTESI) return;
+ try{ potaSintesi(); riduciSintesi(); avvisaAltezza(); }catch(e){}
+}
+function rSintRiga(){
+ var e=$('k-sintriga'); if(!e) return;
+ e.textContent=fraseCorta(formaTitolo(blocchi(SEG)),votoPassato());
+}
+/* ══════════ LE CARD PER I SOCIAL, E LA CONDIVISIONE ══════════
+   Sono la stessa macchina del PNG, non un secondo motore: targaPNG() prende l'altezza come
+   parametro, e una card è la stessa targa con la tela imposta invece che ricavata.
+
+   ══ QUELLO CHE È MISURATO, E CHE HA DECISO LA FORMA ══
+   · I LINK DI INTENT NON ALLEGANO NIENTE. twitter.com/intent/tweet prende `text` e `url`,
+     facebook.com/sharer prende `u`, t.me/share prende `url` e `text`: non esiste nessun
+     parametro per un file. L'immagine che compare è quella che lo scraper trova in
+     og:image — che è la ragione per cui l'anteprima viene prima delle card, e per cui su
+     desktop la condivisione NON dipende da qui.
+   · navigator.share NON C'È su desktop. Misurato il 24 agosto 2026 con isSecureContext
+     vero: `share` e `canShare` sono tutti e due `undefined`. Non è un'API che rifiuta i
+     file — è un'API che non esiste, e il ramo di ripiego è il caso NORMALE, non il limite.
+   · INSTAGRAM non ha né l'una né l'altra: nessun link di condivisione, nessun caricamento
+     da web. Lì l'unica strada è scaricare la card e caricarla a mano, ed è la ragione per
+     cui l'indirizzo dev'essere DENTRO l'immagine.
+   · E IN GRIGLIA SU INSTAGRAM NON SI LEGGE NIENTE: una miniatura è larga 161px, cioè un
+     corpo da 30 rende 4,0px. L'indirizzo c'è lo stesso — serve a chi apre la card — ma
+     quello che identifica il modello in griglia è la FORMA dell'emiciclo coi tre colori,
+     non una parola.
+
+   ══ I QUATTRO FORMATI, E LA REGOLA SOLA ══
+   L'emiciclo è largo e piatto (386,7 × 217, rapporto 1,78), quindi nei formati larghi la
+   larghezza si esaurisce prima dell'altezza e non avanza niente; nel quadrato avanzano
+   286px e nel verticale 498. La regola è una: SI RIEMPIE LO SPAZIO CHE AVANZA CON I PEZZI
+   CHE ESISTONO GIÀ — la riga di sintesi e i tre totali di blocco, cioè gli stessi due
+   della forma compatta dell'embed. Quinto consumatore di fraseCorta(), non un testo nuovo.
+   E serve proprio dove non c'è un link: Instagram non ne ammette. */
+var CARD=[
+ {n:'x',        W:1200, H:675,  B:0, eti:'X'},
+ {n:'social',   W:1200, H:630,  B:0, eti:'Facebook e Telegram'},
+ {n:'quadrata', W:1080, H:1080, B:1, eti:'Instagram, quadrata'},
+ {n:'verticale',W:1080, H:1350, B:1, eti:'Instagram, verticale'}
+];
+/* L'INCHIOSTRO SI MISURA, non si scrive: getBBox() su un browser vero dà la scatola
+   dell'inchiostro, e da lì il disegno si centra. Dove non si può misurare — jsdom — si
+   ripiega sul viewBox, che è la scatola: la card esce un po' più alta di quanto serva, e
+   nessuno pubblica una card da jsdom. */
+function inchiostroSVG(svg,W,H){
+ try{ var b=svg.getBBox();
+  if(b&&b.width>0&&b.height>0) return {x:b.x,y:b.y,w:b.width,h:b.height}; }catch(e){}
+ return {x:0,y:0,w:W,h:H};
+}
+/* La card di un formato: la stessa composizione dell'esportazione, con la cornice imposta.
+   Restituisce il testo dell'SVG, come svgEsportabile(): si prova senza una tela. */
+function svgCard(nome){
+ var fo=null,i; for(i=0;i<CARD.length;i++) if(CARD[i].n===nome) fo=CARD[i];
+ if(!fo) return null;
+ var dis=PNG_DISEGNI['k-emi'];
+ var st=document.createElement('style');
+ st.textContent='#kn26 *{transition:none !important;animation:none !important}';
+ document.body.appendChild(st);
+ FORZA_LARGO=1;
+ var testo=null;
+ try{
+  ridisegna('k-emi');
+  var copia=svgPerPNG('k-emi');
+  if(copia){
+   var vb=String(copia.getAttribute('viewBox')||'').split(/\s+/);
+   var W=+vb[2]||0, H=+vb[3]||0;
+   var vero=$('k-emi').querySelector('svg');
+   copia.removeAttribute('id');
+   PNG_VERD=fo.B?Math.round(fo.H*0.13):0;
+   testo=targaPNG(dis,copia.innerHTML,W,H,vero,
+     {W:fo.W,H:fo.H,ink:inchiostroSVG(vero,W,H),B:fo.B});
+   PNG_VERD=0;
+  }
+ } finally {
+  FORZA_LARGO=0;
+  try{ridisegna('k-emi');}catch(e){}
+  if(st.parentNode) st.parentNode.removeChild(st);
+ }
+ return testo?{testo:testo,W:fo.W,H:fo.H,nome:'knesset2026-'+fo.n+'.png'}:null;
+}
+/* IL TESTO CHE ACCOMPAGNA LA CONDIVISIONE. `text` e `url` sono due parametri separati in
+   tutti e tre gli intent, quindi l'indirizzo NON va dentro la frase: ripetuto, comparirebbe
+   due volte nel messaggio pubblicato. Le grandezze sono quelle già calcolate — nessuna
+   strada nuova verso gli stessi numeri. */
+function testoCondivisione(){
+ var b=blocchi(SEG), g=ggCal(new Date(),VOTO);
+ return 'Proiezione dei 120 seggi della Knesset a '+f(g)+' giorni dal voto: '+
+  'blocco Netanyahu '+f(b.coalizione)+', opposizione '+f(b.opposizione)+
+  ', partiti arabi '+f(b.arabo)+'. Aggiornata ogni notte sui sondaggi pubblicati.';
+}
+/* IL COMANDO NON C'È DOVE L'API NON C'È, e non è prudenza: un comando che apre un foglio di
+   condivisione senza poter allegare l'immagine prometterebbe una cosa che non fa. Il ramo
+   guarda la CAPACITÀ — canShare({files}) con un file vero — non il nome del browser, ed è
+   la stessa grammatica di 'download' in a e di navigator.clipboard.
+   E NIENTE DENTRO L'EMBED, per la ragione già provata: in una sandbox senza
+   allow-downloads un <a download> non solleva niente e non fa niente. */
+function puoiCondividere(){
+ if(EMBED) return false;
+ try{
+  var nav=window.navigator;
+  if(!nav||!nav.share||!nav.canShare||typeof File!=='function') return false;
+  return nav.canShare({files:[new File([new Blob([''],{type:'image/png'})],'a.png',{type:'image/png'})]});
+ }catch(e){ return false; }
+}
+/* share() restituisce una promessa, quindi l'esito È CONOSCIBILE — come per la copia, e a
+   differenza dello scarico. Ma con una distinzione che l'esportazione non aveva:
+   ANNULLARE NON È UN ERRORE. Se il lettore chiude il foglio di condivisione la promessa
+   viene rifiutata con AbortError, e allora non si dice niente: dichiarare un fallimento
+   dove qualcuno ha semplicemente cambiato idea è dire il falso sul suo gesto. */
+function condividi(){
+ var c=svgCard('social');
+ if(!c){ rispostaCond('Non riuscita'); return; }
+ blobDaSVG(c.testo,c.W,c.H,1,function(err,blob){
+  if(err||!blob){ rispostaCond('Non riuscita'); return; }
+  var file;
+  try{ file=new File([blob],c.nome,{type:'image/png'}); }catch(e){ rispostaCond('Non riuscita'); return; }
+  window.navigator.share({files:[file],text:testoCondivisione(),url:CANONICO})
+   .then(function(){ rispostaCond('Condiviso'); },
+         function(e){ if(!e||e.name!=='AbortError') rispostaCond('Non riuscita'); });
+ });
+}
+function rispostaCond(testo){
+ var b=R.querySelector('button.cond'); if(!b) return;
+ if(b.dataset.orig===undefined) b.dataset.orig=b.textContent;
+ var orig=b.dataset.orig;
+ b.textContent=testo; b.classList.add('detto');
+ clearTimeout(b.__t);
+ b.__t=setTimeout(function(){ b.textContent=orig; b.classList.remove('detto'); },2600);
+}
+function montaCond(){
+ Array.prototype.forEach.call(R.querySelectorAll('button.cond'),function(b){
+  if(b.parentNode) b.parentNode.removeChild(b);});
+ if(!puoiCondividere()) return;
+ var box=$('k-emi'), sez=box&&box.closest?box.closest('section'):null;
+ var h2=sez?sez.querySelector('h2'):null;
+ if(!h2) return;
+ var eti='Condividi la proiezione dei 120 seggi come immagine';
+ h2.insertAdjacentHTML('beforeend','<button class="lnk cond" title="'+E(eti)+
+  '" aria-label="'+E(eti)+'">Condividi</button>');
+}
 /* ══════════ I PULSANTI DI COPIA DEI BLOCCHI DI CODICE ══════════
    Nascono come REGOLA e non come istanza: un ciclo su `pre.cod`, non due pulsanti scritti
    nel markup. Oggi i blocchi sono due — il codice dell'iframe e lo script dell'altezza,
@@ -3763,6 +4121,27 @@ function montaCopia(){
    della sezione, la data dell'ultima verifica e la firma; il piede porta la legenda per i
    disegni che ce l'hanno in HTML — l'emiciclo la porta dentro e non ne ha bisogno. */
 var PNG_TESTA=44, PNG_PIEDE=30;
+/* i margini laterali della cornice delle card e la fascia del verdetto della
+   composizione B: PNG_VERD vale 0 nei formati larghi, dove il verdetto non ci sta */
+var PNG_LATO=40, PNG_VERD=0;
+/* LE QUOTE DELLA TARGA STANNO IN UN POSTO SOLO, E SI SCALANO CON LA TELA.
+   Erano numeri assoluti sparsi nel codice della testata — x="16", y="19", font-size="11" —
+   e funzionavano perché nell'esportazione la tela COINCIDE con la larghezza del disegno.
+   È la coincidenza che nasconde il difetto, come l'house effect che era in ordine di blocco
+   per fortuna: sulla prima card la tela è diventata 1200 e le stesse costanti hanno prodotto
+   tre righe da 11px accatastate nell'angolo, con la data a x 414 invece che al bordo destro.
+   Adesso c'è una scala sola: 1 nell'esportazione, dove la tela è il disegno e i numeri di
+   oggi si ritrovano identici; CW/PNG_RIF in una card, dove la tela è più grande e la targa
+   deve crescere con lei. Il quinto formato che si aggiungerà non potrà riaprire il difetto,
+   perché non c'è nessun numero da dimenticare di aggiornare. */
+var PNG_RIF=430;
+var PNG_Q={lato:16, ySez:19, yTit:35, yFirma:51, fsSez:11, fsTit:15, fsMin:10.5, rigaFirma:16};
+function quoteTarga(CW,cornice){
+ var k=cornice?(CW/PNG_RIF):1, q={}, n;
+ for(n in PNG_Q) q[n]=PNG_Q[n]*k;
+ q.testa=PNG_TESTA*k; q.piede=PNG_PIEDE*k; q.k=k;
+ return q;
+}
 /* La pila della macchina che esporta, dichiarata e non incorporata: un carattere vero come
    data URI sono centinaia di KB e violerebbe la regola del file unico. Il PNG coincide con
    quello che vede chi lo esporta, non con quello che vedrebbe un altro — ed è scritto anche
@@ -3833,32 +4212,127 @@ function svgPerPNG(id){
 /* La targa. Il disegno entra come <svg> ANNIDATO, non come contenuto trasposto: così
    conserva il suo sistema di coordinate e la targa non deve sapere niente di lui — che è
    la sola forma in cui una cornice diversa non obbliga a rifare il disegno. */
-function targaPNG(dis,inner,W,H,sonda){
- var testa=PNG_TESTA, piede=dis.piede?PNG_PIEDE:0;
+/* LA TARGA È UNA SOLA, e l'altezza è un PARAMETRO invece che un risultato. Nell'
+   esportazione l'altezza si ricava dal disegno — testa + disegno + piede — mentre in una
+   card è IMPOSTA dal formato e il disegno si scala in quello che resta. Sono la stessa
+   targa vista dai due versi, e tenerne due sarebbe la strada doppia che diverge al primo
+   ritocco: un titolo spostato di due pixel nell'esportazione, e la card resta com'era.
+   Senza cornice si comporta esattamente come prima. Con cornice — {W,H,ink,B} — la
+   tela è quella dichiarata, le due fasce si ricavano in proporzione, e il disegno si
+   centra sul suo INCHIOSTRO, non sulla scatola: l'emiciclo ha 21,6 unità vuote a sinistra
+   e 21,7 a destra ma solo 0,4 sopra e 14,6 sotto, e incorniciare sulla scatola lo
+   lascerebbe alto dentro la cornice. */
+function targaPNG(dis,inner,W,H,sonda,cornice){
+ /* LA TELA VIENE PRIMA DI TUTTO, perché testata, piede e la decisione sulla firma si
+    collocano nel SUO sistema, non in quello del disegno. */
+ var CW=cornice?cornice.W:W;
+ var q=quoteTarga(CW,cornice);
+ /* «piede» ERA DUE COSE INSIEME: la bandiera «questo disegno ha una didascalia» e l'altezza
+    della fascia bassa. Nel ramo della cornice l'altezza sovrascriveva la bandiera, e la
+    targa dell'emiciclo — che è la A, senza didascalia — si metteva a scrivere quella degli
+    istogrammi: «la fascia chiara è l'intervallo… il triangolo è la stima puntuale», sopra
+    i seggi, a parlare di due cose che nell'emiciclo non esistono.
+    Due significati sulla stessa variabile è il difetto, non il valore: adesso sono due. */
+ var conPiede=!!dis.piede;
+ var testa=q.testa, piede=conPiede?q.piede:0;
+ /* DUE TESTI SU UNA RIGA CHE NON SI CONOSCONO. Il titolo sta a sinistra e la firma a
+    destra, e nessuno dei due sapeva quanto occupasse l'altro: è la stessa famiglia della
+    riga dell'evento tagliata a 150 caratteri — un numero di caratteri non è una larghezza,
+    e qui non c'era nemmeno il taglio.
+    Misurato il 24 agosto 2026, titolo + firma contro lo spazio disponibile, in unità di
+    viewBox: emiciclo 430,9 su 398 — SOVRAPPONE di 32,9 — istogrammi 386,9 e 404,8 su 428,
+    tendenza 459,8 su 868. Cioè si rompeva uno solo, e gli altri due lo mancavano per 41 e
+    23 unità: erano a un titolo più lungo dal romperlo.
+    Quindi la regola è DELLA TARGA e non dell'emiciclo: si misura, e se i due non ci stanno
+    la firma scende su una riga sua. Non si accorcia né la firma né il titolo — sono le due
+    cose per cui la targa esiste: l'attribuzione e il nome del disegno.
+    Dove non si può misurare — jsdom, che non fa layout — largoA() restituisce 0, la somma
+    è 0 e la firma resta in riga: è il comportamento di prima, cioè non si cambia niente su
+    una misura che non si ha. */
+ var eFirma=E(FIRMA_N)+' · '+E(CANONICO.replace(/^https?:\/\//,'').replace(/\/$/,''));
+ /* DOVE LA SONDA NON C'È SI STIMA PER ECCESSO, e non si rinuncia a decidere. La prima
+    stesura diceva «non si decide su una misura che non si ha», e nel browser era giusto —
+    ma IL LAVORO NOTTURNO NON HA UNA SONDA, perché jsdom non fa layout: là largoA()
+    restituisce 0, la somma è 0, e la firma restava sulla riga del titolo sovrapponendocisi.
+    Misurato sulla prima card resa: «Daniele Angrisani · angrisanidj.github.io/…» scritto
+    sopra «Proiezione dei 120 seggi».
+    La stima è 0,55 corpi per carattere — 0,60 per il grassetto — cioè più larga di
+    qualunque pila reale: sovrastimare fa scendere la firma un po' prima del necessario e
+    costa una riga, sottostimare la fa sovrapporre. È lo stesso argomento di ETIW
+    nell'etichetta dei 61, dove il 12 sta il 17% sopra la famiglia più larga misurata. */
+ /* I due rapporti sono MISURATI e poi arrotondati per eccesso: sulla pila del foglio la
+    firma sta a 0,432 corpi per carattere e il titolo in grassetto fra 0,478 e 0,533. Si
+    usano 0,48 e 0,56 — sopra il misurato, ma non tanto da far scendere la firma dove la
+    misura vera non la fa: con 0,55 e 0,60 gli istogrammi la mandavano sotto mentre nel
+    browser resta in riga, cioè la stima diceva una cosa diversa dalla misura sullo stesso
+    disegno. Sovrastimare va bene, sovrastimare tanto da cambiare la decisione no. */
+ var stimaL=function(t,fs,gr){ return String(t).length*fs*(gr?0.56:0.48); };
+ var tFirma=FIRMA_N+' · '+CANONICO.replace(/^https?:\/\//,'').replace(/\/$/,'');
+ var wTit=largoA(dis.tit,q.fsTit,700,sonda)||stimaL(dis.tit,q.fsTit,1);
+ var wFir=largoA(tFirma,q.fsMin,null,sonda)||stimaL(tFirma,q.fsMin,0);
+ /* IL CONFRONTO È CONTRO LA TELA, non contro il disegno: misurato contro W una card larga
+    1200 decideva sui 398 del disegno e mandava la firma sotto dove ci stava comodamente. */
+ var firmaSotto=(wTit+wFir)>(CW-2*q.lato);
+ if(firmaSotto) testa+=q.rigaFirma;
  /* la riga dell'evento allunga il piede invece di stringere il disegno: PH non si tocca,
     che è la regola delle fasce degli istogrammi applicata alla targa. */
  var evr=(dis.tit==='Il modello giorno per giorno')?rigaEventoPNG():'';
  if(evr) piede+=PNG_PIEDE;
- var HT=testa+H+piede;
+ var HT=testa+H+piede, sx=0, sy=testa, sk=1;
+ if(cornice){
+  /* le due fasce in proporzione all'altezza imposta: 15,2% sopra e 6,4% sotto, che sono
+     le stesse quote della cornice dell'anteprima Open Graph misurate a 1200×630 */
+  HT=cornice.H;
+  var ink=cornice.ink||{x:0,y:0,w:W,h:H};
+  var dW=CW-2*PNG_LATO, dH=HT-testa-piede-(cornice.B?PNG_VERD:0);
+  sk=Math.min(dW/ink.w, dH/ink.h);
+  sx=(CW-ink.w*sk)/2-ink.x*sk;
+  sy=testa+(dH-ink.h*sk)/2-ink.y*sk;
+ }
  var fondo=C.paper||'#FFFFFF';
- var s='<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 '+W+' '+HT+'" '+
-   'width="'+W+'" height="'+HT+'" font-family="'+E(PNG_FONT)+'">';
- s+='<rect width="'+W+'" height="'+HT+'" fill="'+fondo+'"/>';
+ var s='<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 '+CW+' '+HT+'" '+
+   'width="'+CW+'" height="'+HT+'" font-family="'+E(PNG_FONT)+'">';
+ s+='<rect width="'+CW+'" height="'+HT+'" fill="'+fondo+'"/>';
  /* testata: la sezione, il titolo del disegno, e a destra la data dell'ultima verifica */
- s+='<text x="16" y="19" font-size="11" font-weight="700" fill="'+C.mute+'" '+
-    'letter-spacing="1.1">'+E(dis.sez.toUpperCase())+'</text>';
- s+='<text x="16" y="35" font-size="15" font-weight="700" fill="'+C.ink+'">'+E(dis.tit)+'</text>';
- s+='<text x="'+(W-16)+'" y="19" text-anchor="end" font-size="10.5" fill="'+C.mute+'">'+
-    E(dataPNG())+'</text>';
+ s+='<text x="'+q.lato.toFixed(1)+'" y="'+q.ySez.toFixed(1)+'" font-size="'+q.fsSez.toFixed(2)+
+    '" font-weight="700" fill="'+C.mute+'" letter-spacing="'+(1.1*q.k).toFixed(2)+'">'+
+    E(dis.sez.toUpperCase())+'</text>';
+ s+='<text x="'+q.lato.toFixed(1)+'" y="'+q.yTit.toFixed(1)+'" font-size="'+q.fsTit.toFixed(2)+
+    '" font-weight="700" fill="'+C.ink+'">'+E(dis.tit)+'</text>';
+ s+='<text x="'+(CW-q.lato).toFixed(1)+'" y="'+q.ySez.toFixed(1)+'" text-anchor="end" font-size="'+
+    q.fsMin.toFixed(2)+'" fill="'+C.mute+'">'+E(dataPNG())+'</text>';
  /* la firma è la stessa costante della pagina, e l'indirizzo con lei: un PNG che gira senza
     la pagina attorno è il caso in cui l'attribuzione conta di più, non di meno */
- s+='<text x="'+(W-16)+'" y="35" text-anchor="end" font-size="10.5" fill="'+C.mute+'">'+
-    E(FIRMA_N)+' · '+E(CANONICO.replace(/^https?:\/\//,'').replace(/\/$/,''))+'</text>';
- s+='<svg x="0" y="'+testa+'" width="'+W+'" height="'+H+'">'+inner+'</svg>';
- if(piede) s+='<text x="16" y="'+(testa+H+19)+'" font-size="10.5" fill="'+C.mute+'">'+
-    E(piedePNG(dis))+'</text>';
- if(evr) s+='<text x="16" y="'+(testa+H+19+PNG_PIEDE)+'" font-size="11" fill="'+C.ink2+'">'+
-    E(tagliaA(evr,11,W-32,sonda))+'</text>';
+ s+=firmaSotto
+   ? '<text x="'+q.lato.toFixed(1)+'" y="'+q.yFirma.toFixed(1)+'" font-size="'+q.fsMin.toFixed(2)+
+     '" fill="'+C.mute+'">'+eFirma+'</text>'
+   : '<text x="'+(CW-q.lato).toFixed(1)+'" y="'+q.yTit.toFixed(1)+'" text-anchor="end" font-size="'+
+     q.fsMin.toFixed(2)+'" fill="'+C.mute+'">'+eFirma+'</text>';
+ s+=cornice
+   ? '<g transform="translate('+sx.toFixed(2)+','+sy.toFixed(2)+') scale('+sk.toFixed(4)+')">'+inner+'</g>'
+   : '<svg x="0" y="'+testa+'" width="'+W+'" height="'+H+'">'+inner+'</svg>';
+ /* LA COMPOSIZIONE B: dove avanza spazio si mettono i pezzi che esistono già — la riga di
+    sintesi e le quattro probabilità corte, cioè gli stessi due della forma compatta
+    dell'embed. È il quinto consumatore di fraseCorta() e il terzo di quelle probabilità:
+    non un testo nuovo, che sarebbe la strada che diverge.
+    Serve dove non c'è un link — Instagram non ne ammette — e infatti sono i due formati
+    che avanzano spazio: 286px il quadrato, 498 il verticale. */
+ if(cornice&&cornice.B){
+  var yB=HT-piede-PNG_VERD+Math.round(HT*0.03);
+  s+='<text x="'+PNG_LATO+'" y="'+yB+'" font-size="'+Math.round(HT*0.032)+'" font-weight="700" fill="'+C.ink+'">'+
+     E(tagliaA(fraseCorta(formaTitolo(blocchi(SEG)),votoPassato()),Math.round(HT*0.032),CW-2*PNG_LATO,sonda))+'</text>';
+  var b=blocchi(SEG), voci=[['Netanyahu',b.coalizione,C.coal],['opposizione',b.opposizione,C.oppo],['arabi',b.arabo,C.arab]];
+  var x=PNG_LATO, fsv=Math.round(HT*0.026);
+  voci.forEach(function(v){
+   s+='<text x="'+x+'" y="'+(yB+Math.round(HT*0.042))+'" font-size="'+fsv+'" fill="'+v[2]+'">'+
+      E(v[0]+' '+f(v[1]))+'</text>';
+   x+=Math.round(CW*0.30);
+  });
+ }
+ if(conPiede) s+='<text x="'+q.lato.toFixed(1)+'" y="'+(testa+H+q.ySez).toFixed(1)+'" font-size="'+
+    q.fsMin.toFixed(2)+'" fill="'+C.mute+'">'+E(piedePNG(dis))+'</text>';
+ if(evr) s+='<text x="'+q.lato.toFixed(1)+'" y="'+(testa+H+q.ySez+q.piede).toFixed(1)+'" font-size="'+
+    q.fsSez.toFixed(2)+'" fill="'+C.ink2+'">'+E(tagliaA(evr,q.fsSez,CW-2*q.lato,sonda))+'</text>';
  return s+'</svg>';
 }
 /* La data che la targa scrive è quella dell'ULTIMA VERIFICA RIUSCITA, non quella
@@ -3905,6 +4379,24 @@ function rigaEventoPNG(){
    Si misura con una sonda dentro l'SVG vero, dove il carattere è quello che il PNG userà, e
    si taglia all'ULTIMO SPAZIO che ci sta: una parola intera in meno è meglio di una parola
    spezzata, e i puntini dicono che manca qualcosa. */
+/* LA SONDA, che adesso serve a due cose. Misura la larghezza VERA di un testo montando un
+   <text> dentro l'SVG: un carattere non è una larghezza, e la pila del foglio non è quella
+   della macchina che esporta. Restituisce 0 dove non si può misurare — in jsdom, che non fa
+   layout — e chi la chiama deve trattare lo zero come «non lo so», non come «è vuoto».
+   Il peso conta: il titolo della targa è a 700, la firma a 400, e a parità di corpo la
+   differenza è del 6-8%. Misurarli con lo stesso peso avrebbe dato un margine falso. */
+function largoA(testo,fs,peso,svg){
+ if(!svg||!svg.ownerDocument) return 0;
+ var t=svg.ownerDocument.createElementNS('http://www.w3.org/2000/svg','text');
+ t.setAttribute('font-size',fs); t.setAttribute('font-family',PNG_FONT);
+ if(peso) t.setAttribute('font-weight',peso);
+ t.setAttribute('visibility','hidden');
+ svg.appendChild(t);
+ t.textContent=testo;
+ var w=0; try{ w=t.getBBox().width; }catch(e){ w=0; }
+ if(t.parentNode) t.parentNode.removeChild(t);
+ return w;
+}
 function tagliaA(testo,fs,max,svg){
  if(!svg||!svg.ownerDocument) return testo;
  var t=svg.ownerDocument.createElementNS('http://www.w3.org/2000/svg','text');
@@ -3965,7 +4457,12 @@ function consegnaPNG(blob,nome,poi){
  try{ a.click(); } finally { if(a.parentNode) a.parentNode.removeChild(a); libera(); }
  poi(null,'tentata');
 }
-function pngDaSVG(testo,W,H,K,nome,poi){
+/* PRODURRE L IMMAGINE E CONSEGNARLA SONO DUE COSE, e si sono separate quando è arrivata
+   la condivisione: quella non scarica niente, le serve il BLOB da allegare. Tenere una
+   funzione sola avrebbe voluto dire scriverne una seconda che rifà la rasterizzazione — la
+   strada doppia di sempre, su cinquanta righe di tela e ripieghi.
+   blobDaSVG produce, pngDaSVG consegna quello che blobDaSVG ha prodotto. */
+function blobDaSVG(testo,W,H,K,poi){
  var b=new Blob([testo],{type:'image/svg+xml;charset=utf-8'});
  var url=URL.createObjectURL(b), img=new Image();
  img.onload=function(){
@@ -3981,14 +4478,20 @@ function pngDaSVG(testo,W,H,K,nome,poi){
       dal data URI, che è la strada di prima. */
    if(cv.toBlob) cv.toBlob(function(bl){
      if(!bl){ poi(new Error('la tela non ha prodotto nessuna immagine')); return; }
-     consegnaPNG(bl,nome,poi);
+     poi(null,bl);
    },'image/png');
-   else consegnaPNG(datiInBlob(cv.toDataURL('image/png')),nome,poi);
+   else poi(null,datiInBlob(cv.toDataURL('image/png')));
   }catch(e){ poi(e); }
   finally{ URL.revokeObjectURL(url); }
  };
  img.onerror=function(){ URL.revokeObjectURL(url); poi(new Error('il disegno non si è caricato')); };
  img.src=url;
+}
+function pngDaSVG(testo,W,H,K,nome,poi){
+ blobDaSVG(testo,W,H,K,function(err,blob){
+  if(err||!blob){ poi(err||new Error('nessuna immagine')); return; }
+  consegnaPNG(blob,nome,poi);
+ });
 }
 /* il ripiego di toBlob: un data URI ridiventa un blob senza passare da fetch, che qui
    sarebbe una chiamata di rete in un file che dichiara di non farne */
@@ -6541,6 +7044,8 @@ function renderInterno(){
  var i2=istogramma(MC.oppz,C.oppo,'k-hist2','Distribuzione opposizione',blocchi(SEG).opposizione);
  montaPNG();
  montaCopia();
+ montaCond();
+ rSintRiga();
  var bb=blocchi(SEG);
  $('k-cap1').innerHTML='Ogni barra è un possibile risultato, alta quanto è frequente nelle '+f(SIM)+' simulazioni. '+
   'Il blocco Netanyahu supera quota 61 nel <b>'+pc(MC.vC/MC.n)+'</b> dei casi: sono le barre in tinta piena. '+
@@ -6549,7 +7054,7 @@ function renderInterno(){
   pc(MC.vO/MC.n)+'</b> delle simulazioni, con esito più frequente <b>'+f(i2.moda)+' seggi</b> e stima puntuale '+f(bb.opposizione)+'. '+
   'Stima puntuale e risultato più frequente non coincidono sempre, perché la soglia di sbarramento e il riparto d\'Hondt '+
   'trasformano i voti in seggi a scatti, non con continuità.';
- mostraAff();rSwAnc();rSwNota();rDiag();rMemoria();rFirma();avvisaAltezza();rSommario();rAnalisi();rDirezione();rProj();rEmi();rVeti();rCoal();rPower();rChips();rApp();rHouse();rTrend();rCrono();rCalendario();rTab();rFoot();
+ mostraAff();rSwAnc();rSwNota();rDiag();rMemoria();rFirma();rSommario();rAnalisi();rDirezione();rProj();rEmi();rVeti();rCoal();rPower();rChips();rApp();rHouse();rTrend();rCrono();rCalendario();rTab();rFoot();avvisaAltezza();
 }
 
 /* ══════════ PARSER DELLA TABELLA WIKIPEDIA ══════════
@@ -7156,6 +7661,10 @@ R.addEventListener('click',function(e){
 /* La copia dei blocchi di codice. Delegato come tutto il resto. Il testo si prende con
    textContent dal `pre`, non da quello che si vede: il blocco va a capo per stare nella
    colonna, e gli a-capo della resa non sono nel codice. */
+/* Il comando della condivisione. Delegato come tutto il resto. */
+R.addEventListener('click',function(e){
+ if(e.target&&e.target.closest&&e.target.closest('button.cond')) condividi();
+});
 R.addEventListener('click',function(e){
  var b=e.target&&e.target.closest&&e.target.closest('button.cpy');
  if(!b) return;
@@ -7284,8 +7793,22 @@ function costruisciIndice(){
  Array.prototype.forEach.call(secs,function(s,i){
   var h2=s.querySelector('h2'); if(!h2) return;
   if(!s.id) s.id='sez-'+(i+1);
-  var tit=(h2.textContent||'').split('\n')[0].trim();
-  var em=h2.querySelector('em'); if(em) tit=tit.replace((em.textContent||'').trim(),'').trim();
+  /* IL TITOLO È IL TESTO CHE L'h2 CONTIENE DIRETTAMENTE, non quello dei suoi figli.
+     Prima si prendeva textContent intero e si SOTTRAEVA la stringa dell'<em> — cioè
+     un'esclusione per nome, e ha presentato il conto il 24 agosto 2026: montando i comandi
+     dell'esportazione e della condivisione dentro gli h2, l'indice ha cominciato a dire
+     «La prossima Knesset Scarica PNG» e «Scarica PNGCondividi» — due textContent adiacenti
+     concatenati senza spazio. Togliere anche quelle due stringhe sarebbe stata la stessa
+     riparazione, e il comando successivo sarebbe ricomparso.
+     La regola invece è strutturale: il titolo lo scrive l'autore come TESTO dell'h2, e
+     tutto quello che là dentro è un ELEMENTO — l'<em> del sottotitolo, i pulsanti, e quello
+     che qualcuno monterà domani — non ne fa parte.
+     E non era cosmetico: questa stringa è anche il nome accessibile del collegamento
+     dell'indice, quindi un lettore di schermo diceva «La prossima Knesset Scarica PNG
+     Condividi, collegamento». */
+  var tit='';
+  Array.prototype.forEach.call(h2.childNodes,function(n){ if(n.nodeType===3) tit+=n.textContent; });
+  tit=tit.replace(/\s+/g,' ').trim();
   out+='<a href="#'+s.id+'" data-s="'+s.id+'"><i>'+(i+1)+'</i>'+E(tit)+'</a>';
  });
  nav.innerHTML=out;
@@ -7488,7 +8011,7 @@ setTimeout(function(){costruisciIndice();animaSezioni();},60);
    pagina già disegnata vorrebbe dire mostrarlo per un istante a chi ha incorporato, e
    quello che l'embed non offre non deve nemmeno lampeggiare. */
 applicaEmbed();
-carica().then(render,render)['catch'](function(e){
+carica().then(render,render).then(finiSintesi,finiSintesi)['catch'](function(e){
  bootErr((e&&e.message)||e,'il recupero dell\'archivio salvato');
 });
 /* se dopo tre secondi non è partito nulla, il problema è a monte dello script */

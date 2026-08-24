@@ -248,7 +248,13 @@ setTimeout(function(){
      proiezione. Era la seconda metà dello stesso difetto, e la sua chiusura porta la
      dodicesima chiamata — l'unica che gira su tutto l'archivio, e infatti l'«oggi» è
      issato fuori dal filtro. */
-  esito(usi.length === 12,
+  /* Da dodici a TREDICI il 24 agosto 2026: il testo che accompagna la condivisione porta i
+     giorni al voto, e quello è un conto di giorni di CALENDARIO come il conto alla
+     rovescia della testata — non un altro genere di grandezza. È l'attesa che si aggiorna
+     perché la cosa contata è cresciuta, non perché la regola sia cambiata: la regola resta
+     che ogni data passata a ggCal dev'essere un istante con un significato locale, e
+     new Date() lo è. */
+  esito(usi.length === 13,
     'ggCal è usata nei punti che contano giorni di calendario, e in nessun altro',
     usi.length + ' occorrenze, definizione compresa: ' + usi.join(' · '));
   esito(/function ggOggi\(\)\{return Math\.max\(0,ggCal\(new Date\(\),VOTO\)\);\}/.test(app),

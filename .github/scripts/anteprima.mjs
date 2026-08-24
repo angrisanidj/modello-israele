@@ -1,0 +1,218 @@
+/* L'IMMAGINE OPEN GRAPH: l'emiciclo rasterizzato, per chi condivide il link.
+ *
+ * PERCHÉ ESISTE. Le meta testuali dicono che cos'è la pagina; l'immagine è quello che si
+ * vede, ed è la prima cosa — spesso l'unica — che un lettore incontra quando qualcuno
+ * condivide l'indirizzo. E non dipende dalle card social: i link di condivisione di X,
+ * Facebook e Telegram NON allegano un file, passano testo e indirizzo, e l'immagine che
+ * compare è quella che lo scraper trova qui.
+ *
+ * PERCHÉ L'EMICICLO E NON LA BANDIERA. La bandiera è l'immagine del paese, non del modello,
+ * e in un'anteprima si legge come una presa di posizione. L'emiciclo dice «proiezione
+ * parlamentare» e porta il numero che conta: dentro il suo viewBox ci sono già
+ * «MAGGIORANZA 61» e i tre totali di blocco.
+ *
+ * ══ IL CARATTERE, E LA SCELTA CHE NON ERA QUELLA CHE SEMBRAVA ══
+ * In CI il carattere non è la pila della pagina: non c'è un browser, non ci sono i font di
+ * sistema, e il PNG che si pubblica è lo stesso per tutti — quindi la macchina non impone
+ * niente, sceglie il codice. Misurato il 24 agosto 2026:
+ *   · resvg IGNORA un @font-face con data URI dentro l'SVG. Provato con un controllo che sa
+ *     fallire: la resa con e senza il font incorporato è identica byte per byte;
+ *   · resvg ignora anche woff e woff2 passati come file;
+ *   · resvg USA un TTF passato a `fontFiles`. Stesso controllo, esito opposto: la resa
+ *     cambia.
+ * Da cui una conseguenza che vale la pena dire: il carattere non entra mai nell'SVG, e non
+ * entrerebbe comunque nel file servito, che riceve solo pixel. LA REGOLA DEL FILE UNICO NON
+ * MORDE: index.html guadagna una riga di meta e basta. I due TTF stanno in .github/font/,
+ * sono attrezzi di costruzione, e nessun lettore li scarica.
+ *
+ * E I NUMERI GRANDI VANNO NELLA SANS, non in un serif sostitutivo. In pagina sono
+ * `Georgia,serif`, ma Georgia è un font Microsoft e non si può spedire in un repository
+ * pubblico: la scelta non era fra Georgia e un altro serif — era fra UN SOSTITUTO E LA
+ * COERENZA. Un serif «vicino a Georgia» somiglia senza esserlo, e la differenza si nota
+ * solo nei casi in cui stona. Un'anteprima coerente con sé stessa e diversa in modo
+ * dichiarato vale più di una quasi-uguale.
+ *
+ * ══ LA TAVOLOZZA, CHE VIENE PRIMA DEL RASTERIZZATORE ══
+ * leggiTema() legge le variabili CSS con getComputedStyle, e qui non c'è un motore di
+ * stile: cade su C_FALL_T. Fino al 24 agosto 2026 quella era una TERZA tavolozza — 14
+ * valori su 16 divergenti, --oppo di un'altra tinta — e questa immagine sarebbe uscita in
+ * colori che nessun lettore vede. Adesso i valori sono quelli veri e test/struttura.mjs li
+ * lega alle variabili del foglio.
+ * E IL FONDO DELLA TARGA È LO STESSO TEMA DELL'SVG, non una scelta a parte: con la targa
+ * scura e la tavolozza chiara «MAGGIORANZA 61» usciva nero su nero. È la stessa lezione del
+ * fillRect col fondo del tema nell'esportazione PNG — il fondo e i colori sono una
+ * decisione sola.
+ */
+import {readFileSync, writeFileSync, existsSync} from 'node:fs';
+import {dirname, join} from 'node:path';
+import {fileURLToPath} from 'node:url';
+import {JSDOM} from 'jsdom';
+import {Resvg} from '@resvg/resvg-js';
+
+const QUI = dirname(fileURLToPath(import.meta.url));
+const RADICE = join(QUI, '..', '..');
+const FONT = [join(QUI, '..', 'font', 'Inter_400Regular.ttf'),
+              join(QUI, '..', 'font', 'Inter_600SemiBold.ttf')];
+export const USCITA = join(RADICE, 'dati', 'anteprima.png');
+
+/* 1200×630 è lo standard delle anteprime. La testata e il piede sono margini della tela,
+   non del disegno: il disegno si scala in quello che resta, e non paga la cornice coi dati.
+   È la stessa scelta delle due fasce degli istogrammi. */
+export const W = 1200, H = 630, TESTA = 96, PIEDE = 40, LATO = 40;
+
+/* L'INCHIOSTRO, MISURATO E NON IL viewBox. L'emiciclo occupa 386,7 × 217 dentro un viewBox
+   da 430 × 232: è GIÀ centrato in orizzontale (21,6 unità vuote a sinistra e 21,7 a destra)
+   e NON lo è in verticale (0,4 sopra, 14,6 sotto). Incorniciare sulla scatola invece che
+   sull'inchiostro lascerebbe il disegno alto di sette unità dentro la cornice.
+   I numeri si LEGGONO dal disegno reso, come per l'esportazione: scriverli qui sarebbe la
+   costante che invecchia al primo cambio di geometria. */
+export function inchiostro(svg, W2, H2){
+ /* jsdom non fa layout, quindi getBBox() non c'è: l'inchiostro si ricava dai cerchi e dai
+    testi, che è quello che l'emiciclo contiene. Il margine dei testi si stima dal corpo,
+    perché la larghezza di una stringa qui non è misurabile — ed è una stima PER ECCESSO,
+    che al massimo lascia un filo di aria in più. */
+ let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
+ for (const c of svg.querySelectorAll('circle')) {
+  const x = +c.getAttribute('cx'), y = +c.getAttribute('cy'), r = +c.getAttribute('r');
+  x0 = Math.min(x0, x - r); x1 = Math.max(x1, x + r);
+  y0 = Math.min(y0, y - r); y1 = Math.max(y1, y + r);
+ }
+ for (const t of svg.querySelectorAll('text')) {
+  const fs = +(t.getAttribute('font-size') || 10);
+  const x = +(t.getAttribute('x') || 0), y = +(t.getAttribute('y') || 0);
+  const mezza = 0.62 * fs * (t.textContent || '').length / 2;
+  x0 = Math.min(x0, x - mezza); x1 = Math.max(x1, x + mezza);
+  y0 = Math.min(y0, y - fs); y1 = Math.max(y1, y + 0.25 * fs);
+ }
+ for (const l of svg.querySelectorAll('line')) {
+  for (const [a, b] of [['x1','y1'], ['x2','y2']]) {
+   const x = +l.getAttribute(a), y = +l.getAttribute(b);
+   x0 = Math.min(x0, x); x1 = Math.max(x1, x); y0 = Math.min(y0, y); y1 = Math.max(y1, y);
+  }
+ }
+ x0 = Math.max(0, x0); y0 = Math.max(0, y0);
+ x1 = Math.min(W2, x1); y1 = Math.min(H2, y1);
+ return {x: x0, y: y0, w: x1 - x0, h: y1 - y0};
+}
+
+/* Compone la targa attorno al disegno. Pura: entra l'SVG dell'emiciclo e i dati della
+   testata, esce il testo dell'SVG da rasterizzare. Si prova senza rasterizzatore. */
+export function targa(interno, ink, vb, testata, piede, col){
+ const dispW = W - 2 * LATO, dispH = H - TESTA - PIEDE;
+ const k = Math.min(dispW / ink.w, dispH / ink.h);
+ const ox = (W - ink.w * k) / 2 - ink.x * k;
+ const oy = TESTA + (dispH - ink.h * k) / 2 - ink.y * k;
+ const E = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+ return '<svg xmlns="http://www.w3.org/2000/svg" width="' + W + '" height="' + H +
+  '" viewBox="0 0 ' + W + ' ' + H + '" font-family="Inter">' +
+  '<rect width="' + W + '" height="' + H + '" fill="' + col.paper + '"/>' +
+  '<text x="' + LATO + '" y="56" font-size="30" font-weight="600" fill="' + col.ink + '">' +
+    E(testata) + '</text>' +
+  '<text x="' + LATO + '" y="' + (H - 24) + '" font-size="18" fill="' + col.mute + '">' +
+    E(piede) + '</text>' +
+  '<g transform="translate(' + ox.toFixed(2) + ',' + oy.toFixed(2) + ') scale(' + k.toFixed(4) + ')">' +
+  interno + '</g></svg>';
+}
+
+/* LE DUE GUARDIE, e la seconda è quella che conta.
+   La prima coglie il rasterizzatore che restituisce un buffer vuoto. La seconda coglie il
+   caso che la prima non vede: UN PNG GRANDE E TUTTO DI UN COLORE, che è esattamente quello
+   che produce un rasterizzatore che non trova i font o sbaglia il viewBox. Si campionano i
+   pixel e si contano i colori distinti — la stessa misura usata per l'esportazione, dove
+   1.481 campioni davano 76 colori. */
+export function guarda(png, pixel){
+ if (!png || png.length < 8 * 1024) return 'il PNG è vuoto o troppo piccolo: ' + (png ? png.length : 0) + ' byte';
+ const colori = new Set();
+ for (let i = 0; i < pixel.length; i += 4 * 997) colori.add(pixel[i] + ',' + pixel[i+1] + ',' + pixel[i+2]);
+ if (colori.size < 4) return 'la tela è uniforme: ' + colori.size + ' colori distinti, il disegno non c\'è';
+ return null;
+}
+
+export async function componi(){
+ const html = readFileSync(join(RADICE, 'index.html'), 'utf8');
+ const app = html.match(/<script>([\s\S]*)<\/script>/)[1];
+ const dom = new JSDOM('<!doctype html><html><body><div id="kn26"></div></body></html>',
+   {pretendToBeVisual: true, url: 'https://angrisanidj.github.io/modello-israele/'});
+ const W2 = dom.window, D = W2.document;
+ global.DOMParser = W2.DOMParser;
+ D.body.innerHTML = html.replace(/<script>[\s\S]*?<\/script>/g, '')
+   .match(/<body[^>]*>([\s\S]*)<\/body>/)[1];
+ global.document = D; global.window = W2;
+ W2.matchMedia = () => ({matches: false, addEventListener(){}, addListener(){}});
+ W2.IntersectionObserver = class { observe(){} unobserve(){} };
+ global.IntersectionObserver = W2.IntersectionObserver;
+ W2.requestAnimationFrame = f => f();
+ W2.Element.prototype.scrollIntoView = function(){};
+ Object.defineProperty(W2, 'localStorage', {configurable: true,
+   value: {getItem: () => null, setItem(){}, removeItem(){}}});
+ global.getComputedStyle = () => ({getPropertyValue: () => '', opacity: '1'});
+ global.Blob = function(){};
+ global.URL = {createObjectURL(){ return ''; }, revokeObjectURL(){}};
+ global.FileReader = function(){};
+ /* l'archivio si legge dal disco, non dalla rete: il job lo ha appena aggiornato, ed è
+    quello che l'immagine deve mostrare */
+ const arch = JSON.parse(readFileSync(join(RADICE, 'dati', 'archivio.json'), 'utf8'));
+ global.fetch = () => Promise.resolve({ok: true, json: () => Promise.resolve(arch)});
+
+ const spia = {};
+ eval(app.replace('carica().then(render,render)',
+   'Object.assign(spia,{C:C,SEG:SEG,dl:dl,SOND:SOND,applicaTema:applicaTema});carica().then(render,render)'));
+ /* IL TEMA SI SCEGLIE, NON SI EREDITA. Senza questa riga l'anteprima usciva in chiaro lo
+    stesso — ma per il default di matchMedia in jsdom, cioè per caso, e un giorno un banco
+    diverso l'avrebbe fatta uscire scura senza che nessuno l'avesse deciso.
+    CHIARO, e la ragione non è che sia il tema giusto: le anteprime compaiono dentro le
+    interfacce dei social, che sono chiare o scure a seconda dell'app e dell'ora, quindi un
+    tema giusto non esiste. Il chiaro regge meglio su fondo bianco, che è il caso più
+    frequente — e soprattutto una scelta dichiarata vale più di un default di jsdom. */
+ try{ spia.applicaTema('chiaro'); }catch(e){}
+ await new Promise(r => setTimeout(r, 0));
+ Object.assign(spia, {});
+
+ const svg = D.querySelector('#k-emi svg');
+ if (!svg) throw new Error('l\'emiciclo non è stato reso');
+ const vb = String(svg.getAttribute('viewBox') || '').split(/\s+/).map(Number);
+ const ink = inchiostro(svg, vb[2], vb[3]);
+ const interno = svg.innerHTML;
+ /* la data dell'ultimo sondaggio, presa dall'archivio: un'anteprima senza data invecchia in
+    silenzio, ed è la stessa ragione per cui #k-upd esiste */
+ const ultima = arch.map(s => s.data).filter(Boolean).sort().pop();
+ const col = spia.C || {};
+ return targa(interno, ink, vb,
+   'Knesset 2026 · proiezione dei 120 seggi',
+   /* la data si formatta con dl(), la stessa funzione della pagina: scriverne il formato
+      qui sarebbe la seconda strada che dice «2026-08-20» dove la pagina dice «20 agosto
+      2026», e divergerebbe il giorno in cui una delle due cambia */
+   'Daniele Angrisani · angrisanidj.github.io/modello-israele · dati al ' +
+     (spia.dl ? spia.dl(ultima) : ultima),
+   {paper: col.paper || '#F7F8FA', ink: col.ink || '#0A1730', mute: col.mute || '#626D7E'});
+}
+
+export async function genera(){
+ const testo = await componi();
+ const r = new Resvg(testo, {font: {loadSystemFonts: false, fontFiles: FONT, defaultFontFamily: 'Inter'}});
+ const reso = r.render();
+ const png = reso.asPng();
+ const male = guarda(png, reso.pixels ? reso.pixels : new Uint8Array(0));
+ if (male) throw new Error(male);
+ return png;
+}
+
+if (import.meta.url === 'file:///' + process.argv[1].replace(/\\/g, '/')) {
+ genera().then(png => {
+  /* SI CONFRONTANO I BYTE PRIMA DI SCRIVERE. Senza, il job committerebbe un'immagine anche
+     quando gira a vuoto e non è cambiato niente — e un commit che non cambia niente rende
+     invisibile quello che cambia qualcosa. È la stessa ragione per cui scriviMeta() è
+     idempotente. */
+  if (existsSync(USCITA) && Buffer.compare(readFileSync(USCITA), png) === 0) {
+   console.log('anteprima: identica, non riscritta');
+   return;
+  }
+  writeFileSync(USCITA, png);
+  console.log('anteprima: scritta, ' + (png.length / 1024).toFixed(1) + ' KB');
+ }).catch(e => {
+  /* SE UNA GUARDIA SCATTA NON SI SCRIVE NIENTE. Un og:image vecchio è meglio di un
+     og:image vuoto: il file resta quello di ieri e la pagina continua a dire una cosa vera. */
+  console.error('anteprima NON generata: ' + e.message);
+  process.exit(1);
+ });
+}

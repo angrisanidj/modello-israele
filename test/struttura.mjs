@@ -225,6 +225,57 @@ p('nessun blocco dell\'anagrafica riscritto come elenco'+
    si prende: sono la memoria delle trappole già pagate, e questo file ne ha pagate parecchie
    due volte. */
 const TETTO_GZIP=223*1024;
+/* ══ LA TAVOLOZZA DI RIPIEGO DICE QUELLO CHE DICONO LE VARIABILI CSS ══
+   leggiTema() legge le variabili con getComputedStyle e cade su C_FALL_T quando non può —
+   cioè in jsdom, cioè nelle prove e nel lavoro notturno. Fino al 24 agosto 2026 quella
+   tabella era una TERZA tavolozza: 14 valori su 16 divergevano dal tema chiaro, e --oppo
+   era di un'altra tinta (#0E8388 verde acqua contro #78002D). Rasterizzando l'emiciclo per
+   l'immagine Open Graph il modello sarebbe uscito in colori che nessun lettore vede.
+   Nessuna prova se ne accorgeva, e non perché fossero deboli: NESSUNA GUARDAVA la
+   tavolozza in jsdom. Il legame andava aggiunto, non riparato.
+   Qui si legge il foglio e si confronta valore per valore, nei due temi. È l'idioma di
+   description/og:description applicato al colore, e chiude la terza delle tre strade —
+   le variabili CSS, COLORE.token() e questa, di cui solo le prime due erano legate. */
+(function(){
+ var css=(html.match(/<style>([\s\S]*?)<\/style>/)||['',''])[1];
+ /* i due blocchi di variabili: :root del componente e la variante scura su classe */
+ function tokenDi(re){
+  var m=re.exec(css); if(!m) return null;
+  var o={},r=/--([a-z0-9-]+)\s*:\s*([^;]+);/gi,x;
+  while((x=r.exec(m[1]))) o[x[1]]=x[2].trim().toUpperCase();
+  return o;
+ }
+ var chiaro=tokenDi(/#kn26\{([^}]*)\}/);
+ var scuro =tokenDi(/#kn26\.scuro\{([^}]*)\}/);
+ var mT=/var C_FALL_T=\{([\s\S]*?)\n\};/.exec(js);
+ if(!chiaro||!scuro||!mT){ p("tavolozza di ripiego: si trovano i blocchi da confrontare",false); return; }
+ function tabella(nome){
+  var m=new RegExp(nome+':\\{([\\s\\S]*?)\\}').exec(mT[1]); if(!m) return null;
+  var o={},r=/'?([a-z0-9-]+)'?\s*:\s*'(#[0-9A-Fa-f]{6})'/g,x;
+  while((x=r.exec(m[1]))) o[x[1]]=x[2].toUpperCase();
+  return o;
+ }
+ var fc=tabella('chiaro'), fs=tabella('scuro');
+ if(!fc||!fs){ p("tavolozza di ripiego: le due tabelle si leggono",false); return; }
+ [['chiaro',fc,chiaro],['scuro',fs,scuro]].forEach(function(par){
+  var nome=par[0],rip=par[1],vero=par[2],male=[];
+  Object.keys(rip).forEach(function(k){
+   if(vero[k]===undefined){ male.push(k+' non è una variabile del foglio'); return; }
+   if(rip[k]!==vero[k]) male.push(k+': ripiego '+rip[k]+' contro foglio '+vero[k]);
+  });
+  p('ripiego della tavolozza, tema '+nome+': ogni valore è quello della variabile CSS'+
+    (male.length?' — '+male.join(' · '):''), male.length===0);
+ });
+ /* e le due tabelle coprono gli stessi token: una che ne perde uno lo lascerebbe a
+    undefined proprio dove il motore di stile non c'è */
+ p('e le due tabelle dichiarano gli stessi token',
+   Object.keys(fc).sort().join(',')===Object.keys(fs).sort().join(','));
+ /* IL RIPIEGO SEGUE IL TEMA. Senza, una pagina scura senza motore di stile uscirebbe coi
+    colori del chiaro: testo scurissimo su fondo scurissimo. */
+ p('e leggiTema() sceglie la tabella in base al tema',
+   /C_FALL_T\[SCURO\?'scuro':'chiaro'\]/.test(js));
+})();
+
 const gz=gzipSync(Buffer.from(html,'utf8')).length;
 p('gzip sotto i '+(TETTO_GZIP/1024)+' KB ('+(gz/1024).toFixed(1)+' KB · '+
   (html.length/1024).toFixed(0)+' KB di caratteri)', gz<TETTO_GZIP);
