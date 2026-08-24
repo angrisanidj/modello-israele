@@ -783,6 +783,21 @@
    puntatore l'archivio non ha bisogno della regola combinata: lì il puntatore mette un
    FONDO sulla riga, non un'ombra, e background e box-shadow sono due proprietà diverse. */
 #kn26 .sondtab .sep,#kn26 .hstab .sep{box-shadow:inset 1px 0 0 var(--hair),inset 2px 0 0 var(--card);}
+/* IL CONFINE FRA LE LISTE E I TOTALI È PIÙ FORTE DI QUELLO FRA I BLOCCHI, perché non
+   separa due gruppi omogenei: separa due nature di dato — seggi per lista da una parte,
+   totali aggregati dall'altra. Stesso idioma a due tinte, spessore doppio: --ink2 al posto
+   di --hair, che è il filetto dei blocchi, così i due si distinguono per TINTA e non solo
+   per spessore — due grigi a spessore diverso su tredici colonne non si distinguono.
+   L'alone --card resta, ed è il quinto uso dell'idioma nel file: senza, sopra un fondo
+   della scala divergente il filetto sparirebbe, che è la trappola già pagata una volta.
+   E NON BASTA DA SOLO: le colonne dei totali stanno fuori dall'area visibile a 1265, quindi
+   il segno arriva dopo che si è scorso. Quello che dice al lettore che cosa sta arrivando è
+   l'intestazione di gruppo, e questo la accompagna nel corpo della tabella. */
+#kn26 .sondtab .sep2{box-shadow:inset 2px 0 0 var(--ink2),inset 3px 0 0 var(--card);}
+/* la fila delle intestazioni di gruppo: dice a parole dove cambia la natura del dato */
+#kn26 .sondtab .grup th{font-size:8.5px;letter-spacing:.1em;text-transform:uppercase;
+ color:var(--mute);font-weight:700;padding-bottom:3px;text-align:center;border:0;}
+#kn26 .sondtab .grup th:empty{box-shadow:none;}
 #kn26 .hs{border:1px solid var(--hair);background:var(--wash);padding:11px 13px;}
 /* l'istituto escluso si segna con il tratteggio e col pulsante, non con l'opacità: la
    riga esclusa della tabella usa opacity:.42 e lì nessun token arriva a 4,5 — difetto
@@ -1795,7 +1810,7 @@
   <span class="cnt" id="f-cnt"></span>
  </div>
  <div class="scroll" id="k-tab"></div>
- <p class="fn">Celle vuote: lista sotto la soglia del 3,25% in quella rilevazione, oppure non rilevata. Nessun valore è ricostruito a stima: ogni riga chiude a 120 seggi e riproduce il totale di blocco pubblicato.</p>
+ <p class="fn">Celle vuote: lista sotto la soglia del 3,25% in quella rilevazione, oppure non rilevata. Nessun valore è ricostruito a stima. Le liste di ogni riga sommano 120 seggi. I tre totali in fondo sono i blocchi che gli istituti pubblicano: quando una lista fuori dai due campi ottiene seggi, la loro somma è minore di 120.</p>
 </section>
 
 <details id="k-metodo">
@@ -1860,7 +1875,7 @@ var P={
  hadash_taal :{n:"Hadash–Ta'al",       l:"Odeh · Tibi",        c:"#004329", b:"arabo",       o:2,  gov:0, r22:5,   dentro:"lista_araba"},
  balad       :{n:"Balad",              l:"Abu Shehadeh",       c:"#007C78", b:"arabo",       o:3,  gov:0, r22:0,   dentro:"lista_araba"},
  raam        :{n:"Ra'am",              l:"Mansour Abbas",      c:"#006F47", b:"arabo",       o:4,  gov:1, r22:5},
- democratici :{n:"I Democratici",      l:"Yair Golan",         c:"#EE5300", b:"opposizione", o:5,  gov:1, r22:4},
+ democratici :{n:"I Democratici",      l:"Yair Golan",         c:"#EE5300", b:"opposizione", o:5,  gov:1, r22:4,   ab:"Dem"},
  byachad     :{n:"B'Yachad",           l:"Bennett · Lapid",    c:"#C2003D", b:"opposizione", o:6,  gov:1, r22:24},
  yesh_atid   :{n:"Yesh Atid",           l:"Yair Lapid",         c:"#790028", b:"opposizione", o:6.4,gov:1, r22:24,  dentro:"byachad"},
  bennett26   :{n:"Bennett 2026",        l:"Naftali Bennett",    c:"#E20064", b:"opposizione", o:6.6,gov:1, r22:null, dentro:"byachad"},
@@ -1873,7 +1888,7 @@ var P={
  beitenu     :{n:"Yisrael Beitenu",    l:"Avigdor Lieberman",  c:"#720055", b:"opposizione", o:13, gov:1, r22:6},
  likud       :{n:"Likud",              l:"Benjamin Netanyahu", c:"#0061B4", b:"coalizione",  o:14, gov:1, r22:32},
  shas        :{n:"Shas",               l:"Aryeh Deri",         c:"#0092BB", b:"coalizione",  o:15, gov:1, r22:11},
- utj         :{n:"Giudaismo Unito Torah",    l:"Yitzhak Goldknopf",  c:"#590092", b:"coalizione",  o:16, gov:1, r22:7},
+ utj         :{n:"Giudaismo Unito Torah",    l:"Yitzhak Goldknopf",  c:"#590092", b:"coalizione",  o:16, gov:1, r22:7, ab:"UTJ"},
  sionismo_rel:{n:"Sionismo Religioso", l:"Bezalel Smotrich",   c:"#8649FF", b:"coalizione",  o:17, gov:1, r22:null},
  otzma       :{n:"Otzma Yehudit",      l:"Itamar Ben Gvir",    c:"#3284FF", b:"coalizione",  o:18, gov:1, r22:null}
 };
@@ -2175,19 +2190,52 @@ var SENZA_CONTR=['per','tra','fra'];
    banco lo trova, e nessuno pubblica «da il». La stessa scelta di COLORE oltre la
    saturazione. Un controllo in test/struttura.mjs cerca la CLASSE — una preposizione
    scritta a mano subito prima di un nome — perché l'istanza si ripara, la classe no. */
+/* L'ARTICOLO PUÒ ESSERE GIÀ DENTRO IL NOME. «I Democratici» si chiama così — è il nome
+   della lista, non una nostra aggiunta — e con ART che dichiara «i» il risultato era
+   «dei I Democratici». Si toglie quello del nome prima di metterci il proprio: è una
+   regola, non un caso particolare, e vale per qualunque lista futura che si chiami
+   «Il qualcosa».
+   STA IN UNA FUNZIONE SUA dal 24 agosto 2026, perché la stessa domanda — «qual è il nome
+   di questa lista senza l'articolo» — se la fa anche la sigla della colonna dell'archivio,
+   che rispondeva per conto proprio e sbagliava: prendeva la prima parola del nome intero e
+   quindi intitolava «I» la colonna dei Democratici. Due strade per lo stesso fatto, e una
+   delle due era in pagina da sempre. */
+function senzaArt(i){
+ var a=ART[i], n=nm(i);
+ if(!a) return n;
+ var re=new RegExp('^'+a+'\\s','i');
+ return re.test(n)?n.slice(a.length+1):n;
+}
+/* LA SIGLA DELLA COLONNA, e perché non è solo un troncamento.
+   Era `nm(i).split(/[ –]/)[0].slice(0,8)`, cioè la prima parola tagliata a otto, e
+   sbagliava in tre modi diversi — misurati il 24 agosto 2026 su tutte e venti le liste:
+     · prendeva l'ARTICOLO per nome: «I Democratici» → «I»;
+     · tagliava DENTRO la parola: «Giudaismo Unito Torah» → «Giudaism»;
+     · si fermava su una prima parola GENERICA: «Lista Unita araba» → «Lista»,
+       «Casa Sionista» → «Casa», «Blu e Bianco» → «Blu».
+   Le altre dodici reggevano, e nessuna coppia collideva — ma per fortuna, non per
+   costruzione: la regola non lo garantisce, e l'8 settembre una lista nuova può scontrarsi
+   con una che c'è. Da cui le tre mosse, in ordine di quanto costano:
+     1. l'articolo lo toglie senzaArt(), cioè la stessa strada di nmA(): il fatto era già
+        dichiarato in ART e la sigla non lo usava;
+     2. NON SI TAGLIA PIÙ DENTRO LA PAROLA. Una colonna un pixel più larga si legge; una
+        parola mozzata no, e per quelle c'è il campo `ab`;
+     3. `ab` nell'anagrafica per le liste la cui sigla automatica non va bene. È lì che
+        stanno i fatti di una lista — blocco, ordine, colore, `dentro` — e una sigla è un
+        fatto editoriale che nessuna regola può indovinare.
+   Che nessuna sigla sia un articolo, una parola mozzata o un doppione lo verifica
+   `test/suite/tabella.js` su TUTTA l'anagrafica, non sulle sole liste in tabella oggi. */
+function sigla(i){
+ if(P[i]&&P[i].ab) return P[i].ab;
+ return senzaArt(i).split(/[ –]/)[0];
+}
 function nmA(i,prep){
  if(prep===undefined)
   throw new Error('nmA('+i+'): la preposizione va dichiarata, anche vuota. '+
    'Scriverla fuori dà «di il Likud»: è il difetto per cui questo controllo esiste.');
  var a=ART[i];
  if(!a) return (prep?prep+' ':'')+nm(i);
- /* L'ARTICOLO PUÒ ESSERE GIÀ DENTRO IL NOME. «I Democratici» si chiama così — è il nome
-    della lista, non una nostra aggiunta — e con ART che dichiara «i» il risultato era
-    «dei I Democratici». Si toglie quello del nome prima di metterci il proprio: è una
-    regola, non un caso particolare, e vale per qualunque lista futura che si chiami
-    «Il qualcosa». */
- var n=nm(i), re=new RegExp('^'+a+'\\s','i');
- if(re.test(n)) n=n.slice(a.length+1);
+ var n=senzaArt(i);
  if(!prep) return a+' '+n;
  var k=prep+' '+a;
  if(CONTR[k]) return CONTR[k]+' '+n;
@@ -2614,6 +2662,21 @@ function colonneBlocco(ids){
  return ids.slice().sort(function(a,c){
   return (primo[P[a].b]-primo[P[c].b])||(P[a].o-P[c].o);});
 }
+/* QUATTRO TOTALI, E L'ARCHIVIO NE MOSTRA TRE. È una decisione, non una dimenticanza, e
+   sta scritta qui perché fra un mese sembrerebbe arbitraria.
+   `incerto` — l'ago della bilancia — NON È UN BLOCCO PUBBLICATO: è la nostra categoria per
+   le liste che non stanno con nessuno dei due campi. Gli istituti israeliani pubblicano il
+   blocco Netanyahu e quello del cambiamento, e spesso a parte i partiti arabi; nessuno
+   pubblica un quarto campo. Mostrarlo in fondo alla riga dell'archivio affermerebbe che lo
+   pubblicano, che è falso — ed è la ragione per cui è dichiarato nel piede della sezione e
+   non messo in colonna. La larghezza lo conferma soltanto: misurato il 24 agosto 2026, il
+   terzo totale costa 50,9px e il quarto altri 41,1, su una tabella che a 1265 già scorre.
+   I numeri che reggono la decisione, sulle 173 rilevazioni in archivio: il blocco arabo ha
+   seggi in 173 righe su 173 (media 10,6), l'ago della bilancia in 15 su 173 (media 0,35).
+   Con due totali chiudevano a 120 ZERO righe su 173; con tre ne chiudono 158; con quattro
+   tutte. Le celle delle liste, invece, sommano 120 in 173 su 173 — ed è per questo che il
+   piede fa due affermazioni separate invece di una: la prima riguarda le celle ed è sempre
+   vera, la seconda riguarda i totali e ha un'eccezione dichiarata. */
 function blocchi(s){
  var b={coalizione:0,opposizione:0,arabo:0,incerto:0};
  for(var k in s) if(P[k]) b[P[k].b]+=s[k];
@@ -5393,7 +5456,7 @@ function rHouse(){
  cols.forEach(function(i,n){ if(n && P[i].b!==P[cols[n-1]].b) confine[i]=1; });
  var h='<div class="hstab"><table><thead><tr><th class="l">Istituto</th><th>Rilev.</th>';
  cols.forEach(function(i){h+='<th'+(confine[i]?' class="sep"':'')+' title="'+E(nm(i))+'">'+
-   E(nm(i).split(/[ –]/)[0].slice(0,8))+'</th>';});
+   E(sigla(i))+'</th>';});
  h+='</tr></thead><tbody>';
  ist.forEach(function(k){
   var b=e.by[k];
@@ -5969,14 +6032,33 @@ function rTab(){
   return;
  }
  var eraShown=false;
- var h='<table class="sondtab"><thead><tr><th class="l">Data</th><th class="l">Istituto</th><th>N</th>';
+ /* L'INTESTAZIONE DI GRUPPO, e perché non basta un segno grafico.
+    Fra le colonne delle liste e i totali cambia la NATURA del dato — da seggi per lista a
+    totali aggregati — e lì non c'era niente: le due celle dei totali non portavano nemmeno
+    una classe. Un filetto più forte sarebbe stato lo stesso vocabolario dei confini fra
+    blocchi detto più forte, cioè la stessa cosa a volume più alto.
+    E soprattutto: misurato il 24 agosto 2026 a 1265, le colonne dei totali stanno a x 1199
+    e 1248 dentro una finestra da 1116, cioè SONO GIÀ FUORI DALL'AREA VISIBILE. Un segno su
+    una colonna che non si vede senza scorrere non ripara niente; una testata di gruppo è la
+    prima cosa che si incontra scorrendo, e dice a parole che cosa sta arrivando.
+    Il fondo --wash sulle celle dei totali è stato scartato: sarebbe colore su colore dove i
+    valori sono già colorati per blocco, e entrerebbe in conflitto con la scala divergente
+    il giorno in cui qualcuno colorasse anche i totali. */
+ var h='<table class="sondtab"><thead>'+
+   '<tr class="grup"><th colspan="3"></th>'+
+   '<th colspan="'+cols.length+'">Seggi per lista</th>'+
+   '<th colspan="3" class="sep2">Totali di blocco</th></tr>'+
+   '<tr><th class="l">Data</th><th class="l">Istituto</th><th>N</th>';
  cols.forEach(function(i){h+='<th'+(confine[i]?' class="sep"':'')+' title="'+E(nm(i))+'">'+
-   E(nm(i).split(/[ –]/)[0].slice(0,8))+'</th>';});
- h+='<th>Coal.</th><th>Opp.</th></tr></thead><tbody>';
+   E(sigla(i))+'</th>';});
+ /* I TRE TOTALI, e il quarto NON C'È DI PROPOSITO: vedi il piede della sezione e la nota
+    accanto a blocchi(). I due di prima restano dove stavano — l'ordine dei totali è quello
+    con cui la pagina li ha sempre pubblicati, e riordinarli non era la richiesta. */
+ h+='<th class="sep2">Coal.</th><th>Opp.</th><th>Arabi</th></tr></thead><tbody>';
  l.forEach(function(s){
   var b=blocchi(s.seggi);
   if(s.pre&&!eraShown){eraShown=true;
-   h+='<tr><td colspan="'+(cols.length+5)+'" class="l" style="background:var(--wash);font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:var(--mute);font-weight:700">'+ERA_PRE+'</td></tr>';}
+   h+='<tr><td colspan="'+(cols.length+6)+'" class="l" style="background:var(--wash);font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:var(--mute);font-weight:700">'+ERA_PRE+'</td></tr>';}
   /* Non si attenuano: il canale è la riga di separazione qui sopra, che dice a parole di
      che era si tratta e che sono escluse dal modello. A .62 una cifra in --mute scendeva a
      2,37, e sono cifre che si leggono. */
@@ -5986,7 +6068,9 @@ function rTab(){
   cols.forEach(function(i){var v=s.seggi[i];
    var cl=(v?'s':'')+(confine[i]?(v?' sep':'sep'):'');
    h+='<td'+(cl?' class="'+cl+'"':'')+(v?' style="color:'+cp(P[i].c)+'"':'')+'>'+(v?f(v):'')+'</td>';});
-  h+='<td class="s" style="color:'+C.coal+'">'+f(b.coalizione)+'</td><td class="s" style="color:'+C.oppo+'">'+f(b.opposizione)+'</td></tr>';
+  h+='<td class="s sep2" style="color:'+C.coal+'">'+f(b.coalizione)+'</td>'+
+     '<td class="s" style="color:'+C.oppo+'">'+f(b.opposizione)+'</td>'+
+     '<td class="s" style="color:'+C.arab+'">'+f(b.arabo)+'</td></tr>';
  });
  h+='</tbody></table>';
  /* ══ L'ALTRA FORMA: L'ELENCO CHE SI APRE ══
@@ -6015,8 +6099,12 @@ function rTab(){
      la riga della tabella, che è la proprietà che le due viste devono conservare. */
   h+='<details class="sondr'+(s.pre?' pre':'')+'"><summary>'+
     '<b>'+dc(s.data)+'</b><span>'+E(s.istituto)+'</span>'+
+    /* I TRE TOTALI, gli stessi tre della riga desktop e nello stesso ordine: sono due viste
+       dello stesso dato, e tabella.js le lega numero per numero. Il terzo è il blocco arabo,
+       che il modello dichiara decisivo in tre quarti degli scenari e che qui non compariva. */
     '<u><em style="color:'+C.coal+'">'+f(b.coalizione)+'</em> · '+
-    '<em style="color:'+C.oppo+'">'+f(b.opposizione)+'</em></u></summary>';
+    '<em style="color:'+C.oppo+'">'+f(b.opposizione)+'</em> · '+
+    '<em style="color:'+C.arab+'">'+f(b.arabo)+'</em></u></summary>';
   /* I METADATI NON SONO SEGGI, E NON DEVONO AVERNE LA FORMA.
      «testata Canale 12» e «campione 502» erano due pastiglie identiche alle undici dei
      seggi: stessa forma, stesso flusso, stesso a-capo — quindi si leggevano come un elenco

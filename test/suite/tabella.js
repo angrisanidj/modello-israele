@@ -65,7 +65,8 @@ src = src.replace('carica().then(render,render)',
   'global.A={colonneBlocco:colonneBlocco,P:P,IDS:IDS,SOND:function(){return SOND;},' +
   'rTab:rTab,rHouse:rHouse,render:render,TAB_LIMITE:TAB_LIMITE,' +
   'mostra:function(){return TAB_MOSTRA;},setMostra:function(v){TAB_MOSTRA=v;},' +
-  'filtri:function(){return FILTRI;},cntTab:cntTab};carica().then(render,render)');
+  'filtri:function(){return FILTRI;},cntTab:cntTab,' +
+  'sigla:sigla,senzaArt:senzaArt,ART:ART,nmA:nmA};carica().then(render,render)');
 eval(src);
 try{ A.render(); }catch(e){ console.log('KO il render non è partito — ' + (e && e.message)); }
 
@@ -156,7 +157,13 @@ esito(!!tab && tab.classList.contains('sondtab'),
 
 const perNome = {};
 IDS.forEach(k => { perNome[P[k].n] = k; });
-const intest = tab ? [].slice.call(tab.querySelectorAll('thead th')) : [];
+/* LA FILA DELLE INTESTAZIONI È LA SECONDA, e da qui in poi va nominata: dal 24 agosto
+   2026 la testata ne ha DUE — sopra le intestazioni di gruppo («Seggi per lista», «Totali
+   di blocco»), sotto i nomi delle colonne. Prendere tutte le `thead th` faceva contare
+   sedici celle in più e nessuna riga di dato corrispondeva più al conto delle colonne:
+   quattro asserzioni cadevano tutte insieme, e nessuna delle quattro riguardava il difetto.
+   `tr:last-child` è la fila dei nomi qualunque sia il numero di file sopra. */
+const intest = tab ? [].slice.call(tab.querySelectorAll('thead tr:last-child th')) : [];
 /* le colonne di lista sono quelle il cui title è un nome dell'anagrafica: così le tre di
    testa (Data, Istituto, N) e le due di coda (Coal., Opp.) non vanno contate a mano */
 const colTh = intest.filter(th => perNome[th.getAttribute('title')]);
@@ -368,8 +375,13 @@ esito(colId.length >= 8, 'le colonne di lista sono ' + colId.length, colId.join(
      mostra la tabella, con gli stessi valori nello stesso ordine. */
   const perNome2 = {};
   IDS.forEach(k => { perNome2[P[k].n] = k; });
-  const intest2 = [].slice.call(tabella.querySelectorAll('thead th'));
+  const intest2 = [].slice.call(tabella.querySelectorAll('thead tr:last-child th'));
   const idCol = intest2.map(th => perNome2[th.getAttribute('title')]);
+  /* QUANTI SONO I TOTALI lo dichiara l'intestazione di gruppo, e da lì lo legge la prova:
+     una costante scritta qui sarebbe la seconda copia di un numero che il markup già dice,
+     e resterebbe indietro il giorno in cui i totali diventano due o quattro. */
+  const cellaTot = tabella.querySelector('thead .grup .sep2');
+  const nTot = cellaTot ? +cellaTot.getAttribute('colspan') : 0;
   const righeTab = [].slice.call(tabella.querySelectorAll('tbody tr'))
     .filter(tr => tr.children.length === intest2.length);
   const righeEl = [].slice.call(lista.querySelectorAll('details.sondr'));
@@ -406,9 +418,18 @@ esito(colId.length >= 8, 'le colonne di lista sono ' + colId.length, colId.join(
     /* la data e i due totali stanno nel sommario */
     cfr('data', testo(sum.querySelector('b')), testo(cel[0]));
     cfr('istituto', testo(sum.querySelector('span')), testo(cel[1].firstChild));
+    /* I TOTALI SONO TRE dal 24 agosto 2026 — il terzo è il blocco arabo — e il loro NUMERO
+       non è scritto qui: si legge dal colspan dell'intestazione di gruppo «Totali di
+       blocco», che è la stessa cella che lo dichiara al lettore. Con «cel.length - 2» e
+       «- 1» cablati, aggiungere un totale a una vista sola sarebbe passato: le due
+       posizioni avrebbero continuato a puntare a due celle, solo alle celle sbagliate.
+       Il quarto blocco — l'ago della bilancia — NON c'è di proposito: non è un blocco che
+       gli istituti pubblichino, è la nostra categoria per chi non sta con nessuno dei due
+       campi. È dichiarato nel piede della sezione, e più giù c'è la prova che lo dice. */
     const tot = [].slice.call(sum.querySelectorAll('u em')).map(testo);
-    cfr('coalizione', tot[0], testo(cel[cel.length - 2]));
-    cfr('opposizione', tot[1], testo(cel[cel.length - 1]));
+    cfr('quanti totali', String(tot.length), String(nTot));
+    for (let t = 0; t < nTot; t++)
+      cfr('totale ' + (t + 1), tot[t], testo(cel[cel.length - nTot + t]));
     /* testata e campione stanno nel sottotitolo del pannello */
     const testata = testo(cel[1].querySelector('span'));
     if (testata) cfr('testata', nellaFrase(testata), testata);
@@ -757,6 +778,240 @@ esito(colId.length >= 8, 'le colonne di lista sono ' + colId.length, colId.join(
   esito(D.querySelectorAll('#k-tab .sondlist details.sondr').length > 0,
     'e togliendo la ricerca le due forme tornano');
 })();
+
+
+/* ══ LA SIGLA DELLE COLONNE, SU TUTTA L'ANAGRAFICA ════════════════════════
+ * Il difetto era «I Democratici → I», e sarebbe stato facile ripararlo su quella lista.
+ * Ma la sigla è una REGOLA — `nm(i).split(/[ –]/)[0].slice(0,8)` — quindi il difetto è di
+ * tutte le liste, e applicandola alle venti dell'anagrafica il 24 agosto 2026 sbagliava in
+ * TRE modi diversi: prendeva l'articolo per nome («I»), tagliava dentro la parola
+ * («Giudaism») e si fermava su una prima parola generica («Lista», «Casa», «Blu»).
+ *
+ * QUESTA PROVA GUARDA L'ANAGRAFICA INTERA, non le liste che compaiono in tabella oggi:
+ * una lista sotto soglia non ha colonna, ma l'8 settembre può averla, e il momento in cui
+ * ci si accorge che la sua sigla è un articolo non deve essere quella sera.
+ */
+{
+  const ids = Object.keys(A.P);
+  const sigle = ids.map(i => A.sigla(i));
+  /* nessuna è vuota, nessuna è un articolo, nessuna è più corta di due caratteri */
+  ids.forEach((i, k) => {
+    const s = sigle[k];
+    esito(!!s && s.length >= 2,
+      '  · «' + A.P[i].n + '» ha una sigla leggibile: «' + s + '»', s);
+    esito(!/^(i|il|lo|la|gli|le|un|una|l')$/i.test(s),
+      '  · e non è l\'articolo del nome', A.P[i].n + ' → ' + s);
+  });
+  /* NESSUNA È TAGLIATA DENTRO UNA PAROLA. La proprietà si prova senza nominare nessuna
+     lista: la sigla o è dichiarata in `ab`, o è un PREFISSO che finisce dove finisce una
+     parola del nome — cioè coincide con la prima parola del nome senza articolo. */
+  ids.forEach(i => {
+    const s = A.sigla(i);
+    if (A.P[i].ab) { esito(true, '  · «' + A.P[i].n + '» dichiara la sua sigla: «' + s + '»'); return; }
+    const prima = A.senzaArt(i).split(/[ –]/)[0];
+    esito(s === prima,
+      '  · «' + A.P[i].n + '» non è mozzata: la sigla è una parola intera', s + ' contro ' + prima);
+  });
+  /* LA SIGLA DICHIARATA VIENE USATA, e questa asserzione l'hanno imposta due mutazioni:
+     togliere la riga che legge `ab`, e svuotarla. Restavano tutte e due VIVE, perché senza
+     `ab` la regola ripiega sulla prima parola — «Democratici», «Giudaismo» — che è una
+     parola intera, unica e non un articolo: passava ogni proprietà che la prova
+     verificava. Passava tutto tranne quello che l'autore aveva chiesto, cioè «Dem». */
+  ids.filter(i => A.P[i].ab !== undefined).forEach(i => {
+    esito(!!A.P[i].ab && A.P[i].ab.length >= 2,
+      '  · «' + A.P[i].n + '» dichiara una sigla non vuota', JSON.stringify(A.P[i].ab));
+    esito(A.sigla(i) === A.P[i].ab,
+      '  · e la sigla dichiarata è quella che finisce nell\'intestazione',
+      A.sigla(i) + ' contro ' + A.P[i].ab);
+  });
+
+  /* E LA REGOLA DELL'ARTICOLO SI ESERCITA SU UNA LISTA CHE NON C'È, perché quelle che ci
+     sono non la esercitano: l'unica col nome che comincia per articolo — «I Democratici» —
+     dichiara `ab`, quindi il ramo di senzaArt() dentro sigla() è irraggiungibile oggi. La
+     mutazione che lo toglieva restava viva, e non perché la prova fosse debole: perché il
+     caso non esiste ancora. Esisterà l'8 settembre, quando una lista nuova entra
+     nell'anagrafica senza che nessuno pensi alla sua sigla — che è esattamente il momento
+     in cui una prova deve già esserci. */
+  {
+    const finto = 'lista_di_prova_articolo';
+    A.P[finto] = {n: 'Il Movimento Nuovo', c: '#888888', b: 'incerto', o: 99, gov: 0, r22: null};
+    A.ART[finto] = 'il';
+    esito(A.senzaArt(finto) === 'Movimento Nuovo',
+      'una lista nuova che si chiama «Il qualcosa» perde l\'articolo…', A.senzaArt(finto));
+    esito(A.sigla(finto) === 'Movimento',
+      '…e la sua sigla è la prima parola vera, non l\'articolo', A.sigla(finto));
+    delete A.P[finto]; delete A.ART[finto];
+  }
+
+  /* E NESSUNA COLLIDE. Oggi le diciassette in tabella sono tutte distinte, ma per fortuna:
+     la regola non lo garantisce, e due colonne con la stessa intestazione sono
+     indistinguibili — la stessa lezione dei quattro «Scarica PNG». */
+  const doppie = sigle.filter((x, k) => sigle.indexOf(x) !== k);
+  esito(doppie.length === 0,
+    'e nessuna sigla collide con un\'altra in tutta l\'anagrafica', doppie.join(', '));
+
+  /* L'ARTICOLO SI TOGLIE DALLA STESSA STRADA DI nmA(), che è il punto della riparazione:
+     il fatto era già dichiarato in ART e la sigla se lo rispondeva per conto suo. La prova
+     lo lega nei due versi — dove ART dichiara un articolo, senzaArt lo toglie; e nmA()
+     continua a produrre la forma con la preposizione. */
+  Object.keys(A.ART).forEach(i => {
+    if (!A.P[i]) return;
+    const a = A.ART[i], n = A.P[i].n;
+    if (new RegExp('^' + a + '\\s', 'i').test(n))
+      esito(A.senzaArt(i) === n.slice(a.length + 1),
+        '  · «' + n + '» perde l\'articolo che ART dichiara: «' + A.senzaArt(i) + '»');
+    esito(A.nmA(i, 'di').indexOf(' ' + a + ' ' + a + ' ') < 0 && !/\b(di|a|da) (il|i) /.test(A.nmA(i, 'di')),
+      '  · e nmA() continua a contrarre: «' + A.nmA(i, 'di') + '»');
+  });
+
+  /* LE DUE TABELLE USANO LA STESSA FUNZIONE, e il legame si prova nel sorgente perché è
+     lì che sta: sono due chiamate, e una delle due può tornare indietro senza che nessun
+     numero cambi. È l'idioma di colonneBlocco() e di og:title. */
+  const chiamate = (html.match(/E\(sigla\(i\)\)/g) || []).length;
+  esito(chiamate === 2,
+    'archivio e house effect intitolano le colonne con la STESSA funzione',
+    chiamate + ' chiamate');
+  esito(!/split\(\/\[ –\]\/\)\[0\]\.slice\(0,8\)/.test(html.replace(/\/\*[\s\S]*?\*\//g, '')),
+    'e la vecchia regola non è rimasta da nessuna parte fuori dai commenti');
+}
+
+
+/* ══ I TRE TOTALI, E IL QUARTO CHE È DICHIARATO E NON MOSTRATO ════════════
+ * `blocchi()` restituisce QUATTRO totali e l'archivio ne mostra TRE. È una decisione, e
+ * questa prova esiste perché fra un mese sembrerebbe arbitraria: il quarto — l'ago della
+ * bilancia — NON è un blocco che gli istituti pubblichino, è la nostra categoria per le
+ * liste che non stanno con nessuno dei due campi. Mostrarlo in fondo alla riga
+ * affermerebbe che lo pubblicano, che è falso.
+ * I numeri che reggono la decisione, misurati sull'archivio il 24 agosto 2026: con DUE
+ * totali chiudevano a 120 zero righe su 173, con tre ne chiudono 158, con quattro tutte;
+ * il blocco arabo ha seggi in 173 righe su 173 (media 10,6), l'ago della bilancia in 15
+ * su 173 (media 0,35). Le CELLE delle liste, invece, sommano 120 in 173 su 173.
+ */
+{
+  const tabella2 = D.querySelector('#kn26 .sondtab');
+  const grup = tabella2 ? tabella2.querySelector('thead .grup') : null;
+  esito(!!grup, 'la testata ha una fila di intestazioni di gruppo');
+  const celleG = grup ? [].slice.call(grup.children) : [];
+  esito(celleG.length === 3,
+    'e sono tre: le colonne di servizio, i seggi per lista, i totali di blocco',
+    String(celleG.length));
+  esito(celleG[1] && /Seggi per lista/i.test(celleG[1].textContent) &&
+        celleG[2] && /Totali di blocco/i.test(celleG[2].textContent),
+    'e dicono a parole dove cambia la natura del dato, invece di lasciarlo a un segno',
+    celleG.map(c => '«' + c.textContent + '»').join(' '));
+  /* i colspan COPRONO la tabella: una fila di gruppo che non somma al numero di colonne
+     disallinea tutte le intestazioni, ed è un difetto che a occhio si vede tardi */
+  const nCol = [].slice.call(tabella2.querySelectorAll('thead tr:last-child th')).length;
+  const somma = celleG.reduce((a, c) => a + (+c.getAttribute('colspan') || 1), 0);
+  esito(somma === nCol,
+    'e i loro colspan coprono esattamente le colonne che ci sono',
+    somma + ' contro ' + nCol);
+
+  /* IL TERZO TOTALE C'È, IL QUARTO NO. Non si contano le celle: si guarda che cosa dicono,
+     perché il punto è QUALI blocchi compaiono. */
+  const intTot = [].slice.call(tabella2.querySelectorAll('thead tr:last-child th')).slice(-3)
+    .map(t => t.textContent.trim());
+  esito(intTot.length === 3 && /arabi/i.test(intTot.join(' ')),
+    'i totali in fondo sono tre e comprendono il blocco arabo', intTot.join(' · '));
+  esito(!/ago|bilancia|incert/i.test(intTot.join(' ')),
+    'e NON comprendono l\'ago della bilancia, che nessun istituto pubblica', intTot.join(' · '));
+
+  /* I TRE TOTALI SONO LA SOMMA DELLE CELLE DELLA LORO RIGA, ed è la proprietà che il piede
+     promette al lettore: quello che c'è scritto in fondo si può rifare contando le colonne.
+     Si verifica dentro la riga e non contro SOND per indice, perché l'ordine di render non
+     è l'ordine dell'archivio — e una prova che dà per scontato che coincidano misura
+     l'ordinamento credendo di misurare i totali. */
+  {
+    const capi = [].slice.call(tabella2.querySelectorAll('thead tr:last-child th'));
+    const perNome3 = {}; IDS.forEach(k => { perNome3[P[k].n] = k; });
+    const bloccoDi = capi.map(t => { const id = perNome3[t.getAttribute('title')];
+      return id ? P[id].b : null; });
+    const righeD = [].slice.call(tabella2.querySelectorAll('tbody tr'))
+      .filter(tr => tr.children.length === nCol);
+    let male = 0, primo = '', quante = 0;
+    righeD.forEach((tr, r) => {
+      const cel = tr.children;
+      const som = {coalizione:0, opposizione:0, arabo:0, incerto:0};
+      bloccoDi.forEach((b, c) => { if (!b) return;
+        const v = cel[c].textContent.trim(); if (v) som[b] += +v; });
+      const letti = [cel[nCol-3], cel[nCol-2], cel[nCol-1]].map(c => c.textContent.trim());
+      const attesi = [String(som.coalizione), String(som.opposizione), String(som.arabo)];
+      quante++;
+      if (letti.join('|') !== attesi.join('|')) {
+        male++; if (!primo) primo = 'riga ' + r + ': letti ' + letti.join(' ') + ', attesi ' + attesi.join(' ');
+      }
+    });
+    esito(quante > 20, 'ci sono righe su cui rifare il conto dei totali', String(quante));
+    esito(male === 0,
+      'e in ognuna i tre totali sono la somma delle celle del loro blocco: il piede si può verificare',
+      primo);
+    /* E IL QUARTO BLOCCO ESISTE NEI DATI: senza questa riga la prova qui sopra girerebbe a
+       vuoto il giorno in cui nessuna lista dell'ago della bilancia prende seggi — e non
+       direbbe più niente sul fatto che i tre totali NON chiudono a 120 in quelle righe,
+       che è l'eccezione dichiarata nel piede. */
+    let conQuarto = 0, chiudonoATre = 0;
+    righeD.forEach(tr => {
+      const cel = tr.children;
+      const som = {coalizione:0, opposizione:0, arabo:0, incerto:0};
+      bloccoDi.forEach((b, c) => { if (!b) return;
+        const v = cel[c].textContent.trim(); if (v) som[b] += +v; });
+      if (som.incerto > 0) conQuarto++;
+      if (som.coalizione + som.opposizione + som.arabo === 120) chiudonoATre++;
+    });
+    esito(conQuarto > 0,
+      'e ci sono righe in cui una lista fuori dai due campi ha seggi: l\'eccezione del piede è viva',
+      conQuarto + ' righe su ' + quante);
+    esito(chiudonoATre + conQuarto === quante,
+      'e sono esattamente quelle in cui i tre totali non fanno 120, come il piede dichiara',
+      chiudonoATre + ' chiudono a 120, ' + conQuarto + ' hanno il quarto blocco, su ' + quante);
+  }
+
+  /* IL PIEDE FA DUE AFFERMAZIONI SEPARATE, e non una sola. La prima riguarda le CELLE ed è
+     sempre vera; la seconda riguarda i totali e ha un'eccezione, che va dichiarata perché
+     è quella che il lettore verifica guardando i numeri in fondo. Prima erano una frase
+     unica — «ogni riga chiude a 120 seggi e riproduce il totale di blocco pubblicato» — e
+     con due totali in fondo era falsa in tutte e 173 le righe. */
+  const piede = [].slice.call(D.querySelectorAll('#kn26 .fn'))
+    .map(p => p.textContent).filter(t => /120/.test(t) && /blocc/i.test(t)).join(' ');
+  esito(/liste di ogni riga sommano 120/i.test(piede),
+    'il piede dice che sono le LISTE a sommare 120', piede.slice(0, 90));
+  esito(/tre totali/i.test(piede),
+    'e dice quanti sono i totali in fondo', piede.slice(-140));
+  esito(/somma è minore di 120/i.test(piede),
+    'e dichiara l\'eccezione invece di lasciarla scoprire al lettore', piede.slice(-140));
+  esito(!/ago della bilancia/i.test(piede),
+    'e la chiama «fuori dai due campi»: «ago della bilancia» è la nostra etichetta, e qui si spiega il pubblicato',
+    piede.slice(-140));
+  esito(!/riproduce il totale di blocco pubblicato/i.test(piede),
+    'e la vecchia frase unica non è rimasta');
+
+  /* ══ IL CONFINE FRA LE DUE NATURE DI DATO ══
+     Più forte di quello fra i blocchi, e di TINTA diversa: due grigi a spessore diverso su
+     tredici colonne non si distinguono. */
+  const cssT = html.match(/<style>([\s\S]*?)<\/style>/)[1];
+  const rSep = (cssT.match(/#kn26 \.sondtab \.sep,[^{]*\{[^}]*\}/) || [''])[0];
+  const rSep2 = (cssT.match(/#kn26 \.sondtab \.sep2\{[^}]*\}/) || [''])[0];
+  esito(!!rSep2, 'il confine fra liste e totali ha una regola sua', rSep2);
+  esito(/inset 2px/.test(rSep2) && /inset 1px/.test(rSep),
+    'ed è più spesso di quello fra i blocchi', rSep2 + ' contro ' + rSep);
+  esito(/var\(--ink2\)/.test(rSep2) && /var\(--hair\)/.test(rSep),
+    'e di un\'altra tinta: due grigi a spessore diverso non si distinguono su tredici colonne',
+    rSep2);
+  esito(/var\(--card\)/.test(rSep2),
+    'e conserva l\'alone --card, o sopra un fondo della scala divergente sparirebbe', rSep2);
+  /* e cade dove deve: sulla PRIMA colonna dei totali, non altrove */
+  const conSep2 = [].slice.call(tabella2.querySelectorAll('thead tr:last-child th'))
+    .map((t, k) => t.classList.contains('sep2') ? k : -1).filter(k => k >= 0);
+  esito(conSep2.length === 1 && conSep2[0] === nCol - 3,
+    'e il filetto forte cade sulla prima colonna dei totali, e in nessun altro punto',
+    JSON.stringify(conSep2) + ' su ' + nCol + ' colonne');
+  /* la fascia dell'era pre-fusione copre tutte le colonne: una in meno e la tabella si
+     scala di una cella per tutte le righe sotto */
+  const era = tabella2.querySelector('tbody td[colspan]');
+  if (era) esito(+era.getAttribute('colspan') === nCol,
+    'e la fascia dell\'era pre-fusione copre tutte le colonne, totali compresi',
+    era.getAttribute('colspan') + ' contro ' + nCol);
+}
 
 console.log('\n' + ok + '/' + (ok + ko));
 if (ko) process.exit(1);

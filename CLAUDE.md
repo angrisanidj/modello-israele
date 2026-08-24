@@ -29,7 +29,7 @@ alle prove.
 
 ```bash
 npm install          # solo la prima volta: installa jsdom per le prove
-npm test             # estrae il JS e lancia le 1862 prove
+npm test             # estrae il JS e lancia le 1957 prove
 npm run verifica     # prove + controlli strutturali
 npm run spazzola     # rilancia il banco con l'orologio al 23 ottobre: dice quali prove
                      #   danno per scontato un archivio fresco. Da rifare dopo ogni
@@ -1632,6 +1632,151 @@ il disegno cambia.
   **170,1 KB** contro i 179 del tetto: **non lo sfonda**, quindi non c'è niente da rifare.
   Il giorno in cui lo sfondasse, il tetto si rifà con i quattro addendi scritti nel commento
   accanto alla regola — non si alza.
+
+## L'archivio, tre punti: la sigla era una regola, il terzo totale, e il confine
+
+Applicati il 24 agosto 2026. Il primo è il più istruttivo dei tre, perché la segnalazione
+riguardava una lista e il difetto era di tutte.
+
+### 1 · L'intestazione «I» non era dei Democratici: era della regola
+
+Le sigle delle colonne uscivano da `nm(i).split(/[ –]/)[0].slice(0,8)` — la prima parola
+tagliata a otto. Applicata a **tutte e venti** le liste dell'anagrafica sbagliava in **tre
+modi diversi**, non in uno:
+
+| nome | reso | come sbagliava |
+|---|---|---|
+| **I Democratici** | **«I»** | prende l'**articolo** per nome |
+| **Giudaismo Unito Torah** | **«Giudaism»** | taglia **dentro** la parola |
+| Lista Unita araba | «Lista» | prima parola **generica** |
+| Casa Sionista | «Casa» | idem |
+| Blu e Bianco | «Blu» | idem |
+
+Le altre dodici reggevano, e **nessuna coppia collideva — ma per fortuna**: la regola non lo
+garantisce, e l'8 settembre una lista nuova può scontrarsi con una che c'è.
+
+**E la stessa regola era scritta in due tabelle**: anche l'house effect intitolava «I».
+
+**Il fatto era già dichiarato in pagina, e la sigla non lo usava.** `ART` dice
+`democratici:'i'` da sempre, e `nmA()` toglie l'articolo dal nome prima di metterci il
+proprio — la logica esisteva, dentro `nmA`, e la sigla se la rispondeva per conto suo. È la
+strada doppia di sempre, con la particolarità che una delle due strade era in pagina da
+prima. Adesso c'è `senzaArt(i)`, chiamata da tutte e due.
+
+Tre mosse, in ordine di quanto costano:
+
+1. l'articolo lo toglie `senzaArt()`;
+2. **non si taglia più dentro la parola**: una colonna un pixel più larga si legge, una
+   parola mozzata no;
+3. il campo **`ab`** nell'anagrafica per le sigle che una regola non può indovinare — oggi
+   `Dem` e `UTJ`. È lì che stanno i fatti di una lista, accanto a blocco, ordine, colore e
+   `dentro`.
+
+**Costo: negativo.** La tabella si restringe da **1288,9 a 1262,9px**, perché «UTJ» costa
+cinque caratteri meno di «Giudaism».
+
+**Due mutazioni hanno trovato una prova che non poteva cadere**, ed è il caso già visto:
+togliere `ab` o svuotarlo lasciava passare tutto, perché il ripiego dà «Democratici» e
+«Giudaismo» — parole intere, uniche, non articoli. Passava ogni proprietà che la prova
+verificava, e falliva la sola cosa che l'autore aveva chiesto.
+
+**E una terza ha trovato un ramo irraggiungibile**: `senzaArt()` dentro `sigla()` oggi non
+si esercita, perché l'unica lista col nome che comincia per articolo dichiara `ab`. Il caso
+esisterà l'8 settembre, quando una lista entra senza che nessuno pensi alla sua sigla — che
+è esattamente il momento in cui la prova deve già esserci. La prova lo esercita su una lista
+**sintetica**, «Il Movimento Nuovo», che nell'anagrafica non c'è.
+
+### 2 · Il terzo totale, e il quarto che è dichiarato e non mostrato
+
+`blocchi()` restituisce **quattro** totali e la riga ne mostrava **due**. Misurato
+sull'archivio, 173 rilevazioni:
+
+| blocco | righe con almeno un seggio | media per riga | massimo |
+|---|---|---|---|
+| arabi | **173 su 173** | 10,6 | 15 |
+| opposizione | 173 su 173 | 55,1 | 62 |
+| coalizione | 173 su 173 | 54,0 | 66 |
+| **ago della bilancia** | **15 su 173** | **0,35** | 5 |
+
+| totali mostrati | righe che chiudono a 120 |
+|---|---|
+| due, come prima | **0 su 173** |
+| **tre** (applicato) | **158 su 173** |
+| quattro | 173 su 173 |
+
+**IL QUARTO È DICHIARATO E NON MOSTRATO, e la ragione non è la larghezza.** L'ago della
+bilancia **non è un blocco pubblicato**: è la nostra categoria per le liste che non stanno
+con nessuno dei due campi. Gli istituti israeliani pubblicano il blocco Netanyahu e quello
+del cambiamento, e spesso a parte i partiti arabi; **nessuno pubblica un quarto campo**.
+Metterlo in fondo alla riga affermerebbe che lo pubblicano, che è falso. La larghezza lo
+conferma soltanto: il terzo totale costa **+50,9px** e il quarto altri **+41,1**, su una
+tabella che a 1265 già scorre di 185.
+
+*Questa è la decisione che fra un mese sembrerebbe arbitraria, ed è per questo che sta
+scritta qui e nel commento accanto a `blocchi()`.*
+
+**Il piede faceva due affermazioni in una**, e la seconda era falsa in tutte e 173 le righe:
+
+> ~~ogni riga chiude a 120 seggi e riproduce il totale di blocco pubblicato~~
+
+La prima metà riguarda le **celle** ed è sempre vera — misurato, le liste sommano 120 in
+**173 righe su 173**. La seconda riguarda i totali in fondo. Il lettore però legge la frase
+come una cosa sola e la verifica sui numeri in fondo, che è dove guarda. Adesso sono due:
+
+> Le liste di ogni riga sommano 120 seggi. I tre totali in fondo sono i blocchi che gli
+> istituti pubblicano: quando una lista fuori dai due campi ottiene seggi, la loro somma è
+> minore di 120.
+
+**«Fuori dai due campi» e non «ago della bilancia»**: quella è la nostra etichetta, e lì si
+sta spiegando che cosa fa il pubblicato.
+
+Il terzo totale è anche nel sommario dell'elenco sotto i 660 — **gli stessi tre e nello
+stesso ordine** — e `tabella.js` li lega numero per numero. Misurato a 380: il sommario
+resta su **una riga**, 44px, `<u>` largo 63,8, sforamento zero, documento +39px.
+
+### 3 · Il confine, e perché un segno da solo non bastava
+
+Fra le colonne delle liste e i totali cambia la **natura del dato**, e lì non c'era niente:
+le due celle dei totali non portavano nemmeno una classe.
+
+**La misura che ha deciso la forma**: a 1265 le colonne dei totali stanno a x **1199** e
+**1248** dentro una finestra da **1116**, cioè **sono già fuori dall'area visibile**. Un
+segno grafico su una colonna che non si vede senza scorrere non ripara niente.
+
+Quindi **intestazione di gruppo** — «Seggi per lista» e «Totali di blocco», che è la prima
+cosa che si incontra scorrendo e dice a parole che cosa sta arrivando — **più il filetto a
+due tinte più spesso** nel corpo della tabella, che l'accompagna.
+
+Il filetto forte è `inset 2px var(--ink2), inset 3px var(--card)` contro l'`inset 1px
+var(--hair), inset 2px var(--card)` dei blocchi: **cambia la tinta e non solo lo spessore**,
+perché due grigi a spessore diverso su tredici colonne non si distinguono. L'alone `--card`
+resta — quinto uso dell'idioma — o sopra un fondo della scala divergente il filetto
+sparirebbe.
+
+**Il fondo `--wash` sulle celle dei totali è stato scartato**, per due ragioni: sarebbe
+colore su colore dove i valori sono già colorati per blocco, ed entrerebbe in conflitto con
+la scala divergente il giorno in cui qualcuno colorasse anche i totali.
+
+### Che cosa hanno imposto le prove
+
+**Quattro asserzioni sono cadute insieme al primo giro, e nessuna riguardava il difetto**:
+`tabella.js` prendeva **tutte** le `thead th`, e con la fila di gruppo ne contava sedici in
+più, quindi nessuna riga di dato corrispondeva più al conto delle colonne. Adesso la fila
+delle intestazioni si **nomina** — `thead tr:last-child` — qualunque sia il numero di file
+sopra.
+
+**E il numero dei totali non è scritto nella prova**: si legge dal `colspan`
+dell'intestazione di gruppo, che è la stessa cella che lo dichiara al lettore. Con
+`cel.length - 2` e `- 1` cablati, aggiungere un totale a una vista sola sarebbe passato —
+le due posizioni avrebbero continuato a puntare a due celle, solo alle celle sbagliate.
+
+**E i totali si verificano dentro la riga**, non contro `SOND` per indice: l'ordine di
+render non è l'ordine dell'archivio, e la prima stesura confrontava la riga 0 con la
+rilevazione 0 leggendo 52/57/11 contro 66/44/10. Una prova che dà per scontato che i due
+ordini coincidano **misura l'ordinamento credendo di misurare i totali**.
+
+`tabella.js` da 88 a 183 asserzioni. **Ventuno mutazioni fra i tre punti, tutte morte**:
+sette sulla sigla, quattordici su totali, gruppo, filetto e piede.
 
 ## La consegna del PNG: tre difetti, e nessuno era la rasterizzazione
 
@@ -3438,7 +3583,7 @@ Due conseguenze pratiche, e sono quelle da ricordare:
 ### Lo stato al 24 agosto 2026
 
 Scritto per ripartire senza la conversazione. Ultimo commit spinto: **`02e4247`**, CI e
-Pages verdi. Sul banco di oggi le prove sono **1862**, e le suite nuove degli ultimi due
+Pages verdi. Sul banco di oggi le prove sono **1957**, e le suite nuove degli ultimi due
 giorni sono cinque: `meta.js`, `tabella.js`, `embed.js`, `png.js` e `griglie.js`.
 
 **Non ancora committati**: l'esportazione PNG dei quattro disegni e il calendario in flex.
