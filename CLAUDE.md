@@ -29,7 +29,7 @@ alle prove.
 
 ```bash
 npm install          # solo la prima volta: installa jsdom per le prove
-npm test             # estrae il JS e lancia le 1957 prove
+npm test             # estrae il JS e lancia le 1987 prove
 npm run verifica     # prove + controlli strutturali
 npm run spazzola     # rilancia il banco con l'orologio al 23 ottobre: dice quali prove
                      #   danno per scontato un archivio fresco. Da rifare dopo ogni
@@ -1632,6 +1632,105 @@ il disegno cambia.
   **170,1 KB** contro i 179 del tetto: **non lo sfonda**, quindi non c'è niente da rifare.
   Il giorno in cui lo sfondasse, il tetto si rifà con i quattro addendi scritti nel commento
   accanto alla regola — non si alza.
+
+## I pulsanti di copia: stessa grammatica del PNG, epistemologia diversa
+
+Applicati il 24 agosto 2026. I due blocchi di codice di «Incorpora questo modello» si
+copiavano solo a mano, e su un telefono selezionare quattro righe di codice dentro un
+riquadro che scorre è quasi impossibile.
+
+### Nascono come regola, e i blocchi della pagina sono due
+
+Un ciclo su `pre.cod`, non due pulsanti scritti nel markup. Cercati in tutta la pagina, i
+blocchi di codice sono **due** — il codice dell'iframe e lo script dell'altezza — e gli
+altri `code` sono **in linea dentro una frase** («python3 -m http.server» nella diagnostica):
+un pulsante accanto a tre parole in mezzo a un periodo sarebbe rumore. Il giorno in cui se
+ne aggiunge un terzo, il pulsante c'è già, e la prova verifica **la regola** — ogni blocco ne
+ha uno — invece del numero di oggi.
+
+Il pezzo editoriale sta **nel markup accanto al blocco**, `data-copia="il codice
+dell'iframe"`, come `ab` sta nell'anagrafica: scriverlo nel JavaScript sarebbe una seconda
+anagrafica dei blocchi, e resterebbe indietro alla prima aggiunta.
+
+### Che cosa finisce negli appunti, misurato
+
+Il blocco **va a capo per stare nella colonna**: a 380, quattro righe di sorgente rese in
+**193,8px**, cioè circa undici righe. Copiare «quello che si vede» darebbe un codice spezzato
+in punti che dipendono dalla larghezza della finestra di chi copia.
+
+Si usa **`textContent`**, che per specifica ignora il layout. Misurato: `innerText` oggi
+risponde **identico** — quattro righe in tutti e due i blocchi — perché con
+`white-space:pre-wrap` questo browser non mette gli a-capo morbidi nell'albero. **Due strade
+che oggi concordano sono precisamente la condizione in cui la scelta sbagliata non si vede**,
+e `innerText` è definito in funzione della resa. Quindi la prova sul valore non basta e il
+legame si prova **nel sorgente**, come per `colonneBlocco()` e `og:title`.
+
+**E il pulsante sta fuori dal `pre`**: dentro, la sua etichetta finirebbe in `textContent` e
+verrebbe copiata insieme al codice.
+
+### «Copiato» è legittimo, e «Immagine pronta» no: la differenza è misurata
+
+Stessa grammatica dello scarico del PNG — il riscontro sta **sul comando**, non in `#k-msg`
+a migliaia di pixel — ma l'epistemologia è diversa, ed è la ragione per cui le parole non
+sono le stesse:
+
+| | lo scarico del PNG | la copia |
+|---|---|---|
+| che cosa restituisce il comando | `a.click()` → `undefined` | `writeText` → una promessa |
+| eventi di esito | **nessuno**: `ondownload`, `ondownloadend`, `ondownloaderror` assenti | la promessa si risolve **solo** a copia avvenuta; `execCommand` dà un booleano |
+| quindi la parola | «Immagine pronta» — l'unica cosa verificata | **«Copiato»** — un fatto riferito, non una promessa |
+
+La prova lo dichiara: `«Copiato»` sta **nel ramo in cui il browser ha confermato**, e se un
+giorno comparisse un ramo che non sa dire niente, quell'asserzione andrebbe rifatta come
+quella del PNG.
+
+### Il ripiego scatta sul fatto, e sono tre rami
+
+`navigator.clipboard` non esiste fuori da un contesto sicuro, e chi apre `index.html` con un
+doppio clic è esattamente lì. **Non si guarda `location.protocol`** — sarebbe la stessa forma
+dello sniffing dello user agent — si prova a scrivere e si guarda la risposta, che è quello
+che `tipoMemoria()` fa da sempre per la memoria. Misurati su browser vero:
+
+| | ripiego usato | riscontro |
+|---|---|---|
+| l'API c'è e riesce | — | «Copiato» |
+| l'API non c'è | `execCommand` una volta | «Copiato» |
+| l'API c'è ma **respinge** | `execCommand` una volta | «Copiato» |
+| non riesce nemmeno quella | — | **«Selezionato: copialo tu»**, e il blocco viene selezionato — 239 caratteri, tutto il codice |
+
+**Dove non si può copiare, si seleziona.** Un pulsante che fallisce e basta lascia il lettore
+senza niente da fare; selezionando il blocco resta a un ⌘C di distanza, e la parola glielo
+dice. È la stessa scelta del ripiego del PNG.
+
+### Tre cose che il banco ha imposto
+
+**1 · `window.navigator` e non il `navigator` nudo.** È la stessa lezione di
+`window.location` già pagata dall'embed: il globale nudo esiste anche fuori da un browser —
+Node ne ha uno suo — quindi una prova che sostituisce la finestra non lo intercetta. La prima
+stesura lo usava, e tre asserzioni leggevano **`null`** negli appunti: la suite provava il
+ripiego credendo di provare la strada moderna.
+
+**2 · La regola del foglio va DOPO `.lnk`.** `.cpy` porta anche `.lnk`, i due selettori
+hanno la stessa specificità, e a parità vince **l'ordine di sorgente**: scritta accanto a
+`.cod` — novecento righe più su — avrebbe perso `margin-left` e `padding` in silenzio. È la
+trappola 4 del banco vista dal lato del foglio invece che da quello della prova, e adesso
+c'è un'asserzione che confronta le due posizioni.
+
+**3 · Un'asserzione che esplode invece di cadere**, per la quarta volta in questo progetto:
+la richiamata dei 2,6 secondi si chiamava senza verificare che ci fosse, e il mutante che la
+toglieva faceva **morire la suite** invece di farla fallire. Adesso c'è la guardia.
+
+Diciassette mutazioni, tutte morte. `embed.js` da 70 a 96 asserzioni, banco a **1987**.
+
+### Il tetto del gzip è a 0,8 KB
+
+**Da sapere prima di scrivere qualunque altra cosa**: dopo questo giro il file compresso
+misura **178,2 KB contro i 179 del tetto**. Non è sfondato, quindi non c'è niente da rifare
+adesso — ma il margine è **ottocento byte**, e le tre cose in coda (embed compatto, card
+social, `og:image`) lo sfondano tutte e tre. Il tetto si rifà con i quattro addendi scritti
+nel commento accanto alla regola, **non si alza a occhio**, e la potatura delle 60
+rilevazioni pre-fusione da `BASE` — 16,3 KB di caratteri — resta la strada da guardare per
+prima.
 
 ## L'archivio, tre punti: la sigla era una regola, il terzo totale, e il confine
 
@@ -3583,7 +3682,7 @@ Due conseguenze pratiche, e sono quelle da ricordare:
 ### Lo stato al 24 agosto 2026
 
 Scritto per ripartire senza la conversazione. Ultimo commit spinto: **`02e4247`**, CI e
-Pages verdi. Sul banco di oggi le prove sono **1957**, e le suite nuove degli ultimi due
+Pages verdi. Sul banco di oggi le prove sono **1987**, e le suite nuove degli ultimi due
 giorni sono cinque: `meta.js`, `tabella.js`, `embed.js`, `png.js` e `griglie.js`.
 
 **Non ancora committati**: l'esportazione PNG dei quattro disegni e il calendario in flex.

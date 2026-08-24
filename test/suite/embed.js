@@ -73,7 +73,9 @@ function pagina(opz){
     'global.A={render:render,EMBED:EMBED,VIA_NELL_EMBED:VIA_NELL_EMBED,' +
     'FIRMA_N:FIRMA_N,FIRMA_T:FIRMA_T,CANONICO:CANONICO,' +
     'applicaEmbed:applicaEmbed,rMemoria:rMemoria,rFirma:rFirma,' +
-    'contesto:contesto,votoPassato:votoPassato};carica().then(render,render)');
+    'contesto:contesto,votoPassato:votoPassato,' +
+    'copiaTesto:copiaTesto,montaCopia:montaCopia,rispostaCopia:rispostaCopia,' +
+    'selezionaBlocco:selezionaBlocco};carica().then(render,render)');
   eval(src);
   const A = global.A;
   try { A.applicaEmbed(); } catch(e){}
@@ -365,6 +367,194 @@ function pagina(opz){
     'l\'embed porta la data dell\'ultima verifica', upd ? upd.textContent : '');
   esito(!!emb.D.getElementById('k-fresh'),
     'e quella dell\'ultimo sondaggio: sono due grandezze diverse e l\'embed le dice tutte e due');
+}
+
+
+/* ══ I PULSANTI DI COPIA DEI BLOCCHI DI CODICE ════════════════════════════
+ * Nascono come REGOLA: un ciclo su `pre.cod`, non due pulsanti scritti nel markup. Questa
+ * prova verifica la regola — che ogni blocco di codice della pagina ne abbia uno — invece
+ * di verificare che ce ne siano due, che è il numero di oggi.
+ *
+ * E LA COSA CHE PUÒ ROMPERSI SENZA DIRLO è che cosa finisce negli appunti. Il blocco va a
+ * capo per stare nella colonna — misurato a 380: quattro righe di sorgente rese in 193,8px,
+ * cioè circa undici — quindi copiare «quello che si vede» darebbe un codice spezzato in
+ * punti che dipendono dalla larghezza della finestra di chi copia. `textContent` per
+ * specifica ignora il layout; `innerText` è definito in funzione della resa e oggi
+ * risponde identico, il che è precisamente la condizione in cui la scelta sbagliata non
+ * si vede.
+ */
+{
+  const {D: Dc, A: Ac, W: Wc} = pagina({});
+  const blocchi = [].slice.call(Dc.querySelectorAll('#kn26 pre.cod'));
+  esito(blocchi.length >= 2, 'ci sono blocchi di codice da copiare', String(blocchi.length));
+  /* LA REGOLA: ogni blocco ne ha uno. Non «ce ne sono due». */
+  const senza = blocchi.filter(p => {
+    const b = p.nextElementSibling;
+    return !(b && b.classList && b.classList.contains('cpy'));
+  });
+  esito(senza.length === 0,
+    'e OGNI blocco ha il suo pulsante: il comando è una regola, non due istanze',
+    senza.length + ' senza');
+  /* IL PULSANTE STA FUORI DAL `pre`: dentro, la sua etichetta finirebbe nel testo copiato */
+  const dentro = [].slice.call(Dc.querySelectorAll('#kn26 pre.cod button')).length;
+  esito(dentro === 0,
+    'e nessuno sta dentro il blocco, o «Copia» verrebbe copiato insieme al codice',
+    String(dentro));
+  blocchi.forEach((p, k) => {
+    esito(!/Copia/.test(p.textContent),
+      '  · il blocco ' + (k + 1) + ' non contiene la parola del comando', p.textContent.slice(0, 40));
+  });
+
+  /* IL NOME ACCESSIBILE NOMINA QUALE DEI DUE, e comincia col testo visibile (WCAG 2.5.3):
+     due pulsanti chiamati «Copia» sono indistinguibili in un elenco di comandi. */
+  const bot = [].slice.call(Dc.querySelectorAll('#kn26 button.cpy'));
+  const nomi = bot.map(b => b.getAttribute('aria-label'));
+  esito(nomi.every(n => !!n && n.indexOf(bot[0].textContent) === 0),
+    'il nome accessibile comincia col testo visibile: chi comanda a voce dice «Copia»',
+    nomi.join(' · '));
+  esito(new Set(nomi).size === nomi.length,
+    'e ciascuno dice QUALE blocco copia', nomi.join(' · '));
+  esito(bot.every(b => b.getAttribute('title') === b.getAttribute('aria-label')),
+    'e title e aria-label sono la stessa stringa, nata una volta sola: idioma di ETI');
+  /* il pezzo che cambia è dichiarato accanto al blocco che descrive, non in una seconda
+     anagrafica dentro il JavaScript */
+  esito(blocchi.every(p => !!p.getAttribute('data-copia')),
+    'e ogni blocco dichiara nel markup che cosa contiene, accanto al codice');
+
+  /* ══ CHE COSA FINISCE NEGLI APPUNTI ══ */
+  {
+    let scritto = null;
+    /* in jsdom `navigator` è un GETTER: assegnarlo non fallisce, non fa niente — la stessa
+       trappola di localStorage e parent già registrata. Si sovrascrive con defineProperty. */
+    Object.defineProperty(Wc, 'navigator', {configurable: true,
+      value: {clipboard: {writeText(t){ scritto = t; return Promise.resolve(); }}}});
+    /* si chiama la funzione della pagina, non si riproduce qui che cosa dovrebbe copiare:
+       riscriverlo sarebbe la seconda strada che diverge alla prima modifica */
+    const pre = blocchi[0];
+    Ac.copiaTesto(pre.textContent, () => {});
+    esito(scritto === pre.textContent,
+      'quello che finisce negli appunti è il testo del blocco, preso con textContent',
+      JSON.stringify(String(scritto).slice(0, 46)));
+    esito(scritto && scritto.split('\n').length === 4,
+      'e ha le righe del SORGENTE, non quelle della resa: il blocco va a capo per stare nella colonna',
+      String(scritto && scritto.split('\n').length));
+    esito(!/^\s|\s$/.test(scritto || ' '),
+      'e non porta spazi di impaginazione in testa o in coda');
+    /* e il legame si prova dove sta: nel sorgente. innerText oggi risponde identico, quindi
+       una prova sul VALORE non distingue le due strade — è la stessa forma della prova su
+       colonneBlocco() e su og:title. */
+    esito(/pre\.textContent/.test(HTML) && !/pre\.innerText/.test(HTML),
+      'e il codice usa textContent, che ignora il layout, non innerText, che ne dipende');
+  }
+}
+
+/* ══ LA PAROLA DEL RISCONTRO DICE QUELLO CHE SI È VERIFICATO ══════════════
+ * Stessa grammatica dello scarico del PNG — il riscontro sta sul comando, non a migliaia
+ * di pixel — ma EPISTEMOLOGIA DIVERSA, ed è la ragione per cui le parole non sono le
+ * stesse. Là `a.click()` non restituisce niente e non esiste nessun evento, quindi
+ * «Immagine pronta» dichiarava l'unica cosa verificata. Qui `writeText` restituisce una
+ * promessa che si risolve SOLO se la copia è avvenuta, e `execCommand` un booleano:
+ * l'esito è conoscibile, e allora «Copiato» non è una promessa ma un fatto riferito. */
+{
+  const {D: Dc, A: Ac, W: Wc} = pagina({});
+  const bot = () => Dc.querySelector('#kn26 button.cpy');
+  const partenza = bot().textContent;
+  Ac.rispostaCopia('0', 'Copiato');
+  esito(bot().textContent === 'Copiato',
+    'il riscontro sta sul pulsante, come per il PNG', bot().textContent);
+  esito(bot().classList.contains('detto'), 'e si dichiara con una classe');
+  esito(bot().dataset.orig === partenza,
+    'e conserva il testo di partenza leggendolo, invece di riscriverlo', bot().dataset.orig);
+  /* il ritorno si fa scattare davvero, catturando la richiamata */
+  const OT = global.setTimeout;
+  let ritorno = null;
+  global.setTimeout = (fn, ms) => { if (ms === 2600) { ritorno = fn; return 0; } return OT(fn, ms); };
+  Ac.rispostaCopia('0', 'Copiato');
+  global.setTimeout = OT;
+  esito(typeof ritorno === 'function', 'e programma il proprio ritorno');
+  /* la richiamata si chiama SOLO se c'è: senza questa guardia l'asserzione qui sotto non
+     cade, ESPLODE — e una suite che muore a metà è il buco che il banco ha già pagato due
+     volte. È la stessa lezione di `cmd().textContent` letto prima di verificare che ci sia. */
+  if (typeof ritorno === 'function') {
+    ritorno();
+    esito(bot().textContent === partenza && !bot().classList.contains('detto'),
+      'e quando scatta il pulsante torna a dire l\'azione', bot().textContent);
+  } else {
+    esito(false, 'e quando scatta il pulsante torna a dire l\'azione — nessun ritorno programmato');
+  }
+  /* IL BERSAGLIO È 44px, come quelli dell'esportazione e per la stessa ragione: è un
+     comando che si preme su un telefono, dove selezionare del codice a mano è quasi
+     impossibile. Cresce l'area, non la scritta. */
+  {
+    const cssC = HTML.match(/<style>([\s\S]*?)<\/style>/)[1];
+    const r = (cssC.match(/#kn26 \.cpy\{[^}]*\}/) || [''])[0];
+    esito(/min-height:44px/.test(r), 'e il bersaglio del comando di copia è 44px', r);
+    esito(!/font-size/.test(r),
+      'e il corpo resta quello di .lnk: cresce l\'area, non la scritta', r);
+    /* E LA REGOLA STA DOPO .lnk NEL FOGLIO. .cpy porta anche .lnk, i due selettori hanno la
+       stessa specificità, e a parità vince l'ordine di sorgente: scritta accanto a .cod —
+       novecento righe più su — questa regola avrebbe perso margin-left e padding in
+       silenzio. È la trappola 4 del banco vista dal lato del foglio. */
+    esito(cssC.indexOf('#kn26 .cpy{') > cssC.indexOf('#kn26 .lnk{'),
+      'e viene dopo .lnk nel foglio, o a parità di specificità perderebbe in silenzio',
+      cssC.indexOf('#kn26 .cpy{') + ' contro ' + cssC.indexOf('#kn26 .lnk{'));
+  }
+
+  /* LE PAROLE SI LEGGONO DAL CODICE, non si riscrivono qui: è la correzione che una
+     mutazione ha imposto alla prova gemella del PNG, dove l'elenco scritto a mano rendeva
+     l'asserzione incapace di cadere. */
+  const fonte = HTML.match(/copiaTesto\(pre\.textContent,function\(esito\)\{[\s\S]*?\n \}\);/)[0];
+  const parole = [...fonte.matchAll(/rispostaCopia\(k,'([^']*)'/g)].map(m => m[1]);
+  esito(parole.length === 2, 'il comando ha due esiti dichiarati', parole.join(' · '));
+  esito(new Set(parole).size === 2, 'e dicono due cose diverse', parole.join(' · '));
+  /* QUI «Copiato» È LEGITTIMO, e la prova dichiara perché: il ramo che lo usa è quello in
+     cui il browser ha confermato. Il ramo che non sa dire niente non esiste — se
+     esistesse, questa asserzione andrebbe rifatta come quella del PNG. */
+  esito(/esito==='copiato'/.test(fonte),
+    'e «Copiato» sta nel ramo in cui il browser ha confermato: non è una promessa',
+    fonte.slice(0, 120));
+  esito(/selezionaBlocco\(pre\)/.test(fonte),
+    'e dove la copia non riesce il blocco viene SELEZIONATO: resta a un ⌘C di distanza',
+    fonte.slice(-160));
+}
+
+/* ══ IL RIPIEGO SCATTA SUL FATTO, NON SULLO SCHEMA DELL'URL ═══════════════
+ * `navigator.clipboard` non esiste fuori da un contesto sicuro, e chi apre index.html con
+ * un doppio clic è esattamente lì. Non si guarda `location.protocol` — sarebbe la stessa
+ * forma dello sniffing dello user agent — si prova a scrivere e si guarda la risposta, che
+ * è quello che tipoMemoria() fa da sempre per la memoria. */
+{
+  const {D: Dc, A: Ac, W: Wc} = pagina({});
+  /* A · l'API non c'è: si passa alla strada vecchia */
+  let usoEC = 0, esitoA = null;
+  Object.defineProperty(Wc, 'navigator', {configurable: true, value: {}});
+  Dc.execCommand = () => { usoEC++; return true; };
+  Ac.copiaTesto('x', e => { esitoA = e; });
+  esito(usoEC === 1 && esitoA === 'copiato',
+    'senza l\'API si usa la strada vecchia, e riesce', usoEC + ' · ' + esitoA);
+  /* B · non riesce nemmeno quella: lo si sa, e lo si dice */
+  let esitoB = null;
+  Dc.execCommand = () => false;
+  Ac.copiaTesto('x', e => { esitoB = e; });
+  esito(esitoB === 'nonriuscita',
+    'e se non riesce nemmeno quella l\'esito lo dichiara', String(esitoB));
+  /* C · l'API c'è ma respinge — il caso del contesto non sicuro, che è il più frequente.
+     Il ramo è ASINCRONO (una promessa respinta si risolve in una microtask) e questa suite
+     è sincrona: si prova la FORMA nel sorgente, cioè che il gestore del rifiuto sia proprio
+     ripiegoCopia, e il comportamento è stato misurato su browser vero il 24 agosto 2026 —
+     API che respinge, ripiego usato una volta, riscontro «Copiato». */
+  const mod = HTML.match(/function copiaTesto\([\s\S]*?\n\}/)[0];
+  esito(/function\(\)\{ripiegoCopia\(t,poi\);\}/.test(mod),
+    'e se la promessa viene respinta si ripiega invece di lasciar cadere la copia',
+    mod.slice(-200));
+  esito(/function\(\)\{poi\('copiato'\);\}/.test(mod),
+    'e se si risolve la parola la riferisce: la promessa si risolve SOLO a copia avvenuta',
+    mod.slice(-200));
+  /* e in nessuno dei tre rami si guarda lo schema dell'URL né il nome del browser */
+  const mod2 = mod + HTML.match(/function ripiegoCopia\([\s\S]*?\n\}/)[0];
+  esito(!/protocol|isSecureContext|userAgent|file:/.test(mod2),
+    'e il ripiego non guarda mai lo schema dell\'URL né il nome del browser: solo il fatto',
+    mod2.slice(0, 120));
 }
 
 console.log('\n' + ok + '/' + (ok + ko));

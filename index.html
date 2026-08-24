@@ -197,7 +197,7 @@
 /* Il frammento da copiare. white-space:pre-wrap e non pre: a 380 una riga di iframe è più
    larga dello schermo, e uno scorrevole dentro un <details> dentro una pagina sarebbe il
    terzo scorrimento annidato — quello che l'archivio ha appena smesso di avere. */
-#kn26 .cod{margin:10px 0;padding:11px 13px;background:var(--wash);border:1px solid var(--hair);
+#kn26 .cod{margin:10px 0 0;padding:11px 13px;background:var(--wash);border:1px solid var(--hair);
  overflow:visible;}
 #kn26 .cod code{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:11.5px;
  line-height:1.5;color:var(--ink);white-space:pre-wrap;word-break:break-word;}
@@ -1139,6 +1139,19 @@
 /* il riscontro non cambia colore né peso: cambia la parola, e basta quella. Una tinta in
    più direbbe «successo» dove il codice ha appena dichiarato di non poterlo sapere. */
 #kn26 .lnk.png.detto{color:var(--ink);text-decoration:none;}
+/* IL COMANDO DI COPIA. Bersaglio da 44px come quelli dell'esportazione, e per la stessa
+   ragione: è un comando che si preme su un telefono, dove il codice da copiare a mano è
+   quasi impossibile da selezionare. Cresce l'area, non la scritta.
+   Sta SOTTO il blocco e non dentro: dentro, la sua etichetta finirebbe nel textContent e
+   verrebbe copiata insieme al codice. Il margine del `pre` è passato sotto al pulsante, che
+   ora è l'ultimo pezzo del gruppo.
+   E STA DOPO .lnk NEL FOGLIO, non prima: .cpy porta anche .lnk, i due selettori hanno la
+   stessa specificità, e a parità vince l'ordine di sorgente — messa accanto a .cod, cioè
+   novecento righe più su, questa regola avrebbe perso margin-left e padding in silenzio.
+   È la trappola 4 del banco vista dal lato del foglio invece che da quello della prova. */
+#kn26 .cpy{min-height:44px;display:inline-flex;align-items:center;padding:0 6px;
+ margin:0 0 10px;}
+#kn26 .cpy.detto{color:var(--ink);text-decoration:none;}
 #kn26 .pgb{display:flex;flex-wrap:wrap;gap:7px;}
 #kn26 .pgn{font-size:11.5px;color:var(--mute);line-height:1.5;margin-top:12px;}
 #kn26 .rng{margin-bottom:15px;}
@@ -1828,12 +1841,12 @@
  <summary>Incorpora questo modello</summary>
  <div class="bd">
  <p class="fn" style="margin-top:2px">Il modello si può incorporare su qualunque sito: non serve chiedere niente e non c&rsquo;è niente da configurare. L&rsquo;archivio si aggiorna ogni notte da solo, quindi il riquadro resta aggiornato senza che tu debba rifare nulla.</p>
- <pre class="cod"><code>&lt;iframe src="https://angrisanidj.github.io/modello-israele/?embed=1"
+ <pre class="cod" data-copia="il codice dell&rsquo;iframe"><code>&lt;iframe src="https://angrisanidj.github.io/modello-israele/?embed=1"
         width="100%" height="900" style="border:0"
         loading="lazy" title="Modello previsionale Knesset 2026"
         sandbox="allow-scripts allow-popups"&gt;&lt;/iframe&gt;</code></pre>
  <p class="fn"><b>L&rsquo;altezza.</b> Il riquadro scorre al suo interno, quindi <code>height</code> è una scelta tua e nessun valore è sbagliato: 900 sta bene su desktop, 700 su una pagina stretta. Se il tuo sito può eseguire tre righe di JavaScript, il riquadro sa dire quanto è alto e può crescere da solo:</p>
- <pre class="cod"><code>&lt;script&gt;addEventListener('message', function (e) {
+ <pre class="cod" data-copia="lo script dell&rsquo;altezza"><code>&lt;script&gt;addEventListener('message', function (e) {
   if (e.data &amp;&amp; e.data.kn26 === 'altezza') document.querySelector('iframe[src*="modello-israele"]').height = e.data.px;
 });&lt;/script&gt;</code></pre>
  <p class="fn"><b>Che cosa cambia dentro il riquadro.</b> Restano tutti i grafici, i comandi, l&rsquo;archivio dei sondaggi e la nota metodologica. Non ci sono il modulo di inserimento manuale, l&rsquo;esportazione dei dati e la diagnostica: sono attrezzi di chi cura il modello, e scrivono in una memoria che dentro un riquadro di terza parte il browser non concede. Il riquadro lo dichiara in cima invece di lasciarlo scoprire.</p>
@@ -3618,6 +3631,113 @@ function rProb(){
    ? ': i due valori non coincidono perché soglia di sbarramento e riparto d\'Hondt non sono trasformazioni lineari, '+
      'e la mediana degli esiti non è l\'esito calcolato sulla media.' : '.');
  if(SW) $('k-simn').textContent=f(SIM)+' simulazioni · swing '+(SW>0?'+':'')+f(SW,1)+' pt verso la coalizione';
+}
+/* ══════════ I PULSANTI DI COPIA DEI BLOCCHI DI CODICE ══════════
+   Nascono come REGOLA e non come istanza: un ciclo su `pre.cod`, non due pulsanti scritti
+   nel markup. Oggi i blocchi sono due — il codice dell'iframe e lo script dell'altezza,
+   tutti e due dentro «Incorpora questo modello» — e cercandoli in tutta la pagina non ce
+   ne sono altri: gli altri `code` sono in linea dentro una frase («python3 -m
+   http.server»), e un pulsante accanto a tre parole in mezzo a un periodo sarebbe rumore.
+   Il giorno in cui se ne aggiunge un terzo, il pulsante c'è già.
+
+   COSA FINISCE NEGLI APPUNTI, e non è una domanda oziosa: il blocco VA A CAPO per stare
+   nella colonna — misurato a 380, quattro righe di sorgente rese in 193,8px, cioè circa
+   undici righe — quindi copiare «quello che si vede» darebbe un codice spezzato in punti
+   che dipendono dalla larghezza della finestra. Si usa `textContent`, che per specifica
+   ignora il layout. `innerText` oggi risponde IDENTICO, misurato: quattro righe in tutti e
+   due i blocchi. Ma è vero perché con `white-space:pre-wrap` questo browser non inserisce
+   gli a-capo morbidi nell'albero — non perché sia garantito, e `innerText` è definito in
+   funzione della resa. Due strade che oggi concordano sono la condizione in cui la scelta
+   sbagliata non si vede: si prende quella che non dipende da come è andata la riga.
+
+   E IL PULSANTE STA FUORI DAL `pre`, non dentro: dentro, la sua etichetta finirebbe in
+   `textContent` e verrebbe copiata insieme al codice. */
+
+/* LA COPIA SA SE È RIUSCITA, E QUI STA LA DIFFERENZA CON LO SCARICO DEL PNG.
+   Lì `a.click()` non restituisce niente e non esiste nessun evento, quindi la parola del
+   riscontro doveva dichiarare l'unica cosa verificata — «Immagine pronta». Qui
+   `writeText` restituisce una promessa che si risolve SOLO se la copia è avvenuta, e
+   `execCommand` restituisce un booleano: l'esito è conoscibile, e allora la parola può
+   dirlo. «Copiato» non è una promessa: è una cosa che il browser ha confermato.
+   Stessa grammatica, epistemologia diversa — ed è la ragione per cui le due parole non
+   sono la stessa.
+
+   IL RIPIEGO SCATTA SUL FATTO. `navigator.clipboard` non esiste fuori da un contesto
+   sicuro, e chi apre `index.html` con un doppio clic è esattamente lì: `file://` non è
+   sempre trattato come sicuro, e in quel caso l'API manca del tutto o la promessa viene
+   respinta. Non si guarda lo schema dell'URL — sarebbe la stessa forma dello sniffing —
+   si prova a scrivere e si guarda che cosa risponde, che è quello che `tipoMemoria()` fa
+   da sempre per la memoria. */
+/* `window.navigator` E NON IL `navigator` NUDO, ed è la stessa lezione di `window.location`
+   già pagata dall'embed: il globale nudo esiste anche fuori da un browser — Node ne ha uno
+   suo — quindi una prova che sostituisce la finestra non lo intercetta, e la suite
+   proverebbe il ripiego credendo di provare la strada moderna, o viceversa. La prima
+   stesura di questa funzione lo faceva, e tre asserzioni leggevano «null» negli appunti. */
+function copiaTesto(t,poi){
+ var nav=window.navigator;
+ if(nav&&nav.clipboard&&nav.clipboard.writeText){
+  var p;
+  try{ p=nav.clipboard.writeText(t); }catch(e){ p=null; }
+  if(p&&p.then){ p.then(function(){poi('copiato');},function(){ripiegoCopia(t,poi);}); return; }
+ }
+ ripiegoCopia(t,poi);
+}
+/* La strada vecchia: un'area di testo fuori schermo, selezionata e copiata. È deprecata e
+   funziona dove l'altra non c'è, che è precisamente il caso in cui serve un ripiego.
+   La selezione del lettore si salva e si rimette: chi aveva evidenziato una frase non deve
+   perderla per aver premuto un pulsante. */
+function ripiegoCopia(t,poi){
+ var ta=document.createElement('textarea');
+ ta.value=t; ta.setAttribute('readonly','');
+ ta.style.cssText='position:absolute;left:-9999px;top:0';
+ document.body.appendChild(ta);
+ var sel=document.getSelection(), prima=(sel&&sel.rangeCount)?sel.getRangeAt(0):null;
+ var ok=false;
+ try{ ta.select(); ta.setSelectionRange(0,t.length); ok=document.execCommand('copy'); }
+ catch(e){ ok=false; }
+ if(ta.parentNode) ta.parentNode.removeChild(ta);
+ if(sel&&prima){ try{ sel.removeAllRanges(); sel.addRange(prima); }catch(e){} }
+ poi(ok?'copiato':'nonriuscita');
+}
+/* QUANDO NON SI PUÒ COPIARE, SI SELEZIONA. Un pulsante che fallisce e basta lascia il
+   lettore senza niente da fare; selezionando il blocco resta a un ⌘C di distanza, e la
+   parola glielo dice. È la stessa scelta del ripiego del PNG: dove il fatto è noto, si
+   offre la cosa che si può ancora fare. */
+function selezionaBlocco(pre){
+ try{
+  var r=document.createRange(); r.selectNodeContents(pre.querySelector('code')||pre);
+  var s=document.getSelection(); s.removeAllRanges(); s.addRange(r);
+ }catch(e){}
+}
+/* Il riscontro sta sul pulsante, come per il PNG: #k-msg è a migliaia di pixel da qui, e
+   un comando che parla dove nessuno guarda è indistinguibile da un comando muto. Il
+   pulsante si ricerca invece di tenerne il riferimento. */
+function rispostaCopia(k,testo){
+ var b=R.querySelector('button.cpy[data-cpy="'+k+'"]'); if(!b) return;
+ if(b.dataset.orig===undefined) b.dataset.orig=b.textContent;
+ var orig=b.dataset.orig;
+ b.textContent=testo; b.classList.add('detto');
+ clearTimeout(b.__t);
+ b.__t=setTimeout(function(){ b.textContent=orig; b.classList.remove('detto'); },2600);
+}
+/* IL NOME ACCESSIBILE NOMINA QUALE DEI DUE COPIA. Due pulsanti chiamati «Copia» sono
+   indistinguibili in un elenco di comandi — è la lezione dei quattro «Scarica PNG» e dei
+   bersagli dei marcatori — e il nome comincia col testo visibile, come chiede WCAG 2.5.3:
+   chi comanda a voce dice «Copia».
+   Il pezzo che cambia è DICHIARATO NEL MARKUP, accanto al blocco che descrive: `data-copia`
+   sta sul `pre`, dove sta il codice. Scriverlo qui sarebbe una seconda anagrafica dei
+   blocchi, e resterebbe indietro alla prima aggiunta. */
+function montaCopia(){
+ Array.prototype.forEach.call(R.querySelectorAll('button.cpy'),function(b){
+  if(b.parentNode) b.parentNode.removeChild(b);});
+ Array.prototype.forEach.call(R.querySelectorAll('pre.cod'),function(p,k){
+  var che=p.getAttribute('data-copia')||'';
+  if(!che) return;
+  p.setAttribute('data-cpy',String(k));
+  var eti='Copia '+che;
+  p.insertAdjacentHTML('afterend','<button class="lnk cpy" data-cpy="'+E(String(k))+
+   '" title="'+E(eti)+'" aria-label="'+E(eti)+'">Copia</button>');
+ });
 }
 /* ══════════ ESPORTAZIONE PNG DEI QUATTRO DISEGNI ══════════
    Le decisioni stanno nel punto 7 di CLAUDE.md e non si rifanno qui; qui c'è quello che
@@ -6420,6 +6540,7 @@ function renderInterno(){
  var i1=istogramma(MC.coal,C.coal,'k-hist','Distribuzione coalizione',blocchi(SEG).coalizione);
  var i2=istogramma(MC.oppz,C.oppo,'k-hist2','Distribuzione opposizione',blocchi(SEG).opposizione);
  montaPNG();
+ montaCopia();
  var bb=blocchi(SEG);
  $('k-cap1').innerHTML='Ogni barra è un possibile risultato, alta quanto è frequente nelle '+f(SIM)+' simulazioni. '+
   'Il blocco Netanyahu supera quota 61 nel <b>'+pc(MC.vC/MC.n)+'</b> dei casi: sono le barre in tinta piena. '+
@@ -7031,6 +7152,19 @@ R.addEventListener('input',function(e){
 R.addEventListener('click',function(e){
  var p=e.target&&e.target.closest&&e.target.closest('[data-png]');
  if(p) esportaPNG(p.getAttribute('data-png'));
+});
+/* La copia dei blocchi di codice. Delegato come tutto il resto. Il testo si prende con
+   textContent dal `pre`, non da quello che si vede: il blocco va a capo per stare nella
+   colonna, e gli a-capo della resa non sono nel codice. */
+R.addEventListener('click',function(e){
+ var b=e.target&&e.target.closest&&e.target.closest('button.cpy');
+ if(!b) return;
+ var k=b.getAttribute('data-cpy'), pre=R.querySelector('pre.cod[data-cpy="'+k+'"]');
+ if(!pre) return;
+ copiaTesto(pre.textContent,function(esito){
+  if(esito==='copiato') rispostaCopia(k,'Copiato');
+  else { selezionaBlocco(pre); rispostaCopia(k,'Selezionato: copialo tu'); }
+ });
 });
 R.addEventListener('click',function(e){
  var b=e.target&&e.target.closest&&e.target.closest('#k-tabpiu');
