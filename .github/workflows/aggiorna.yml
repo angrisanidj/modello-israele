@@ -72,15 +72,31 @@ jobs:
         run: npm run verifica
       - name: Commit e push dei file dati e delle meta dello stato
         run: |
-          if git diff --quiet dati/ index.html; then
-            echo "niente di nuovo: nessun commit, nessuna pubblicazione"
-            exit 0
-          fi
+          # NIENTE GUARDIA QUI: c'era, e guardava un insieme DIVERSO da quello che finisce in
+          # scena — «git diff --quiet dati/ index.html» contro i quattro file nominati sotto.
+          # dati/da-fare.json sta in dati/ e NON è fra i quattro, quindi una notte in cui
+          # cambia solo lui passava la guardia, non metteva in scena niente, e «git commit»
+          # usciva 1 uccidendo il passo con bash -e. È la strada doppia di sempre: due modi
+          # di rispondere a «c'è qualcosa da committare?», d'accordo finché i due insiemi
+          # coincidono. Successo il 25 agosto 2026, ed è l'unico passo che il banco locale
+          # non poteva provare perché il push è cablato su main.
+          # La guardia sta DOPO git add ed è «--cached»: per costruzione guarda esattamente
+          # quello che verrà committato, quindi non può divergere da sé stessa.
           git config user.name "aggiornamento-notturno"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           # index.html entra per la sola regione delle meta dello stato: il passo di
           # verifica qui sopra ha già fallito se il diff toccava altro
           git add dati/archivio.json dati/eventi-grezzi.json dati/stato-job.json index.html
+          # UNA NOTTE A MANI VUOTE NON È UN FALLIMENTO. Senza questa guardia, quando il
+          # parser non cambia un byte «git commit» esce 1 perché non c'è niente da
+          # committare, e con «bash -e» il passo muore: il job risulterebbe fallito e il
+          # riepilogo aprirebbe una issue per una notte andata benissimo. Non era mai emerso
+          # perché stato-job.json cambia quasi ogni notte; è emerso il 25 agosto 2026, al
+          # primo rilancio a mano dopo che le stesse righe erano già state committate.
+          if git diff --cached --quiet; then
+            echo "niente da committare: la notte non ha cambiato nessun file"
+            exit 0
+          fi
           git commit -m "Aggiornare l'archivio e og:title dai sondaggi di Wikipedia (lavoro notturno)"
           # mai forzare: se nel frattempo è arrivato un push umano e il rebase non è
           # pulito, il job si arrende senza danni e riprova la notte successiva
@@ -134,10 +150,15 @@ jobs:
           # «always()» dice come è andata FIN QUI, ed è l'unico posto in cui si sa.
           SPAZZOLA_CADUTA=${{ steps.spazzola.outputs.caduta }} ESITO_JOB=${{ job.status }} ESECUZIONI_FERME=${{ steps.ferme.outputs.ferme }} node .github/scripts/riepilogo.mjs
           [ -f corpo-dafare.md ] || exit 0
-          if ! git diff --quiet dati/da-fare.json; then
-            git config user.name "aggiornamento-notturno"
-            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-            git add dati/da-fare.json
+          # STESSO IDIOMA DELL'ALTRO COMMIT, e non per simmetria: la guardia sta DOPO
+          # git add ed è «--cached», così guarda per costruzione esattamente i file che
+          # verranno committati. Qui l'insieme è uno solo e le due forme coinciderebbero,
+          # ma è precisamente la condizione in cui la forma sbagliata non si vede — nel
+          # passo di sopra i due insiemi divergevano e il job moriva.
+          git config user.name "aggiornamento-notturno"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add dati/da-fare.json
+          if ! git diff --cached --quiet; then
             git commit -m "Aggiornare il riepilogo delle cose da fare (lavoro notturno)"
             git pull --rebase origin main && git push origin main || { git rebase --abort || true; echo "rebase non pulito: il file resta locale"; }
           fi

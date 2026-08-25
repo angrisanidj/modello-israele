@@ -382,6 +382,17 @@ await (async function(){
      cattivi.push(f+' · «'+nome+'» riga '+(i+1)+': '+(dentro==='"'?'virgolette':'apici')+
        ' non chiusi — '+nudo.trim().slice(0,60));
    });
+   /* 4 · UN «git commit» SENZA GUARDIA SUL VUOTO. Con nulla in scena git commit esce 1, e
+      con «bash -e» il passo muore: una notte in cui il parser non cambia un byte
+      risulterebbe FALLITA, e il riepilogo aprirebbe una issue per una notte andata bene.
+      Trovato il 25 agosto 2026 al primo rilancio a mano dopo un commit umano che portava
+      già le stesse righe — il passo 4 era l'unico che il banco locale non poteva provare,
+      perché il push è cablato su main. E la guardia dev'essere «--cached», non un «git diff» qualunque: quella che c'era
+      guardava dati/ e index.html mentre in scena andavano quattro file nominati, cioè due
+      insiemi diversi — d'accordo finché coincidono. Dopo git add, --cached guarda per
+      costruzione esattamente quello che verrà committato. */
+   if(/\bgit commit\b/.test(par[1])&&!/git diff --cached --quiet/.test(par[1]))
+    cattivi.push(f+' · «'+nome+'»: git commit senza guardia sul vuoto');
   });
  }
  p('nei comandi dei workflow nessuna sequenza di escape non interpretata e nessuna riga aperta'+
