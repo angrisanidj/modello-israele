@@ -99,10 +99,14 @@
      dei tre può essere diventato falso. Il <title> statico resta questo per sempre, ed è
      voluto: un ripiego che raccontasse lo stato scadrebbe in una data che nessuno ha
      segnato in calendario. -->
-<meta property="og:title" content="Knesset 2026 — Modello previsionale">
+<meta property="og:title" content="Maggioranza solo con i partiti arabi · Knesset 2026">
 <!-- ══ META DELLO STATO · FINE ══ -->
 </head>
-<body style="margin:0;background:#e8e6e0;">
+<!-- Il fondo è il --paper del tema CHIARO, ed è solo un ripiego: applicaTema() lo riscrive
+     dalla tavolozza al primo giro, perché in tema scuro dev'essere #070D18. Prima qui c'era
+     #e8e6e0, un beige che non appartiene a nessuno dei due temi e che si vedeva dovunque
+     #kn26 non arrivasse. -->
+<body style="margin:0;background:#F7F8FA;">
 
 <div id="kn26">
 <style>
@@ -1168,6 +1172,19 @@
 #kn26 .cpy{min-height:44px;display:inline-flex;align-items:center;padding:0 6px;
  margin:0 0 10px;}
 #kn26 .cpy.detto{color:var(--ink);text-decoration:none;}
+/* CONDIVISIONE E DOMANDE A UN MODELLO. I comandi vanno a capo in un contenitore flessibile
+   invece di stare in colonna: sei link uno sopra l'altro più quattro pulsanti sarebbero
+   dieci righe, e a 380 la pagina è già alta diciottomila pixel. Con l'a-capo stanno in due
+   o tre righe per blocco. Bersaglio 44px come tutti gli altri comandi. */
+#kn26 #k-social{margin-top:26px;padding-top:18px;border-top:1px solid var(--hair);}
+#kn26 .socgr{margin-bottom:16px;}
+#kn26 .soct{font-size:10px;letter-spacing:.11em;text-transform:uppercase;color:var(--acc);
+ font-weight:700;margin-bottom:7px;}
+#kn26 .socb{display:flex;flex-wrap:wrap;gap:6px 8px;}
+#kn26 .soc{min-height:44px;display:inline-flex;align-items:center;padding:0 10px;margin:0;
+ border:1px solid var(--hair);border-radius:2px;}
+#kn26 .soc.detto{color:var(--ink);text-decoration:none;}
+#kn26 .socn{margin-top:8px;}
 /* LA FORMA COMPATTA DELL'EMBED, ?embed=sintesi. La riga di sintesi si scrive sempre e si
    vede solo qui, come la fascia del dopo-voto: il giorno in cui compare non è il giorno in
    cui viene scritta per la prima volta.
@@ -1381,6 +1398,16 @@
     righe — ed è la prova a dirlo, misurando la somma delle larghezze contro il
     contenitore. */
  #kn26 .meta{font-size:10px;gap:4px 0;flex-wrap:nowrap;}
+ /* e la riga unica si apre SOLO quando c'è la quarta voce, che è condizionale e rara.
+    Il nowrap qui sopra non è una svista da riparare: è un filo d'inciampo dichiarato — le
+    tre voci fisse devono stare su una riga, e il giorno in cui un numero passa a tre cifre
+    si deve VEDERE invece di riaprirsi in silenzio a due righe. Toglierlo per far posto alla
+    quarta cancellerebbe quell'invariante, e la prova di date.js che lo pretende cadrebbe.
+    Misurato a 380 il 25 agosto 2026: con la clausola e senza questa regola il documento
+    sfora di 74px — cioè si riaprirebbe lo sforamento orizzontale chiuso il 22 agosto, che
+    era il prerequisito dell'embed. Con la regola: sforamento zero, .meta da 15,5 a 35px.
+    Quarto uso dell'idioma: #k-upd il 22 agosto, .cmd/.cb, il calendario. */
+ #kn26 .meta.piu{flex-wrap:wrap;}
  #kn26 .meta>span{padding:0 7px;white-space:nowrap;}
  #kn26 .meta>span:first-child{padding-left:0;}
  #kn26 .btn.big{width:100%;text-align:center;}
@@ -1915,6 +1942,13 @@
      rel="noopener" perché target="_blank" senza è un difetto noto; l'href di un'ancora
      non carica niente, e la regola del file autonomo riguarda le RISORSE, non i
      collegamenti — il controllo strutturale li elenca a parte proprio per questo. -->
+<!-- Condivisione e domande a un modello. Stanno alla FINE della pagina e fuori dalla nota
+     metodologica, che è un <details> chiuso: la nota è «la fine» per chi la apre, ma quasi
+     nessuno la apre, e un comando dentro un cassetto chiuso non esiste per la maggior parte
+     dei lettori. Qui invece sono l ultima cosa che si incontra scorrendo, subito sopra la
+     firma — che è il punto in cui si è finito di leggere. Li riempie montaSocial(). -->
+<div id="k-social"></div>
+
 <p class="firma" id="k-firma">Daniele Angrisani · Modello previsionale Knesset 2026 ·
  <a href="https://x.com/putino" target="_blank" rel="noopener">@putino</a></p>
 </div>
@@ -2148,6 +2182,15 @@ function applicaTema(t){
  R.classList.add(TEMA);
  Array.prototype.forEach.call(R.querySelectorAll('[data-tema]'),function(b){
   b.classList.toggle('on',b.dataset.tema===TEMA);});
+ /* IL FONDO DELLA PAGINA VIENE DAL TEMA, non da una costante scritta a mano. Il body
+    portava background:#e8e6e0 nell'attributo di stile, e quel beige si vede dovunque #kn26
+    non arrivi: a 1280 sono 50px per lato in tema chiaro contro #F7F8FA, e 103 in tema
+    scuro contro #070D18 — il difetto già annotato per i lati, che dal basso ricompare
+    ogni volta che l'ospite dà al riquadro più altezza del contenuto.
+    Si scrive qui e non nel foglio perché --paper è dichiarata su #kn26, e il body non è un
+    suo discendente: una regola del foglio non potrebbe leggerla. Il valore esce da C, che
+    è la stessa tavolozza di tutto il resto. */
+
  memSet('knesset2026-tema',TEMA);
  render();
 }
@@ -2164,6 +2207,16 @@ function leggiTema(){
   var v=cs?String(cs.getPropertyValue('--'+k)||'').trim():'';
   C[k]=v||fall[k];
  });
+ /* IL FONDO DELLA PAGINA VIENE DAL TEMA, e sta QUI e non in applicaTema() perché
+    applicaTema() gira solo quando qualcuno preme un pulsante, mentre questa risolve la
+    tavolozza a ogni render — cioè sempre, anche al primo. Misurato: messo là, una pagina
+    aperta in tema scuro restava col fondo chiaro finché non si toccava il selettore.
+    Il body portava background:#e8e6e0 scritto a mano, un beige che non appartiene a nessuno
+    dei due temi e che si vede dovunque #kn26 non arrivi: 50px per lato a 1280 in chiaro,
+    103 in scuro, e tutta l'altezza che avanza quando l'ospite dà al riquadro più spazio del
+    contenuto. Non si può scrivere nel foglio: --paper è dichiarata su #kn26, e il body non
+    è un suo discendente. */
+ try{ document.body.style.background=C.paper||''; }catch(e){}
 }
 /* mescola un colore verso il bianco: rende leggibili i colori di lista sul fondo
    scuro senza doverne mantenere due serie separate */
@@ -3688,9 +3741,22 @@ function rTesta(){
      dice l'AZIONE e cambia premendo, quindi aria-pressed direbbe il contrario di quello
      che si legge. Lo esclude rApp(), che quel nome lo scrive. */
   if(b.id!=='k-app') b.setAttribute('aria-pressed',PAR[b.dataset.par]?'true':'false');});
- $('k-n').innerHTML=str
+ /* LA CLAUSOLA È CONDIZIONALE, come notaSerie(): a zero aggiunte non dice niente, che è il
+    caso di ogni pagina appena aperta e di quasi tutti i lettori. Da cui anche il modo di
+    provarla — lo stato va ACCESO, o la prova passa a vuoto guardando la pagina di sempre.
+    NON VA NELLA TESTATA, benché lì costerebbe zero pixel: #k-upd dice la freschezza DEL
+    SERVER — «verificato il 23 agosto · 3 giorni fa» — e quante ne ho io in più è un'altra
+    grandezza. Il numero che mentiva è questo, e si ripara dov'è. */
+ var np=nonPubblicate().length;
+ /* la classe va sul PADRE: #k-n è lo SPAN della terza voce, e .meta è il contenitore
+    flessibile che la contiene. Scritta sullo span metterebbe display:flex su una voce
+    dentro la riga, cioè riparerebbe l'a-capo rompendo la riga. */
+ var meta=$('k-n').parentNode;
+ if(meta&&meta.classList) meta.classList.toggle('piu',!!np);
+ $('k-n').innerHTML=(str
   ? '<b>'+L.length+'</b>/<b>'+f(SOND.length)+'</b> rilevazioni'
-  : '<b>'+L.length+'</b> rilevazioni nel modello · <b>'+f(SOND.length)+'</b> in archivio dal 1º gennaio';
+  : '<b>'+L.length+'</b> rilevazioni nel modello · <b>'+f(SOND.length)+'</b> in archivio dal 1º gennaio')+
+  (np?' · <b>'+f(np)+'</b> non ancora '+acc(np,'pubblicata','pubblicate'):'');
  $('k-simn').textContent=f(SIM)+' simulazioni · orizzonte '+f(ORIZZONTE)+' giorni';
 }
 /* arrotonda una serie di quote a interi che sommano esattamente a 100:
@@ -3800,12 +3866,33 @@ var SINT_TIENI=['k-sintriga','k-emi','k-sprobs','k-firma','k-postvoto','k-mem','
    Qui nessun elemento cambia genitore. Si tiene la catena degli antenati dei pezzi
    dichiarati e si toglie tutto il resto — una regola sola, che vale anche per i pezzi che
    qualcuno aggiungerà. */
+/* QUELLO CHE NON È CONTENUTO NON SI POTA, ed è la regola giusta invece di «tieni anche lo
+   style»: quella rimetterebbe il difetto al primo elemento non-contenuto che nasce domani.
+   Un <style> non è una cosa che si legge, è la vestizione di tutto il resto; uno <script>,
+   un <link>, un <template>, un <noscript> nemmeno.
+   IL CONTO DI QUESTA DISTINZIONE È STATO PAGATO IL 24 AGOSTO 2026. La potatura teneva la
+   catena degli antenati dei pezzi dichiarati e toglieva tutto il resto — e il foglio del
+   modello sta DENTRO il body, che è la trappola 4 del banco, quindi non era antenato di
+   niente ed è stato rimosso. Misurato sulla forma compatta: --paper stringa vuota, fondo di
+   #kn26 rgba(0,0,0,0), imbottitura 0, e 398px di beige del body sotto il contenuto.
+   E soprattutto: la fascia del dopo-voto è COMPARSA, con «Le elezioni si sono tenute il 27
+   ottobre 2026» il 24 agosto — non perché la condizione scattasse, ma perché
+   #kn26 .postvoto{display:none} non esisteva più. Il progetto usa in più punti «il testo
+   si scrive sempre, a comparire è solo la classe»: senza foglio, tutto quello che è
+   costruito così compare insieme. Una potatura che tocca la vestizione non rompe una cosa,
+   ne rompe una famiglia.
+   E la geometria reggeva: emiciclo 209, riga 18, firma 36, gli stessi numeri di prima,
+   perché l'SVG porta i colori come attributi e le altezze le detta il contenuto. Le mie
+   asserzioni misuravano quella. È «misurare convince di aver guardato», stavolta da parte
+   mia. */
+var NON_CONTENUTO=['STYLE','SCRIPT','LINK','TEMPLATE','META','NOSCRIPT','TITLE'];
 function potaSintesi(){
  var tieni=[],salvi=[];
  SINT_TIENI.forEach(function(id){var e=$(id); if(e) tieni.push(e);});
  tieni.forEach(function(e){ for(var p=e;p&&p!==R;p=p.parentNode) salvi.push(p); });
  (function pota(n){
   Array.prototype.slice.call(n.children).forEach(function(c){
+   if(NON_CONTENUTO.indexOf(c.tagName)>=0) return;
    if(tieni.indexOf(c)>=0) return;
    if(salvi.indexOf(c)>=0){ pota(c); return; }
    if(c.parentNode) c.parentNode.removeChild(c);
@@ -3934,12 +4021,12 @@ function svgCard(nome){
    tutti e tre gli intent, quindi l'indirizzo NON va dentro la frase: ripetuto, comparirebbe
    due volte nel messaggio pubblicato. Le grandezze sono quelle già calcolate — nessuna
    strada nuova verso gli stessi numeri. */
-function testoCondivisione(){
- var b=blocchi(SEG), g=ggCal(new Date(),VOTO);
- return 'Proiezione dei 120 seggi della Knesset a '+f(g)+' giorni dal voto: '+
-  'blocco Netanyahu '+f(b.coalizione)+', opposizione '+f(b.opposizione)+
-  ', partiti arabi '+f(b.arabo)+'. Aggiornata ogni notte sui sondaggi pubblicati.';
-}
+/* IL TESTO DELLA CONDIVISIONE STA IN UN POSTO SOLO, e ci è arrivato perché il banco ha
+   dichiarato una funzione duplicata. Le card ne avevano scritta una, i link per rete
+   un'altra: due frasi identiche a occhio, e la prima portava il difetto che acc() esiste
+   per evitare — «a 1 giorni dal voto» la vigilia del voto. È l'invariante 3, e stavolta
+   l'ha colta il controllo strutturale invece di un lettore.
+   La definizione è più sotto, con le due forme; qui resta solo la nota di dove sta. */
 /* IL COMANDO NON C'È DOVE L'API NON C'È, e non è prudenza: un comando che apre un foglio di
    condivisione senza poter allegare l'immagine prometterebbe una cosa che non fa. Il ramo
    guarda la CAPACITÀ — canShare({files}) con un file vero — non il nome del browser, ed è
@@ -3966,7 +4053,7 @@ function condividi(){
   if(err||!blob){ rispostaCond('Non riuscita'); return; }
   var file;
   try{ file=new File([blob],c.nome,{type:'image/png'}); }catch(e){ rispostaCond('Non riuscita'); return; }
-  window.navigator.share({files:[file],text:testoCondivisione(),url:CANONICO})
+  window.navigator.share({files:[file],text:testoCondivisione(false),url:CANONICO})
    .then(function(){ rispostaCond('Condiviso'); },
          function(e){ if(!e||e.name!=='AbortError') rispostaCond('Non riuscita'); });
  });
@@ -3989,6 +4076,147 @@ function montaCond(){
  var eti='Condividi la proiezione dei 120 seggi come immagine';
  h2.insertAdjacentHTML('beforeend','<button class="lnk cond" title="'+E(eti)+
   '" aria-label="'+E(eti)+'">Condividi</button>');
+}
+/* ══════════ CONDIVIDERE E CHIEDERE A UN MODELLO ══════════
+   Due blocchi che stanno insieme perché rispondono alla stessa domanda del lettore — «e
+   adesso?» — e perché condividono la costante da cui esce il testo.
+
+   LA CONDIVISIONE PER RETE NON SOSTITUISCE navigator.share, ci convive. Misurato il 24
+   agosto 2026: su desktop `navigator.share` e `canShare` sono UNDEFINED, con
+   isSecureContext vero — non è un'API che rifiuta i file, è un'API che non esiste. Quindi
+   il foglio di sistema serve sul telefono, dove allega davvero l'immagine, e i link per
+   rete servono su desktop, dove il foglio non c'è. I due comandi si vedono insieme solo
+   sul telefono, e nessuno dei due mente sull'altro.
+
+   E NESSUN LINK DI INTENT ALLEGA UN'IMMAGINE: passano testo e indirizzo, e l'anteprima è
+   quella che lo scraper trova in og:image. È la ragione per cui l'anteprima veniva prima. */
+
+/* CHE COSA ACCETTA CIASCUNA RETE, misurato leggendo i contratti delle URL, non dedotto.
+   Tre categorie, e la distinzione conta: dove l'indirizzo è un PARAMETRO non va anche nel
+   testo, o comparirebbe due volte nel messaggio pubblicato.
+     · testo + url  →  X, Telegram
+     · solo testo   →  Threads, WhatsApp (l'indirizzo va dentro la frase)
+     · solo url     →  Facebook, LinkedIn (il testo non passa: il parametro `quote` di
+                       Facebook non esiste più dal 2017, e LinkedIn non ne ha mai avuto uno)
+   Su quelle due l'anteprima fa TUTTO, cioè og:title, og:description e og:image. */
+var RETI=[
+ {k:'x',        n:'X',        porta:'testo+url',
+  u:function(t,U){return 'https://x.com/intent/post?text='+encodeURIComponent(t)+'&url='+encodeURIComponent(U);}},
+ {k:'threads',  n:'Threads',  porta:'testo',
+  u:function(t,U){return 'https://www.threads.net/intent/post?text='+encodeURIComponent(t);}},
+ {k:'facebook', n:'Facebook', porta:'url',
+  u:function(t,U){return 'https://www.facebook.com/sharer/sharer.php?u='+encodeURIComponent(U);}},
+ {k:'linkedin', n:'LinkedIn', porta:'url',
+  u:function(t,U){return 'https://www.linkedin.com/sharing/share-offsite/?url='+encodeURIComponent(U);}},
+ {k:'telegram', n:'Telegram', porta:'testo+url',
+  u:function(t,U){return 'https://t.me/share/url?url='+encodeURIComponent(U)+'&text='+encodeURIComponent(t);}},
+ {k:'whatsapp', n:'WhatsApp', porta:'testo',
+  u:function(t,U){return 'https://wa.me/?text='+encodeURIComponent(t);}}
+];
+/* I QUATTRO MOTORI, dichiarati come le reti: un elenco, non quattro rami. */
+var AI_MOTORI=[
+ {k:'perplexity', n:'Perplexity', u:'https://www.perplexity.ai/?q='},
+ {k:'chatgpt',    n:'ChatGPT',    u:'https://chatgpt.com/?q='},
+ {k:'claude',     n:'Claude',     u:'https://claude.ai/new?q='},
+ {k:'google',     n:'Google AI',  u:'https://www.google.com/search?udm=50&q='}
+];
+
+/* LO STATO DELLE LEVE, e perché il prompt lo dichiara.
+   I numeri che il pulsante porta sono quelli VIVI al momento del clic, cioè con le leve del
+   lettore applicate: se ha escluso un istituto o acceso l'apparentamento, il prompt porta
+   quei numeri. Ma l'indirizzo che il prompt cita mostra la proiezione DI BASE — e un modello
+   che va a controllare troverebbe numeri diversi da quelli che gli sono stati dati.
+   Quindi il prompt lo dice. Si dichiarano solo le leve FUORI dal valore predefinito: a
+   pagina intonsa la frase non c'è, e non si spiega una cosa che non è successa.
+   I valori predefiniti escono da PAR_DEF e dalle costanti, non da una seconda copia. */
+function statoLeve(){
+ var v=[];
+ var esc=Object.keys(ESCL).filter(function(k){return ESCL[k];});
+ if(esc.length) v.push('con '+esc.map(function(k){return nm(k);}).join(' e ')+
+   (esc.length>1?' esclusi':' escluso')+' dalla media');
+ if(SW) v.push('con uno spostamento di '+f(SW)+' punti '+(SW>0?'verso il blocco Netanyahu':'verso l\'opposizione'));
+ if(AFF) v.push('con l\'affluenza araba a '+f(AFF_BASE+AFF)+'%');
+ if(PAR.recenti!==PAR_DEF.recenti) v.push('sui soli sondaggi degli ultimi sette giorni');
+ if(PAR.listaunita!==PAR_DEF.listaunita) v.push('con le liste arabe separate invece che unite');
+ if(PAR.apparentamenti!==PAR_DEF.apparentamenti) v.push('con gli apparentamenti annunciati applicati al riparto');
+ return v.length?v.join(', '):'';
+}
+/* IL TESTO DELLA CONDIVISIONE: UNA COSTANTE, DUE FORME. Dove l'indirizzo è un parametro la
+   frase non lo porta; dove va dentro il testo si aggiunge in coda. Due stringhe scritte a
+   parte divergerebbero alla prima riscrittura — è la lezione di description/og:description. */
+function testoCondivisione(conIndirizzo){
+ var b=blocchi(SEG), g=ggCal(new Date(),VOTO);
+ var t='Proiezione dei 120 seggi della Knesset a '+f(g)+' '+acc(g,'giorno','giorni')+
+  ' dal voto: blocco Netanyahu '+f(b.coalizione)+', opposizione '+f(b.opposizione)+
+  ', partiti arabi '+f(b.arabo)+'. Aggiornata ogni notte sui sondaggi pubblicati.';
+ return conIndirizzo?(t+' — '+CANONICO.replace(/^https?:\/\//,'').replace(/\/$/,'')):t;
+}
+/* IL PROMPT. I numeri sono quelli vivi; le leve fuori dal predefinito si dichiarano, o il
+   modello risponderebbe su numeri che all'indirizzo non trova.
+   Misurato: 939 caratteri coi valori di oggi e 952 nel caso peggiore — tutte le cifre al
+   massimo — che codificati fanno 1.309 sull'URL più lunga delle quattro, contro un tetto
+   pratico di 2000. La parte variabile è quasi tutta a una o due cifre, quindi il prompt è
+   di fatto a lunghezza fissa: restano ~690 caratteri di margine in qualunque scenario. */
+function promptAI(){
+ var b=blocchi(SEG), g=ggCal(new Date(),VOTO), tot=MC.n||SIM;
+ var pc=function(x){return f(Math.round(100*x/tot));};
+ var u=SOND.map(function(s){return s.data;}).sort().pop();
+ var leve=statoLeve(), np=nonPubblicate().length;
+ var ind=CANONICO.replace(/^https?:\/\//,'').replace(/\/$/,'');
+ return 'Sto guardando un modello previsionale per le elezioni israeliane del 27 ottobre 2026, a '+
+  f(g)+' giorni dal voto. La proiezione di oggi assegna '+f(b.coalizione)+' seggi al blocco Netanyahu, '+
+  f(b.opposizione)+' all\'opposizione sionista e '+f(b.arabo)+' ai partiti arabi, su 120 totali e con '+
+  'la maggioranza a 61. Le probabilità sulle 20.000 simulazioni sono: maggioranza al blocco '+
+  'Netanyahu '+pc(MC.vC)+'%, all\'opposizione senza i partiti arabi '+pc(MC.vO)+'%, solo con '+
+  'l\'appoggio dei partiti arabi '+pc(MC.vA)+'%, nessuna maggioranza possibile '+pc(MC.st)+'%. '+
+  /* «PUBBLICATE» SOPRAVVIVE SOLO DOVE È VERO. Con delle rilevazioni che il server non ha la
+     parola è falsa alla lettera, e questo testo non resta in pagina: va a un servizio terzo,
+     che risponderebbe su un archivio che a quell'indirizzo non esiste. Il ramo scatta sul
+     fatto e non su un'ipotesi — nonPubblicate() lo misura. Costo: zero pixel. */
+  'I dati vengono da '+f(SOND.length)+' '+acc(SOND.length,'rilevazione','rilevazioni')+
+  (np?'':' pubblicate, l\'ultima del '+dl(u))+
+  ', raccolte in '+ind+'.'+
+  (np?' Di queste, '+f(np)+' non '+acc(np,'è','sono')+' ancora nell\'archivio pubblicato a '+
+      'quell\'indirizzo: '+acc(np,'l\'ha','le ha')+' aggiunte il browser da cui sto '+
+      'guardando, quindi non '+acc(np,'la','le')+' troverai lì. La più recente di tutte è '+
+      'del '+dl(u)+'.':'')+
+  (leve?' Attenzione: questi numeri sono calcolati '+leve+', quindi differiscono dalla proiezione '+
+   'di base che si vede aprendo l\'indirizzo.':'')+
+  '\n\nSpiegami che cosa significano questi numeri: quali coalizioni sono aritmeticamente '+
+  'possibili, quali sono politicamente escluse dai veti dichiarati dai leader, e che cosa '+
+  'dovrebbe cambiare perché uno dei due campi arrivi a 61. Cerca anche le notizie delle '+
+  'ultime settimane sulla campagna israeliana e dimmi se confermano o contraddicono questo quadro.';
+}
+/* IL BLOCCO, montato a ogni render perché i testi portano i numeri vivi.
+   OGNI COMANDO HA UN NOME ACCESSIBILE DISTINTO, e non è una raffinatezza: dieci comandi
+   chiamati «Condividi» e «Discuti» sono indistinguibili in un elenco di comandi — è la
+   lezione dei quattro «Scarica PNG», dei due «Copia» e dei bersagli dei marcatori. Il nome
+   comincia col testo visibile, come chiede WCAG 2.5.3.
+   E NON C'È NELL'EMBED: sono comandi che portano fuori dalla pagina di chi ospita. */
+function montaSocial(){
+ var box=$('k-social'); if(!box) return;
+ if(EMBED){ box.innerHTML=''; return; }
+ var U=CANONICO, h='';
+ h+='<div class="socgr"><div class="soct">Condividi la proiezione</div><div class="socb">';
+ RETI.forEach(function(r){
+  var t=testoCondivisione(r.porta==='testo');
+  h+='<a class="lnk soc" target="_blank" rel="noopener noreferrer" href="'+E(r.u(t,U))+
+     '" title="'+E('Condividi su '+r.n)+'" aria-label="'+E('Condividi su '+r.n)+'">'+E(r.n)+'</a>';
+ });
+ h+='<button class="lnk soc" id="k-copialink" title="Copia il collegamento alla pagina" '+
+    'aria-label="Copia il collegamento alla pagina">Copia collegamento</button>';
+ h+='</div></div>';
+ var p=promptAI();
+ h+='<div class="socgr"><div class="soct">Discuti la proiezione con un modello</div><div class="socb">';
+ AI_MOTORI.forEach(function(m){
+  h+='<a class="lnk soc" target="_blank" rel="noopener noreferrer" href="'+E(m.u+encodeURIComponent(p))+
+     '" title="'+E('Discuti la proiezione con '+m.n)+'" aria-label="'+E('Discuti la proiezione con '+m.n)+
+     '">'+E(m.n)+'</a>';
+ });
+ h+='</div><p class="fn socn">I quattro collegamenti portano i numeri di adesso dentro la domanda: '+
+    'un modello che aprisse l\'indirizzo da solo non li troverebbe, perché la pagina li calcola '+
+    'nel browser.</p></div>';
+ box.innerHTML=h;
 }
 /* ══════════ I PULSANTI DI COPIA DEI BLOCCHI DI CODICE ══════════
    Nascono come REGOLA e non come istanza: un ciclo su `pre.cod`, non due pulsanti scritti
@@ -7044,6 +7272,7 @@ function renderInterno(){
  var i2=istogramma(MC.oppz,C.oppo,'k-hist2','Distribuzione opposizione',blocchi(SEG).opposizione);
  montaPNG();
  montaCopia();
+ montaSocial();
  montaCond();
  rSintRiga();
  var bb=blocchi(SEG);
@@ -7402,6 +7631,25 @@ function simile(a,b){
  if(ta&&tb&&ta!==tb) return false;
  return true;
 }
+/* QUANTE RILEVAZIONI IL LETTORE HA E IL SERVER NO. `BASE` è l'archivio pubblicato — lo
+   riscrive archivioFresco() col JSON scaricato — e `SOND` è quello del lettore, che può
+   averne di più: ha premuto «Aggiorna i sondaggi» e Wikipedia ne aveva di più fresche del
+   commit notturno, oppure ne ha inserite a mano.
+   IL PREDICATO È simile(), LA STESSA CHE USA unisci() PER DECIDERE «c'è già»: scriverne un
+   secondo qui vorrebbe dire che il conto delle aggiunte e la fusione degli arrivi possono
+   non essere d'accordo, ed è la strada doppia di sempre. Qui è lo specchio — unisci() chiede
+   «SOND ne ha una simile?», questa chiede «BASE ne ha una simile?».
+   PERCHÉ SERVE. La pagina scriveva «176 rilevazioni pubblicate» dove il server ne aveva 173,
+   e quella frase esce anche verso un servizio terzo dentro promptAI(). Misurato il 25 agosto
+   2026: sul banco le aggiunte sono ZERO — SOND 173 = server 173 — e sul browser dell'autore
+   erano tre, di cui DUE ritrovate dal parser la notte stessa. Non erano invenzioni del
+   lettore: erano righe che il lavoro notturno rotto non aveva pubblicato. Da lì le parole,
+   «non ancora pubblicate» e non «aggiunte da te». */
+function nonPubblicate(){
+ return SOND.filter(function(s){
+  return !BASE.some(function(b){return simile(b,s);});
+ });
+}
 function unisci(nuovi){
  var n=0;
  (nuovi||[]).forEach(function(s){
@@ -7664,6 +7912,20 @@ R.addEventListener('click',function(e){
 /* Il comando della condivisione. Delegato come tutto il resto. */
 R.addEventListener('click',function(e){
  if(e.target&&e.target.closest&&e.target.closest('button.cond')) condividi();
+});
+/* «Copia collegamento» usa la stessa macchina dei due blocchi di codice: copiaTesto() con
+   il suo ripiego, e il riscontro sul comando. Una seconda strada per copiare sarebbe la
+   strada doppia di sempre. */
+R.addEventListener('click',function(e){
+ var b=e.target&&e.target.closest&&e.target.closest('#k-copialink');
+ if(!b) return;
+ copiaTesto(CANONICO,function(esito){
+  var t=esito==='copiato'?'Copiato':'Non riuscita';
+  var orig=b.dataset.orig===undefined?(b.dataset.orig=b.textContent):b.dataset.orig;
+  b.textContent=t; b.classList.add('detto');
+  clearTimeout(b.__t);
+  b.__t=setTimeout(function(){ b.textContent=orig; b.classList.remove('detto'); },2600);
+ });
 });
 R.addEventListener('click',function(e){
  var b=e.target&&e.target.closest&&e.target.closest('button.cpy');

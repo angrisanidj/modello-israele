@@ -86,9 +86,9 @@ export function voci(s){
       id: 'job-fermo',
       categoria: 'job',
       urgenza: 'blocca',
-      titolo: 'Il lavoro notturno si è fermato' + (s.notti > 1 ? ' da ' + s.notti + ' notti' : ''),
-      quanti: s.notti || 1,
-      dettaglio: {motivo: s.guardia, notti: s.notti || 1, archivioAl: s.archivioAl},
+      titolo: 'Il lavoro notturno si è fermato' + (s.esecuzioni > 1 ? ' da ' + s.esecuzioni + ' esecuzioni' : ''),
+      quanti: s.esecuzioni || 1,
+      dettaglio: {motivo: s.guardia, esecuzioni: s.esecuzioni || 1, archivioAl: s.archivioAl},
       chiude: 'Il motivo è: ' + s.guardia + '. L\'archivio pubblicato resta fermo al ' +
               (s.archivioAl || '?') + ' finché la causa non è tolta.',
       procedura: null
@@ -228,6 +228,76 @@ export function conSpazzolata(file, uscita){
   const s = Object.assign({}, file);
   const v = voci({spazzolata: uscita});
   s.voci = (s.voci || []).concat(v);
+  const conta = u => s.voci.filter(x => x.urgenza === u).length;
+  s.conto = {blocca: conta('blocca'),
+             richiedono: conta('blocca') + conta('richiede'),
+             informative: conta('informativa')};
+  s.riga = riassunto(s.conto.blocca, s.conto.richiedono, s.conto.informative);
+  return s;
+}
+
+/* ══ IL RIEPILOGO PARLA ANCHE QUANDO IL JOB NON HA GIRATO ══
+ * La voce «job-fermo» esisteva già, e si accendeva da `s.guardia` — cioè da un campo che
+ * scrive aggiorna.mjs, il parser. Ma il caso peggiore è proprio quello in cui il parser NON
+ * VIENE ESEGUITO: il 24 e il 25 agosto 2026 un passo precedente è fallito in tredici
+ * secondi, `dati/da-fare.json` è rimasto quello di ieri col conto a zero, e il riepilogo ha
+ * stampato «niente da fare e nessuna issue aperta: silenzio».
+ * Un canale d'allarme che tace proprio quando la cosa da annunciare è «non ho girato» non è
+ * un canale. Il dato per dirlo c'era — il workflow conta le esecuzioni fallite di fila e lo passa
+ * già ad aggiorna.mjs — e non veniva usato da nessuno che potesse parlare.
+ * Questa è la seconda strada verso la stessa voce, e nasce apposta INDIPENDENTE dal parser:
+ * legge l'esito del job, non quello che il parser ha trovato. */
+/* l'oggi del riepilogo: si prende dal file quando c'è — è la stessa data che componi() ci
+   ha scritto — e altrimenti dall'orologio. Serve a distinguere «scritto stanotte» da «è
+   rimasto quello di ieri», che è l'unica cosa che dice se il parser ha girato. */
+function oggiDi(s){
+  if (s && s.oggi) return s.oggi;
+  const d = new Date();
+  return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' +
+         String(d.getDate()).padStart(2, '0');
+}
+export function conEsito(file, esito, esecuzioni){
+  if (esito !== 'failure') return file;
+  const s = Object.assign({}, file);
+  const n = +esecuzioni || 1;
+  /* IL JOB PUÒ FALLIRE IN TRE PUNTI, e la frase ne affermava uno solo. Prima del parser —
+     ed è quello che è successo il 23, 24 e 25 agosto 2026 — oppure alla verifica, oppure al
+     push. Scritta come costante, «il parser non è stato eseguito» è vera in un caso su tre
+     e falsa negli altri due, in un canale d'allarme, che è il posto peggiore per una frase
+     falsa. L'ha trovata il ramo forzato a mano: diceva «il parser non è stato eseguito»
+     sopra «2 rilevazioni nuove», nella stessa testata.
+     La distinzione si RICAVA e non si afferma: se il riepilogo porta la data di oggi, il
+     parser l'ha scritto stanotte, quindi ha girato. Il dato c'era già e nessuno lo
+     interrogava — è la stessa forma delle esecuzioni ferme, che il workflow contava e non usava. */
+  /* niente guardia sul campo assente: undefined !== una data è già vero, e la mutazione
+     che la toglie è EQUIVALENTE — cioè era codice che nessuna prova poteva esercitare */
+  const primaDelParser = s.generato !== oggiDi(s);
+  const motivo = primaDelParser ? 'un passo del workflow è fallito prima del parser'
+                                : 'il parser ha girato, un passo successivo no';
+  /* se il file di ieri portava già la voce, non se ne aggiunge una seconda: si aggiorna
+     quella, o due mattine di fila il conto crescerebbe senza che sia cresciuto niente */
+  s.voci = (s.voci || []).filter(x => x.id !== 'job-fermo').concat([{
+    id: 'job-fermo',
+    categoria: 'job',
+    urgenza: 'blocca',
+    titolo: 'Il lavoro notturno non è arrivato in fondo' + (n > 1 ? ', da ' + n + ' esecuzioni' : ''),
+    quanti: n,
+    dettaglio: {motivo, primaDelParser, esecuzioni: n, archivioAl: s.archivioAl || null},
+    chiude: primaDelParser
+      ? 'Guarda la storia delle esecuzioni: il parser non è stato eseguito, quindi nessuna ' +
+        'riga di questo riepilogo dice qualcosa sui sondaggi di stanotte. L\'archivio ' +
+        'pubblicato resta fermo, e la testata della pagina lo dichiara.'
+      : 'Il parser ha girato e le righe qui sotto valgono, ma un passo successivo si è ' +
+        'fermato: la verifica completa, oppure il push. Guarda la storia delle esecuzioni ' +
+        'per sapere quale. Quello che il parser ha trovato NON è stato pubblicato.',
+    procedura: null
+  }]);
+  /* E LA TESTATA DEL RIEPILOGO VA CORRETTA CON LA VOCE, o il corpo si contraddice a tre
+     righe di distanza: la prima stesura scriveva «Il lavoro notturno non è arrivato in
+     fondo» sotto una testata che diceva «il job ha girato», perché quella riga veniva dal
+     file di IERI. È la stessa forma della fascia della memoria sopra il comando di
+     aggiornamento — due cose vere separatamente che insieme dicono il falso. */
+  s.job = Object.assign({}, s.job, {esito: 'fermo', motivo});
   const conta = u => s.voci.filter(x => x.urgenza === u).length;
   s.conto = {blocca: conta('blocca'),
              richiedono: conta('blocca') + conta('richiede'),

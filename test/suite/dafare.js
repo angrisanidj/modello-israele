@@ -28,13 +28,13 @@ function esito(cond, desc, dettaglio){
 }
 
 (async function(){
-  const {componi, voci, markdown, conSpazzolata, riassunto} =
+  const {componi, voci, markdown, conSpazzolata, conEsito, riassunto} =
     await import('file:///' + (__dirname + '/../../.github/scripts/dafare.mjs').replace(/\\/g, '/'));
   const fs = require('fs');
 
   /* la notte buona: il job gira, niente di nuovo, niente da fare */
   const buona = () => ({
-    oggi: '2026-08-23', guardia: null, notti: null,
+    oggi: '2026-08-23', guardia: null, esecuzioni: null,
     archivioAl: '2026-08-20', nuove: 0,
     accordiInvalidi: [], ignote: [],
     ambigue: 24, ambigueIeri: 24, esempiAmbigui: [],
@@ -89,7 +89,7 @@ function esito(cond, desc, dettaglio){
     const casi = [
       ['colonne ignote', s => { s.ignote = ['Winter', 'Other']; }, 'colonne-ignote', 'blocca'],
       ['ambigue in crescita', s => { s.ambigue = 27; }, 'ambigue-cresciute', 'blocca'],
-      ['job fermo', s => { s.guardia = 'Wikipedia non raggiungibile'; s.notti = 3; }, 'job-fermo', 'blocca'],
+      ['job fermo', s => { s.guardia = 'Wikipedia non raggiungibile'; s.esecuzioni = 3; }, 'job-fermo', 'blocca'],
       ['voci-evento nuove', s => { s.eventiNuovi = [
           {chiave: 'k1', data: '2026-08-22', testo: 'Ra\'am conducts a primary'},
           {chiave: 'k2', data: '2026-08-23', testo: 'Likud and RZP sign a surplus deal'}]; },
@@ -151,6 +151,90 @@ function esito(cond, desc, dettaglio){
     esito(sp && sp.dettaglio.uscita.indexOf('OROLOGIO') >= 0,
       'e porta l\'uscita vera, che è quello che serve per riprodurla',
       sp ? sp.dettaglio.uscita.slice(0, 60) : 'voce assente');
+  }
+
+  /* ══ 5-bis · IL RIEPILOGO PARLA QUANDO IL JOB NON HA GIRATO ════════════ */
+  {
+    /* Il caso vero del 24 e 25 agosto 2026: un passo fallisce PRIMA del parser, quindi
+       dati/da-fare.json resta quello di ieri — col conto a zero — e il riepilogo taceva.
+       La prova parte da lì: un file SENZA voci, che è la condizione in cui il canale
+       d'allarme aveva l'unica cosa importante da dire e non la diceva. */
+    const vuoto = {voci: [], conto: {blocca: 0, richiedono: 0, informative: 0}, riga: '',
+                   generato: '2026-08-25', job: {esito: 'ok', archivioAl: '2026-08-20'}};
+
+    esito(conEsito(vuoto, 'success', '0') === vuoto,
+      'con il job riuscito il riepilogo non tocca niente: la notte buona resta muta');
+    esito(conEsito(vuoto, undefined, undefined) === vuoto,
+      'e senza esito nemmeno, o una prova a mano fabbricherebbe un allarme');
+
+    const g = conEsito(vuoto, 'failure', '1');
+    esito(g !== vuoto && vuoto.voci.length === 0,
+      'il file di partenza non si tocca');
+    esito(g.voci.length === 1 && g.voci[0].urgenza === 'blocca',
+      'una notte fallita è una voce che BLOCCA: il resto del riepilogo non dice niente sui sondaggi',
+      JSON.stringify(g.voci.map(x => x.id + '/' + x.urgenza)));
+    esito(g.conto.blocca === 1 && g.conto.richiedono === 1 && /BLOCCA/.test(g.riga),
+      'e il conto in testa si rifà, o la issue direbbe zero sopra una voce che c\'è', g.riga);
+
+    /* la testata del corpo dice l'esito del job, e viene dal file di IERI: senza correggerla
+       il markdown si contraddice a tre righe di distanza — «il job ha girato» sopra «il
+       lavoro notturno non è arrivato in fondo». È il difetto vero visto rendendo il corpo */
+    const md = markdown(g);
+    esito(!/il job ha girato/.test(md),
+      'e la testata NON dice che il job ha girato, che è la riga di ieri',
+      (md.split('\n')[2] || '').slice(0, 90));
+    esito(/si è fermato/.test(md.split('\n')[2] || ''),
+      'lo dichiara fermo nella stessa riga in cui prima diceva il contrario',
+      (md.split('\n')[2] || '').slice(0, 90));
+
+    /* due esecuzioni di fila non fanno due voci: il conto crescerebbe senza che sia cresciuto
+       niente, e la mattina dopo la issue direbbe «2 cose» per una cosa sola */
+    const g2 = conEsito(g, 'failure', '2');
+    esito(g2.voci.length === 1 && g2.conto.richiedono === 1,
+      'due esecuzioni ferme di fila restano UNA voce, aggiornata e non accodata',
+      g2.voci.length + ' voci');
+    /* le due voci si prendono per ID e non per posizione, e si controlla che ci siano:
+       scritta come g2.voci[0].titolo, l'asserzione ESPLODEVA invece di cadere davanti al
+       mutante che svuota l'elenco — e un mutante che fa morire la suite si conta VIVO.
+       È la quinta volta in questo progetto, e la prima trovata mutando invece che a caso. */
+    const v2 = g2.voci.filter(x => x.id === 'job-fermo')[0] || {};
+    const v1 = g.voci.filter(x => x.id === 'job-fermo')[0] || {};
+    /* «esecuzioni» e non «notti»: il conto è delle esecuzioni dall'ultimo successo, e in
+       una giornata ce ne può essere più d'una — il 23 agosto 2026 ce ne sono state due, la
+       notturna riuscita e un rilancio a mano fallito. Il numero era onesto, la parola no. */
+    esito(/2 esecuzioni/.test(v2.titolo || '') && !/esecuzion/.test(v1.titolo || ''),
+      'e il titolo dice quante esecuzioni solo quando sono più d\'una', v2.titolo);
+    esito(v2.quanti === 2 && v2.dettaglio && v2.dettaglio.esecuzioni === 2,
+      'il numero sta anche nel JSON, che è quello che legge una macchina');
+
+    /* e la voce convive con quelle del parser invece di sostituirle: il file di ieri può
+       portare colonne ignote ancora aperte, e non smettono di essere aperte stanotte */
+    const s = buona(); s.ignote = ['Winter'];
+    const h = conEsito(componi(s), 'failure', '1');
+    esito(h.voci.length === 2 && h.voci.some(x => x.id === 'colonne-ignote'),
+      'e si aggiunge a quelle del parser invece di cancellarle',
+      JSON.stringify(h.voci.map(x => x.id)));
+
+    /* IL JOB PUÒ FALLIRE IN TRE PUNTI e la frase ne affermava uno. Il ramo si RICAVA dalla
+       data del file: scritto stanotte vuol dire che il parser ha girato. Le due asserzioni
+       vanno insieme — una sola passerebbe anche con la costante di prima. */
+    const ieri = Object.assign({}, vuoto, {generato: '2026-08-24', oggi: '2026-08-25'});
+    const p = conEsito(ieri, 'failure', '3');
+    const pv = p.voci.filter(x => x.id === 'job-fermo')[0] || {chiude: '', dettaglio: {}};
+    esito(/il parser non è stato eseguito/.test(pv.chiude) &&
+          pv.dettaglio.primaDelParser === true,
+      'file di ieri: il parser non è mai partito, e la voce lo dice');
+    const dopo = Object.assign({}, vuoto, {generato: '2026-08-25', oggi: '2026-08-25'});
+    const q = conEsito(dopo, 'failure', '1');
+    const qv = q.voci.filter(x => x.id === 'job-fermo')[0] || {chiude: '', dettaglio: {}};
+    esito(!/il parser non è stato eseguito/.test(qv.chiude) &&
+          qv.dettaglio.primaDelParser === false,
+      'file di stanotte: il parser HA girato, e la voce non dice il contrario',
+      qv.chiude.slice(0, 50));
+    esito(/un passo successivo/.test(qv.chiude) &&
+          /il parser ha girato/.test(markdown(q).split('\n')[2] || ''),
+      'e la testata dichiara lo stesso punto di rottura della voce',
+      (markdown(q).split('\n')[2] || '').slice(0, 80));
   }
 
   /* ══ 6 · IL MARKDOWN È UNA VISTA DEL JSON, NON UN SECONDO ELENCO ════════ */

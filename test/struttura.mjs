@@ -79,11 +79,32 @@ const urlJS=[...jsSenzaAncore.matchAll(/https?:\/\/([^'"\s\\]+)/g)].map(m=>m[1])
    bianca delle CHIAMATE DI RETE resta Wikipedia e basta; quello che cresce è l'elenco delle
    cose che non sono chiamate. */
 const NAMESPACE=/^www\.w3\.org\/\d{4}\//;
+/* LE DESTINAZIONI DI CONDIVISIONE NON SONO CHIAMATE DI RETE: sono indirizzi che la pagina
+   COMPONE e mette in un href, e a raggiungerli è il lettore premendo. Nessuna richiesta
+   parte da qui — è la quarta volta che questo controllo incontra la stessa distinzione,
+   dopo l'href di un'ancora, il canonical e il namespace XML.
+   Si ELENCANO invece di allargare la lista bianca con un'espressione larga: sono le sei
+   reti e i quattro motori dichiarati in RETI e AI_MOTORI, e se ne compare una che non è
+   qui il controllo torna rosso e chiede di guardarla. È l'inventario dell'opacità applicato
+   alle destinazioni: non un permesso, un elenco con un perché.
+   La lista bianca delle CHIAMATE DI RETE resta Wikipedia e basta. */
+const DESTINAZIONI=[
+  /^x\.com\/intent\//, /^www\.threads\.net\/intent\//,
+  /^www\.facebook\.com\/sharer\//, /^www\.linkedin\.com\/sharing\//,
+  /^t\.me\/share\//, /^wa\.me\//,
+  /^www\.perplexity\.ai\//, /^chatgpt\.com\//, /^claude\.ai\//, /^www\.google\.com\/search/
+];
 const estranei=urlJS.filter(u=>!/^([a-z]+\.)?wikipedia\.org\//.test(u))
   .filter(u=>!(canonicoJS&&('https://'+u)===canonicoJS))
-  .filter(u=>!NAMESPACE.test(u));
-p('ogni URL assoluto nel JS è Wikipedia'+(estranei.length?' ('+estranei.slice(0,3).join(', ')+')':''),
-  !estranei.length);
+  .filter(u=>!NAMESPACE.test(u))
+  .filter(u=>!DESTINAZIONI.some(re=>re.test(u)));
+p('ogni URL assoluto nel JS è Wikipedia o una destinazione dichiarata'+
+  (estranei.length?' ('+estranei.slice(0,3).join(', ')+')':''), !estranei.length);
+/* e le destinazioni si CONTANO: dieci comandi, dieci indirizzi. Se un giorno ne sparisse
+   uno o ne comparisse un undicesimo, questa riga lo dice invece di lasciarlo passare. */
+const dest=[...new Set(urlJS.filter(u=>DESTINAZIONI.some(re=>re.test(u))))];
+p('le destinazioni di condivisione sono le dieci dichiarate ('+dest.length+')',
+  dest.length===10);
 /* I COLLEGAMENTI ESTERNI SI ELENCANO TUTTI, non solo quelli generati dal JavaScript.
    Questo controllo guardava il solo JS, e la firma in fondo alla pagina è markup: il 23
    agosto 2026 la riga diceva «nessuno» mentre in pagina ce n'erano due, verso
@@ -300,6 +321,72 @@ try{
 }catch(e){ yamlKO.push('js-yaml non installato: npm install'); }
 p('i workflow di GitHub sono YAML valido'+(yamlKO.length?' ('+yamlKO.join(' | ')+')':''),
   !yamlKO.length);
+
+/* ══ I COMANDI DEI WORKFLOW, NON SOLO LA LORO SINTASSI ══
+   Il controllo qui sopra carica lo YAML e coglie un file invalido — è nato il 23 agosto
+   2026, quando due frammenti di JavaScript multiriga dentro «run: |» avevano reso
+   aggiorna.yml illeggibile a GitHub. Non bastava.
+   Il 24 e il 25 agosto il lavoro notturno è fallito due notti di fila in tredici secondi,
+   con un file YAML PERFETTAMENTE VALIDO: dentro un «run: |» c'era una continuazione di riga
+   scritta come \n LETTERALE — due caratteri, non un a-capo. La shell la legge come la
+   lettera n, la passa a gh come argomento, gh esce con errore, e con «bash -e» il passo
+   muore. Il caricatore YAML non aveva niente da obiettare: per lui era una stringa.
+   Qui non si può eseguire gh, e non si deve: quello che si può fare è cogliere la CLASSE —
+   una sequenza di escape che la shell non interpreterà, e una riga che non chiude le
+   virgolette che apre. Sono le due forme in cui un comando scritto a mano si rompe
+   restando sintatticamente un documento valido. */
+await (async function(){
+ const cattivi=[];
+ let load;
+ try{ load=(await import('js-yaml')).load; }
+ catch(e){ p('nei comandi dei workflow: js-yaml non installato',false); return; }
+ for(const f of readdirSync(join(qui,'..','.github','workflows'))){
+  if(!/\.ya?ml$/.test(f)) continue;
+  const doc=load(readFileSync(join(qui,'..','.github','workflows',f),'utf8'));
+  const passi=[];
+  for(const j of Object.values((doc&&doc.jobs)||{}))
+   for(const s of (j&&j.steps)||[]) if(typeof s.run==='string') passi.push([s.name||'(senza nome)',s.run]);
+  passi.forEach(function(par){
+   const nome=par[0];
+   par[1].split('\n').forEach(function(r,i){
+    const nudo=r.replace(/^\s*#.*$/,'');       /* i commenti non sono comandi */
+    if(!nudo.trim()) return;
+    /* 1 · UNA SEQUENZA DI ESCAPE CHE LA SHELL NON INTERPRETA. In uno script bash una barra
+       rovescia seguita da «n», fuori da un printf o da una stringa ANSI-C, non vuol dire
+       niente: è una barra rovescia seguita da una lettera, e la shell la consegna al
+       comando come carattere. Quasi sempre è una continuazione di riga scritta male. */
+    if(/\\n/.test(nudo)&&!/printf/.test(nudo))
+     cattivi.push(f+' · «'+nome+'» riga '+(i+1)+': barra rovescia più n — '+nudo.trim().slice(0,60));
+    /* 2 · UNA CONTINUAZIONE CHE NON CONTINUA: una barra rovescia seguita da spazi e poi da
+       altro testo sulla stessa riga. La continuazione vera è l'ULTIMO carattere della riga. */
+    if(/\\[ \t]+\S/.test(nudo))
+     cattivi.push(f+' · «'+nome+'» riga '+(i+1)+': continuazione seguita da testo — '+nudo.trim().slice(0,60));
+    /* 3 · UNA RIGA CHE NON CHIUDE QUELLO CHE APRE. Si contano le virgolette non protette:
+       un numero dispari su una riga che non termina con una continuazione è una riga
+       troncata — l'altra forma in cui un comando scritto a mano si rompe restando un
+       documento YAML perfettamente valido. */
+    /* e si contano PERCORRENDO la riga, non con due espressioni separate: dentro le
+       virgolette doppie un apostrofo è una lettera — «git commit -m "Aggiornare l'archivio"»
+       è corretto — e contare i due segni a parte lo dichiarava rotto. Il primo giro di
+       questo controllo produceva due falsi positivi esattamente così, e un controllo che
+       grida al lupo su codice sano smette di essere letto prima di trovare il lupo vero. */
+    const continua=/\\$/.test(nudo.replace(/\s+$/,''));
+    let dentro=null;
+    for(let k=0;k<nudo.length;k++){
+     const c=nudo[k];
+     if(c==='\\'&&dentro!=="'"){ k++; continue; }   /* dentro '…' la barra non protegge */
+     if(dentro===null&&(c==='"'||c==="'")) dentro=c;
+     else if(dentro===c) dentro=null;
+    }
+    if(!continua&&dentro)
+     cattivi.push(f+' · «'+nome+'» riga '+(i+1)+': '+(dentro==='"'?'virgolette':'apici')+
+       ' non chiusi — '+nudo.trim().slice(0,60));
+   });
+  });
+ }
+ p('nei comandi dei workflow nessuna sequenza di escape non interpretata e nessuna riga aperta'+
+   (cattivi.length?' — '+cattivi.slice(0,2).join(' · '):''), cattivi.length===0);
+})();
 
 /* ══ LE META CHE LEGGE CHI NON ESEGUE IL JAVASCRIPT ══
    Un aggregatore legge il file SERVITO. Senza description ripiega sul corpo, e il corpo di

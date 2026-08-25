@@ -222,12 +222,12 @@ async function main(){
    * differenza fra quello che il file annuncia e quello che il repository contiene, e va
    * saputa: il riepilogo dice «da tradurre», non «già nel registro».
    *
-   * `notti` viene da fuori, dal workflow, che sa contare le esecuzioni fallite di fila:
+   * `esecuzioni` viene da fuori, dal workflow, che sa contare le esecuzioni fallite di fila:
    * una notte bloccata non committa niente, quindi da qui dentro non è ricavabile. */
   const daFare = componi({
     oggi,
     guardia: esito.stop || null,
-    notti: +(process.env.NOTTI_FERME || 0) || null,
+    esecuzioni: +(process.env.ESECUZIONI_FERME || 0) || null,
     archivioAl,
     nuove,
     accordiInvalidi: A.validaApparentamenti(),

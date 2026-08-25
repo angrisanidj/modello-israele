@@ -254,7 +254,15 @@ setTimeout(function(){
      perché la cosa contata è cresciuta, non perché la regola sia cambiata: la regola resta
      che ogni data passata a ggCal dev'essere un istante con un significato locale, e
      new Date() lo è. */
-  esito(usi.length === 13,
+  /* E da tredici a QUINDICI lo stesso giorno, per la stessa ragione: il prompt dei quattro
+     collegamenti a un modello porta i giorni al voto, e il testo della condivisione per rete
+     pure. Sono conti di giorni di calendario come gli altri, e passano di qui.
+     L'inventario cresce quando cresce la cosa contata; quello che non cambia è la regola —
+     ogni data passata a ggCal dev'essere un istante con un significato locale. */
+  /* e QUATTORDICI e non quindici: unificando testoCondivisione — che il banco ha
+     dichiarato duplicata, invariante 3 — è sparita una delle due chiamate. L'inventario
+     segue la cosa contata in tutti e due i versi. */
+  esito(usi.length === 14,
     'ggCal è usata nei punti che contano giorni di calendario, e in nessun altro',
     usi.length + ' occorrenze, definizione compresa: ' + usi.join(' · '));
   esito(/function ggOggi\(\)\{return Math\.max\(0,ggCal\(new Date\(\),VOTO\)\);\}/.test(app),

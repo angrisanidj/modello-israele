@@ -66,7 +66,7 @@ src = src.replace('carica().then(render,render)',
   'rTab:rTab,rHouse:rHouse,render:render,TAB_LIMITE:TAB_LIMITE,' +
   'mostra:function(){return TAB_MOSTRA;},setMostra:function(v){TAB_MOSTRA=v;},' +
   'filtri:function(){return FILTRI;},cntTab:cntTab,' +
-  'sigla:sigla,senzaArt:senzaArt,ART:ART,nmA:nmA};carica().then(render,render)');
+  'sigla:sigla,senzaArt:senzaArt,ART:ART,nmA:nmA,nonPubblicate:nonPubblicate,promptAI:promptAI};carica().then(render,render)');
 eval(src);
 try{ A.render(); }catch(e){ console.log('KO il render non è partito — ' + (e && e.message)); }
 
@@ -1014,4 +1014,56 @@ esito(colId.length >= 8, 'le colonne di lista sono ' + colId.length, colId.join(
 }
 
 console.log('\n' + ok + '/' + (ok + ko));
+
+/* ══ 9 · LE RILEVAZIONI CHE IL SERVER NON HA ═══════════════════════════════════
+ * La pagina scriveva «176 rilevazioni pubblicate» dove il server ne aveva 173, e quella
+ * frase esce anche verso un servizio terzo dentro promptAI(). Lo stato va ACCESO: a zero
+ * aggiunte la clausola non c'è, quindi una prova che guarda la pagina di sempre passa a
+ * vuoto. È la lezione del pulsante dell'istituto escluso. */
+(function(){
+  const A2 = A;
+  esito(A2.nonPubblicate().length === 0,
+    'a riposo nessuna rilevazione è fuori dall\'archivio pubblicato: la clausola tace',
+    String(A2.nonPubblicate().length));
+  const kn = () => (document.getElementById('k-n') || {innerHTML:''}).innerHTML;
+  const meta = () => { const e = document.getElementById('k-n');
+    return e && e.parentNode ? String(e.parentNode.className) : ''; };
+  esito(!/non ancora/.test(kn()) && !/piu/.test(meta()),
+    'e il contatore non dice niente e il contenitore non prende la classe', kn());
+  const prima = A2.promptAI();
+  esito(/rilevazioni pubblicate/.test(prima) && !/non sono ancora/.test(prima),
+    'e «pubblicate» resta nel prompt, dov\'è vero');
+
+  /* ora si accende: una rilevazione che SOND ha e BASE no */
+  const s = A2.SOND();
+  s.push({data: s[0].data, istituto: 'Istituto Inventato', testata: 'Foglio Inventato',
+          campione: 500, casa: 0, seggi: Object.assign({}, s[0].seggi)});
+  A2.render();
+  esito(A2.nonPubblicate().length === 1,
+    'accesa: una rilevazione che l\'archivio pubblicato non ha viene contata',
+    String(A2.nonPubblicate().length));
+  esito(/non ancora pubblicata/.test(kn()) && !/non ancora pubblicate/.test(kn()),
+    'il contatore lo dichiara, al singolare quando è una', kn().slice(-60));
+  esito(/piu/.test(meta()),
+    'e il contenitore prende la classe che gli fa aprire la riga sotto i 660', meta());
+  const dopo = A2.promptAI();
+  esito(!/rilevazioni pubblicate/.test(dopo),
+    '«pubblicate» sparisce dal prompt: sarebbe falso alla lettera, e quel testo esce');
+  esito(/1 non è ancora nell'archivio pubblicato/.test(dopo),
+    'e il prompt dichiara quante e dove non stanno', (dopo.match(/Di queste[^.]*\./) || [''])[0]);
+
+  /* due: il plurale, e la stessa strada di unisci() */
+  s.push({data: s[1].data, istituto: 'Secondo Inventato', testata: '', campione: 500,
+          casa: 0, seggi: Object.assign({}, s[1].seggi)});
+  A2.render();
+  esito(A2.nonPubblicate().length === 2 && /2<\/b> non ancora pubblicate/.test(kn()),
+    'due: il plurale, e il conto sale', kn().slice(-60));
+  /* e il predicato è quello di unisci(): una rilevazione SIMILE a una pubblicata non conta */
+  s.push({data: s[0].data, istituto: s[0].istituto, testata: s[0].testata, campione: 9,
+          casa: 0, seggi: Object.assign({}, s[0].seggi)});
+  A2.render();
+  esito(A2.nonPubblicate().length === 2,
+    'e una simile a una già pubblicata NON conta: è simile(), la stessa che usa unisci()',
+    String(A2.nonPubblicate().length));
+})();
 if (ko) process.exit(1);

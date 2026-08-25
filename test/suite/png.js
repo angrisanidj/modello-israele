@@ -769,11 +769,20 @@ try{ A.render(); }catch(e){ console.log('KO il render non è partito — ' + (e 
         t.indexOf('opposizione ' + b3.opposizione) >= 0 &&
         t.indexOf('partiti arabi ' + b3.arabo) >= 0,
     'e porta i tre totali veri, non ricontati altrove', t);
-  esito(/\d+ giorni dal voto/.test(t), 'e i giorni al voto', t);
+  /* «giorni» al plurale sarebbe un'attesa stagionale: la vigilia del voto la frase dice
+     «1 giorno», perché passa da acc(). Si chiede il NUMERO, che è la proprietà. */
+  esito(/\d+ giorn[oi] dal voto/.test(t), 'e i giorni al voto', t);
   /* i giorni vengono da ggCal, che conta giorni di CALENDARIO: la stessa funzione del
      conto alla rovescia, non una sottrazione di millisecondi scritta qui */
-  esito(/ggCal\(new Date\(\),VOTO\)/.test(HTML.match(/function testoCondivisione\(\)\{[\s\S]*?\n\}/)[0]),
-    'e li conta con ggCal, come il conto alla rovescia della testata');
+  /* la FIRMA della funzione è cambiata quando le due copie sono state unificate — prendeva
+     zero argomenti, adesso ne prende uno — e questa riga la cercava alla lettera: il match
+     tornava null e la suite MORIVA invece di cadere, che è il difetto peggiore dei due.
+     L'ha trovata `npm run spazzola`, non il banco normale, perché la morte arrivava dopo
+     137 asserzioni e il conto non aveva niente da dire. Si cerca il NOME, non la firma. */
+  const fonteTC = HTML.match(/function testoCondivisione\([^)]*\)\{[\s\S]*?\n\}/);
+  esito(!!fonteTC && /ggCal\(new Date\(\),VOTO\)/.test(fonteTC[0]),
+    'e li conta con ggCal, come il conto alla rovescia della testata',
+    fonteTC ? fonteTC[0].slice(0, 90) : '(funzione non trovata)');
 
   /* ══ IL COMANDO C'È SOLO DOVE LA CAPACITÀ C'È ══
      Un comando che apre un foglio di condivisione senza poter allegare l'immagine

@@ -42,17 +42,27 @@ jobs:
       # DA QUANTE NOTTI È FERMO non è ricavabile dai file: una notte bloccata non committa
       # niente, quindi non lascia traccia nel repository. Lo sa solo la storia delle
       # esecuzioni, ed è per questo che il riepilogo la legge invece di dedurlo.
-      - name: Da quante notti è fermo
-        id: notti
+      - name: Da quante esecuzioni è fermo
+        id: ferme
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          N=$(gh run list --workflow 'Aggiorna archivio' --limit 20 --json conclusion,status \n               --jq '[.[] | select(.status=="completed") | .conclusion] | index("success") // 0')
+          # UNA RIGA SOLA, E IL PERCHÉ VA LASCIATO SCRITTO. Qui c'era una continuazione
+          # scritta come \n LETTERALE — due caratteri, non un a-capo. Dentro «run: |» la
+          # shell la legge come la lettera n, la passa a gh come argomento, gh esce con
+          # errore, e con «bash -e» il passo fallisce: il job muore PRIMA del parser.
+          # È successo per tre esecuzioni di fila, il 23, 24 e 25 agosto 2026, in tredici
+          # e senza che nessuno lo dicesse — il riepilogo guardava quello che il parser
+          # aveva trovato, e il parser non era mai stato eseguito.
+          # Il file resta YAML valido, quindi struttura.mjs lo caricava senza obiezioni:
+          # è la seconda incarnazione della stessa trappola, e la prova che la coglie
+          # adesso guarda i COMANDI e non solo la sintassi.
+          N=$(gh run list --workflow 'Aggiorna archivio' --limit 20 --json conclusion,status --jq '[.[] | select(.status=="completed") | .conclusion] | index("success") // 0')
           echo "ferme=$N" >> "$GITHUB_OUTPUT"
-          echo "notti fallite di fila prima di stanotte: $N"
+          echo "esecuzioni fallite di fila prima di stanotte: $N"
       - name: Parser e guardie
         env:
-          NOTTI_FERME: ${{ steps.notti.outputs.ferme }}
+          ESECUZIONI_FERME: ${{ steps.ferme.outputs.ferme }}
         run: node .github/scripts/aggiorna.mjs
       # LAVORO_NOTTURNO=1 accende, dentro test/struttura.mjs, il controllo sul diff di
       # index.html: qui è il solo posto in cui esiste un «commit notturno» da giudicare.
@@ -119,7 +129,10 @@ jobs:
         run: |
           # il JavaScript sta in un file: multiriga dentro «run: |» rende il YAML invalido,
           # ed è già successo — la esecuzione fallisce in zero secondi e il job non parte
-          SPAZZOLA_CADUTA=${{ steps.spazzola.outputs.caduta }} node .github/scripts/riepilogo.mjs
+          # L'ESITO DEL JOB ARRIVA DA QUI, e non dai file: una notte bloccata non committa
+          # niente, quindi non lascia traccia nel repository. job.status dentro un passo
+          # «always()» dice come è andata FIN QUI, ed è l'unico posto in cui si sa.
+          SPAZZOLA_CADUTA=${{ steps.spazzola.outputs.caduta }} ESITO_JOB=${{ job.status }} ESECUZIONI_FERME=${{ steps.ferme.outputs.ferme }} node .github/scripts/riepilogo.mjs
           [ -f corpo-dafare.md ] || exit 0
           if ! git diff --quiet dati/da-fare.json; then
             git config user.name "aggiornamento-notturno"

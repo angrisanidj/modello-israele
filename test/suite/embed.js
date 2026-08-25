@@ -77,7 +77,11 @@ function pagina(opz){
     'copiaTesto:copiaTesto,montaCopia:montaCopia,rispostaCopia:rispostaCopia,' +
     'SINTESI:SINTESI,FORME_EMBED:FORME_EMBED,SINT_TIENI:SINT_TIENI,TIT_CODA:TIT_CODA,' +
     'finiSintesi:finiSintesi,potaSintesi:potaSintesi,titoloCortoOra:titoloCortoOra,' +
-    'selezionaBlocco:selezionaBlocco};carica().then(render,render)');
+    'selezionaBlocco:selezionaBlocco,' +
+    'RETI:RETI,AI_MOTORI:AI_MOTORI,testoCondivisione:testoCondivisione,' +
+    'promptAI:promptAI,statoLeve:statoLeve,montaSocial:montaSocial,' +
+    'blocchi:blocchi,SEG:function(){return SEG;},CANONICO:CANONICO,' +
+    'escludi:function(k){if(ESCL[k])delete ESCL[k];else ESCL[k]=1;render();}};carica().then(render,render)');
   eval(src);
   const A = global.A;
   try { A.applicaEmbed(); } catch(e){}
@@ -747,6 +751,237 @@ function pagina(opz){
   esito(emb.D.querySelectorAll('#kn26 [data-tema]').length === 3,
     'il selettore del tema invece resta: fallisce sulla comodità, non su quello che promette',
     String(emb.D.querySelectorAll('#kn26 [data-tema]').length));
+}
+
+
+/* ══ IL FOGLIO SOPRAVVIVE ALLA POTATURA, E IL FONDO VIENE DAL TEMA ═══════
+ * QUESTA È LA PROVA CHE MANCAVA, ed è la ragione per cui il difetto è arrivato in
+ * produzione. Le mie asserzioni sulla forma compatta misuravano la GEOMETRIA — emiciclo
+ * 209, riga 18, firma 36 — e la geometria reggeva, perché l'SVG porta i colori come
+ * attributi e le altezze le detta il contenuto. Il foglio era stato rimosso e nessuna
+ * asserzione lo guardava.
+ *
+ * Che cosa succedeva senza foglio, misurato il 24 agosto 2026: --paper stringa vuota,
+ * fondo di #kn26 rgba(0,0,0,0), imbottitura 0, il beige del body visibile dovunque — e
+ * soprattutto LA FASCIA DEL DOPO-VOTO COMPARSA, con «Le elezioni si sono tenute il 27
+ * ottobre 2026» il 24 agosto. Non perché la condizione scattasse: perché
+ * `#kn26 .postvoto{display:none}` non esisteva più. Il progetto usa in più punti «il testo
+ * si scrive sempre, a comparire è solo la classe», quindi una potatura che tocca la
+ * vestizione non rompe una cosa: ne rompe una famiglia.
+ */
+{
+  const piena = pagina({search: '?embed=1'});
+  const sint = pagina({search: '?embed=sintesi'});
+  try { sint.A.finiSintesi(); } catch(e){}
+
+  [['intera', piena], ['compatta', sint]].forEach(([nome, p]) => {
+    const fogli = [].slice.call(p.D.querySelectorAll('style'))
+      .filter(s => /--paper/.test(s.textContent));
+    esito(fogli.length === 1,
+      'nella forma ' + nome + ' il foglio del modello c\'è ancora dopo la potatura',
+      fogli.length + ' fogli');
+    /* e non è un guscio vuoto: porta le regole che contano */
+    const css = fogli.length ? fogli[0].textContent : '';
+    esito(/#kn26 \.postvoto\{display:none;?\}/.test(css),
+      '  · e porta la regola che nasconde la fascia del dopo-voto');
+    esito(/background:var\(--paper\)/.test(css),
+      '  · e quella che dà un fondo al riquadro');
+  });
+
+  /* LA REGOLA È «NON SI POTA QUELLO CHE NON È CONTENUTO», non «si tiene lo style»: la
+     seconda rimetterebbe il difetto al primo elemento non-contenuto che nasce domani. */
+  const fonte = HTML.match(/function potaSintesi\(\)\{[\s\S]*?\n\}/)[0];
+  esito(/NON_CONTENUTO\.indexOf\(c\.tagName\)/.test(fonte),
+    'e la regola guarda la CATEGORIA dell\'elemento, non il nome di uno solo', fonte.slice(0, 140));
+  const elenco = HTML.match(/var NON_CONTENUTO=\[[^\]]*\]/)[0];
+  ['STYLE', 'SCRIPT', 'LINK', 'TEMPLATE', 'NOSCRIPT'].forEach(t =>
+    esito(elenco.indexOf("'" + t + "'") >= 0,
+      '  · e «' + t + '» è nell\'elenco di quello che non è contenuto', elenco));
+
+  /* IL CASO GENERALE: un elemento non-contenuto montato oggi sopravvive alla potatura.
+     Se la regola tornasse a essere un'esclusione per nome, il prossimo sparirebbe. */
+  {
+    const p2 = pagina({search: '?embed=sintesi'});
+    const t = p2.D.createElement('template');
+    t.id = 'k-prova-vestizione';
+    const R2 = p2.D.getElementById('kn26');
+    R2.appendChild(t);
+    try { p2.A.finiSintesi(); } catch(e){}
+    esito(!!p2.D.getElementById('k-prova-vestizione'),
+      'e un elemento che non è contenuto, montato oggi, sopravvive: la regola è per categoria');
+  }
+
+  /* LA FASCIA DEL DOPO-VOTO NON COMPARE PRIMA DEL VOTO, e la prova guarda le DUE cose che
+     devono valere insieme: la classe che la accende non c'è, e la regola che la nasconde
+     c'è. Guardarne una sola lasciava passare il difetto: la classe era giusta da sempre. */
+  const pv = sint.D.getElementById('k-postvoto');
+  esito(!!pv, 'la fascia del dopo-voto esiste nel markup anche nella forma compatta');
+  esito(pv && pv.className.indexOf('on') < 0,
+    'e prima del voto NON porta la classe che la accende: la condizione non scatta',
+    pv ? pv.className : '');
+  esito(sint.foto.votoPassato === false,
+    'e votoPassato() lo conferma', String(sint.foto.votoPassato));
+
+  /* IL FONDO DELLA PAGINA VIENE DALLA TAVOLOZZA, non da una costante scritta a mano.
+     Il beige #e8e6e0 non apparteneva a nessuno dei due temi. */
+  /* si guarda il TAG del body, non tutto il file: il colore vecchio compare ancora nel
+     commento che spiega perché non c'è più, ed è giusto che ci sia. Una prova che cerca una
+     stringa in tutto il file prova la memoria del progetto, non il codice. */
+  const tagBody = (HTML.match(/<body[^>]*>/) || [''])[0];
+  esito(!/#e8e6e0/.test(tagBody),
+    'il beige scritto a mano non è più il fondo del body', tagBody);
+  esito(/document\.body\.style\.background=C\.paper/.test(HTML),
+    'e il fondo del body si scrive dalla tavolozza');
+  /* e sta in leggiTema(), che gira a ogni render — non in applicaTema(), che gira solo
+     quando qualcuno preme un pulsante: là una pagina aperta in scuro restava col fondo
+     chiaro finché non si toccava il selettore */
+  const lt = HTML.match(/function leggiTema\(\)\{[\s\S]*?\n\}/)[0];
+  esito(/document\.body\.style\.background/.test(lt),
+    'e sta dove la tavolozza si risolve, cioè a ogni render', lt.slice(-120));
+  /* il ripiego nel markup è un colore del tema, non un terzo colore */
+  const rip = (HTML.match(/<body style="[^"]*background:(#[0-9A-Fa-f]{6})/) || [])[1];
+  esito(/^#F7F8FA$/i.test(rip || ''),
+    'e il ripiego nel markup è il --paper del tema chiaro, non un colore che non esiste',
+    rip || '(nessuno)');
+}
+
+
+/* ══ CONDIVISIONE PER RETE E DOMANDE A UN MODELLO ═════════════════════════
+ * Undici comandi nuovi, e la cosa che li rende utili o inutili è misurata: un fetcher che
+ * apre l'indirizzo NON trova i numeri. Estratto il testo dal file servito il 24 agosto
+ * 2026: 11.199 caratteri che cominciano con l'avviso di avvio, e nessun seggio proiettato.
+ * Le sedici cifre a due zeri che ci sono sono percentuali di affluenza e soglie — cioè non
+ * è «mancano i numeri», è «ci sono i numeri sbagliati», in prosa, dove un modello può
+ * scambiarli per la proiezione. Da qui la scelta: il prompt PORTA i numeri.
+ */
+{
+  /* LA PAGINA SE LA MONTA QUESTO BLOCCO, e non usa quella di prima: ogni pagina()
+     sovrascrive i globali, e l ultima creata qui sopra è la forma compatta POTATA —
+     chiamarci render() faceva morire rTitolo() su un h1 che non c è più. È la stessa
+     trappola già registrata per contesto() e per potaSintesi(). */
+  const {A: A2, D: D2} = pagina({});
+  /* i due elenchi sono dichiarati, non quattro rami e sei rami */
+  esito(Array.isArray(A2.RETI) && A2.RETI.length === 6,
+    'le reti sono un elenco dichiarato', A2.RETI.map(r => r.n).join(', '));
+  esito(Array.isArray(A2.AI_MOTORI) && A2.AI_MOTORI.length === 4,
+    'e i motori pure', A2.AI_MOTORI.map(m => m.n).join(', '));
+
+  /* ══ UNA COSTANTE, DUE FORME ══
+     Dove l'indirizzo è un PARAMETRO la frase non lo porta, o comparirebbe due volte nel
+     messaggio pubblicato; dove va dentro il testo si aggiunge in coda. Due stringhe scritte
+     a parte divergerebbero alla prima riscrittura. */
+  const senza = A2.testoCondivisione(false), con = A2.testoCondivisione(true);
+  esito(con.indexOf(senza) === 0,
+    'la forma con l\'indirizzo è la stessa frase più la coda: una costante, due forme',
+    con.slice(senza.length));
+  esito(senza.indexOf('angrisanidj') < 0,
+    'e dove l\'indirizzo è un parametro la frase non lo porta', senza);
+  esito(con.indexOf('angrisanidj') > 0,
+    'e dove va dentro il testo, c\'è');
+  /* e ogni rete usa la forma giusta per il suo contratto */
+  A2.RETI.forEach(r => {
+    const u = r.u(A2.testoCondivisione(r.porta === 'testo'), A2.CANONICO);
+    if (r.porta === 'testo+url') {
+      esito(/[?&]url=/.test(u) && /[?&]text=/.test(u),
+        '  · ' + r.n + ' porta testo e indirizzo come due parametri');
+      esito(u.indexOf(encodeURIComponent('— angrisanidj')) < 0,
+        '  · e l\'indirizzo non è anche dentro il testo');
+    } else if (r.porta === 'testo') {
+      esito(!/[?&]url=/.test(u), '  · ' + r.n + ' non ha un parametro per l\'indirizzo');
+      esito(u.indexOf(encodeURIComponent('angrisanidj')) > 0,
+        '  · quindi l\'indirizzo va dentro il testo');
+    } else {
+      /* «solo l'indirizzo» vuol dire UN parametro e basta, non «nessun parametro chiamato
+         text»: una mutazione che aggiungeva `&quote=` a Facebook restava viva, e quel
+         parametro non passa dal 2017 — sarebbe codice che promette una cosa che non
+         succede. Si CONTA, invece di elencare i nomi che non devono esserci. */
+      const par = (u.split('?')[1] || '').split('&').filter(Boolean);
+      esito(par.length === 1 && /^(u|url)=/.test(par[0]),
+        '  · ' + r.n + ' prende SOLO l\'indirizzo, un parametro e basta: il testo non passa',
+        par.join(' & '));
+    }
+  });
+
+  /* ══ IL PROMPT PORTA I NUMERI VIVI, E DICHIARA LE LEVE ══
+     I numeri sono quelli del momento del clic, cioè con le leve del lettore applicate. Ma
+     l'indirizzo che il prompt cita mostra la proiezione DI BASE, e un modello che andasse a
+     controllare troverebbe numeri diversi. Quindi il prompt lo dice — e lo dice SOLO quando
+     una leva è fuori dal predefinito: a pagina intonsa la frase non c'è, perché non si
+     spiega una cosa che non è successa. */
+  const p0 = A2.promptAI();
+  esito(p0.indexOf('Attenzione') < 0,
+    'a pagina intonsa il prompt non dichiara nessuna leva', p0.slice(0, 80));
+  esito(A2.statoLeve() === '', 'e lo stato delle leve è vuoto', A2.statoLeve());
+  /* i numeri ci sono davvero, e sono quelli della pagina */
+  const b = A2.blocchi(A2.SEG());
+  [b.coalizione, b.opposizione, b.arabo].forEach(n =>
+    esito(p0.indexOf(String(n)) >= 0, '  · e porta il numero ' + n));
+  esito(p0.indexOf(A2.CANONICO.replace(/^https?:\/\//, '').replace(/\/$/, '')) > 0,
+    'e cita l\'indirizzo, così il modello può andare a vedere');
+
+  /* accendendo una leva, la clausola compare — e nomina la leva, non un generico «modificato» */
+  A2.escludi('direct_polls');
+  const p1 = A2.promptAI();
+  esito(p1.indexOf('Attenzione') > 0,
+    'con un istituto escluso il prompt lo dichiara', (p1.match(/Attenzione:[^.]*\./) || [''])[0]);
+  esito(/differiscono dalla proiezione di base/.test(p1),
+    'e dice PERCHÉ conta: l\'indirizzo mostra altri numeri');
+  A2.escludi('direct_polls');
+  /* NON si pretende che il prompt torni IDENTICO: il Monte Carlo rigira a ogni render e
+     le probabilità cambiano di un punto, quindi l'uguaglianza byte per byte proverebbe che
+     la simulazione è deterministica — che non è, e non deve essere. La proprietà è che la
+     clausola SPARISCA, cioè che non si sedimenti. */
+  esito(A2.promptAI().indexOf('Attenzione') < 0,
+    'e tornando indietro la clausola sparisce: non si sedimenta', A2.statoLeve());
+
+  /* ══ LA LUNGHEZZA, che è la ragione per cui questa forma è possibile ══
+     Misurato: 939 caratteri coi valori di oggi e 952 nel caso peggiore — tutte le cifre al
+     massimo — che codificati fanno 1.309 sull'URL più lunga, contro un tetto pratico di
+     2000. La parte variabile è quasi tutta a una o due cifre, quindi il prompt è di fatto a
+     lunghezza fissa. La prova non asserisce 939: asserisce che ci STIA, che è la proprietà. */
+  A2.AI_MOTORI.forEach(m => {
+    const u = m.u + encodeURIComponent(p0);
+    esito(u.length < 2000,
+      '  · l\'indirizzo per ' + m.n + ' sta sotto i 2000 caratteri', String(u.length));
+  });
+
+  /* ══ UNDICI COMANDI, UNDICI NOMI DIVERSI ══
+     Dieci comandi chiamati «Condividi» e «Discuti» sono indistinguibili in un elenco di
+     comandi: è la lezione dei quattro «Scarica PNG», dei due «Copia» e dei bersagli dei
+     marcatori. E il nome comincia col testo visibile, come chiede WCAG 2.5.3. */
+  A2.render(); A2.montaSocial();
+  const box = D2.getElementById('k-social');
+  const cmd = [].slice.call(box.querySelectorAll('a.soc,button.soc'));
+  esito(cmd.length === 11, 'i comandi montati sono undici', String(cmd.length));
+  const nomi = cmd.map(x => x.getAttribute('aria-label'));
+  esito(nomi.every(n => !!n), 'e ciascuno ha un nome accessibile', nomi.join(' | '));
+  esito(new Set(nomi).size === nomi.length,
+    'e sono tutti diversi fra loro', nomi.filter((n, i) => nomi.indexOf(n) !== i).join(', '));
+  esito(cmd.every(x => nomi[cmd.indexOf(x)].indexOf(x.textContent.trim()) >= 0 ||
+                        nomi[cmd.indexOf(x)].indexOf('Copia') === 0),
+    'e il nome contiene il testo visibile');
+  /* i collegamenti escono dalla pagina: si aprono in una scheda nuova e non passano il
+     referrer a nessuno */
+  const link = [].slice.call(box.querySelectorAll('a.soc'));
+  esito(link.every(a => a.getAttribute('target') === '_blank'),
+    'e i collegamenti si aprono in una scheda nuova: la pagina non si perde');
+  esito(link.every(a => /noopener/.test(a.getAttribute('rel') || '')),
+    'con noopener, o la pagina aperta potrebbe riscrivere questa');
+
+  /* ══ NON CI SONO NELL'EMBED ══
+     Sono comandi che portano fuori dalla pagina di chi ospita, ed è la stessa ragione per
+     cui «Aggiorna i sondaggi» è uscito: un riquadro incorporato non mette l'ospite in
+     relazione con terzi che non ha scelto. */
+  const emb = pagina({search: '?embed=1'});
+  const boxE = emb.D.getElementById('k-social');
+  esito(!boxE || boxE.children.length === 0,
+    'nell\'embed il blocco non porta nessun comando',
+    boxE ? String(boxE.children.length) : '(assente)');
+
+  /* «Copia collegamento» usa la macchina della copia, non una seconda strada */
+  const fonte = HTML.match(/closest\('#k-copialink'\)[\s\S]{0,400}/)[0];
+  esito(/copiaTesto\(CANONICO/.test(fonte),
+    'e «copia collegamento» usa copiaTesto(), col suo ripiego', fonte.slice(0, 120));
 }
 
 console.log(String.fromCharCode(10) + ok + '/' + (ok + ko));

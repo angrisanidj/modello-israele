@@ -17,16 +17,18 @@
 import {readFileSync, writeFileSync, existsSync} from 'node:fs';
 import {fileURLToPath} from 'node:url';
 import {dirname, join} from 'node:path';
-import {conSpazzolata, markdown} from './dafare.mjs';
+import {conSpazzolata, conEsito, markdown} from './dafare.mjs';
 
 const RADICE = join(dirname(fileURLToPath(import.meta.url)), '..', '..');
 const P = join(RADICE, 'dati', 'da-fare.json');
 
-if (!existsSync(P)){
-  console.log('dati/da-fare.json non c\'è: il parser non è arrivato a scriverlo');
-  process.exit(0);
-}
-let f = JSON.parse(readFileSync(P, 'utf8'));
+/* IL FILE PUÒ NON ESSERCI, E NON È UNA RAGIONE PER TACERE. Prima qui c'era un'uscita
+   silenziosa — «il parser non è arrivato a scriverlo», e via — cioè il riepilogo si
+   zittiva proprio nel caso in cui aveva più da dire. Si parte da un riepilogo vuoto e ci
+   si mette sopra l'esito del job. */
+let f = existsSync(P)
+  ? JSON.parse(readFileSync(P, 'utf8'))
+  : {voci: [], conto: {blocca: 0, richiedono: 0, informative: 0}, riga: ''};
 
 const sp = join(RADICE, 'spazzola.txt');
 if (process.env.SPAZZOLA_CADUTA === '1' && existsSync(sp)){
@@ -34,6 +36,10 @@ if (process.env.SPAZZOLA_CADUTA === '1' && existsSync(sp)){
   writeFileSync(P, JSON.stringify(f, null, 1) + '\n');
   console.log('spazzolata unita al riepilogo');
 }
+
+/* L'ESITO DEL JOB ENTRA NEL RIEPILOGO, e viene dal workflow perché nei file non c'è: una
+   notte bloccata non committa niente, quindi non lascia traccia nel repository. */
+f = conEsito(f, process.env.ESITO_JOB, process.env.ESECUZIONI_FERME);
 
 writeFileSync(join(RADICE, 'corpo-dafare.md'), markdown(f));
 writeFileSync(join(RADICE, 'conto.txt'), String(f.conto.richiedono + f.conto.informative));
