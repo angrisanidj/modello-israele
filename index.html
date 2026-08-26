@@ -2062,7 +2062,7 @@ var P={
  economico   :{n:"Partito Economico",  l:"Yaron Zelekha",      c:"#413B00", b:"incerto",     o:10, gov:1, r22:null},
  unity_erdan :{n:"Unità",              l:"Erdan · Edelstein",  c:"#6D3B00", b:"incerto",     o:11, gov:1, r22:null},
  israel_first:{n:"Israel First",       l:"Sharren Haskel",     c:"#674F00", b:"incerto",     o:12, gov:1, r22:null},
- amcha       :{n:"Amcha Israel",       l:"Ofer Winter",        c:"#955A00", b:"incerto",     o:12.5, gov:1, r22:null},
+ amcha       :{n:"Popolo d'Israele",   l:"Ofer Winter",        c:"#955A00", b:"incerto",     o:12.5, gov:1, r22:null},
  beitenu     :{n:"Yisrael Beitenu",    l:"Avigdor Lieberman",  c:"#720055", b:"opposizione", o:13, gov:1, r22:6},
  likud       :{n:"Likud",              l:"Benjamin Netanyahu", c:"#0061B4", b:"coalizione",  o:14, gov:1, r22:32},
  shas        :{n:"Shas",               l:"Aryeh Deri",         c:"#0092BB", b:"coalizione",  o:15, gov:1, r22:11},
@@ -7514,7 +7514,14 @@ var W_LISTA={
  'yashar':'yashar','zionist home':'casa_sionista','reserv.':'casa_sionista','reservists':'casa_sionista',
  'unity':'unity_erdan',
  'amcha israel':'amcha','amcha yisrael':'amcha','amcha':'amcha',
- 'party of ofer winter':'amcha','people of israel':'amcha'
+ 'party of ofer winter':'amcha','people of israel':'amcha',
+ /* «Winter party» AL SINGOLARE è la lista; «Winter parties and Reservists-B&W», al plurale,
+    è l'etichetta di un aggregato nella tabella degli scenari. Il 26 agosto 2026 avevo
+    escluso l'intera famiglia guardando le occorrenze della PAROLA nel markup e vedendo il
+    plurale: la conclusione era sull'insieme invece che sulla stringa esatta, e «Winter
+    party» compare come colonna in una tabella di SEGGI. Davanti a una grafia si guarda la
+    colonna in cui compare, non le occorrenze della parola nella pagina. */
+ 'winter party':'amcha'
 };
 var W_IST={'filber':'Direct Polls','direct':'Direct Polls','lazar':'Lazar · Panel4All','midgam':'Midgam',
  'hamidgam':'Hamidgam Project','maagar':'Maagar Mochot','kantar':'Kantar','yossi':'Yossi Taktika',

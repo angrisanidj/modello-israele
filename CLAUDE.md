@@ -4486,6 +4486,31 @@ da fare.
   sei formulazioni scartate restano nella sezione, perché il numero che ha deciso — il
   plurale più corto del singolare — non si ritrova ragionandoci.
 
+**DA FARE PER PRIMA COSA — «Winter party» va mappato come `amcha`.** Deciso dall'autore
+il 26 agosto 2026 guardando il messaggio dell'aggiornamento, che dice: «in una tabella di
+SEGGI compaiono colonne non riconosciute (Winter party)».
+
+**Ed è la correzione di una mia decisione sbagliata, quindi va letta insieme al perché.**
+Mappando Amcha Israel lo stesso giorno avevo mappato cinque grafie — `amcha israel`,
+`amcha yisrael`, `amcha`, `party of ofer winter`, `people of israel` — e avevo escluso
+«Winter» con questa ragione scritta nel commento: nella tabella degli scenari è
+l'etichetta di un aggregato, «Winter parties and Reservists-B&W», e una grafia mappata
+male conta voti per la lista sbagliata in silenzio mentre una che manca ferma il job
+rumorosamente.
+
+Il ragionamento sul rischio asimmetrico resta buono; **il fatto su cui poggiava era
+falso**. «Winter party» — al singolare, con «party» attaccato — non è l'aggregato: compare
+come colonna in una tabella di **seggi**, cioè è quella lista lì. Avevo guardato le
+occorrenze della parola «Winter» nel markup e visto l'aggregato al plurale, e ho concluso
+sull'insieme invece che sulla stringa esatta. **La cosa da non ripetere è quella**:
+davanti a una grafia si guarda la colonna in cui compare, non le occorrenze della parola
+nella pagina.
+
+Quindi in `W_LISTA` va aggiunto `'winter party':'amcha'`, e prima di scriverlo si guarda
+se la fonte usa anche `'winter'` nudo come **intestazione di colonna di una tabella di
+seggi** — che è la domanda a cui non avevo risposto. Finché non è mappata, ogni notte in
+cui quella colonna compare la guardia si chiude e l'archivio resta fermo.
+
 **E le cose minori, quando capitano sotto mano:**
 
 - **Cercare le altre strade doppie.** Ogni valore che raggiunge lo schermo per più di un
