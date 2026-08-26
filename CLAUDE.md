@@ -4320,6 +4320,14 @@ lettura larga si cambia `datiTitolo()` in un punto solo, e `titolo.js` cade subi
 
 #### Un accoppiamento da non riscoprire rompendolo
 
+**I due numeri sono di SOTTO I 660, e vanno letti così.** Il 25 agosto 2026 li ho
+«corretti» misurando la pagina a 1440 e trovando 78,5 e 92: erano misure di un altro
+stato, non una deriva. Le regole sono due, e ci sono tutte e due nel foglio — desktop
+`section{scroll-margin-top:92px}` con `.idx` alta **78,5**, e dentro `@media(max-width:660px)`
+`scroll-margin-top:112px` con `.idx` alta **46,3** e `.idx.on` **97,4**. Rimisurati a 380 lo
+stesso giorno: **46,3 e 112 esatti**. Nessun commit ha toccato l'accoppiamento in silenzio.
+Chi rimisura lo faccia alla larghezza a cui il numero appartiene.
+
 **I 44px dei bersagli e `scroll-margin-top:112px` sono legati.** Portare tutti i bersagli
 a 44px costa **520px** sull'intero documento, cioè il **3,19%** — ma alzare le sole voci
 dell'indice costa 16px sul nastro, che portano `.idx` da 46,3 a 62,3 e **`.idx.on` da 97,4

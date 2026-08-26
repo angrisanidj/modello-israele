@@ -1185,6 +1185,77 @@
  border:1px solid var(--hair);border-radius:2px;}
 #kn26 .soc.detto{color:var(--ink);text-decoration:none;}
 #kn26 .socn{margin-top:8px;}
+/* ══ I GLIFI ══
+   Cerchi monocromatici da 44px con il segno da 20 al centro: il bersaglio è TUTTA l'area,
+   non il cerchio disegnato — display:grid e place-items:center mettono il segno in mezzo
+   senza che il collegamento si restringa attorno a lui.
+   Il colore lo porta currentColor, quindi il glifo segue il tema e lo stato di fuoco senza
+   una seconda dichiarazione. È la ragione per cui i marchi sono SVG e non immagini: un
+   <img> non eredita currentColor, resterebbe a colori pieni nei due temi, e non sarebbe un
+   cerchio monocromatico ma un logo incollato. */
+#kn26 .soci{width:44px;height:44px;min-height:44px;padding:0;display:grid;place-items:center;
+ border-radius:50%;border:1px solid var(--mute);}
+/* IL CERCHIO SI DEVE VEDERE, O NON È UN CERCHIO. Col bordo --hair il contrasto è 1,24
+   sulla carta e 1,17 sul fondo della gronda in chiaro: sei glifi che galleggiano senza
+   confine, e il bersaglio da 44 non si legge da nessuna parte. È la stessa trappola del
+   bordo delle pastiglie del gradino 1 nell house effect, dove il riempimento non
+   delimitava e il filetto nemmeno.
+   --mute misura 4,93 e 5,54 sul fondo della gronda, 5,24 e 5,10 sulla carta — e soprattutto
+   È GIÀ IL COLORE DEL GLIFO, quindi cerchio e segno diventano un segno solo invece di due
+   cose con due pesi. --ink2 sarebbe 9-10 e farebbe un anello più pesante del marchio che
+   contiene. Nessun token nuovo, nessuna ombra: le ombre in questo foglio non esistono. */
+#kn26 .soci svg{width:20px;height:20px;display:block;}
+#kn26 .soci:hover,#kn26 .soci:focus-visible{border-color:var(--acc);color:var(--acc);}
+/* ══ LA COLONNA FISSA, E LA SOGLIA È UN CONTO ══
+   #kn26 è largo al massimo 1180 e centrato, quindi la gronda vale (larghezza − 1180)/2:
+   verificata a 1265, dove misura 42,5 esatti. La colonna è larga 44 e vuole almeno 20px di
+   stacco per parte, quindi serve una gronda di 84, cioè 1180 + 168 = 1348 di area utile e
+   circa 1380 di finestra con la barra di scorrimento.
+   NON SI SCENDE SOTTO: con 12px di stacco basterebbero 1333, ma una colonna incollata al
+   bordo si legge peggio di nessuna colonna, e sotto quella larghezza il blocco in fondo
+   c'è già ed è la forma canonica — quella che esiste a ogni larghezza, che finisce
+   nell'embed e che le prove esercitano.
+   NON STA NEL PADDING DI #kn26, benché lì ci siano altri 32px: la fascia dell'indice è
+   larga 1116 e comincia a 154,5 su una finestra da 1440, cioè il suo fondo copre anche il
+   padding, e ha z-index 60. Una colonna appoggiata là dentro le finirebbe sotto.
+   Il fondo su cui vive è quindi --paper del body, non --card: il bordo è misurato su
+   quello.
+   Scartata la mossa di Germania — body{padding-left:56px} sopra i 1200 — che sposta la
+   pagina di lato per farsi spazio: scentra il pannello, e dentro ?embed=1 la pagina sta in
+   un riquadro di qualcun altro dove quel padding non vuol dire niente. */
+#kn26 .colsoc{display:none;}
+@media(min-width:1380px){
+ #kn26 .colsoc{display:flex;flex-direction:column;gap:8px;
+  position:fixed;top:50%;transform:translateY(-50%);
+  /* SOTTO L'INDICE, non sopra: l'indice appiccicato sta a z-index 40 su desktop, e la
+     colonna a 30. Oggi non si sovrappongono — lei vive nella gronda, lui dentro il
+     pannello — ma la promessa «niente copre l'indice» deve reggere per IMPILAMENTO e non
+     per geometria, o smette di valere il giorno in cui una delle due larghezze cambia. */
+  left:calc(50% - 590px - 24px - 44px);z-index:30;}
+ #kn26 .colsoc .soci{background:var(--card);}
+}
+/* ══ LE CINQUE SCHEDE ══
+   Una scheda dice il nome del modello e COSA FA quel modello — non cosa fa il pulsante,
+   che è sempre la stessa cosa. È la riga che le distingue da cinque pulsanti, ed è anche
+   la prima cosa da tagliare se un giorno l'altezza pesasse: senza, la scheda torna a 44 e
+   la griglia a 380 scende da 301,5 a 252. */
+#kn26 .aig{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:8px;}
+#kn26 .aic{display:flex;gap:10px;align-items:center;min-height:44px;padding:10px 12px;
+ border:1px solid var(--hair);border-radius:2px;background:var(--card);
+ text-decoration:none;color:var(--ink);}
+#kn26 .aic:hover,#kn26 .aic:focus-visible{border-color:var(--acc);text-decoration:none;}
+#kn26 .aic svg{width:22px;height:22px;flex:0 0 22px;}
+#kn26 .aic b{display:block;font-size:11px;letter-spacing:.06em;text-transform:uppercase;}
+#kn26 .aic i{display:block;font-size:11px;font-style:normal;color:var(--mute);line-height:1.35;}
+/* ══ IL RIQUADRO DEL PROMPT, E IL CAPPELLO È UNA MISURA ══
+   Il prompt di oggi è 939 caratteri: srotolato a 380 il testo è alto 259px e il blocco
+   arriverebbe a 620. Con il cappello a 150 il riquadro sta a 200,5 e chi vuole leggerlo
+   tutto scorre dentro. A 1265 non morde: il testo ci sta intero in 137,5. */
+#kn26 .pbox{margin-top:10px;border:1px solid var(--hair);border-radius:2px;
+ padding:10px 12px;background:var(--wash);}
+#kn26 .pbox b{font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--mute);}
+#kn26 .pbox p{margin:6px 0 0;font-size:11.5px;line-height:1.5;color:var(--ink2);
+ max-height:150px;overflow:auto;white-space:pre-wrap;}
 /* LA FORMA COMPATTA DELL'EMBED, ?embed=sintesi. La riga di sintesi si scrive sempre e si
    vede solo qui, come la fascia del dopo-voto: il giorno in cui compare non è il giorno in
    cui viene scritta per la prima volta.
@@ -1947,6 +2018,14 @@
      nessuno la apre, e un comando dentro un cassetto chiuso non esiste per la maggior parte
      dei lettori. Qui invece sono l ultima cosa che si incontra scorrendo, subito sopra la
      firma — che è il punto in cui si è finito di leggere. Li riempie montaSocial(). -->
+<!-- LA COLONNA DI CONDIVISIONE. Sta nel markup e non la crea il JavaScript perché è un
+     contenitore, non un contenuto: il contenuto lo scrive montaSocial() a ogni render, dalla
+     stessa cerchioRete() che scrive la riga in fondo. Sopra i 1380 il foglio la porta fissa
+     nella gronda a sinistra; sotto, resta display:none e non esiste per nessuno.
+     È aria-hidden e i suoi collegamenti sono fuori dall'ordine di tabulazione: la copia
+     canonica è quella in fondo, e sette comandi duplicati porterebbero l'elenco dei comandi
+     da sette a quattordici. -->
+<nav id="k-colsoc" class="colsoc" aria-hidden="true"></nav>
 <div id="k-social"></div>
 
 <p class="firma" id="k-firma">Daniele Angrisani · Modello previsionale Knesset 2026 ·
@@ -4099,26 +4178,93 @@ function montaCond(){
      · solo url     →  Facebook, LinkedIn (il testo non passa: il parametro `quote` di
                        Facebook non esiste più dal 2017, e LinkedIn non ne ha mai avuto uno)
    Su quelle due l'anteprima fa TUTTO, cioè og:title, og:description e og:image. */
+/* ══════════ I GLIFI DEI MARCHI ══════════
+   DA DOVE VENGONO, e la domanda non aveva già una risposta.
+   Sei di questi — X, Facebook, LinkedIn, Telegram, WhatsApp e le due graffette — vengono
+   dal modello Germania, che è un repository pubblico dello stesso autore. Ma quel
+   repository NON HA un file di licenza (verificato il 25 agosto 2026: LICENSE risponde
+   404, README è una riga), e per i termini di GitHub un repository senza licenza è tutti i
+   diritti riservati. Che sia dello stesso autore risolve il riuso fra i due progetti; NON
+   dice da dove vengano le icone, e là non è annotato.
+   Guardandoli: il tracciato di X è riconoscibilmente quello di Simple Icons ridisegnato
+   con le coordinate arrotondate a un decimale — «M18.9 3H22l-6.8 7.7…» contro «M18.901
+   1.153h3.68l-8.04 9.19…», stessa topologia e stessi comandi ad altra scala. Simple Icons
+   è CC0 SUI FILE, con una clausola esplicita che i marchi restano dei loro proprietari.
+   Quindi: i file sono liberi, i marchi no, e l'uso che se ne fa qui è NOMINATIVO — un
+   glifo che dice a quale servizio porta il collegamento, che è l'uso difendibile e l'unico
+   che facciamo. Nessuno di questi segni afferma un rapporto con quelle aziende.
+   GLI ALTRI CINQUE SONO RIDISEGNATI QUI, e non per scrupolo: in Germania sono PNG in
+   base64, cioè copie raster dei loghi con provenienza non registrata. Tre ragioni
+   indipendenti per non prenderli, e la seconda da sola basterebbe:
+     · sono copie raster di marchi altrui e nessuno sa da dove escono;
+     · un <img> NON EREDITA currentColor: restano a colori pieni, non si ritingono col tema
+       e non sono cerchi monocromatici, cioè non sono la cosa che si è chiesta;
+     · pesano 4,3 KB di gzip contro gli 0,72 dei sette SVG — sei volte tanto per cinque
+       icone invece di sette.
+   I cinque qui sotto sono segni geometrici evocativi e palesemente nostri: una stella a
+   quattro punte, un raggiera, un esagono con le corde, uno stelo con due rami, un gancio.
+   Non sono i loghi di quelle aziende e non pretendono di esserlo.
+   Tutti hanno viewBox 0 0 24 24 e prendono il colore da currentColor. */
+var GLIFO={
+ /* i sei presi: marchi pieni */
+ x:'<path d="M18.9 3H22l-6.8 7.7L23 21h-6.2l-4.9-6.4L6.3 21H3.2l7.3-8.3L1 3h6.4l4.4 5.9L18.9 3Zm-1.1 16h1.7L6.5 4.9H4.7L17.8 19Z"/>',
+ facebook:'<path d="M13.5 21v-7h2.4l.4-3h-2.8V9.2c0-.9.3-1.5 1.6-1.5H16V5c-.4-.1-1.4-.1-2.3-.1-2.3 0-3.8 1.4-3.8 4V11H7.5v3h2.4v7h3.6z"/>',
+ linkedin:'<path d="M6.2 8.4A1.9 1.9 0 1 1 6.2 4.6a1.9 1.9 0 0 1 0 3.8zM4.8 9.8h2.9v9.4H4.8V9.8zm4.8 0h2.8v1.3h.1c.4-.7 1.4-1.6 2.9-1.6 3.1 0 3.7 2 3.7 4.7v5h-2.9v-4.4c0-1 0-2.3-1.4-2.3s-1.6 1.1-1.6 2.2v4.5H9.6V9.8z"/>',
+ telegram:'<path d="M20.4 4.6 3.7 11c-1.1.4-1.1 1 .2 1.4l4.2 1.3 1.6 5.1c.2.6.4.8.9.8.4 0 .6-.2.9-.5l2.3-2.2 4.7 3.5c.9.5 1.5.2 1.7-.8l2.9-13.5c.3-1.2-.4-1.8-1.4-1.5Z"/>',
+ whatsapp:'<path d="M20.5 12A8.5 8.5 0 0 1 7.7 19.4L3 20.8l1.5-4.5A8.5 8.5 0 1 1 20.5 12Zm-4.8 2.3c-.3-.1-1.6-.8-1.9-.9-.3-.1-.5-.1-.7.1l-.5.7c-.2.2-.4.2-.7.1-1.8-.9-3-2.6-3.2-2.9-.2-.3 0-.5.1-.7l.3-.4.2-.4c.1-.2 0-.5 0-.7l-.8-1.8c-.2-.5-.4-.4-.7-.4h-.6c-.2 0-.6.1-.9.4-.3.3-1.1 1.1-1.1 2.7s1.1 3.2 1.3 3.4c.2.2 2.2 3.4 5.3 4.6.7.3 1.3.5 1.8.6.8.2 1.5.2 2 .1.6-.1 1.6-.7 1.8-1.4.2-.7.2-1.3.2-1.4 0-.1-.1-.2-.4-.3Z"/>',
+ /* il gancio: ridisegnato, pieno come gli altri della sua riga */
+ threads:'<path d="M12.2 19.7c-3.9 0-6.5-2.8-6.5-7.6s2.6-7.6 6.5-7.6c2.6 0 4.6 1.1 5.5 3.2l-1.8.8c-.6-1.4-1.9-2.1-3.7-2.1-2.7 0-4.4 2-4.4 5.7s1.7 5.7 4.4 5.7c1.5 0 2.5-.5 3-1.4.3-.6.3-1.2 0-1.7-.2-.3-.5-.5-1-.7-.2 1-.6 1.8-1.2 2.3-.7.6-1.7.8-2.6.6-1.2-.3-2-1.2-2-2.4.1-1.5 1.3-2.3 3.2-2.3.5 0 1 0 1.5.1 0-.4-.2-.8-.4-1-.3-.3-.7-.4-1.2-.4-.8 0-1.4.3-1.8.9l-1.6-1c.7-1.1 2-1.7 3.4-1.7 1.1 0 2.1.4 2.8 1.1.6.6.9 1.5.9 2.5v.2c1.1.4 1.8 1.1 2.2 2 .5 1.2.4 2.7-.3 3.8-1 1.6-2.8 2.7-5.4 2.7Zm-.4-6.3c-1 0-1.6.3-1.6.8 0 .4.3.6.8.7.5.1.9 0 1.2-.3.3-.3.5-.8.6-1.2-.3 0-.7 0-1-.0Z"/>',
+ /* le due graffette: azioni, non marchi, quindi a tratto — è la stessa distinzione che
+    fa il resto della pagina fra una cosa e un comando */
+ copialink:'<g fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><path d="M10.2 13.4a4.3 4.3 0 0 1 0-6l1.3-1.3a4.3 4.3 0 0 1 6 6l-1.3 1.3"/><path d="M13.8 10.6a4.3 4.3 0 0 1 0 6l-1.3 1.3a4.3 4.3 0 0 1-6-6l1.3-1.3"/></g>',
+ copiaprompt:'<g fill="none" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round"><rect x="9" y="9" width="11" height="12" rx="2"/><path d="M6 16H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></g>',
+ /* i quattro segni dei modelli: ridisegnati, a tratto, una famiglia sola */
+ perplexity:'<g fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4.5v15"/><path d="M12 9 7.6 4.9V9.4H4.4v5.2h3.2v4.5L12 15"/><path d="M12 9l4.4-4.1V9.4h3.2v5.2h-3.2v4.5L12 15"/></g>',
+ chatgpt:'<g fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"><path d="M12 3.1 20 7.5v9L12 20.9 4 16.5v-9Z"/><path d="M12 3.1V12m0 0 7.8-4.3M12 12 4.2 7.7M12 12v8.9"/></g>',
+ claude:'<g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 3.6v6M12 14.4v6M3.6 12h6M14.4 12h6M6.1 6.1l4.2 4.2M13.7 13.7l4.2 4.2M17.9 6.1l-4.2 4.2M10.3 13.7l-4.2 4.2"/></g>',
+ fatto:'<g fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5 10 17.5 19 7"/></g>',
+ ko:'<g fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6.5 6.5l11 11M17.5 6.5l-11 11"/></g>',
+ gemini:'<g fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"><path d="M12 3c0 5 4 9 9 9-5 0-9 4-9 9 0-5-4-9-9-9 5 0 9-4 9-9Z"/></g>'
+};
+/* UNA STRADA SOLA PER IL SEGNO: chi lo vuole chiede glifo(k), e se la chiave non c'è
+   restituisce stringa vuota invece di un segno sbagliato — un cerchio vuoto in mezzo a
+   undici marchi si vede, un marchio sbagliato no. */
+function glifo(k){
+ var g=GLIFO[k];
+ return g?'<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" focusable="false">'+g+'</svg>':'';
+}
 var RETI=[
- {k:'x',        n:'X',        porta:'testo+url',
+ {k:'x', g:'x',        n:'X',        porta:'testo+url',
   u:function(t,U){return 'https://x.com/intent/post?text='+encodeURIComponent(t)+'&url='+encodeURIComponent(U);}},
- {k:'threads',  n:'Threads',  porta:'testo',
+ {k:'threads', g:'threads',  n:'Threads',  porta:'testo',
   u:function(t,U){return 'https://www.threads.net/intent/post?text='+encodeURIComponent(t);}},
- {k:'facebook', n:'Facebook', porta:'url',
+ {k:'facebook', g:'facebook', n:'Facebook', porta:'url',
   u:function(t,U){return 'https://www.facebook.com/sharer/sharer.php?u='+encodeURIComponent(U);}},
- {k:'linkedin', n:'LinkedIn', porta:'url',
+ {k:'linkedin', g:'linkedin', n:'LinkedIn', porta:'url',
   u:function(t,U){return 'https://www.linkedin.com/sharing/share-offsite/?url='+encodeURIComponent(U);}},
- {k:'telegram', n:'Telegram', porta:'testo+url',
+ {k:'telegram', g:'telegram', n:'Telegram', porta:'testo+url',
   u:function(t,U){return 'https://t.me/share/url?url='+encodeURIComponent(U)+'&text='+encodeURIComponent(t);}},
- {k:'whatsapp', n:'WhatsApp', porta:'testo',
+ {k:'whatsapp', g:'whatsapp', n:'WhatsApp', porta:'testo',
   u:function(t,U){return 'https://wa.me/?text='+encodeURIComponent(t);}}
 ];
-/* I QUATTRO MOTORI, dichiarati come le reti: un elenco, non quattro rami. */
+/* I QUATTRO MOTORI, dichiarati come le reti: un elenco, non quattro rami.
+   IL GLIFO STA IN UN CAMPO SUO e non si ricava dalla chiave, benché oggi per cinque su sei
+   le due stringhe coincidano: «google» e «gemini» già non coincidono, ed è il caso che
+   mostra la regola. Dedurre il segno dalla chiave sarebbe corretto per coincidenza, come
+   l'house effect era in ordine di blocco per fortuna finché quattro liste non avevano
+   seggi.
+   `d` è la riga che dice COSA FA quel modello — non cosa fa il pulsante, che è sempre
+   la stessa cosa. Sta qui e non nel montaggio, come `ab` sta nell'anagrafica delle liste:
+   scriverla nel codice che compone sarebbe una seconda anagrafica dei motori. */
 var AI_MOTORI=[
- {k:'perplexity', n:'Perplexity', u:'https://www.perplexity.ai/?q='},
- {k:'chatgpt',    n:'ChatGPT',    u:'https://chatgpt.com/?q='},
- {k:'claude',     n:'Claude',     u:'https://claude.ai/new?q='},
- {k:'google',     n:'Google AI',  u:'https://www.google.com/search?udm=50&q='}
+ {k:'perplexity', n:'Perplexity', g:'perplexity', u:'https://www.perplexity.ai/?q=',
+  d:'Cerca sul web e cita le fonti di ogni affermazione'},
+ {k:'chatgpt',    n:'ChatGPT',    g:'chatgpt',    u:'https://chatgpt.com/?q=',
+  d:'Il più diffuso: una lettura generale del quadro'},
+ {k:'claude',     n:'Claude',     g:'claude',     u:'https://claude.ai/new?q=',
+  d:'Ragiona a lungo sul metodo e sui numeri'},
+ {k:'google',     n:'Gemini',     g:'gemini',     u:'https://www.google.com/search?udm=50&q=',
+  d:'Cerca su Google e legge le notizie delle ultime settimane'}
 ];
 
 /* LO STATO DELLE LEVE, e perché il prompt lo dichiara.
@@ -4193,30 +4339,90 @@ function promptAI(){
    lezione dei quattro «Scarica PNG», dei due «Copia» e dei bersagli dei marcatori. Il nome
    comincia col testo visibile, come chiede WCAG 2.5.3.
    E NON C'È NELL'EMBED: sono comandi che portano fuori dalla pagina di chi ospita. */
+/* ══ IL BLOCCO IN FONDO E LA COLONNA SONO LA STESSA COSA MONTATA DUE VOLTE ══
+   Le sei reti più la copia del collegamento raggiungono lo schermo per due strade, e le due
+   strade non possono divergere perché nascono dalla stessa funzione: cerchioRete() produce
+   l'ancora, e i due contenitori la chiamano. È la regola generale del progetto applicata a
+   un componente invece che a un valore.
+   LA COLONNA È aria-hidden E FUORI DALL'ORDINE DI TABULAZIONE, e non è una svista. Sette
+   comandi duplicati porterebbero l'elenco dei comandi da sette a quattordici, tutti con lo
+   stesso nome accessibile a coppie: è esattamente la lezione dei quattro «Scarica PNG» e
+   dei bersagli dei marcatori, vista dal lato della duplicazione. La copia canonica —
+   raggiungibile da tastiera, annunciata, presente a ogni larghezza e dentro l'embed — è
+   quella in fondo; la colonna è una comodità per il puntatore che compare solo sopra i
+   1380 e che non aggiunge nulla di nuovo.
+   Ed è per questo che la colonna NON porta la copia del collegamento: quella scrive negli
+   appunti e dà un riscontro sul comando, cioè è un'azione con un esito, non una
+   scorciatoia. Un'azione fuori dall'ordine di tabulazione è irraggiungibile per chi non usa
+   il mouse, e nasconderla dietro aria-hidden vorrebbe dire che per quel lettore non esiste
+   affatto. Nella colonna stanno le sei reti, che sono collegamenti. */
+function cerchioRete(r,U,coda){
+ var t=testoCondivisione(r.porta==='testo');
+ var e=E('Condividi su '+r.n);
+ return '<a class="lnk soc soci" target="_blank" rel="noopener noreferrer" href="'+E(r.u(t,U))+
+        '" title="'+e+'" aria-label="'+e+'"'+(coda||'')+'>'+glifo(r.g)+'</a>';
+}
 function montaSocial(){
- var box=$('k-social'); if(!box) return;
+ var box=$('k-social'), col=$('k-colsoc');
+ if(col) col.innerHTML='';
+ if(!box) return;
  if(EMBED){ box.innerHTML=''; return; }
  var U=CANONICO, h='';
- h+='<div class="socgr"><div class="soct">Condividi la proiezione</div><div class="socb">';
- RETI.forEach(function(r){
-  var t=testoCondivisione(r.porta==='testo');
-  h+='<a class="lnk soc" target="_blank" rel="noopener noreferrer" href="'+E(r.u(t,U))+
-     '" title="'+E('Condividi su '+r.n)+'" aria-label="'+E('Condividi su '+r.n)+'">'+E(r.n)+'</a>';
- });
- h+='<button class="lnk soc" id="k-copialink" title="Copia il collegamento alla pagina" '+
-    'aria-label="Copia il collegamento alla pagina">Copia collegamento</button>';
+
+ /* ── la riga in fondo: il gruppo È NOMINATO, e la ragione è che i glifi non hanno testo.
+    Senza etichetta visibile la riconoscibilità è tutta sul segno, e il nome accessibile
+    vive solo in title e aria-label — che su un telefono non compaiono mai al passaggio.
+    «Condividi» sopra la riga non è una decorazione: è l'unica parola che dice al lettore
+    che cosa sono quei sei cerchi. WCAG 2.5.3 qui non morde, perché non c'è nessuna
+    etichetta visibile che il nome debba contenere; il problema è l'opposto, ed è questo. */
+ h+='<div class="socgr"><div class="soct">Condividi</div><div class="socb">';
+ RETI.forEach(function(r){ h+=cerchioRete(r,U); });
+ h+='<button class="lnk soc soci" id="k-copialink" title="Copia il collegamento alla pagina" '+
+    'aria-label="Copia il collegamento alla pagina">'+glifo('copialink')+'</button>';
  h+='</div></div>';
+
+ /* ── le cinque schede, e la quinta è la copia: riusa copiaTesto(), che esiste ed è già
+    provata nei suoi quattro rami — l'API c'è e riesce, non c'è, c'è e respinge, e la
+    selezione di ripiego. Nessuna strada nuova per gli appunti. */
  var p=promptAI();
- h+='<div class="socgr"><div class="soct">Discuti la proiezione con un modello</div><div class="socb">';
+ h+='<div class="socgr"><div class="soct">Discuti la proiezione con un modello</div><div class="aig">';
  AI_MOTORI.forEach(function(m){
-  h+='<a class="lnk soc" target="_blank" rel="noopener noreferrer" href="'+E(m.u+encodeURIComponent(p))+
-     '" title="'+E('Discuti la proiezione con '+m.n)+'" aria-label="'+E('Discuti la proiezione con '+m.n)+
-     '">'+E(m.n)+'</a>';
+  var e=E('Discuti la proiezione con '+m.n);
+  h+='<a class="aic" target="_blank" rel="noopener noreferrer" href="'+E(m.u+encodeURIComponent(p))+
+     '" title="'+e+'" aria-label="'+e+'">'+glifo(m.g)+
+     '<span><b>'+E(m.n)+'</b><i>'+E(m.d)+'</i></span></a>';
  });
- h+='</div><p class="fn socn">I quattro collegamenti portano i numeri di adesso dentro la domanda: '+
-    'un modello che aprisse l\'indirizzo da solo non li troverebbe, perché la pagina li calcola '+
-    'nel browser.</p></div>';
+ /* il nome accessibile COMINCIA col testo visibile, e non per attenzione: qui la scheda
+    HA un'etichetta visibile, quindi WCAG 2.5.3 morde davvero — «Copia il prompt negli
+    appunti» non contiene «Copia prompt», e chi comanda a voce direbbe quello che vede
+    senza che succeda niente. L'ha trovato la prova al primo giro. */
+ h+='<button class="aic" id="k-copiaprompt" title="Copia prompt negli appunti" '+
+    'aria-label="Copia prompt negli appunti">'+glifo('copiaprompt')+
+    '<span><b>Copia prompt</b><i>Per usarlo in qualunque altro modello</i></span></button>';
+ h+='</div>';
+
+ /* ── IL RIQUADRO CHE RENDE ONESTA LA SEZIONE. Chi preme manda un testo a un servizio
+    terzo, e finora quel testo non lo vedeva nessuno prima di premere. Da noi c'è una
+    ragione in più che altrove non esiste: il prompt porta i numeri VIVI, comprese le leve
+    applicate, quindi due lettori che premono lo stesso pulsante possono mandare due cose
+    diverse. statoLeve() lo dichiarava già DENTRO il prompt — cioè lo diceva al modello e
+    non al lettore. */
+ h+='<div class="pbox"><b>Prompt usato</b><p id="k-prompt">'+E(p)+'</p></div>';
+ h+='<p class="fn socn">Il prompt porta i numeri di adesso, comprese le leve applicate: se '+
+    'lo swing è stato spostato o un istituto escluso, il modello riceve quei numeri e non '+
+    'quelli che si vedono aprendo l\'indirizzo. Il riquadro qui sopra mostra il testo esatto '+
+    'che viene inviato.</p></div>';
  box.innerHTML=h;
+
+ /* ── e la colonna, dalla stessa funzione */
+ if(col){
+  var c='';
+  RETI.forEach(function(r){ c+=cerchioRete(r,U,' tabindex="-1"'); });
+  /* aria-hidden sta nel MARKUP e non si riscrive qui: scritto nei due posti, toglierlo da
+     uno non cambiava niente e nessuna mutazione poteva coglierlo — una guardia che nessun
+     mutante fa cadere è codice che nessuna prova esercita. */
+  col.innerHTML=c;
+ }
 }
 /* ══════════ I PULSANTI DI COPIA DEI BLOCCHI DI CODICE ══════════
    Nascono come REGOLA e non come istanza: un ciclo su `pre.cod`, non due pulsanti scritti
@@ -7917,14 +8123,39 @@ R.addEventListener('click',function(e){
    il suo ripiego, e il riscontro sul comando. Una seconda strada per copiare sarebbe la
    strada doppia di sempre. */
 R.addEventListener('click',function(e){
- var b=e.target&&e.target.closest&&e.target.closest('#k-copialink');
+ var b=e.target&&e.target.closest&&e.target.closest('#k-copialink,#k-copiaprompt');
  if(!b) return;
- copiaTesto(CANONICO,function(esito){
-  var t=esito==='copiato'?'Copiato':'Non riuscita';
-  var orig=b.dataset.orig===undefined?(b.dataset.orig=b.textContent):b.dataset.orig;
-  b.textContent=t; b.classList.add('detto');
+ /* CHE COSA SI COPIA. Il collegamento è una costante; il prompt si legge dal RIQUADRO,
+    non richiamando promptAI(). Non è pigrizia: il riquadro esiste per dichiarare «questo è
+    il testo che viene inviato», e ricalcolarlo qui sarebbe una seconda strada verso la
+    stessa stringa — con la particolarità che l'una è quella che il lettore ha letto e
+    l'altra quella che partirebbe. textContent e non innerText, come per i blocchi di
+    codice: innerText è definito in funzione della resa, e qui c'è white-space:pre-wrap. */
+ var pb=$('k-prompt');
+ var testo=b.id==='k-copiaprompt' ? (pb?pb.textContent:'') : CANONICO;
+ copiaTesto(testo,function(esito){
+  var ok=esito==='copiato', parola=ok?'Copiato':'Non riuscita';
+  /* DUE MODI DI DARE IL RISCONTRO, e la differenza è se il comando ha un'etichetta VISIBILE.
+     La scheda ce l'ha: si scambia la parola, che è la grammatica di sempre. Il cerchio no —
+     è un glifo e basta — e scambiargli il testo lo SVUOTEREBBE, perché il suo contenuto è
+     un SVG e textContent è vuoto. Lì il riscontro è il segno, e la parola va nel nome
+     accessibile, o per chi non vede lo schermo non succederebbe niente. */
+  var eti=b.querySelector('b');
   clearTimeout(b.__t);
-  b.__t=setTimeout(function(){ b.textContent=orig; b.classList.remove('detto'); },2600);
+  if(eti){
+   if(eti.dataset.orig===undefined) eti.dataset.orig=eti.textContent;
+   eti.textContent=parola; b.classList.add('detto');
+   b.__t=setTimeout(function(){ eti.textContent=eti.dataset.orig; b.classList.remove('detto'); },2600);
+  }else{
+   if(b.dataset.orig===undefined){ b.dataset.orig=b.innerHTML; b.dataset.eti=b.getAttribute('aria-label')||''; }
+   b.innerHTML=glifo(ok?'fatto':'ko');
+   b.setAttribute('aria-label',parola+': '+b.dataset.eti);
+   b.classList.add('detto');
+   b.__t=setTimeout(function(){
+    b.innerHTML=b.dataset.orig; b.setAttribute('aria-label',b.dataset.eti);
+    b.classList.remove('detto');
+   },2600);
+  }
  });
 });
 R.addEventListener('click',function(e){

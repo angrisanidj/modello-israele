@@ -78,7 +78,7 @@ function pagina(opz){
     'SINTESI:SINTESI,FORME_EMBED:FORME_EMBED,SINT_TIENI:SINT_TIENI,TIT_CODA:TIT_CODA,' +
     'finiSintesi:finiSintesi,potaSintesi:potaSintesi,titoloCortoOra:titoloCortoOra,' +
     'selezionaBlocco:selezionaBlocco,' +
-    'RETI:RETI,AI_MOTORI:AI_MOTORI,testoCondivisione:testoCondivisione,' +
+    'RETI:RETI,GLIFO:GLIFO,glifo:glifo,AI_MOTORI:AI_MOTORI,testoCondivisione:testoCondivisione,' +
     'promptAI:promptAI,statoLeve:statoLeve,montaSocial:montaSocial,' +
     'blocchi:blocchi,SEG:function(){return SEG;},CANONICO:CANONICO,' +
     'escludi:function(k){if(ESCL[k])delete ESCL[k];else ESCL[k]=1;render();}};carica().then(render,render)');
@@ -945,21 +945,122 @@ function pagina(opz){
       '  · l\'indirizzo per ' + m.n + ' sta sotto i 2000 caratteri', String(u.length));
   });
 
-  /* ══ UNDICI COMANDI, UNDICI NOMI DIVERSI ══
-     Dieci comandi chiamati «Condividi» e «Discuti» sono indistinguibili in un elenco di
+  /* ══ OGNI COMANDO, UN NOME DIVERSO ══
+     Comandi chiamati tutti «Condividi» e «Discuti» sono indistinguibili in un elenco di
      comandi: è la lezione dei quattro «Scarica PNG», dei due «Copia» e dei bersagli dei
-     marcatori. E il nome comincia col testo visibile, come chiede WCAG 2.5.3. */
+     marcatori. E il nome contiene il testo visibile, come chiede WCAG 2.5.3.
+     IL CONTO NON È SCRITTO: è RETI + AI_MOTORI + le due copie. Scritto a mano, aggiungere
+     una rete domani vorrebbe dire modificare questa riga, ed è la modifica che si fa senza
+     pensarci. */
   A2.render(); A2.montaSocial();
   const box = D2.getElementById('k-social');
-  const cmd = [].slice.call(box.querySelectorAll('a.soc,button.soc'));
-  esito(cmd.length === 11, 'i comandi montati sono undici', String(cmd.length));
+  const cmd = [].slice.call(box.querySelectorAll('a.soc,button.soc,a.aic,button.aic'));
+  const atteso = A2.RETI.length + A2.AI_MOTORI.length + 2;
+  esito(cmd.length === atteso,
+    'i comandi montati sono le reti più i modelli più le due copie (' + atteso + ')',
+    String(cmd.length));
   const nomi = cmd.map(x => x.getAttribute('aria-label'));
   esito(nomi.every(n => !!n), 'e ciascuno ha un nome accessibile', nomi.join(' | '));
   esito(new Set(nomi).size === nomi.length,
     'e sono tutti diversi fra loro', nomi.filter((n, i) => nomi.indexOf(n) !== i).join(', '));
-  esito(cmd.every(x => nomi[cmd.indexOf(x)].indexOf(x.textContent.trim()) >= 0 ||
-                        nomi[cmd.indexOf(x)].indexOf('Copia') === 0),
-    'e il nome contiene il testo visibile');
+  /* L'ETICHETTA VISIBILE DI UNA SCHEDA È IL SUO <b>, NON TUTTO IL SUO TESTO: sotto il nome
+     c'è la riga che dice cosa fa quel modello, e il nome accessibile non deve contenerla.
+     Preso tutto il textContent, l'asserzione cadrebbe su una cosa che non è un difetto. */
+  const visibile = x => { const b = x.querySelector('b'); return (b ? b.textContent : x.textContent).trim(); };
+  esito(cmd.every(x => nomi[cmd.indexOf(x)].indexOf(visibile(x)) >= 0),
+    'e il nome contiene il testo visibile',
+    cmd.filter(x => nomi[cmd.indexOf(x)].indexOf(visibile(x)) < 0).map(visibile).join(' | '));
+  /* E DOVE NON C'È TESTO VISIBILE, CI DEV'ESSERE UN SEGNO. L'asserzione qui sopra è
+     VACUAMENTE VERA per un comando vuoto — qualunque stringa contiene la stringa vuota —
+     quindi da sola lascerebbe passare un cerchio senza niente dentro, che è precisamente il
+     modo in cui questa riga di icone può rompersi: un glifo non dichiarato esce vuoto. */
+  const muti = cmd.filter(x => !visibile(x));
+  esito(muti.length === A2.RETI.length + 1,
+    'i comandi senza testo visibile sono le reti più la copia del collegamento',
+    String(muti.length));
+  esito(muti.every(x => x.querySelector('svg')),
+    'e ciascuno porta un segno: senza, sarebbe un cerchio vuoto e nessuno saprebbe cos\'è');
+  /* ogni voce dichiara il proprio glifo, e il glifo esiste: dedurlo dalla chiave sarebbe
+     corretto per coincidenza — «google» e «gemini» già non coincidono */
+  esito(A2.RETI.concat(A2.AI_MOTORI).every(v => v.g && A2.GLIFO[v.g]),
+    'ogni rete e ogni modello dichiara un glifo che esiste',
+    A2.RETI.concat(A2.AI_MOTORI).filter(v => !v.g || !A2.GLIFO[v.g]).map(v => v.k).join(', '));
+  esito(A2.glifo('non-esiste') === '',
+    'e un glifo che non c\'è restituisce niente invece di un segno sbagliato');
+  /* OGNI COMANDO PORTA UN SEGNO, non solo quelli senza testo. L'asserzione sui «muti» non
+     copriva le schede, che il testo ce l'hanno: il mutante che deduce il glifo dalla chiave
+     invece che dal campo lascia Gemini senza segno — «google» e «gemini» non coincidono — e
+     passava. È la coincidenza che regge finché regge, di nuovo. */
+  esito(cmd.every(x => x.querySelector('svg')),
+    'ogni comando porta un segno, schede comprese',
+    cmd.filter(x => !x.querySelector('svg')).map(visibile).join(' | '));
+  /* e ogni scheda mostra la riga che dice cosa fa quel modello: è la cosa che la distingue
+     da un pulsante, quindi è una proprietà e non una decorazione */
+  const schede = [].slice.call(box.querySelectorAll('a.aic'));
+  esito(schede.length === A2.AI_MOTORI.length, 'le schede dei modelli sono quattro più la copia',
+    String(schede.length));
+  esito(schede.every((x, i) => (x.querySelector('i') || {textContent: ''}).textContent.trim() === A2.AI_MOTORI[i].d),
+    'e ciascuna mostra la propria riga, quella dichiarata nell\'anagrafica dei motori',
+    schede.map(x => (x.querySelector('i') || {textContent: '—'}).textContent.trim()).join(' | '));
+
+  /* ══ LA COLONNA È LA STESSA COSA MONTATA DUE VOLTE ══
+     Sei reti raggiungono lo schermo per due strade. Le due non possono divergere perché
+     nascono da cerchioRete(), e la prova lo verifica NEL SORGENTE — dove sta il legame —
+     e poi sui valori resi. Provare solo i valori passerebbe anche con due funzioni che oggi
+     dicono la stessa cosa, che è la condizione in cui la divergenza non si vede. */
+  const sorgMs = HTML.match(/function montaSocial\(\)\{[\s\S]*?\n\}/)[0];
+  esito((sorgMs.match(/cerchioRete\(/g) || []).length === 2,
+    'le due strade verso i cerchi sono la stessa funzione, chiamata due volte',
+    String((sorgMs.match(/cerchioRete\(/g) || []).length));
+  const colonna = D2.getElementById('k-colsoc');
+  esito(!!colonna, 'la colonna sta nel markup, non la crea il JavaScript');
+  const cCol = [].slice.call(colonna.querySelectorAll('a'));
+  esito(cCol.length === A2.RETI.length,
+    'porta le sei reti e NON la copia del collegamento: quella è un\'azione con un esito, e ' +
+    'un\'azione fuori dall\'ordine di tabulazione è irraggiungibile per chi non usa il mouse',
+    String(cCol.length));
+  esito(colonna.getAttribute('aria-hidden') === 'true',
+    'ed è fuori dall\'albero: sette comandi duplicati porterebbero l\'elenco da sette a quattordici');
+  esito(cCol.every(a => a.getAttribute('tabindex') === '-1'),
+    'e fuori dall\'ordine di tabulazione, per la stessa ragione');
+  esito(cCol.every((a, i) => a.getAttribute('href') ===
+        box.querySelectorAll('a.soci')[i].getAttribute('href')),
+    'e i sei indirizzi sono gli stessi della riga in fondo, nello stesso ordine');
+  esito(colonna.querySelectorAll('svg').length === A2.RETI.length,
+    'e ciascuno porta il suo segno');
+
+  /* ══ IL RIQUADRO MOSTRA ESATTAMENTE QUELLO CHE PARTE ══
+     È la ragione per cui la sezione è onesta, quindi è una proprietà e non una decorazione:
+     il testo del riquadro è lo stesso che sta dentro l'indirizzo dei quattro comandi. */
+  const riq = D2.getElementById('k-prompt');
+  esito(!!riq, 'il riquadro del prompt esiste');
+  const dentro = riq ? riq.textContent : '';
+  esito(dentro.length > 200, 'e porta il prompt per intero, non un segnaposto',
+    String(dentro.length));
+  const primoAI = box.querySelector('a.aic');
+  esito(primoAI && decodeURIComponent(primoAI.getAttribute('href').split('q=')[1]) === dentro,
+    'ed è ESATTAMENTE il testo che finisce nell\'indirizzo: il riquadro non racconta un\'altra cosa');
+  /* e la copia lo LEGGE dal riquadro invece di richiamare promptAI(): ricalcolarlo sarebbe
+     una seconda strada verso la stessa stringa, con l'una letta e l'altra spedita */
+  /* I COMMENTI SI TOLGONO PRIMA DI ANALIZZARE, ed è la lezione di css.js pagata una seconda
+     volta: il commento di quel gestore NOMINA promptAI() e innerText per dire di non usarli,
+     quindi le quattro asserzioni qui sotto leggevano la prosa e cadevano su un difetto che
+     non c'era. Una prova che cerca una stringa nel sorgente deve guardare il CODICE, o
+     trova quello che l'autore ha scritto per spiegare. */
+  const fonteCp = HTML.match(/closest\('#k-copialink,#k-copiaprompt'\)[\s\S]{0,2400}/)[0]
+    .replace(/\/\*[\s\S]*?\*\//g, '');
+  esito(/\$\('k-prompt'\)/.test(fonteCp) && !/promptAI\(\)/.test(fonteCp),
+    'e «copia prompt» legge il riquadro invece di ricalcolare il prompt');
+  esito(/textContent/.test(fonteCp) && !/innerText/.test(fonteCp),
+    'con textContent, che non dipende da come è andata la riga');
+  /* IL RISCONTRO NON PUÒ CANCELLARE IL GLIFO. Il gestore di prima scambiava textContent, e
+     su un comando il cui contenuto è un SVG quello lo svuota: il cerchio resterebbe vuoto
+     per 2,6 secondi e poi tornerebbe. Il ramo senza etichetta visibile scambia il SEGNO. */
+  esito(/b\.innerHTML=glifo\(/.test(fonteCp),
+    'e il riscontro di un comando senza testo scambia il segno, non il testo — o lo svuoterebbe');
+  esito(/setAttribute\('aria-label',\s*parola/.test(fonteCp),
+    'e dice l\'ESITO nel nome accessibile: il ramo che ripristina contiene la stessa '+
+      'chiamata, quindi cercarla in generale non distinguerebbe i due rami');
   /* i collegamenti escono dalla pagina: si aprono in una scheda nuova e non passano il
      referrer a nessuno */
   const link = [].slice.call(box.querySelectorAll('a.soc'));
@@ -978,10 +1079,22 @@ function pagina(opz){
     'nell\'embed il blocco non porta nessun comando',
     boxE ? String(boxE.children.length) : '(assente)');
 
-  /* «Copia collegamento» usa la macchina della copia, non una seconda strada */
-  const fonte = HTML.match(/closest\('#k-copialink'\)[\s\S]{0,400}/)[0];
-  esito(/copiaTesto\(CANONICO/.test(fonte),
+  /* «Copia collegamento» usa la macchina della copia, non una seconda strada.
+     SCRITTA COME .match(...)[0] QUESTA ASSERZIONE ESPLODEVA invece di cadere: il gestore è
+     diventato «closest('#k-copialink,#k-copiaprompt')» e la vecchia espressione non ha più
+     trovato niente, quindi la suite MORIVA dopo 219 OK — con uscita 1 e un ← accanto a un
+     conteggio che sembrava pieno. È la quinta volta in questo progetto. Si prende il ramo
+     con una guardia, e la stringa cercata è la parte che non dipende da quanti comandi il
+     gestore serve. */
+  const mFonte = HTML.match(/closest\('#k-copialink[^)]*\)[\s\S]{0,2400}/);
+  esito(!!mFonte, 'il gestore della copia si trova nel sorgente');
+  const fonte = mFonte ? mFonte[0].replace(/\/\*[\s\S]*?\*\//g, '') : '';
+  /* la CHIAMATA del gestore, non la parola che capita entro 2400 caratteri: copiaTesto()
+     è definita lì accanto, quindi cercarla in generale non distingue niente */
+  esito(/copiaTesto\(testo\s*,/.test(fonte),
     'e «copia collegamento» usa copiaTesto(), col suo ripiego', fonte.slice(0, 120));
+  esito(/CANONICO/.test(fonte),
+    'e quello che copia è l\'indirizzo canonico, non una seconda costante');
 }
 
 console.log(String.fromCharCode(10) + ok + '/' + (ok + ko));
