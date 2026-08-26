@@ -4091,6 +4091,123 @@ Due conseguenze pratiche, e sono quelle da ricordare:
   una cosa sta dove deve, la domanda successiva è sempre se si legge — e quella, in
   questo progetto, la risponde solo un occhio su un browser vero.
 
+### Lo stato al 26 agosto 2026
+
+Ultimo commit spinto: **`765b8b2`**. Banco a **2226**, spazzola pulita. Il lavoro notturno
+gira: la notte del 26 è arrivata in fondo — parser, guardie, verifica, commit, push,
+spazzolata, riepilogo — e l'archivio pubblicato è a **175 rilevazioni**, l'ultima del 24
+agosto.
+
+**Che cosa è entrato negli ultimi due giorni.** La condivisione a glifi con la colonna
+fissa sopra i 1380 e le cinque schede dell'IA col riquadro che mostra il prompt; la suite
+`riparto.js`; l'asserzione del simulatore riscritta per la finestra del deposito; la
+mappatura di **Amcha Israel**, che è la prova di regia dell'8 settembre eseguita sul caso
+vero; e tre riparazioni del lavoro notturno che lo tenevano fermo.
+
+#### Amcha Israel: dov'è finita, e il numero che chiude la domanda di Channel 12
+
+**Resta l'ago della bilancia, e non è una deduzione politica: lo dice la fonte.** Il totale
+«Gov.» che Wikipedia pubblica **non conta Amcha dentro**, su tutte e tre le righe in cui
+quel totale c'è. La decisione l'ha confermata l'autore il 26 agosto, dopo che gliel'avevo
+riportata: il blocco sposta seggi fra i campi nel grafico pubblicato, quindi non si cambia
+senza una persona.
+
+**E il modello non si muove di un seggio.** Misurato sull'archivio pubblicato di 175
+rilevazioni, il 26 agosto 2026:
+
+| | |
+|---|---|
+| rilevazioni che danno seggi ad Amcha | **0** |
+| rilevazioni che la nominano sotto soglia | **0** |
+| quota di Amcha nella proiezione | **assente** |
+| quota del Sionismo Religioso | **4,105** contro una soglia di 3,25 → **5 seggi, sopra** |
+| i tre totali di blocco | **Netanyahu 51 · opposizione 57 · arabi 12** |
+
+**Sono gli stessi tre di prima della mappatura.** Le quattro rilevazioni che nominano la
+lista le danno `(1,5%)`, `(0,9%)`, `(0,6%)` e `>1,5%` — fra parentesi, cioè la convenzione
+di Wikipedia per sotto soglia — e nelle stesse righe il Sionismo Religioso sta a 5 e 6
+seggi. **Il caso composto di cui parla Channel 12 — una che cade mentre un'altra entra —
+NON si sta verificando nei dati: è ancora ipotetico.** `riparto.js` lo prova lo stesso,
+perché prova il meccanismo e non i sondaggi di oggi, ed è precisamente per questo che una
+fixture sintetica era la scelta giusta.
+
+**E una cosa da sapere prima di stupirsi che Amcha non compaia nemmeno fra le quote sotto
+soglia: MAPPARE UNA LISTA NON RIANALIZZA L'ARCHIVIO.** La riga Lazar del 20 agosto è in
+archivio e porta quattro quote sotto soglia, ma non quella di Amcha: è stata analizzata
+prima che la mappatura esistesse, e `unisci()` scarta le rilevazioni `simile()` a una già
+presente invece di riscriverle. È il comportamento voluto — l'archivio è un deposito, non
+una vista ricalcolabile — ma vuol dire che **la mappatura vale per le righe analizzate da
+lì in avanti**, e le vecchie restano nella forma che avevano. Il giorno in cui servisse il
+contrario, la strada è reimportare, non aspettare.
+
+#### Le tre cose imparate mappando, che dal codice non si deducono
+
+Sono uscite dalla prova di regia e sono il suo prodotto più utile: nessuna delle tre si
+trova leggendo il contratto o le funzioni.
+
+**1 · Un posto dimenticato non lascia un buco: produce un colore.** `PAL_SCURO` non era fra
+i sette posti del contratto, e la lista non è rimasta senza colore scuro — `schiarisci()`
+gliene ha inventato uno che la regola non conosce, e il colore inventato passa in pagina
+finché qualcuno non misura il contrasto. L'hanno colto `regola.js` e, di conseguenza, due
+asserzioni di `opacita.js` a **2,69** contro un pavimento di 3. La forma generale: davanti
+a un dato mancante questo codice quasi sempre **ripiega**, e un ripiego silenzioso è
+peggio di un errore perché sembra funzionare.
+
+**2 · La scala di ripiego del colore ripinge le liste già assegnate, e `PAL_SCURO` è
+indicizzato sull'esadecimale CHIARO.** Abbassare `dentro_dic` di un blocco non aggiunge uno
+slot in coda: risolve daccapo l'assegnazione dell'intero blocco. `unity_erdan` è passata da
+`#683E00` a `#6D3B00` e `israel_first` da `#625000` a `#674F00` — e siccome la chiave di
+`PAL_SCURO` è il colore chiaro, muovere un colore **ne rompe la chiave** e la lista perde
+il tema scuro in silenzio. «In coda: le assegnate non si spostano» vale per
+`COLORE.ORDINE`, **non** per i vincoli, e il contratto diceva solo la prima metà.
+
+**3 · Davanti a una grafia si guarda la COLONNA in cui compare, non le occorrenze della
+parola nella pagina.** Avevo escluso «Winter» da `W_LISTA` con una ragione buona — nella
+tabella degli scenari è l'etichetta di un aggregato, «Winter parties and Reservists-B&W»,
+e una grafia mappata male conta voti per la lista sbagliata in silenzio mentre una che
+manca ferma il job rumorosamente. Il ragionamento sul rischio asimmetrico regge; il fatto
+su cui poggiava era falso: **«Winter party», al singolare, compare come colonna in una
+tabella di SEGGI**. Avevo cercato la parola nel markup, visto il plurale, e concluso
+sull'insieme invece che sulla stringa esatta.
+
+### Nell'ordine, quando si riprende
+
+**Prima di tutto la voce già scritta in coda a questo file: «Winter party» è mappata, ma
+va guardato se la fonte usa anche `'winter'` nudo come intestazione di colonna di una
+tabella di seggi.** È la domanda a cui non avevo risposto.
+
+Poi, in quest'ordine:
+
+1. **Le card social.** La proposta è chiusa e misurata — quattro formati, la regola sola
+   («si riempie lo spazio che avanza con i pezzi che esistono già»), `targaPNG()` che
+   prende l'altezza come parametro, il quinto consumatore di `fraseCorta()` — e il codice
+   non è scritto. Vedi «Le card e la condivisione: una targa sola, e il comando che non
+   c'è», che porta le tele e gli inchiostri resi.
+2. **I 44px dei bersagli, con `scroll-margin-top` RICALCOLATO NELLO STESSO COMMIT.** Oggi i
+   bersagli sotto i 44 sono 76 su 99 e il pezzo grosso è l'house effect, 20px di altezza,
+   il 37% del costo. L'accoppiamento non si riscopre rompendolo: alzare le sole voci
+   dell'indice porta `.idx.on` da 97,4 a 113,4, cioè **oltre i 112** dello
+   `scroll-margin-top` sotto i 660, e la fascia coprirebbe la sezione appena raggiunta da
+   un'ancora. I due numeri sono di sotto i 660 e vanno rimisurati lì: a desktop sono 78,5 e
+   92, e confrontarli è l'errore che ho già fatto il 25 agosto.
+3. **La prova di regia del 16 ottobre**, sul modello di quella appena fatta per le liste —
+   che è il punto: **non si simula, si esegue.** Quel giorno il comando degli accordi
+   sparisce, la riga di esito cambia ramo e gli annunciati mai depositati smettono di
+   contare. Con l'orologio congelato al 15, al 16 e al 17 si guarda che le tre schermate
+   dicano tre cose coerenti e che il calendario dica «oggi» il 16 e «passato» il 17. Le
+   prove lo verificano; nessuno l'ha ancora **guardato**. La mappatura di Amcha è costata
+   venticinque minuti e ha trovato due posti che il contratto non aveva: qui il contratto è
+   `docs/aggiungere-un-apparentamento.md`, e non è mai stato percorso.
+4. **La verifica a scenari**, le sei tabelle in fondo a questo file. Ha due righe nuove
+   dalla prova di regia: la lista mappata che non ha ancora seggi, e la caduta sotto soglia
+   mentre un'altra entra.
+5. **L'agente del mattino.** Viene ultimo perché ogni cosa sopra è una procedura che gli si
+   può delegare o un difetto che gli farebbe sbagliare più in fretta. Il terreno è pronto —
+   `dati/da-fare.json` con il conto in testa, i tre contratti in `docs/` coi passi di
+   giudizio marcati, le convalide, e il confine scritto in questo file — e adesso c'è anche
+   la misura di quanto costa un giro: **venticinque minuti e quattro asserzioni cadute**,
+   con due posti mancanti trovati dal banco e non dall'attenzione.
+
 ### Lo stato al 24 agosto 2026
 
 Scritto per ripartire senza la conversazione. Ultimo commit spinto: **`02e4247`**, CI e
@@ -4367,7 +4484,12 @@ di scorrimento. **I due vanno mossi nello stesso commit, con la costante ricalco
 Il pezzo grosso è uno solo: i pulsanti «Escludi» dell'house effect, **20px** di altezza,
 il 37% del costo totale. Oggi i bersagli sotto i 44 sono **76 su 99**.
 
-### Nell'ordine, quando si riprende
+### La coda del 23 agosto, superata — la traccia di che cosa era già stato chiuso
+
+**L'ordine di marcia vero è quello del 26 agosto, più in alto.** Questa sezione resta
+perché dice che cosa è stato fatto e in che ordine, con le ragioni: le prime quattro voci
+sono chiuse e portano ciascuna la misura che le ha decise. Chi riprende legge quella
+sopra; chi vuole sapere perché una cosa è come è, legge questa.
 
 **Riscritta il 23 agosto 2026, e l'ordine è cambiato per una ragione sola: pubblicare
 prima.** Le prime quattro voci sono quello che serve perché la pagina si possa mandare in
