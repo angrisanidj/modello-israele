@@ -19,7 +19,7 @@ Ogni passo di questa procedura sposta seggi: una lista nuova entra nel riparto.
 
 ---
 
-## Sette posti, in quest'ordine
+## Otto posti, in quest'ordine
 
 | # | dove | che cosa |
 |---|---|---|
@@ -30,6 +30,38 @@ Ogni passo di questa procedura sposta seggi: una lista nuova entra nel riparto.
 | 5 | `COLORE.ORDINE[blocco]` | in coda: le assegnate non si spostano |
 | 6 | `COLORE.TINTA_ASSEGNATA` | la posizione di tinta, tolleranza 14° |
 | 7 | `PRESET.netanyahu` | **niente**: si aggiorna da sé filtrando l'anagrafica. Se ti trovi a scriverlo a mano, fermati |
+| **8** | **`PAL_SCURO` in `index.html`** | **la coppia `"chiaro":"scuro"`. Senza, la lista non ha colore nel tema scuro e `schiarisci()` ne inventa uno che la regola non conosce** |
+
+**L'OTTAVO POSTO L'HA TROVATO LA PROVA DI REGIA, il 26 agosto 2026.** Il contratto ne
+elencava sette, e sette non bastano: mappando «Popolo d'Israele» di Ofer Winter e lanciando
+il banco sono cadute **quattro asserzioni in tre suite**, e tutte e quattro discendevano da
+`PAL_SCURO`. Prima `regola.js` — «regola `#95BFFF` / pagina (assente da PAL_SCURO)» — e poi,
+per conseguenza, due asserzioni di `opacita.js`, perché il colore inventato dal ripiego
+misurava **2,69 di contrasto** sulla sparkline contro il pavimento di 3. Cioè un posto
+dimenticato non lascia un buco: **produce un colore**, e il colore sbagliato passa in
+pagina fino a che qualcuno non misura il contrasto.
+
+**E IL CAMPO `c` SI LEGGE DALLA REGOLA E SI RICOPIA, NON SI SCEGLIE.** È la riga che
+mancava, ed è quella su cui ho sbagliato per primo. Il contratto diceva «assegnare il
+colore: l'agente esegue la regola», che si può leggere come «scegli un colore coerente». Non
+è quello: il colore è **l'uscita** di `COLORE.diLista(id, tema)`, e `regola.js` verifica che
+la pagina non ne diverga di un byte.
+
+Mappando Winter avevo scritto `c:"#2E5FD6"` — un blu di coalizione, plausibile, vicino a
+quelli che ci sono. La regola dava **`#5E30F0`**. Sono due colori diversi, tutti e due
+«ragionevoli» a occhio, e a distinguerli non è il gusto: è che il secondo rispetta le
+distanze dichiarate dentro il settore e il primo no. **Un colore plausibile è esattamente
+ciò che questa regola esiste per non far scegliere.**
+
+```bash
+# il colore si CHIEDE, nei due temi, e si ricopia in P{} e in PAL_SCURO
+node -e "const C=require('./dati/colore-liste.js');const CO=C.COLORE||C;\
+['chiaro','scuro'].forEach(t=>console.log(t, CO.diLista('nuovo_id', t)))"
+```
+
+Il primo va nel campo `c` di `P{}`; il secondo è il valore della coppia in `PAL_SCURO`, con
+il primo per chiave. Fatti i due, `regola.js` torna verde da sola: se non torna verde, uno
+dei due è stato ricopiato male, ed è l'unico modo in cui questo passo può fallire.
 
 **`r22: null` non vuol dire zero.** Vuol dire «questa sigla non esisteva nel 2022», e la
 colonna «Rispetto al 2022» scrive «nuovo». Per un **contenitore** di liste che nel 2022
@@ -43,6 +75,28 @@ nessuno, era la sigla a non esistere.
 ```bash
 node -e "const C=require('./dati/colore-liste.js');console.log(JSON.stringify(C.capienza(),null,1))"
 ```
+
+**DOVE C'È POSTO DAVVERO, misurato il 26 agosto 2026 — e il numero che circolava era di un
+altro blocco.** Si diceva che il blocco di Netanyahu avesse zero slot liberi: non è vero, ed
+è l'ago della bilancia ad averli a zero, in tema chiaro. `capienza()` eseguita:
+
+| blocco | liberi in chiaro | liberi in scuro |
+|---|---|---|
+| **blocco Netanyahu** | **5** | **2** |
+| opposizione sionista | 5 | 3 |
+| liste arabe | 1 | 1 |
+| **ago della bilancia** | **0** | 1 |
+
+Da cui la risposta alla domanda che questa sezione esiste per porre: **per una lista nuova
+nel blocco di Netanyahu la scala di ripiego NON serve.** Verificato mappando Winter: dopo
+l'inserimento la coalizione passa a 6 su 10 in chiaro e 6 su 7 in scuro, `COLORE` non
+avvisa e non fallisce.
+
+**E la scala di ripiego non l'ha ancora vista resa nessuno**, perché non c'è stata
+occasione: per arrivarci servirebbe una **quinta lista fuori dai due campi**, cioè
+nell'unico blocco che in chiaro è pieno. Resta scritta nel §9 di `regola-colore.md` e
+resta non collaudata — è un fatto da sapere la sera in cui servisse, non una lacuna da
+chiudere adesso a tavolino.
 
 `capienza()` dice, per blocco e per tema, a quante liste la regola satura e quante ne
 restano. **Il modello del fallimento è questo, ed è quello da copiare altrove**: al primo

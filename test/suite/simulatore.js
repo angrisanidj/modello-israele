@@ -237,11 +237,51 @@ setTimeout(function(){
    * blocco, si aggiorna il preset e la partenza resta indietro: la pagina si aprirebbe
    * su una coalizione che nessun pulsante sa riprodurre.
    * Questa è la prova che le lega. */
+  /* L'ASSERZIONE DAVA PER SCONTATO CHE OGNI LISTA DEL BLOCCO ABBIA SEGGI, ed è vera oggi e
+     falsa per giorni. `apertura` è l'insieme DICHIARATO; il pulsante restituisce le
+     pastiglie RESE, e una lista senza seggi non ha pastiglia — rChips monta solo quelle che
+     ne hanno. Le due cose coincidono finché ogni lista del blocco è sopra zero.
+     Dall'8 settembre non coincidono più: una lista depositata entra in P{} il giorno del
+     deposito e prende seggi solo quando un sondaggio la nomina, e in mezzo passano giorni —
+     la settimana in cui la mappa cambia, cioè quella in cui questa suite serve di più.
+     Trovato il 26 agosto 2026 nella prova di regia su «Popolo d'Israele»: mappata la lista,
+     apertura dava sei id e il pulsante cinque, e la prova cadeva su un difetto che non c'era.
+     La proprietà giusta è: il pulsante riproduce la selezione di apertura RISTRETTA alle
+     liste che hanno una pastiglia. Il legame fra apertura e PRESET resta intero e si prova
+     sotto, sugli insiemi dichiarati, dove i seggi non c'entrano. */
+  const conSeggi = i => (A.SEG()[i] || 0) > 0;
   const APERTURA = A.apertura.slice().sort();
   const DAL_PULSANTE = preset('netanyahu');
-  esito(JSON.stringify(APERTURA) === JSON.stringify(DAL_PULSANTE),
-    'premendo «Blocco Netanyahu» si ottiene ESATTAMENTE la selezione di apertura',
+  esito(JSON.stringify(APERTURA.filter(conSeggi)) === JSON.stringify(DAL_PULSANTE),
+    'premendo «Blocco Netanyahu» si ottiene la selezione di apertura, per le liste che hanno seggi',
     'apertura ' + JSON.stringify(APERTURA) + ' · pulsante ' + JSON.stringify(DAL_PULSANTE));
+  /* e OGGI coincidono per intero: senza questa riga il filtro qui sopra potrebbe nascondere
+     una divergenza vera dietro «tanto è una lista senza seggi» */
+  esito(APERTURA.every(conSeggi),
+    'e oggi ogni lista del blocco ha seggi, quindi il filtro non sta nascondendo niente',
+    JSON.stringify(APERTURA.filter(i => !conSeggi(i))));
+
+  /* ══ LA FINESTRA DELL'8 SETTEMBRE, ESERCITATA ══
+     Lo stato va ACCESO, o questa prova passa a vuoto guardando la pagina di sempre: si
+     porta a zero i seggi di una lista del blocco e si pretende che le due strade dicano
+     ancora la stessa cosa. È la configurazione che nella settimana del deposito è normale. */
+  {
+    const seggiVeri = Object.assign({}, A.SEG());
+    const vittima = APERTURA.filter(conSeggi)[0];
+    const finti = Object.assign({}, seggiVeri); delete finti[vittima];
+    A.setSEG(finti); A.rChips();
+    const dopo = preset('netanyahu');
+    esito(dopo.indexOf(vittima) < 0,
+      'con una lista del blocco a zero seggi la sua pastiglia non c\'è', vittima);
+    esito(JSON.stringify(A.apertura.slice().sort().filter(i => (finti[i] || 0) > 0)) ===
+          JSON.stringify(dopo),
+      'e il pulsante riproduce lo stesso la selezione di apertura: la finestra del deposito regge',
+      'atteso ' + JSON.stringify(A.apertura.slice().sort().filter(i => (finti[i] || 0) > 0)) +
+      ' · ottenuto ' + JSON.stringify(dopo));
+    esito(A.PRESET().netanyahu.indexOf(vittima) >= 0,
+      'e la lista senza seggi resta nel preset: è fuori dallo schermo, non fuori dal blocco');
+    A.setSEG(seggiVeri); A.rChips(); preset('netanyahu');
+  }
   esito(JSON.stringify(A.PRESET().netanyahu.slice().sort()) === JSON.stringify(APERTURA),
     'e tutte e due vengono da PRESET.netanyahu, che è l\'unico posto in cui è scritta',
     JSON.stringify(A.PRESET().netanyahu));

@@ -213,6 +213,35 @@ commit* spiegando perché nel messaggio.
 
 ## Trappole già incontrate, da non ripetere
 
+- **IL MISURATORE DI MUTANTI SBAGLIA IN DUE MODI, E TUTTI E DUE PRODUCONO UN VERDE.**
+  Scritto il 26 agosto 2026 dopo esserci cascato tre volte in una sessione sola. È la
+  trappola peggiore della famiglia, perché **uno strumento che dichiara morti i mutanti è
+  peggio di uno che non c'è**: senza, si sa di non aver misurato; con, si crede di aver
+  misurato e si va avanti. È «misurare convince di aver guardato» applicato allo strumento
+  invece che alla proprietà.
+
+  **1 · `execFileSync` tronca a 1 MB e UCCIDE il figlio.** Il `maxBuffer` predefinito è un
+  megabyte, e superarlo non tronca soltanto: termina il processo e fa lanciare la chiamata.
+  Una suite che stampa più di così risulta **fallita sempre**, quindi ogni mutante sembra
+  morto e il banco dice 16 su 16. Successo con `embed.js`, che stampa 225 righe con i
+  dettagli. Si passa `maxBuffer: 64*1024*1024`, e soprattutto si distingue **una suite che
+  cade** da **una che esplode**: se il conteggio finale non si trova nell'uscita, il mutante
+  non è morto — la suite non è mai arrivata in fondo, ed è un'altra cosa.
+
+  **2 · `String.prototype.replace` sostituisce la PRIMA occorrenza, che può non essere la
+  tua.** `sh[k]>=SOGLIA` compare due volte in `index.html` e la prima non è dentro
+  `dhondt()`: il mutante veniva applicato a un'altra funzione, le prove restavano verdi, e
+  il banco lo dichiarava **vivo**. Cioè il verdetto era esattamente rovesciato — si va a
+  cercare l'asserzione che manca per una proprietà che è già coperta. Si usa
+  `s.split(x).join(y)` quando la sede è ambigua, oppure si ancora a un contesto che compare
+  una volta sola. E davanti a un mutante vivo **la prima cosa da controllare è che sia stato
+  applicato dove si crede**: `grep -c` sulla stringa mutata, prima di scrivere una prova.
+
+  **La difesa che vale per tutti e due è la stessa, ed è quella di sempre: un controllo che
+  sa fallire.** Il misuratore esegue le suite sull'albero PULITO prima di cominciare e si
+  ferma se non sono verdi. Senza quella riga, un banco rotto e un banco che non trova niente
+  si scrivono allo stesso modo.
+
 - **Il banco delle mutazioni POSSIEDE `index.html` finché gira, e non lo dice a nessuno.**
   Un misuratore di mutanti legge il file una volta all'avvio, lo tiene in memoria, e per
   ogni mutante scrive la versione guasta, esegue le suite e riscrive la copia buona. Finché
@@ -4793,6 +4822,8 @@ Si rende la pagina con `TZ=Europe/Rome` e la data forzata — il banco di `depos
 | una lista nuova nel **blocco Netanyahu** | `PRESET.netanyahu` la include da sé, e il parser di Wikipedia valida la colonna «Gov» con lei dentro | il preset aggiornato e la partenza no; il parser che respinge righe valide per «blocco discordante» |
 | **quindici colonne** nell'house effect | la soglia delle schede va rimisurata: con tredici era 1075, con quindici sale a ~1190 | la tabella che ricompare e sfora, cioè il difetto che le schede esistono per chiudere |
 | una lista che **perde tutti i seggi** | sparisce da pastiglie e scorciatoie senza rompere il confronto degli insiemi | una scorciatoia che non si accende più mai |
+| **una lista MAPPATA che non ha ancora seggi** — la finestra fra il deposito e il primo sondaggio che la nomina | è nell'anagrafica e in `PRESET`, non ha pastiglia, e «Blocco Netanyahu» riproduce lo stesso la selezione di apertura ristretta a chi ha seggi | la scorciatoia che non riproduce più l'apertura, o l'apertura che seleziona una lista senza pastiglia |
+| **una del blocco cade sotto soglia MENTRE un'altra entra** — lo scenario di Channel 12 | i seggi fanno 120, la caduta resta fuori, il blocco perde seggi NETTI: entrare non compensa cadere | il blocco che torna dov'era, cioè la quota persa travasata dentro il campo |
 
 ## 4 · Archivio degenere
 
