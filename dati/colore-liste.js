@@ -76,7 +76,18 @@ var COLORE = (function () {
     croma_max        : 0.26,
     passo_tinta      : 3,
     passo_L          : 1.5,
-    dentro_dic       : { chiaro: { coalizione:4.2, opposizione:4.2, arabo:4.2, incerto:3.0 },
+    /* L'AGO DELLA BILANCIA SCENDE A 2,4 IN CHIARO, ed è la scala di ripiego del §9
+       percorsa per la prima volta — il 26 agosto 2026, quando Amcha Israel è diventata la
+       quinta lista di quel blocco. A 3,0 il blocco satura a QUATTRO in tema chiaro: la
+       quinta usciva #626D7E, che è --mute esatto, cioè il colore del testo disabilitato.
+       Il primo gradino basta: 3,0 → 2,4 porta la saturazione a cinque, «liberi» a zero, e
+       il colore esce #955A00 senza avvisi. Il prezzo è dichiarato ed è quello: la distanza
+       dicromatica DENTRO l'ago della bilancia scende da 3,0 a 2,4 — quel blocco è la
+       famiglia ocra, che non ha varianza protanopica, ed è la ragione per cui partiva già
+       più basso degli altri tre. Gli altri blocchi non si toccano.
+       LA SCALA HA UN SECONDO E UN TERZO GRADINO e non sono stati percorsi: fra_blocchi_dic
+       di quelle coppie meno 0,5, poi allargare il settore. Una sesta lista qui li chiede. */
+    dentro_dic       : { chiaro: { coalizione:4.2, opposizione:4.2, arabo:4.2, incerto:2.4 },
                          scuro : { coalizione:4.5, opposizione:4.5, arabo:4.5, incerto:3.3 } },
     fra_blocchi      : 11,
     /* fra blocchi il pavimento dicromatico e' piu' alto fra i tre blocchi
@@ -97,7 +108,7 @@ var COLORE = (function () {
     coalizione : ['likud','shas','utj','otzma','sionismo_rel'],
     opposizione: ['byachad','democratici','beitenu','yashar','blue_white','yesh_atid','bennett26'],
     arabo      : ['raam','lista_araba','hadash_taal','balad'],
-    incerto    : ['casa_sionista','economico','unity_erdan','israel_first']
+    incerto    : ['casa_sionista','economico','unity_erdan','israel_first','amcha']
   };
   /* TINTA_ASSEGNATA: la posizione di tinta di ogni lista dentro il
      settore del suo blocco. E' un PARAMETRO DELLA REGOLA, uno per
@@ -130,7 +141,8 @@ var COLORE = (function () {
     casa_sionista: 75,
     economico   : 90,
     unity_erdan : 58,
-    israel_first: 100
+    israel_first: 100,
+    amcha       : 66   /* varco fra unity_erdan 58 e casa_sionista 75: 8° per parte */
   };
   var TINTA_STORICA = TINTA_ASSEGNATA;   /* nome della revisione 5, conservato */
 

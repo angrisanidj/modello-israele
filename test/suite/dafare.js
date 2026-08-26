@@ -235,6 +235,34 @@ function esito(cond, desc, dettaglio){
           /il parser ha girato/.test(markdown(q).split('\n')[2] || ''),
       'e la testata dichiara lo stesso punto di rottura della voce',
       (markdown(q).split('\n')[2] || '').slice(0, 80));
+
+    /* ══ IL TERZO STATO, TROVATO DAL PRIMO CASO VERO ══
+       Il 26 agosto 2026 la guardia delle colonne ignote è scattata davvero, per la lista di
+       Ofer Winter, e la issue ha detto «il parser ha girato, un passo successivo no» sopra
+       una voce che spiegava che si era fermato LUI. Il parser scrive da-fare.json con la
+       voce della guardia E POI esce: «il file porta la data di oggi» non vuol dire «il
+       parser è arrivato in fondo».
+       Quando la guardia ha già scritto perché, una seconda voce generica non aggiunge
+       un'informazione — ne toglie una, coprendo la ragione vera con una frase che la
+       contraddice. */
+    const guardia = Object.assign({}, vuoto,
+      {generato: '2026-08-26', oggi: '2026-08-26',
+       job: {esito: 'fermo', motivo: 'colonne di lista non riconosciute: Amcha Israel'}});
+    const gg = conEsito(guardia, 'failure', '1');
+    esito(gg === guardia,
+      'se la guardia ha già detto perché, il riepilogo non ci scrive sopra una seconda voce',
+      String(gg.voci.length));
+    esito(/colonne di lista non riconosciute/.test(markdown(gg).split('\n')[2] || ''),
+      'e la testata porta il motivo VERO della guardia, non una frase generica',
+      (markdown(gg).split('\n')[2] || '').slice(0, 90));
+    /* i due che restano dicono ancora due cose diverse: il terzo stato non ha inghiottito
+       la distinzione che il blocco qui sopra prova */
+    const dopoIlParser = Object.assign({}, vuoto,
+      {generato: '2026-08-26', oggi: '2026-08-26', job: {esito: 'ok'}});
+    const dp = conEsito(dopoIlParser, 'failure', '1');
+    esito(dp !== dopoIlParser && /un passo successivo/.test(
+        (dp.voci.filter(x => x.id === 'job-fermo')[0] || {chiude: ''}).chiude),
+      'ma se il parser è arrivato in fondo e a fallire è stato un passo dopo, la voce c\'è');
   }
 
   /* ══ 6 · IL MARKDOWN È UNA VISTA DEL JSON, NON UN SECONDO ELENCO ════════ */

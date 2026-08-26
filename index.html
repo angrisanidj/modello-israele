@@ -2060,8 +2060,9 @@ var P={
  yashar      :{n:"Yashar",             l:"Gadi Eisenkot",      c:"#FF1F91", b:"opposizione", o:8,  gov:1, r22:null},
  casa_sionista:{n:"Casa Sionista",     l:"Tropper · Hendel",   c:"#8B5400", b:"incerto",     o:9,  gov:1, r22:null},
  economico   :{n:"Partito Economico",  l:"Yaron Zelekha",      c:"#413B00", b:"incerto",     o:10, gov:1, r22:null},
- unity_erdan :{n:"Unità",              l:"Erdan · Edelstein",  c:"#683E00", b:"incerto",     o:11, gov:1, r22:null},
- israel_first:{n:"Israel First",       l:"Sharren Haskel",     c:"#625000", b:"incerto",     o:12, gov:1, r22:null},
+ unity_erdan :{n:"Unità",              l:"Erdan · Edelstein",  c:"#6D3B00", b:"incerto",     o:11, gov:1, r22:null},
+ israel_first:{n:"Israel First",       l:"Sharren Haskel",     c:"#674F00", b:"incerto",     o:12, gov:1, r22:null},
+ amcha       :{n:"Amcha Israel",       l:"Ofer Winter",        c:"#955A00", b:"incerto",     o:12.5, gov:1, r22:null},
  beitenu     :{n:"Yisrael Beitenu",    l:"Avigdor Lieberman",  c:"#720055", b:"opposizione", o:13, gov:1, r22:6},
  likud       :{n:"Likud",              l:"Benjamin Netanyahu", c:"#0061B4", b:"coalizione",  o:14, gov:1, r22:32},
  shas        :{n:"Shas",               l:"Aryeh Deri",         c:"#0092BB", b:"coalizione",  o:15, gov:1, r22:11},
@@ -2177,7 +2178,8 @@ var EVENTI=[
  {data:"2026-08-06",testo:"Erdan ed Edelstein fondano il partito Unity"},
  {data:"2026-08-17",testo:"Primarie del Likud"},
  {data:"2026-08-19",testo:"Hadash, Ta'al e Balad firmano l'accordo per la Lista Unita; Ra'am corre da sola"},
- {data:"2026-08-22",testo:"Ra'am sceglie i propri candidati per le elezioni"}
+ {data:"2026-08-22",testo:"Ra'am sceglie i propri candidati per le elezioni"},
+ {data:"2026-08-25",testo:"Ofer Winter forma un nuovo partito, chiamato Amcha Israel"}
 ];
 /* LE DUE SOGLIE DELLA DIVERGENZA FRA LE DATE.
    Non sono ricavabili dai dati: dipendono da come è impostato il lavoro notturno, che
@@ -2312,6 +2314,7 @@ function schiarisci(hex,q){
    COPIA: la sorgente è dati/colore-liste.js, e test/suite/regola.js verifica che non
    divergano. Rigenerarla, non ritoccarla a mano. */
 var PAL_SCURO={
+ "#955A00":"#EEBA00",
  "#004329":"#00E6D2",
  "#0061B4":"#59B3FF",
  "#006F47":"#00C24E",
@@ -2323,8 +2326,8 @@ var PAL_SCURO={
  "#3284FF":"#BCD2FF",
  "#413B00":"#E7D400",
  "#590092":"#AE59FF",
- "#625000":"#AD9900",
- "#683E00":"#FFC69B",
+ "#674F00":"#AD9900",
+ "#6D3B00":"#FFC69B",
  "#720055":"#E31CB7",
  "#78002D":"#FF5084",
  "#790028":"#FFB4D0",
@@ -7509,7 +7512,9 @@ var W_LISTA={
  'balad':'balad','joint list':'lista_araba',
  'dems':'democratici','democrats':'democratici','the democrats':'democratici',
  'yashar':'yashar','zionist home':'casa_sionista','reserv.':'casa_sionista','reservists':'casa_sionista',
- 'unity':'unity_erdan'
+ 'unity':'unity_erdan',
+ 'amcha israel':'amcha','amcha yisrael':'amcha','amcha':'amcha',
+ 'party of ofer winter':'amcha','people of israel':'amcha'
 };
 var W_IST={'filber':'Direct Polls','direct':'Direct Polls','lazar':'Lazar · Panel4All','midgam':'Midgam',
  'hamidgam':'Hamidgam Project','maagar':'Maagar Mochot','kantar':'Kantar','yossi':'Yossi Taktika',

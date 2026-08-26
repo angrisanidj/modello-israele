@@ -260,18 +260,31 @@ export function conEsito(file, esito, esecuzioni){
   if (esito !== 'failure') return file;
   const s = Object.assign({}, file);
   const n = +esecuzioni || 1;
-  /* IL JOB PUÒ FALLIRE IN TRE PUNTI, e la frase ne affermava uno solo. Prima del parser —
-     ed è quello che è successo il 23, 24 e 25 agosto 2026 — oppure alla verifica, oppure al
-     push. Scritta come costante, «il parser non è stato eseguito» è vera in un caso su tre
-     e falsa negli altri due, in un canale d'allarme, che è il posto peggiore per una frase
-     falsa. L'ha trovata il ramo forzato a mano: diceva «il parser non è stato eseguito»
-     sopra «2 rilevazioni nuove», nella stessa testata.
-     La distinzione si RICAVA e non si afferma: se il riepilogo porta la data di oggi, il
-     parser l'ha scritto stanotte, quindi ha girato. Il dato c'era già e nessuno lo
-     interrogava — è la stessa forma delle esecuzioni ferme, che il workflow contava e non usava. */
-  /* niente guardia sul campo assente: undefined !== una data è già vero, e la mutazione
-     che la toglie è EQUIVALENTE — cioè era codice che nessuna prova poteva esercitare */
-  const primaDelParser = s.generato !== oggiDi(s);
+  /* IL JOB PUÒ FALLIRE IN TRE PUNTI, e la prima stesura ne affermava uno solo. Prima del
+     parser — ed è quello che è successo il 23, 24 e 25 agosto 2026 — oppure DENTRO il
+     parser, dietro una guardia, oppure dopo, alla verifica o al push. Scritta come costante,
+     «il parser non è stato eseguito» è vera in un caso su tre e falsa negli altri due, in un
+     canale d'allarme, che è il posto peggiore per una frase falsa.
+
+     LA SECONDA STESURA NE AFFERMAVA DUE, E IL 26 AGOSTO 2026 HA SBAGLIATO IL PRIMO CASO
+     VERO. Diceva: se il riepilogo porta la data di oggi, il parser l'ha scritto stanotte,
+     quindi ha girato. Non regge, e l'ha mostrato la notte in cui la guardia delle colonne
+     ignote è scattata davvero per la lista di Ofer Winter: il parser SCRIVE da-fare.json con
+     la voce della guardia E POI ESCE con codice diverso da zero. Il file portava la data di
+     oggi, il passo «Parser e guardie» risultava fallito, e la issue diceva «il parser ha
+     girato, un passo successivo no» sopra una voce che spiegava che si era fermato lui.
+     Due frasi vere separatamente che insieme dicono il falso, per la seconda volta in
+     questo file dopo la testata del riepilogo.
+
+     Il dato che li separa c'era già e non veniva interrogato — di nuovo: `job.esito`, che il
+     parser porta a 'fermo' quando una guardia scatta. Da cui i tre stati, e il terzo è
+     quello in cui NON SI AGGIUNGE NIENTE: se la guardia ha già scritto perché si è fermata,
+     una seconda voce generica non aggiunge un'informazione, ne toglie una — copre la
+     ragione vera con una frase che la contraddice. */
+  const daStanotte = s.generato === oggiDi(s);
+  const guardiaHaParlato = daStanotte && s.job && s.job.esito === 'fermo';
+  if (guardiaHaParlato) return file;   /* la ragione è già una voce: non se ne scrive una seconda */
+  const primaDelParser = !daStanotte;
   const motivo = primaDelParser ? 'un passo del workflow è fallito prima del parser'
                                 : 'il parser ha girato, un passo successivo no';
   /* se il file di ieri portava già la voce, non se ne aggiunge una seconda: si aggiorna
