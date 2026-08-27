@@ -4247,6 +4247,81 @@ lettore si troverebbe davanti a un'ipotesi applicata senza il comando per toglie
 prova non indovina il punto, lo **cerca**: «al primo seggio» sarebbe falso, perché un seggio
 per rilevazione vale una quota dello 0,8% contro una soglia di 3,25.
 
+### Quello che esce dalla pagina deve portare l'ipotesi con sé
+
+Chiuso il 27 agosto 2026, subito dopo aver acceso la leva. È la stessa famiglia del
+riquadro dell'evento isolato: **un numero che esce dal suo contesto.** La riga di esito
+dichiara l'ipotesi a chi è sulla pagina; chi riceve il link su WhatsApp, chi vede la card
+su Facebook e il servizio terzo che riceve il prompt non hanno modo di saperlo.
+
+**LA DOMANDA NON È QUELLA DI `statoLeve()`, ed è la cosa che non si deduce.** `statoLeve()`
+confronta con `PAR_DEF` e risponde «che cosa ha cambiato il lettore»: serviva a dire a un
+servizio terzo che i numeri ricevuti non sono quelli che troverebbe all'indirizzo, ed è la
+domanda giusta finché il predefinito è il conteggio della fonte. **Da quando la leva nasce
+accesa non lo è più**: quando l'ipotesi è applicata `statoLeve()` **tace**, perché nessuno
+ha cambiato niente — cioè tace esattamente nel caso in cui bisogna parlare. Una funzione
+sola per le due domande direbbe la cosa giusta per la ragione sbagliata.
+
+Da qui `ipotesiNeiNumeri()`, che risponde a «che cosa c'è dentro questi numeri» e non
+dipende da chi ce l'ha messo. **Una stringa, tre consumatori** — la frase di condivisione,
+il prompt, la targa dell'anteprima — che è l'idioma di `fraseCorta()`.
+
+**Parla solo quando l'ipotesi sposta davvero qualcosa.** Oggi restituisce stringa vuota, e
+niente di quello che esce dalla pagina cambia: la frase compare dal primo sondaggio che fa
+entrare una lista in bilico, insieme al pulsante. Dichiarare un'ipotesi che non muove nessun
+numero insegnerebbe a saltare la riga proprio prima del giorno in cui conta.
+
+### I canali si dividono, e insieme si coprono
+
+| canale | che cosa passa | chi lo dichiara |
+|---|---|---|
+| X · Telegram · WhatsApp · Threads | testo **e** indirizzo | `testoCondivisione()` |
+| Facebook · LinkedIn | **solo** l'indirizzo | la targa dell'`og:image` |
+| il prompt a un servizio terzo | testo | `promptAI()` |
+| `og:title` | — | **non può** |
+
+**`og:title` non può, ed è misurato: il titolo più lungo sta a 58 caratteri su 59
+disponibili.** Un carattere di margine, e il tetto non è arbitrario — è il `<title>` che
+finisce nella linguetta del browser e nella card. Qualunque clausola lo sfonda. Ma la
+copertura non ha buchi lo stesso: dove il titolo arriva da solo, senza testo e senza
+immagine, non arriva nemmeno un numero — le card che mostrano solo il titolo mostrano anche
+la descrizione, e il titolo senza l'immagine è il caso che non esiste.
+
+**L'alternativa era che il job scrivesse i totali senza la leva**, ed è stata scartata: la
+card direbbe numeri **diversi** da quelli che si trovano cliccando, cioè una terza lettura
+degli stessi dati. L'anteprima deve dire quello che la pagina dice.
+
+### La targa: la terza riga è gratis, e il piede non poteva portarla
+
+| | misurato |
+|---|---|
+| banda della testata | **96 unità**, e ne usa **63** (titolo a corpo 30, base a y=56) |
+| la riga nuova | corpo 18, base a **y=84** → fondo a 88,5, **7,5 unità di margine** |
+| costo per il disegno | **zero**: la testata è un margine della **tela**, non del disegno |
+| il piede a corpo 18 | regge **113 caratteri** e ne usa già **82** (firma, indirizzo, data) |
+| la forma **lunga** | **142 caratteri** → nel piede sforerebbe, nella testata pure |
+| la forma **corta** | **86 caratteri** su 100 disponibili ✓ |
+
+Da cui **due forme e una funzione**, che è la struttura di `testoCondivisione(conIndirizzo)`
+e di `titoloCorto()`/`fraseCorta()`.
+
+**E la forma corta mette l'essenziale DAVANTI**: apre con «Ipotesi del modello», non ci
+arriva in fondo. Il taglio della targa avviene in coda — stima per eccesso a 0,62 em, come
+`inchiostro()` — quindi quello che sopravvive a un taglio dev'essere la parte che **avverte**,
+non quella che dettaglia. Se un giorno la frase cambiasse ordine, quel taglio diventerebbe
+una censura dell'avvertimento, ed è scritto accanto alla funzione che taglia.
+
+### Tre mutanti sopravvissuti, e uno era codice mio di troppo
+
+- **`!c.mossi` era irraggiungibile.** `filtraBilico()` scarta già le righe la cui lista non
+  ha seggi, quindi una riga che entra ne ha per definizione e `mossi` non può essere zero.
+  Una guardia che nessuna mutazione fa cadere è codice che nessuna prova esercita: tolta.
+- **Due asserzioni sulla targa erano vaghe.** Cercavano `spia.ipotesiNeiNumeri` senza gli
+  argomenti, quindi il mutante che passa la forma **lunga** — 142 caratteri su una riga che
+  ne regge 100, cioè una frase troncata proprio dove sta l'avvertimento — restava vivo. E
+  non c'era niente che dicesse che la riga viene **disegnata**: spegnerla non faceva cadere
+  nulla. Adesso l'ancora comprende `(true)` e la presenza del `<text>`.
+
 ---
 
 ## La condivisione: lo stesso elenco due volte, e il glifo che non si leggeva
@@ -4420,7 +4495,7 @@ Due conseguenze pratiche, e sono quelle da ricordare:
 
 ### Lo stato al 27 agosto 2026
 
-Banco a **2294**, struttura pulita, spazzola pulita. È entrato il giro dei **quattro
+Banco a **2311**, struttura pulita, spazzola pulita. È entrato il giro dei **quattro
 blocchi** — vedi la sezione omonima: l'emiciclo che ne contava tre su quattro, i nove
 consumatori che perdevano il quarto, la leva `IN_BILICO` che riclassifica senza ricalcolare,
 e `test/suite/blocchi.js`, che è la prova che legava i totali al 120 e che non esisteva.
@@ -4434,7 +4509,8 @@ smette di essere lo stesso elenco due volte, con la colonna che torna nell'alber
 accessibilità e prende la copia del collegamento; e i **glifi** — i quattro marchi dei
 modelli rifatti sul riferimento dell'autore, e il gancio di Threads ridisegnato perché alla
 misura in cui vive era una macchia. Mutazioni: **20 su 20** nel primo giro e **13 su 13**
-nel secondo.
+nel secondo, **8 su 8** nel terzo — quello che chiude `og:title`, `og:image`,
+`testoCondivisione()` e `promptAI()`, cioè tutto quello che esce dalla pagina.
 
 ### Lo stato al 26 agosto 2026
 

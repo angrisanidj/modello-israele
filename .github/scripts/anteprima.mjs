@@ -97,7 +97,39 @@ export function inchiostro(svg, W2, H2){
 
 /* Compone la targa attorno al disegno. Pura: entra l'SVG dell'emiciclo e i dati della
    testata, esce il testo dell'SVG da rasterizzare. Si prova senza rasterizzatore. */
-export function targa(interno, ink, vb, testata, piede, col){
+/* LA TERZA RIGA È GRATIS, ED È MISURATA. La banda della testata vale 96 unità e ne usa 63
+   — il titolo a corpo 30 con la linea di base a y=56 arriva a ~63 con la discendente. Una
+   seconda riga a corpo 18 con la base a y=84 occupa da 71 a 88,5: ci sta con 7,5 unità di
+   margine, e non tocca il disegno, perché la banda è un MARGINE della tela e non del
+   disegno — è la stessa scelta delle due fasce degli istogrammi.
+   NON VA NEL PIEDE: quello a corpo 18 regge 113 caratteri e ne usa già 82 con la firma,
+   l'indirizzo e la data. La dichiarazione ne vale una sessantina, e 147 su 113 sforerebbe.
+   Misurato, non dedotto.
+   PERCHÉ C'È. Da quando la leva delle liste in bilico nasce accesa, il conteggio della
+   pagina non è quello della fonte — e questa immagine è quello che vede chi riceve il link
+   su Facebook o LinkedIn, dove il testo della condivisione non passa e la riga di esito
+   della pagina non c'è. Senza questa riga l'anteprima direbbe un numero fuori dal suo
+   contesto, che è la stessa famiglia del riquadro dell'evento isolato.
+   L'ALTERNATIVA ERA CHE IL JOB SCRIVESSE I TOTALI SENZA LA LEVA, ed è stata scartata: la
+   card direbbe numeri DIVERSI da quelli che si trovano cliccando, cioè una terza lettura
+   degli stessi dati. L'anteprima deve dire quello che la pagina dice. */
+export const Y_IP = 84, FS_IP = 18;
+/* IL TAGLIO, PER ECCESSO E ALL'ULTIMO SPAZIO. Qui non c'è nessun modo di misurare una
+   stringa — jsdom non fa layout e resvg si vede solo il risultato — quindi si stima con lo
+   stesso 0,62 em per carattere che usa inchiostro(), che è una stima ALTA: al massimo si
+   taglia un po' prima del necessario, mai troppo tardi. È l'argomento di ETIW.
+   E si taglia in CODA, che è il verso giusto solo perché la frase mette l'essenziale
+   davanti: «Ipotesi del modello: …» sopravvive al taglio, il dettaglio no. Se un giorno la
+   frase cambiasse ordine, questo taglio diventerebbe una censura dell'avvertimento. */
+export function taglia(t, fs, largo){
+ const perChar = 0.62 * fs;
+ const max = Math.floor(largo / perChar);
+ if (t.length <= max) return t;
+ const tagliato = t.slice(0, max - 1);
+ const sp = tagliato.lastIndexOf(' ');
+ return (sp > max / 2 ? tagliato.slice(0, sp) : tagliato) + '…';
+}
+export function targa(interno, ink, vb, testata, piede, col, ipotesi){
  const dispW = W - 2 * LATO, dispH = H - TESTA - PIEDE;
  const k = Math.min(dispW / ink.w, dispH / ink.h);
  const ox = (W - ink.w * k) / 2 - ink.x * k;
@@ -108,6 +140,8 @@ export function targa(interno, ink, vb, testata, piede, col){
   '<rect width="' + W + '" height="' + H + '" fill="' + col.paper + '"/>' +
   '<text x="' + LATO + '" y="56" font-size="30" font-weight="600" fill="' + col.ink + '">' +
     E(testata) + '</text>' +
+  (ipotesi ? '<text x="' + LATO + '" y="' + Y_IP + '" font-size="' + FS_IP + '" fill="' + col.mute + '">' +
+    E(taglia(ipotesi, FS_IP, W - 2 * LATO)) + '</text>' : '') +
   '<text x="' + LATO + '" y="' + (H - 24) + '" font-size="18" fill="' + col.mute + '">' +
     E(piede) + '</text>' +
   '<g transform="translate(' + ox.toFixed(2) + ',' + oy.toFixed(2) + ') scale(' + k.toFixed(4) + ')">' +
@@ -156,7 +190,8 @@ export async function componi(){
 
  const spia = {};
  eval(app.replace('carica().then(render,render)',
-   'Object.assign(spia,{C:C,SEG:SEG,dl:dl,SOND:SOND,applicaTema:applicaTema});carica().then(render,render)'));
+   'Object.assign(spia,{C:C,SEG:SEG,dl:dl,SOND:SOND,applicaTema:applicaTema,' +
+   'ipotesiNeiNumeri:ipotesiNeiNumeri});carica().then(render,render)'));
  /* IL TEMA SI SCEGLIE, NON SI EREDITA. Senza questa riga l'anteprima usciva in chiaro lo
     stesso — ma per il default di matchMedia in jsdom, cioè per caso, e un giorno un banco
     diverso l'avrebbe fatta uscire scura senza che nessuno l'avesse deciso.
@@ -184,7 +219,13 @@ export async function componi(){
       2026», e divergerebbe il giorno in cui una delle due cambia */
    'Daniele Angrisani · angrisanidj.github.io/modello-israele · dati al ' +
      (spia.dl ? spia.dl(ultima) : ultima),
-   {paper: col.paper || '#F7F8FA', ink: col.ink || '#0A1730', mute: col.mute || '#626D7E'});
+   {paper: col.paper || '#F7F8FA', ink: col.ink || '#0A1730', mute: col.mute || '#626D7E'},
+   /* LA FRASE LA CHIEDE ALLA PAGINA e non la ricompone: è la stessa che va nel testo di
+      condivisione e nel prompt, e una seconda stesura qui direbbe la stessa cosa oggi e una
+      cosa diversa al primo ritocco. È l'idioma con cui la data passa da dl(). */
+   /* LA FORMA CORTA, e la scelta è misurata: la riga a corpo 18 regge 113 caratteri e la
+      forma lunga ne vale 142. */
+   (spia.ipotesiNeiNumeri ? spia.ipotesiNeiNumeri(true) : ''));
 }
 
 export async function genera(){

@@ -4461,6 +4461,55 @@ var AI_MOTORI=[
    Quindi il prompt lo dice. Si dichiarano solo le leve FUORI dal valore predefinito: a
    pagina intonsa la frase non c'è, e non si spiega una cosa che non è successa.
    I valori predefiniti escono da PAR_DEF e dalle costanti, non da una seconda copia. */
+/* ══ CHE IPOTESI C'È NEI NUMERI — che NON è la domanda di statoLeve() ══════════════════
+   statoLeve() risponde a «che cosa ha cambiato il lettore»: confronta con PAR_DEF, e serve
+   a dire a un servizio terzo che i numeri che riceve non sono quelli che troverebbe
+   all'indirizzo. È la domanda giusta finché il predefinito è il conteggio della fonte.
+   DAL 27 AGOSTO 2026 NON LO È PIÙ, e le due domande si sono separate. La leva delle liste
+   in bilico nasce accesa, quindi quando l'ipotesi È APPLICATA statoLeve() tace — perché
+   nessuno ha cambiato niente — ed è esattamente il caso in cui bisogna parlare. Una sola
+   funzione per le due domande direbbe la cosa giusta per la ragione sbagliata, e tacerebbe
+   nel caso peggiore.
+   QUESTA RISPONDE A «CHE COSA C'È DENTRO QUESTI NUMERI», e la risposta non dipende da chi
+   l'ha messa lì. Serve a tutto quello che ESCE DALLA PAGINA — la frase di condivisione, il
+   prompt, la targa dell'anteprima — dove chi legge non ha la riga di esito davanti e non ha
+   nessun modo di sapere che sta guardando un'ipotesi. È la stessa famiglia del riquadro
+   dell'evento isolato: un numero che esce dal suo contesto.
+   E PARLA SOLO QUANDO L'IPOTESI SPOSTA DAVVERO QUALCOSA. Oggi nessuna lista in bilico ha
+   seggi, quindi la leva muove zero e questa funzione restituisce stringa vuota: la frase
+   compare dal primo sondaggio che ne fa entrare una, insieme al pulsante. Dichiarare
+   un'ipotesi che non cambia nessun numero sarebbe rumore, e insegnerebbe a saltare la riga
+   proprio prima del giorno in cui conta. */
+/* DUE FORME, UNA FUNZIONE, ed è la stessa struttura di testoCondivisione() e di
+   titoloCorto()/fraseCorta(). La lunga sta dove c'è spazio — il testo di condivisione, il
+   prompt — e nomina le liste. La corta sta nella targa dell'anteprima, dove lo spazio è
+   contato: misurato, la riga della testata a corpo 18 regge 113 caratteri e la forma lunga
+   ne vale 142.
+   E LA FORMA CORTA METTE L'ESSENZIALE DAVANTI: apre con «Ipotesi del modello», non ci
+   arriva in fondo. Se un giorno la riga andasse tagliata — più righe in tabella, nomi più
+   lunghi — quello che sopravvive al taglio dev'essere la parte che avverte, non quella che
+   dettaglia. È la stessa scelta della riga di esito, che dichiara l'ipotesi nel primo
+   periodo perché quella frase la legge chi non ha toccato niente. */
+function ipotesiNeiNumeri(corta){
+ if(!PAR.inbilico) return '';
+ var c=contoBilico();
+ /* BASTA `ok.length`, e il `!c.mossi` che c'era accanto era irraggiungibile: filtraBilico()
+    scarta già le righe la cui lista non ha seggi nella proiezione, quindi una riga che
+    entra ne ha per definizione, e con la leva accesa quei seggi cambiano campo — mossi non
+    può essere zero. Una guardia che nessuna mutazione fa cadere è codice che nessuna prova
+    esercita, e l'ha trovata il banco delle mutazioni, non l'attenzione. */
+ if(!c.ok.length) return '';
+ if(corta){
+  var versi=c.ok.map(function(x){return BL[x.verso].n;})
+    .filter(function(v,i,a){return a.indexOf(v)===i;}).join(' e ');
+  return 'Ipotesi del modello: '+seg(c.mossi)+' '+acc(c.mossi,'contato','contati')+
+   ' con '+versi+', dove la fonte non '+acc(c.mossi,'lo mette','li mette')+'.';
+ }
+ var quali=c.ok.map(function(x){return nm(x.id)+' con '+BL[x.verso].n;}).join('; ');
+ return acc(c.mossi,'Un seggio è contato','Sono contati '+f(c.mossi)+' seggi')+
+  ' in un blocco in cui la fonte non '+acc(c.mossi,'lo mette','li mette')+': '+quali+
+  '. È un’ipotesi del modello, non un fatto.';
+}
 function statoLeve(){
  var v=[];
  var esc=Object.keys(ESCL).filter(function(k){return ESCL[k];});
@@ -4490,6 +4539,13 @@ function testoCondivisione(conIndirizzo){
      su X, su Facebook e su Telegram, dove un numero sbagliato non si corregge piu'. */
   ', partiti arabi '+f(b.arabo)+(b.incerto?', ago della bilancia '+f(b.incerto):'')+
   '. Aggiornata ogni notte sui sondaggi pubblicati.';
+ /* LA DICHIARAZIONE VA NEL TESTO, e non basta che stia nell'anteprima. Questa frase la
+    ricevono X, Telegram, WhatsApp e Threads, dove il testo passa come parametro: chi la
+    legge ha i numeri davanti e la pagina no. Su Facebook e LinkedIn passa solo l'indirizzo,
+    e lì a dirlo è la targa dell'immagine — le due strade coprono i due casi, e nessuna
+    delle due è di troppo perché nessuna delle due arriva sempre. */
+ var ip=ipotesiNeiNumeri();
+ if(ip) t+=' '+ip;
  return conIndirizzo?(t+' — '+CANONICO.replace(/^https?:\/\//,'').replace(/\/$/,'')):t;
 }
 /* IL PROMPT. I numeri sono quelli vivi; le leve fuori dal predefinito si dichiarano, o il
@@ -4502,7 +4558,7 @@ function promptAI(){
  var b=blocchi(SEG), g=ggCal(new Date(),VOTO), tot=MC.n||SIM;
  var pc=function(x){return f(Math.round(100*x/tot));};
  var u=SOND.map(function(s){return s.data;}).sort().pop();
- var leve=statoLeve(), np=nonPubblicate().length;
+ var leve=statoLeve(), ip=ipotesiNeiNumeri(), np=nonPubblicate().length;
  var ind=CANONICO.replace(/^https?:\/\//,'').replace(/\/$/,'');
  return 'Sto guardando un modello previsionale per le elezioni israeliane del 27 ottobre 2026, a '+
   f(g)+' giorni dal voto. La proiezione di oggi assegna '+f(b.coalizione)+' seggi al blocco Netanyahu, '+
@@ -4527,6 +4583,13 @@ function promptAI(){
       'del '+dl(u)+'.':'')+
   (leve?' Attenzione: questi numeri sono calcolati '+leve+', quindi differiscono dalla proiezione '+
    'di base che si vede aprendo l\'indirizzo.':'')+
+  /* E QUESTA È UN'ALTRA COSA DA «leve», benché sembri la stessa. `leve` dice che cosa il
+     lettore ha cambiato rispetto al predefinito; questa dice che ipotesi c'è nei numeri, e
+     le due divergono esattamente nel caso peggiore — la leva delle liste in bilico è accesa
+     PER DIFETTO, quindi quando l'ipotesi è applicata `leve` tace. Il prompt esce dalla
+     pagina e va a un servizio terzo, che risponderebbe su un conteggio che la fonte non fa
+     senza avere modo di saperlo. */
+  (ip?' '+ip:'')+
   '\n\nSpiegami che cosa significano questi numeri: quali coalizioni sono aritmeticamente '+
   'possibili, quali sono politicamente escluse dai veti dichiarati dai leader, e che cosa '+
   'dovrebbe cambiare perché uno dei due campi arrivi a 61. Cerca anche le notizie delle '+

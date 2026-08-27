@@ -62,7 +62,8 @@ src = src.slice(0, src.indexOf('carica().then(render,render)')) +
   'blocchi:blocchi,render:render,PRESET:PRESET,TOT_ORD:TOT_ORD,TOT_SIGLA:TOT_SIGLA,' +
   'testoCondivisione:testoCondivisione,promptAI:promptAI,serieModello:serieModello,' +
   'get SOND(){return SOND;},set SOND(v){SOND=v;},get SEG(){return SEG;},' +
-  'get PAR(){return PAR;},PAR_DEF:PAR_DEF,set SIM(v){SIM=v;}};})();';
+  'get PAR(){return PAR;},PAR_DEF:PAR_DEF,statoLeve:statoLeve,' +
+  'ipotesiNeiNumeri:ipotesiNeiNumeri,set SIM(v){SIM=v;}};})();';
 eval(src);
 
 const $ = i => D.getElementById(i);
@@ -492,6 +493,101 @@ function seggiOra(){ return A.IDS.filter(i => A.SEG[i]).map(i => i + ':' + A.SEG
   esito(A.bloccoDi('amcha') !== null && A.bloccoDi('lista_che_non_esiste') === null,
     'e bloccoDi() risponde null per una lista che non e in anagrafica, invece di indovinare');
   A.IN_BILICO.pop();
+}
+
+/* ══ 10 · QUELLO CHE ESCE DALLA PAGINA PORTA L'IPOTESI CON SÉ ══════════════════════
+ * È la famiglia del riquadro dell'evento isolato: un numero che esce dal suo contesto.
+ * Da quando la leva nasce accesa, il conteggio predefinito non è quello della fonte — e
+ * la riga di esito che lo dichiara la vede chi è SULLA pagina, non chi riceve il testo su
+ * WhatsApp, non chi vede la card su Facebook, non il servizio terzo che riceve il prompt.
+ *
+ * E LA DOMANDA NON È QUELLA DI statoLeve(). Quella confronta con PAR_DEF e risponde «che
+ * cosa ha cambiato il lettore»: con la leva accesa per difetto TACE proprio quando
+ * l'ipotesi è applicata. Le due funzioni devono restare due, e queste asserzioni sono
+ * quelle che lo tengono. */
+{
+  conBilico(0);
+  esito(A.ipotesiNeiNumeri() === '',
+    'senza seggi da spostare non si dichiara niente: un ipotesi che non muove un numero e ' +
+    'rumore, e insegna a saltare la riga prima del giorno in cui conta');
+  esito(A.testoCondivisione(false).indexOf('ipotesi') < 0,
+    'e la frase di condivisione non ne parla');
+
+  conBilico(4);
+  const ip = A.ipotesiNeiNumeri();
+  esito(ip.length > 0 && /ipotesi/.test(ip) && /non un fatto/.test(ip),
+    'con la lista in Knesset la dichiarazione c e, e dice che e un ipotesi', ip);
+  esito(/statoLeve/.test('') === false && A.statoLeve() === '',
+    'mentre statoLeve TACE, perche il lettore non ha cambiato niente: e la ragione per cui ' +
+    'le due funzioni sono due', '«' + A.statoLeve() + '»');
+  /* le tre strade che escono dalla pagina la portano, e la portano UGUALE */
+  esito(A.testoCondivisione(false).indexOf(ip) >= 0,
+    'la frase di condivisione la porta — X, Telegram, WhatsApp e Threads ricevono il testo');
+  esito(A.testoCondivisione(true).indexOf(ip) >= 0,
+    'anche nella forma con l indirizzo in coda');
+  esito(A.promptAI().indexOf(ip) >= 0,
+    'e il prompt che va al servizio terzo la porta');
+  /* UNA STRINGA SOLA: se un giorno una delle tre la ricomponesse per conto suo, direbbe la
+     stessa cosa oggi e una cosa diversa al primo ritocco. Si prova nel SORGENTE, dove sta
+     il legame, come per og:title e il job. */
+  const js = fs.readFileSync(__dirname + '/../app.js','utf8');
+  esito((js.match(/ipotesiNeiNumeri\(/g) || []).length >= 3,
+    'e nasce una volta sola: le strade che la usano la CHIAMANO, non la riscrivono ' +
+    '(una definizione piu le chiamate)',
+    String((js.match(/ipotesiNeiNumeri\(/g) || []).length) + ' occorrenze');
+
+  /* ══ e la targa dell'anteprima, che è la strada per Facebook e LinkedIn ══
+   * Lì il testo della condivisione non passa: passa solo l'indirizzo, e a parlare resta
+   * l'immagine. Il legame si prova nel sorgente del job — che gira in un altro processo,
+   * dove una divergenza non la vedrebbe nessuno — e la geometria si prova sui numeri. */
+  const ant = fs.readFileSync(__dirname + '/../../.github/scripts/anteprima.mjs','utf8');
+  /* LE DUE ASSERZIONI SONO PRECISE PERCHÉ DUE MUTANTI SONO SOPRAVVISSUTI A QUELLE VAGHE.
+     La prima stesura cercava `spia.ipotesiNeiNumeri` senza gli argomenti: il mutante che
+     passava alla targa la forma LUNGA — 142 caratteri su una riga che ne regge 100, cioè
+     una frase troncata proprio dove sta l'avvertimento — restava vivo. E non c'era niente
+     che dicesse che la riga viene DISEGNATA: spegnerla non faceva cadere nulla.
+     Si prova nel sorgente e non sul reso perché il job gira in un altro processo, dove una
+     divergenza non la vedrebbe nessuno. È l'idioma con cui og:title è legato al job. */
+  esito(/spia\.ipotesiNeiNumeri\(true\)/.test(ant),
+    'l anteprima CHIEDE la frase alla pagina invece di ricomporla, e chiede la forma CORTA');
+  esito(/ipotesi \? '<text/.test(ant),
+    'e la targa la DISEGNA davvero, invece di riceverla e buttarla');
+  esito(/ipotesiNeiNumeri:ipotesiNeiNumeri/.test(ant),
+    'e la funzione le arriva davvero, perche il job la espone nella spia');
+  /* le quote si LEGGONO dal sorgente del job e non si riscrivono qui: una costante
+     ricopiata in una prova e la strada doppia di sempre, e per giunta quella che decide se
+     la prova morde. */
+  const TESTA = +(/TESTA = (\d+)/.exec(ant) || [0,0])[1];
+  const yIp = +(/Y_IP = (\d+)/.exec(ant) || [0,0])[1];
+  const fsIp = +(/FS_IP = (\d+)/.exec(ant) || [0,0])[1];
+  esito(TESTA > 0 && yIp > 0 && fsIp > 0,
+    'la banda della testata e la riga della dichiarazione sono dichiarate nel sorgente',
+    'TESTA=' + TESTA + ' Y_IP=' + yIp + ' FS_IP=' + fsIp);
+  esito(yIp + 0.25 * fsIp < TESTA,
+    'e la riga sta DENTRO la banda che c e gia: non paga il disegno, perche la testata e ' +
+    'un margine della tela e non del disegno',
+    'fondo a ' + (yIp + 0.25 * fsIp) + ' su ' + TESTA);
+  /* IL PIEDE NON POTEVA PORTARLA, ed è il numero che ha deciso dove va. */
+  const LATO = +(/LATO = (\d+)/.exec(ant) || [0,40])[1];
+  const W = +(/W = (\d+)/.exec(ant) || [0,1200])[1];
+  const regge = Math.floor((W - 2 * LATO) / (0.55 * 18));
+  const piede = 'Daniele Angrisani · angrisanidj.github.io/modello-israele · dati al 24 agosto 2026';
+  esito(piede.length + ip.length > regge,
+    'e il piede non poteva portarla: a corpo 18 regge ' + regge + ' caratteri e ne usa gia ' +
+    piede.length + ', la dichiarazione ne vale ' + ip.length);
+  /* LA FORMA CORTA CI STA, ed è la ragione per cui esiste. */
+  const corta = A.ipotesiNeiNumeri(true);
+  const reggeIp = Math.floor((W - 2 * LATO) / (0.62 * fsIp));
+  esito(corta.length > 0 && corta.length <= reggeIp,
+    'e la forma corta ci sta nella riga della testata senza essere tagliata',
+    corta.length + ' caratteri su ' + reggeIp + ': «' + corta + '»');
+  esito(/^Ipotesi del modello/.test(corta),
+    'e mette l essenziale DAVANTI: se un giorno andasse tagliata, a sopravvivere e ' +
+    'l avvertimento e non il dettaglio', corta);
+  esito(corta.length < ip.length,
+    'la corta e piu corta della lunga, che e quello che le distingue',
+    corta.length + ' contro ' + ip.length);
+  conAgo(4);
 }
 
 console.log('\nblocchi: ' + ok + '/' + (ok + ko));
