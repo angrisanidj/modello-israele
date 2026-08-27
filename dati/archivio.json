@@ -4834,5 +4834,126 @@
    "yashar": 18.30372814254077
   },
   "_qk": 92
+ },
+ {
+  "data": "2026-08-26",
+  "istituto": "Direct Polls",
+  "testata": "i24NEWS",
+  "campione": 532,
+  "casa": 1,
+  "seggi": {
+   "likud": 26,
+   "byachad": 8,
+   "sionismo_rel": 4,
+   "otzma": 6,
+   "shas": 8,
+   "utj": 7,
+   "beitenu": 8,
+   "raam": 6,
+   "lista_araba": 6,
+   "democratici": 10,
+   "yashar": 23,
+   "amcha": 8
+  },
+  "sotto": {
+   "blue_white": 1,
+   "casa_sionista": 1,
+   "unity_erdan": 1
+  },
+  "_q": {
+   "likud": 19.366600317259653,
+   "byachad": 5.948633749288454,
+   "sionismo_rel": 3.6833816277477816,
+   "otzma": 4.799002680778504,
+   "shas": 5.948633749288454,
+   "utj": 5.5361009344516425,
+   "beitenu": 5.948633749288454,
+   "raam": 4.799002680778504,
+   "lista_araba": 4.799002680778504,
+   "democratici": 7.7558649802209105,
+   "yashar": 17.14013881369891,
+   "amcha": 6.275004036420228
+  },
+  "_qk": 92
+ },
+ {
+  "data": "2026-08-26",
+  "istituto": "Lazar · Panel4All",
+  "testata": "Walla",
+  "campione": 500,
+  "casa": 0,
+  "seggi": {
+   "likud": 21,
+   "byachad": 15,
+   "otzma": 8,
+   "shas": 7,
+   "utj": 7,
+   "beitenu": 9,
+   "raam": 5,
+   "lista_araba": 7,
+   "democratici": 10,
+   "yashar": 25,
+   "amcha": 6
+  },
+  "sotto": {
+   "sionismo_rel": 2.6,
+   "blue_white": 1.2,
+   "casa_sionista": 2.1,
+   "unity_erdan": 0.3
+  },
+  "_q": {
+   "likud": 15.921842239502956,
+   "byachad": 11.413870851938459,
+   "otzma": 6.160990326445748,
+   "shas": 5.413143602868063,
+   "utj": 5.413143602868063,
+   "beitenu": 6.909317729139572,
+   "raam": 4.113420711814009,
+   "lista_araba": 5.413143602868063,
+   "democratici": 7.657969787485772,
+   "yashar": 18.917104731777922,
+   "amcha": 4.666052813291378
+  },
+  "_qk": 92
+ },
+ {
+  "data": "2026-08-24",
+  "istituto": "Direct Polls",
+  "testata": "Canale 14",
+  "campione": 486,
+  "casa": 1,
+  "seggi": {
+   "likud": 32,
+   "byachad": 7,
+   "sionismo_rel": 5,
+   "otzma": 8,
+   "shas": 10,
+   "utj": 8,
+   "beitenu": 7,
+   "raam": 5,
+   "lista_araba": 5,
+   "democratici": 9,
+   "yashar": 24
+  },
+  "sotto": {
+   "blue_white": 1,
+   "casa_sionista": 1.3,
+   "unity_erdan": 0.2,
+   "amcha": 2.1
+  },
+  "_q": {
+   "likud": 24.034383868353878,
+   "byachad": 5.404268765591141,
+   "sionismo_rel": 4.102477702633231,
+   "otzma": 6.110376106434601,
+   "shas": 7.691814205361423,
+   "utj": 6.110376106434601,
+   "beitenu": 5.404268765591141,
+   "raam": 4.102477702633231,
+   "lista_araba": 4.102477702633231,
+   "democratici": 6.819817190598874,
+   "yashar": 18.117261883734628
+  },
+  "_qk": 92
  }
 ]
