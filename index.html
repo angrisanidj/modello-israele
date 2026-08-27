@@ -4024,7 +4024,18 @@ function rTesta(){
  $('k-n').innerHTML=(str
   ? '<b>'+L.length+'</b>/<b>'+f(SOND.length)+'</b> rilevazioni'
   : '<b>'+L.length+'</b> rilevazioni nel modello · <b>'+f(SOND.length)+'</b> in archivio dal 1º gennaio')+
-  (np?' · <b>'+f(np)+'</b> non ancora '+acc(np,'pubblicata','pubblicate'):'');
+  /* IL COMANDO STA DOVE STA IL NUMERO CHE LO RENDE NECESSARIO. «Ripristina» esiste da
+     sempre, ma vive dentro il <details> del modulo archivio, accanto a «Esporta JSON», e la
+     sua etichetta non dice DA CHE COSA ripristina: chi legge «3 non ancora pubblicate» e
+     vuole riallinearsi non ha niente che lo mandi lì. È la lezione dei quattro «Scarica PNG»
+     e del riscontro che parlava a undicimila pixel di distanza — un comando che non si trova
+     dal punto in cui serve è un comando che non c'è.
+     COMPARE SOLO CON np, perché senza aggiunte locali non c'è niente da riallineare, e un
+     pulsante che non fa niente è peggio di uno assente. E il nome dice l'AZIONE, non lo
+     stato: la grammatica di «Escludi» e di «Conta», quindi niente aria-pressed. */
+  (np?' · <b>'+f(np)+'</b> non ancora '+acc(np,'pubblicata','pubblicate')+
+      ' <button type=\"button\" class=\"lnk\" id=\"k-nrst\" title=\"Toglie le rilevazioni che questo browser ha '+
+      'aggiunto e torna all\'archivio pubblicato\">Riallinea</button>':'');
  $('k-simn').textContent=f(SIM)+' simulazioni · orizzonte '+f(ORIZZONTE)+' giorni';
 }
 /* arrotonda una serie di quote a interi che sommano esattamente a 100:
@@ -9232,7 +9243,24 @@ $('k-imp').addEventListener('click',function(){
   r.onload=function(){try{var j=JSON.parse(r.result);var n=unisci(j.sondaggi||j);
    salva();render();msg('Importate '+n+' rilevazioni.','ok');}catch(e){msg('File non valido.','err');}};
   r.readAsText(fl);};i.click();});
-$('k-rst').addEventListener('click',function(){SOND=BASE.slice();salva();render();msg('Ripristinato l\'archivio di partenza.');});
+/* RIALLINEARSI ALL'ARCHIVIO PUBBLICATO, e la funzione è una sola perché i comandi sono due:
+   quello del modulo archivio e quello accanto al contatore. Due gestori che fanno la stessa
+   cosa sono la copia che diverge al primo ritocco.
+   E «pubblicato» è esatto, non approssimato: archivioFresco() ha già riassegnato BASE al
+   JSON scaricato, quindi BASE.slice() è letteralmente quello che sta all'indirizzo — non il
+   seme dentro il file. Il giorno in cui il fetch fallisce BASE resta il seme e il comando
+   riporta lì: è il ripiego dichiarato di tutta la pagina, non un caso particolare di qui. */
+function riallinea(){
+ SOND=BASE.slice(); salva(); render();
+ msg('Riallineato all\'archivio pubblicato: '+f(SOND.length)+' rilevazioni.');
+}
+$('k-rst').addEventListener('click',riallinea);
+/* il secondo comando nasce a ogni render, quindi l'ascoltatore sta sul DOCUMENTO: uno messo
+   sul pulsante morirebbe al render successivo, ed è la lezione di #k-house. */
+document.addEventListener('click',function(e){
+ var t=e.target&&e.target.closest?e.target.closest('#k-nrst'):null;
+ if(t) riallinea();
+});
 
 /* controlli */
 $('k-sw').addEventListener('input',function(){SW=+this.value;
