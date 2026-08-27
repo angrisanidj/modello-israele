@@ -4068,6 +4068,132 @@ contenitore di `hadash_taal`, che nel 2022 aveva cinque seggi. Che `r22` sia `nu
 contenitore vuol dire «questa sigla non esisteva nel 2022», non «questi elettori non hanno
 eletto nessuno», e la coerenza del criterio vale più della lettera del campo.
 
+## L'emiciclo delle maggioranze possibili: l'ordine, i vuoti, la coda — e il colore che NON segue la leva
+
+Applicato il 27 agosto 2026. Quattro cose che sono una sola: l'arco smette di essere un
+disegno dello spettro politico e diventa un disegno delle maggioranze.
+
+### La linea dei 61 non si muove: si muove quello che ci sta sotto
+
+`a61` è il punto medio fra il 60° e il 61° seggio contando dall'angolo, quindi con 120 seggi
+**cade sempre al centro dell'arco**. Misurato nei due ordini: x = 214,50 in tutti e due. Non
+è la linea a spostarsi — è l'ordine dei blocchi a decidere che cosa il lettore ci trova.
+
+Da qui `ARCO_ORD = opposizione · arabi · ago della bilancia · coalizione`: i due gruppi
+decisivi al centro, **ciascuno accanto al campo con cui potrebbe stare**. Gli arabi non fanno
+accordi con Netanyahu e al massimo appoggiano l'opposizione; l'ago della bilancia oggi è una
+lista di destra che parla di un governo di destra ampio.
+
+**E funziona per costruzione, non per la configurazione di oggi.** Enumerate tutte le
+**302.621** partizioni dei 120 seggi in quattro gruppi, classificate per che cosa il lettore
+trova a sinistra della linea:
+
+| | ordine vecchio | questo |
+|---|---|---|
+| un campo in testa taglia sé stesso: governa da solo | 0,6% | 12,5% |
+| l'altro campo governa da solo | 11,9% | 11,9% |
+| un gruppo decisivo accanto al suo campo | 35,1% | **70,8%** |
+| bordo fra due gruppi | 2,4% | 2,4% |
+| **UN CAMPO TAGLIATO A METÀ: si conta** | **49,0%** | **1,8%** |
+| **→ si legge** | **50,0%** | **97,6%** |
+
+Nella scatola plausibile — arabi 8-16, ago 0-12, campi 35-70 — il caso «si conta» passa da
+**57,9% a ZERO** e la lettura da 42,1% al **100%**. Il residuo dell'1,8% sul totale richiede
+un campo a **zero** seggi. Sui 25 stati dello swing: la linea cade nel gruppo arabo in 18, su
+un bordo in 2, dentro l'ago in 1 — che è lo specchio — e dentro l'opposizione in 4, dove
+governa da sola. Con l'ordine vecchio: **24 su 25 tagliava l'opposizione** con i 12 arabi a
+sinistra, sempre a offset 48. Costo del cambio: **zero**, il corpo dei totali resta 28.
+
+**L'ordine era scritto a mano in QUATTRO posti**, tre d'accordo e la legenda con un ordine
+suo — «coalizione, opposizione, incerto, arabo», né l'arco né il suo specchio, e nessuna riga
+lo dichiarava. Adesso è una costante sola, e la legenda **segue l'arco** perché ne è la
+chiave. Il criterio distingue le due convenzioni che convivono nel file: la **prosa** elenca
+i blocchi come li nomina il testo (verdetto, targa delle card, evento isolato), il **disegno**
+e tutto ciò che ne è la chiave seguono l'arco.
+E il commento di `colonneBlocco()` non afferma più che quell'ordine è «la lettura che la
+pagina usa dappertutto»: le tabelle lo ricavano dall'anagrafica, l'arco lo sceglie, e per mesi
+i due hanno coinciso soltanto per come l'anagrafica presentava le liste.
+
+### I vuoti sono un angolo, non un posto in coda
+
+I posti vuoti si inserivano nella sequenza **lineare** dei 120 seggi, che poi veniva
+distribuita sulle cinque file ordinando i posti per **angolo**: un vuoto cancellava un seggio
+in **una** fila. Misurato sulla pagina resa — replica della geometria verificata contro l'SVG
+vero, 120 seggi su 120, scarto massimo 0,005 unità — con tre blocchi il vuoto c'era in **due
+coppie fila×confine su dieci**. La fila esterna sembrava uniforme perché lì il confine non
+c'era affatto.
+
+**Alzare `VUOTI` non riparava**: con 2 i buchi si spostavano su altre file, con 5 restavano
+una fila senza confine e una con un buco triplo. La leva non era il numero.
+
+Adesso i seggi per fila sommano 120, `ripartiFile()` li divide fra i segmenti con i totali
+esatti **nelle due direzioni**, e ogni fila mette un vuoto fra due segmenti che in quella fila
+ci sono. Ogni confine di ogni fila è largo esattamente **2,00 volte il passo** — mai 1,00
+(confine invisibile), mai 3× o 4× (buco doppio). Il passo scende del 7-9%.
+Scartato l'arrotondamento cumulativo nelle due direzioni, che è più elegante e va
+**negativo**: coi gruppi 50/12/2/56 dà una cella a −1.
+
+**Il prezzo dichiarato**: l'ordine globale per angolo non è più esattamente quello dei gruppi
+— una fila il cui confine cade un posto più in là mette un suo seggio dopo il primo del gruppo
+successivo di un'altra fila. Su 25 stati il gruppo in cui cade la linea coincide con
+l'aritmetica in **24**; l'unico scarto è a swing +6, dove il conto dice «un seggio dentro
+l'ago» e il disegno mette la linea sulla cucitura. L'invariante non si muove: la linea separa
+sempre 60 e 60.
+
+### La coda separata, e IL COLORE CHE NON SEGUE LA LEVA
+
+Con la leva accesa «Popolo d'Israele» conta nel blocco Netanyahu e resta ocra: quattro
+pastiglie di un'altra tinta dentro un gruppo di blu, e che siano contate lo diceva solo il
+totale. **La proposta ovvia è far seguire il colore alla leva. È stata misurata e scartata, e
+questa è la sezione da leggere prima di riproporla.**
+
+1. **LA LEVA È UN'IPOTESI, E RIDIPINGERE LA LISTA LA FA SEMBRARE UN FATTO.** Il pulsante è
+   l'unica cosa che dichiara il condizionale; un colore che cambia direbbe «questa lista è di
+   quel blocco», che è più di quanto la leva affermi.
+2. **IL COLORE PORTA GIÀ IL BLOCCO, attraverso il settore di tinta**, e i quattro settori sono
+   disgiunti per regola. Misurate le tinte OKLCH delle venti liste: arabi **142°–191°**,
+   coalizione **227°–304°**, ago della bilancia **61°–103°**, opposizione **343°–40°**.
+   «Popolo d'Israele» sta a **66,9°**, cioè **160°** dal bordo più vicino del settore della
+   coalizione. Farlo seguire la leva vorrebbe dire **o** dargli il *token* di blocco — che
+   nessuna lista ha, e che in legenda direbbe «questa lista è il blocco» — **o** inventargli un
+   blu del settore giusto, e `PAL_SCURO` è indicizzato sull'esadecimale **chiaro**: la chiave
+   non ci sarebbe e `cp()` cadrebbe su `schiarisci(hex, 0,40)`. Misurato con un blu di prova:
+   in scuro darebbe `rgb(127,159,236)`, che sta a **1,08** da `--coal` e **1,15** dal Likud. Un
+   colore inventato in silenzio, indistinguibile dai suoi vicini — il difetto già pagato
+   mappando Amcha, dove *un posto dimenticato non lasciava un buco ma produceva un colore*.
+3. **Costerebbe tredici sedi divise in due famiglie**: emiciclo, legenda, pastiglie ed
+   etichette del simulatore e tag delle coalizioni dovrebbero seguirla; sparkline, archivio ed
+   elenco stretto no, perché lì il blocco non è una dimensione del disegno. Una sede che
+   continuasse a leggere `P[i].c` divergerebbe in silenzio.
+
+**E l'anello è stato misurato e scartato anche lui**: nel colore del blocco sta a **1,36** in
+chiaro e **1,33** in scuro sul pieno ocra, cioè non si stacca. A due tinte regge (`--card` sul
+pieno 5,61 e 9,95) ma vuole 2,5 unità di raggio, e a 380 lascerebbe la pastiglia a **4,4px** o
+i seggi a **1,06px** l'uno dall'altro.
+
+**Quello che il disegno dice adesso**: la lista spostata va **in coda al suo blocco** e un
+vuoto **più stretto** di quello fra i blocchi la separa — dentro il conteggio del blocco, non
+dentro il blocco. Due vuoti uguali direbbero «un quarto blocco» mentre la riga sotto ne conta
+tre, che è la stessa forma dell'arco che ne contava tre su quattro.
+
+**La coda è forzata, non ereditata.** Oggi «Popolo d'Israele» sarebbe ultima comunque, perché
+l'ordinamento dentro il blocco è per seggi decrescenti e ne ha meno di tutte: **è la quarta
+volta in questo progetto che una proprietà regge per coincidenza** — l'house effect in ordine
+di blocco, l'ordine del pannello dell'archivio, la targa dove tela e disegno coincidevano — e
+la prova la esercita dando alla lista spostata più seggi di qualcuna del blocco che la ospita.
+
+**Il prezzo, misurato a 380 dove morde**: il confine fra blocchi passa a due posti *solo* se
+esiste un vuoto interno da cui distinguerlo, quindi il passo minimo scende da 17,25 a
+**15,53** unità e l'aria fra due pastiglie da **4,89 a 3,59px**, il 27% in meno — su un
+diametro di 8,19px restano il 44% di stacco. Il confine a **tre** posti è stato misurato e
+scartato: l'aria scenderebbe a 2,52px. **E lo paga solo chi preme**: a leva spenta non c'è
+nessun segmento interno, quindi nessun confine si allarga e il disegno è quello di prima —
+verificato, i passi restano identici a tre e a quattro blocchi.
+
+**La vista PER BLOCCO resta com'è**, ed è giusto: lì i seggi sono già del colore del blocco in
+cui sono **contati** — con la leva accesa sono 53 pastiglie blu, nessuna ocra. È la vista che
+dice il conteggio, non quella che dice chi è chi.
+
 ## Difetti noti, di codice e non di tavolozza
 
 Nessuna scelta di colore li risolve: dipendono da come il modello disegna.

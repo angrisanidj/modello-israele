@@ -6694,24 +6694,24 @@ function disponiTotali(cerchi,voci){
    morde. Il caso che voleva evitare esiste — un gruppo con meno di cinque seggi non arriva a
    tutte le file — ma è l'aritmetica a imporlo, non la ripartizione: misurato, il numero di
    file senza un gruppo è il minimo possibile in 3.658 configurazioni su 3.693. */
-function ripartiFile(grp,m){
- var nG=grp.length, TOT=m.reduce(function(a,b){return a+b;},0), q=[], r, g;
+function ripartiFile(seg,m){
+ var nG=seg.length, TOT=m.reduce(function(a,b){return a+b;},0), q=[], r, g;
  for(r=0;r<m.length;r++){
-  var id=grp.map(function(s){return s*m[r]/TOT;});
+  var id=seg.map(function(x){return x.n*m[r]/TOT;});
   var fl=id.map(Math.floor);
   var resto=m[r]-fl.reduce(function(a,b){return a+b;},0);
   var ord=id.map(function(v,i){return [v-fl[i],i];}).sort(function(a,b){return b[0]-a[0];});
   for(var i2=0;i2<resto;i2++) fl[ord[i2%nG][1]]++;
   q.push(fl);
  }
- var d=grp.map(function(s,i){return q.reduce(function(a,f){return a+f[i];},0)-s;});
+ var d=seg.map(function(x,i){return q.reduce(function(a,f){return a+f[i];},0)-x.n;});
  var giri=0;
  while(d.some(function(v){return v!==0;})&&giri++<400){
   var piu=d.findIndex(function(v){return v>0;}), meno=d.findIndex(function(v){return v<0;});
   var best=-1, bv=-Infinity;
   for(r=0;r<m.length;r++){
    if(q[r][piu]<=0) continue;
-   var v=q[r][piu]-grp[piu]*m[r]/TOT;
+   var v=q[r][piu]-seg[piu].n*m[r]/TOT;
    if(v>bv){bv=v;best=r;}
   }
   if(best<0) break;
@@ -6719,22 +6719,120 @@ function ripartiFile(grp,m){
  }
  return q;
 }
+/* ══ LA PILA DELLE ETICHETTE FINALI DELLA TENDENZA ═════════════════════════════════
+   Entra un elenco di quote in ordine crescente, esce lo stesso elenco con le etichette
+   distanti almeno DY e tutte dentro l'altezza H. Pura, perché il tetto si prova qui: con
+   quattro totali di blocco che sommano 120 il caso che lo fa scattare non si raggiunge
+   da nessun archivio, e una guardia che nessuna prova esercita è codice che nessuno sa
+   se funziona. Provata per esaurimento su tutte le partizioni dei 120 seggi.
+   IL SERRAGGIO AVEVA UN SOLO VERSO: spingeva in giù e non guardava mai la cornice. Con
+   tre etichette non mordeva, con quattro sì — misurato, quattro serie fra 3 e 6 seggi
+   mandavano l'ultima a y 336,2 in un viewBox alto 318, e con QUALUNQUE dominio.
+   È la stessa forma dell'etichetta dei 61 prima del ribaltamento: si guarda se il verso
+   scelto ci sta, e se non ci sta si va dall'altra parte.
+   E LA SICUREZZA È ALGEBRICA: n etichette chiedono (n−1)·DY + 2·MEZ unità — 86 con
+   quattro e DY 20 — in una cornice alta 318. Il caso «non ci stanno da nessuna parte»
+   non esiste finché le serie sono meno di sedici, e se un giorno esistesse la pila si
+   comprime invece di uscire. */
+function impilaEtichette(ys,DY,H,MEZ){
+ var n=ys.length,i;
+ if(!n) return ys;
+ for(i=1;i<n;i++) if(ys[i]-ys[i-1]<DY) ys[i]=ys[i-1]+DY;
+ if(ys[n-1]+MEZ>H){
+  ys[n-1]=H-MEZ;
+  for(i=n-2;i>=0;i--) if(ys[i+1]-ys[i]<DY) ys[i]=ys[i+1]-DY;
+ }
+ if(ys[0]-MEZ<0){
+  var passo=Math.min(DY,(H-2*MEZ)/Math.max(1,n-1));
+  for(i=0;i<n;i++) ys[i]=MEZ+i*passo;
+ }
+ return ys;
+}
 function rEmi(){
- /* Sequenza dei seggi da sinistra a destra, raggruppati per blocco. */
- var seq=[],grp=[],bb=blocchi(SEG),i;
+ /* ══ I SEGMENTI DELL'ARCO, E PERCHÉ NON SONO SEMPRE I BLOCCHI ═════════════════════
+    Da sinistra a destra i seggi sono raggruppati per blocco. Nella vista PER LISTA un
+    blocco può però spezzarsi in due: le liste che ci stanno per anagrafica, e in coda
+    quelle che ci sta la LEVA. Sono due cose diverse, e il disegno lo dice con un vuoto
+    più stretto di quello fra i blocchi.
+
+    ══ PERCHÉ IL VUOTO E NON IL COLORE, che è la cosa che qualcuno riproporrà ══
+    Con la leva accesa «Popolo d'Israele» conta nel blocco Netanyahu e resta ocra: quattro
+    pastiglie di un'altra tinta dentro un gruppo di blu, e che siano contate lo dice solo il
+    totale. La proposta ovvia è far seguire il colore alla leva. È stata misurata e scartata.
+    1 · LA LEVA È UN'IPOTESI, E RIDIPINGERE LA LISTA LA FA SEMBRARE UN FATTO. Il pulsante è
+        l'unica cosa che dichiara il condizionale; un colore che cambia direbbe «questa lista
+        è di quel blocco», che è più di quanto la leva affermi.
+    2 · IL COLORE PORTA GIÀ IL BLOCCO, attraverso il SETTORE DI TINTA, e i quattro settori
+        sono disgiunti per regola: misurate le tinte OKLCH delle venti liste, arabi 142°-191°,
+        coalizione 227°-304°, ago della bilancia 61°-103°, opposizione 343°-40°. «Popolo
+        d'Israele» sta a 66,9°, cioè 160° dal bordo più vicino del settore della coalizione.
+        Farlo seguire la leva vorrebbe dire o dargli il TOKEN di blocco — che nessuna lista
+        ha, e che in legenda direbbe «questa lista è il blocco» — o inventargli un blu del
+        settore giusto, e PAL_SCURO è indicizzato sull'esadecimale CHIARO: la chiave non ci
+        sarebbe e cp() cadrebbe su schiarisci(hex,0,40). Misurato con un blu di prova: in
+        scuro darebbe rgb(127,159,236), che sta a 1,08 da --coal e 1,15 dal Likud. Un colore
+        inventato in silenzio, indistinguibile dai suoi vicini — il difetto già pagato
+        mappando Amcha, dove un posto dimenticato non lasciava un buco ma produceva un colore.
+    3 · E COSTEREBBE TREDICI SEDI divise in due famiglie: emiciclo, legenda, pastiglie e
+        etichette del simulatore e tag delle coalizioni dovrebbero seguirla; sparkline,
+        archivio ed elenco stretto no, perché lì il blocco non è una dimensione del disegno.
+        Una sede che continuasse a leggere P[i].c divergerebbe in silenzio.
+    L'anello nel colore del blocco è stato misurato e scartato anche lui: sul pieno ocra sta
+    a 1,36 in chiaro e 1,33 in scuro, cioè non si stacca; l'anello a due tinte regge (--card
+    sul pieno 5,61 e 9,95) ma vuole 2,5 unità di raggio, e a 380 lascerebbe la pastiglia a
+    4,4px o i seggi a 1,06px l'uno dall'altro.
+
+    LA VISTA PER BLOCCO RESTA COM'È: lì i seggi sono già del colore del blocco in cui sono
+    CONTATI, ed è corretto — è la vista che dice il conteggio, non quella che dice chi è chi. */
+ var seq=[],segm=[],bb=blocchi(SEG),i;
  if(EMIMODE==='blocchi'){
   ARCO_ORD.forEach(function(k){
    var n=bb[k]||0; if(!n) return;
-   grp.push(n); for(var j=0;j<n;j++) seq.push('§'+k);
+   segm.push({n:n,v:1,fine:true});
+   for(var j=0;j<n;j++) seq.push('§'+k);
   });
  } else {
   ARCO_ORD.forEach(function(b){
-   var liste=IDS.filter(function(i){return SEG[i]&&bloccoDi(i)===b;})
-     .sort(function(a,c){return SEG[c]-SEG[a];}), n=0;
-   liste.forEach(function(i){for(var j=0;j<SEG[i];j++){seq.push(i);n++;}});
-   if(n) grp.push(n);
+   var liste=IDS.filter(function(i){return SEG[i]&&bloccoDi(i)===b;});
+   if(!liste.length) return;
+   var giu=function(a,c){return SEG[c]-SEG[a];};
+   /* LE LISTE CHE LA LEVA HA SPOSTATO VANNO IN CODA AL BLOCCO, E NON PER FORTUNA.
+      Oggi «Popolo d'Israele» è già ultima, ma perché l'ordinamento è per seggi decrescenti
+      e ne ha meno di tutte: il giorno in cui ne prendesse più di Sionismo Religioso
+      finirebbe in mezzo al gruppo, e il vuoto lo spaccherebbe. È la quarta volta che in
+      questo file una proprietà regge per coincidenza — l'house effect in ordine di blocco,
+      l'ordine del pannello dell'archivio, la targa dove tela e disegno coincidevano — e le
+      prime tre sono state chiuse così: rendendola vera per costruzione. */
+   var qui=liste.filter(function(i){return P[i].b===b;}).sort(giu);
+   var ipo=liste.filter(function(i){return P[i].b!==b;}).sort(giu);
+   [qui,ipo].forEach(function(gruppo,k){
+    if(!gruppo.length) return;
+    var n=0;
+    gruppo.forEach(function(id){for(var j=0;j<SEG[id];j++){seq.push(id);n++;}});
+    /* «fine» vuol dire «qui finisce un blocco»: il vuoto dopo un segmento interno è
+       più stretto, ed è l'unica cosa che distingue «dentro il blocco per ipotesi» da
+       «un altro blocco». */
+    segm.push({n:n, v:1, fine:!(k===0&&ipo.length)});
+   });
   });
  }
+ /* IL CONFINE FRA BLOCCHI SI ALLARGA SOLO SE C'È UN VUOTO INTERNO DA CUI DISTINGUERLO,
+    e questa riga è la ragione per cui la pagina di sempre non cambia di un pixel.
+    Misurato: senza liste spostate i passi restano 17,25 · 18,05 · 17,90 · 17,79 · 18,26
+    unità a tre blocchi e 17,25 · 17,23 · 17,21 · 17,20 · 17,71 a quattro, cioè identici a
+    prima. Con una coda separata e tutti i vuoti a 1 il disegno mostrerebbe QUATTRO gruppi
+    mentre la riga sotto ne conta tre: un confine di blocco e uno interno indistinguibili
+    sono la stessa forma dell'arco che ne contava tre su quattro.
+    IL PREZZO, misurato a 380 dove morde: il passo minimo scende da 17,25 a 15,53 unità e
+    l'aria fra due pastiglie da 4,89 a 3,59px, il 27% in meno — su un diametro di 8,19px
+    restano il 44% di stacco. Il confine a TRE posti è stato misurato e scartato: l'aria
+    scenderebbe a 2,52px, il 48% in meno.
+    E il prezzo lo paga solo chi preme: a leva spenta non c'è nessun segmento interno,
+    quindi nessun confine si allarga. */
+ var interni=0;
+ segm.forEach(function(s){ if(!s.fine) interni++; });
+ if(interni) segm.forEach(function(s){ if(s.fine) s.v=2; });
+ if(segm.length) segm[segm.length-1].v=0;
  /* ══ IL VUOTO FRA I GRUPPI È UN ANGOLO, NON UNA POSIZIONE NELLA SEQUENZA ══════════
     Riscritto il 27 agosto 2026, e quello che c'era prima non faceva quello che il suo
     commento diceva. I posti vuoti si inserivano nella sequenza LINEARE dei 120 seggi, che
@@ -6776,20 +6874,28 @@ function rEmi(){
     dove il conto dice «un seggio dentro l'ago della bilancia» e il disegno mette la linea
     sulla cucitura fra arabi e ago. L'invariante non si muove: la linea è il punto medio fra
     il 60° e il 61° seggio contando dall'angolo, quindi separa sempre 60 e 60. */
- var nG=grp.length, righe=5, r0=100, r1=188, rad=[], g;
+ var nG=segm.length, righe=5, r0=100, r1=188, rad=[], g;
  for(i=0;i<righe;i++) rad.push(r0+(r1-r0)*i/(righe-1));
  var sm=rad.reduce(function(a,b){return a+b;},0);
  var m=rad.map(function(r){return Math.max(1,Math.round(120*r/sm));});
  var df=120-m.reduce(function(a,b){return a+b;},0),k=righe-1;
  while(df!==0){m[k]+=(df>0?1:-1);df+=(df>0?-1:1);k=(k-1+righe)%righe;}
- var q=ripartiFile(grp,m);
+ var q=ripartiFile(segm,m);
  var pts=[];
  rad.forEach(function(r,ri){
   /* i posti di questa fila: i seggi di ogni gruppo presente, con un vuoto in mezzo */
-  var slot=[],gg,j;
-  for(gg=0;gg<nG;gg++){ if(!q[ri][gg]) continue;
-   if(slot.length) slot.push(-1);
-   for(j=0;j<q[ri][gg];j++) slot.push(gg); }
+  /* IL VUOTO LO PORTA IL SEGMENTO, e quando un segmento non arriva a questa fila il suo
+     vuoto non sparisce: si fonde col successivo prendendo il PIÙ LARGO dei due. Senza,
+     un blocco troppo piccolo per una fila lascerebbe lì un confine stretto, cioè direbbe
+     «dentro il blocco» dove i blocchi sono due. */
+  var slot=[],gg,j,pend=0;
+  for(gg=0;gg<nG;gg++){
+   if(!q[ri][gg]){ if(gg<nG-1&&segm[gg].v>pend) pend=segm[gg].v; continue; }
+   if(slot.length) for(j=0;j<Math.max(pend,1);j++) slot.push(-1);
+   pend=0;
+   for(j=0;j<q[ri][gg];j++) slot.push(gg);
+   pend=segm[gg].v||0;
+  }
   var n=slot.length;
   /* Sfasamento minimo fra una fila e l'altra — due decimi di grado, invisibile.
      Serve a rendere univoco l'ordine dei seggi da sinistra a destra: senza, le file
@@ -6808,7 +6914,7 @@ function rEmi(){
     «per lista» una lista resta uno SPICCHIO che attraversa le cinque file, com'era.
     Assegnandoli fila per fila la lista più grande finirebbe tutta nella fila interna. */
  var cur=[],base=0;
- for(g=0;g<nG;g++){ cur.push(base); base+=grp[g]; }
+ for(g=0;g<nG;g++){ cur.push(base); base+=segm[g].n; }
  var pieno=pts.map(function(p){ return p.g<0?null:seq[cur[p.g]++]; });
 
  /* Il filtro della legenda: EMIFILT è la chiave di un blocco in vista «Per blocco» e
@@ -7482,8 +7588,50 @@ function rTrend(){
     dopo l'ultimo sondaggio. La guardia resta e protegge dall'altro verso, un evento
     anteriore all'inizio della serie. */
  if(ORD.length){var te=+new Date(ORD[ORD.length-1].data); if(te>t1) t1=te;}
- var vals=[];S.forEach(function(x){vals.push(x.g,x.o,x.a);});
- punti.forEach(function(x){vals.push(x.g,x.o,x.a);});
+ /* ══ LE SERIE SI DECIDONO PRIMA DEL DOMINIO, E NON DOPO ══════════════════════════
+    Fino al 27 agosto 2026 questo elenco raccoglieva `g`, `o` e `a` e basta: la QUARTA
+    serie veniva disegnata e non veniva MAI misurata. Misurato sulla pagina resa, area del
+    grafico y 48…284 e dominio 8…68: la linea dell'ago della bilancia stava a y 299,7…315,5
+    — OTTANTASEI vertici su ottantasei fuori dall'area, sopra i nomi dei mesi che sono a
+    y 308 — e la sua pastiglia finale a y 302,5…328,5 in un viewBox alto 318, cioè tagliata
+    dalla cornice per 10,5 unità.
+    È la stessa famiglia della soglia dei 61 negli istogrammi, dove il dominio poteva
+    escludere la riga che il grafico esiste per mostrare, ma non è la stessa causa: là il
+    criterio era sbagliato, qui l'ELENCO era incompleto. E il rimedio non è aggiungere `i`
+    a mano — sarebbe la stessa forma, un elenco scritto due volte — è calcolare SER PRIMA
+    e misurare esattamente quello che si disegna.
+
+    LA CONDIZIONE STA SU SER, E DEVE GUARDARE ANCHE LA NUVOLA. Se guardasse la sola serie
+    del modello, il giorno in cui la leva sposta tutte le liste in bilico che hanno seggi
+    la linea sarebbe piatta sullo zero, il dominio non si allargherebbe, e i PUNTI della
+    nuvola resterebbero fuori dal grafico — cioè lo stesso difetto spostato di un passo.
+    E quella linea piatta va disegnata, non nascosta: dice una cosa vera — il modello
+    centrale non gli dà seggi, i sondaggi sì — ed è la stessa scelta fatta per le pastiglie
+    che la leva sposta nell'emiciclo.
+    OGGI IL CASO NON ESISTE, e va detto perché è la ragione per cui la condizione non si
+    può provare sull'archivio di adesso: IN_BILICO nomina «Popolo d'Israele», mentre i
+    seggi storici dell'ago vengono da «Casa Sionista», che la leva non muove. Misurato: a
+    leva accesa la serie del modello arriva lo stesso a 4 e la nuvola ha 15 punti sopra
+    zero. La condizione su SER è giusta lo stesso, ed è giusta PRIMA che il caso arrivi.
+
+    E IL DOMINIO SI ALLARGA SOLO QUANDO SERVE: se non c'è niente da mostrare SER scarta la
+    quarta serie e questo elenco non la vede, quindi `lo` resta dov'era. Il prezzo —
+    misurato: 3,933 → 3,471 unità per seggio, l'11,8% di schiacciamento, che a 1265 sono
+    3,3px in meno di escursione per l'opposizione su cinque mesi — lo si paga soltanto nei
+    giorni in cui quella serie ha qualcosa da dire. */
+ /* LA QUARTA SERIE C'È QUANDO C'È QUALCOSA DA MOSTRARE, e non sempre: se l'ago della
+    bilancia non ha seggi né nella serie né in una rilevazione, disegnarlo vorrebbe dire
+    una linea piatta sullo zero per tutto l'asse, una voce di legenda che dice sempre 0 e
+    una tinta in più da distinguere — rumore al posto di un'informazione. La condizione
+    guarda i DATI e non una costante, quindi il giorno in cui una di quelle liste entra in
+    Knesset la linea compare da sé; e guarda TUTTI E DUE gli insiemi, perché una rilevazione
+    che le dà seggi va disegnata anche se la media pesata non gliene assegna ancora. */
+ var SER=[['g','coal','Blocco Netanyahu','coalizione'],['o','oppo','Opposizione sionista','opposizione'],
+          ['a','arab','Partiti arabi','arabo'],['i','inc','Ago della bilancia','incerto']];
+ if(!S.some(function(x){return x.i>0;})&&!punti.some(function(x){return x.i>0;})) SER=SER.slice(0,3);
+ var vals=[];
+ S.forEach(function(x){SER.forEach(function(z){vals.push(x[z[0]]);});});
+ punti.forEach(function(x){SER.forEach(function(z){vals.push(x[z[0]]);});});
  var lo=Math.min(38,Math.floor(Math.min.apply(null,vals)/4)*4);
  var hi=Math.max(64,Math.ceil(Math.max.apply(null,vals)/4)*4);
  function X(d){return Lm+(W-Lm-Rm)*((+new Date(d)-t0)/(t1-t0||1));}
@@ -7548,18 +7696,6 @@ function rTrend(){
     '" stroke="'+C.ink+'" stroke-width="1.4" stroke-dasharray="6 4"/>'+
     '<text x="'+(Lm+6)+'" y="'+(Y(61)-7).toFixed(1)+'" font-size="'+(11.5*FS).toFixed(1)+'" font-weight="700" fill="'+C.ink+'">61 = maggioranza</text>';
  /* nuvola dei singoli sondaggi, sullo sfondo */
- /* LA QUARTA SERIE C'È QUANDO C'È QUALCOSA DA MOSTRARE, e non sempre.
-    L'ago della bilancia oggi non ha seggi in nessun punto della serie né in nessuna
-    rilevazione: disegnarlo comunque vorrebbe dire una linea piatta sullo zero per tutto
-    l'asse, una quarta voce di legenda che dice sempre 0 e una tinta in più da distinguere
-    — rumore al posto di un'informazione. Il giorno in cui una di quelle liste entra in
-    Knesset la linea compare da sé, perché la condizione guarda i DATI e non una costante.
-    E guarda tutti e due gli insiemi — la serie del modello e la nuvola dei sondaggi —
-    perché una rilevazione che le dà seggi va disegnata anche se la media pesata non
-    gliene assegna ancora. */
- var SER=[['g','coal','Blocco Netanyahu','coalizione'],['o','oppo','Opposizione sionista','opposizione'],
-          ['a','arab','Partiti arabi','arabo'],['i','inc','Ago della bilancia','incerto']];
- if(!S.some(function(x){return x.i>0;})&&!punti.some(function(x){return x.i>0;})) SER=SER.slice(0,3);
  punti.forEach(function(p){
   SER.forEach(function(z){
    s+='<circle class="pt pt-'+z[0]+'" cx="'+X(p.d).toFixed(1)+'" cy="'+Y(p[z[0]]).toFixed(1)+
@@ -7590,8 +7726,12 @@ function rTrend(){
  });
  /* etichette finali, scostate se troppo vicine */
  fine.sort(function(a,b){return a.y-b.y;});
+ /* IL SERRAGGIO STA IN UNA FUNZIONE PURA, e il perché è scritto là: il caso che fa
+    scattare il tetto non lo raggiunge nessun archivio, quindi si prova per esaurimento
+    invece che su un render. */
  var DY=MOB?22:20;
- for(var i2=1;i2<fine.length;i2++) if(fine[i2].y-fine[i2-1].y<DY) fine[i2].y=fine[i2-1].y+DY;
+ var _ys=impilaEtichette(fine.map(function(f){return f.y;}),DY,H,13);
+ fine.forEach(function(f,i2){f.y=_ys[i2];});
  fine.forEach(function(f){
   s+='<g class="ln ln-'+f.k+'">'+
      '<rect x="'+(W-Rm+4)+'" y="'+(f.y-13).toFixed(1)+'" width="'+(MOB?42:34)+'" height="26" rx="4" fill="'+f.c+'"/>'+
