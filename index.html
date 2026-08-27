@@ -5116,9 +5116,19 @@ function dataPNG(){
    didascalia dell'80%, per la tendenza le serie. L'emiciclo non ha piede perché la
    legenda ce l'ha dentro il disegno. */
 function piedePNG(dis){
- if(dis.tit==='Il modello giorno per giorno')
-  return BL.coalizione.n+' · '+BL.opposizione.n+' · '+BL.arabo.n+
+ /* LE SERIE SI CHIEDONO AL DISEGNO, non si elencano: qui c'erano tre nomi scritti a mano,
+    e la targa del PNG — che è l'immagine che ESCE dalla pagina — ne nominava tre mentre il
+    grafico ne disegnava quattro. Si legge dalla legenda resa, che è la stessa che il
+    lettore ha davanti: ricomporla da SERIE sarebbe una seconda strada per una frase che
+    esiste già, ed è la trappola che questo file paga sempre due volte. */
+ if(dis.tit==='Il modello giorno per giorno'){
+  var v=$('k-trendleg')?$('k-trendleg').querySelectorAll('b[data-ln]'):[];
+  var nomi=Array.prototype.map.call(v,function(b){return BL[(SERIE.filter(function(z){
+    return z.k===b.getAttribute('data-ln');})[0]||{}).bl||'incerto'].n;});
+  if(!nomi.length) nomi=SERIE.map(function(z){return BL[z.bl].n;});
+  return nomi.join(' · ')+
    ' — la linea è la proiezione ricalcolata giorno per giorno, i puntini i singoli sondaggi';
+ }
  return 'La fascia chiara è l\'intervallo in cui cade l\'esito in 8 simulazioni su 10; il triangolo è la stima puntuale';
 }
 
@@ -6061,7 +6071,49 @@ function rCrono(){
    lasciato cadere la 'i' in silenzio: il riquadro dell'evento avrebbe letto undefined e il
    tratto acceso della quarta serie sarebbe uscito con le coordinate a NaN — un path che
    non disegna niente e non solleva niente. */
-var SERIE_K=['g','o','a','i'];
+/* ══ L'ANAGRAFICA DELLE SERIE DELLA TENDENZA ═══════════════════════════════════════
+   La lettera che il grafico usa e il blocco che rappresenta, in un posto solo. Il NOME e
+   il COLORE non stanno qui: si ricavano da BL[] e da BC(), che li dichiarano già — una
+   quinta e una sesta copia di «Blocco Netanyahu» e di --coal non servivano a nessuno.
+
+   ERANO SETTE POSTI, E TRE NE ELENCAVANO TRE SU QUATTRO. Scritto il 27 agosto 2026: è la
+   quarta incarnazione del quarto blocco dimenticato, dopo i totali dell'arco, i nove
+   consumatori dei testi e il dominio dell'asse — e stavolta ce n'erano tre insieme, tutte
+   nello stesso grafico:
+     · piedePNG() scriveva «Blocco Netanyahu · Opposizione sionista · Partiti arabi» a mano,
+       quindi la TARGA del PNG esportato nominava tre serie mentre il disegno ne portava
+       quattro. È il caso peggiore dei tre, perché quell'immagine esce dalla pagina;
+     · il tooltip del passaggio del mouse diceva gli stessi tre numeri;
+     · TRENDPTS, da cui il tooltip li legge, non portava nemmeno il quarto: {g,o,a} e basta.
+   Gli altri quattro posti erano già completi, ed è precisamente la condizione in cui i tre
+   incompleti non si notano — ogni consumatore era corretto rispetto a sé stesso.
+
+   LA LETTERA NON È UN VEZZO: è la chiave con cui la serie viaggia dentro serieModello(),
+   la nuvola, serieAl() e le classi CSS `ln-g` `pt-i`, che il foglio usa per isolare una
+   linea. Cambiarla vorrebbe dire cambiare anche il foglio, ed è per questo che qui c'è la
+   coppia e non il solo nome del blocco. */
+var SERIE=[{k:'g',bl:'coalizione'},{k:'o',bl:'opposizione'},
+           {k:'a',bl:'arabo'},{k:'i',bl:'incerto'}];
+var SERIE_K=SERIE.map(function(z){return z.k;});
+/* LE SERIE CHE IL GRAFICO DISEGNA, e da qui discendono il dominio dell'asse, le linee, la
+   nuvola, la legenda e il piede della targa del PNG. Una sola risposta a «quante sono»:
+   prima erano sette elenchi, e tre ne contavano tre su quattro.
+   LA QUARTA C'È QUANDO C'È QUALCOSA DA MOSTRARE, e non sempre: se l'ago della bilancia non
+   ha seggi né nella serie né in una rilevazione, disegnarla vorrebbe dire una linea piatta
+   sullo zero per tutto l'asse, una voce di legenda che dice sempre 0 e una tinta in più da
+   distinguere — rumore al posto di un'informazione. La condizione guarda i DATI e non una
+   costante, quindi il giorno in cui una di quelle liste entra in Knesset la linea compare
+   da sé; e guarda TUTTI E DUE gli insiemi, perché una rilevazione che le dà seggi va
+   disegnata anche se la media pesata non gliene assegna ancora — e perché il dominio, che
+   nasce da qui, deve coprire anche i punti della nuvola.
+   Il COLORE lo dà BC(), che è la funzione che porta un blocco al suo token: scriverlo qui
+   sarebbe la settima copia di --coal, ed è esattamente quello che si sta chiudendo. */
+function serieInCampo(S,punti){
+ return SERIE.filter(function(z){
+  if(z.k!=='i') return true;
+  return S.some(function(x){return x[z.k]>0;})||punti.some(function(x){return x[z.k]>0;});
+ }).map(function(z){return {k:z.k, bl:z.bl, col:BC(z.bl), nome:BL[z.bl].n};});
+}
 function serieAl(S,d){
  var i,pre=null,post=null,out;
  for(i=0;i<S.length;i++){ if(S[i].d<=d) pre=S[i]; if(S[i].d>=d&&!post) post=S[i]; }
@@ -6126,9 +6178,11 @@ function rEvSel(){
     La quarta riga compare quando c'è: alla data dell'evento o alla fine della finestra dei
     trenta giorni. Se in tutti e due i momenti vale zero non si scrive, perché una riga che
     dice «Ago della bilancia 0 · invariato» non aggiunge niente a un riquadro stretto. */
- var righe=[['coalizione','Blocco Netanyahu','g'],['opposizione','Opposizione sionista','o'],
-            ['arabo','Partiti arabi','a']];
- if(ar(p.i)||ar(q.i)) righe.push(['incerto','Ago della bilancia','i']);
+ /* le righe sono le SERIE, e la quarta compare quando ha qualcosa da dire: prima erano
+    tre scritte a mano piu una spinta in coda, cioe la stessa forma che nel piede della
+    targa e nel tooltip nominava tre blocchi su quattro. */
+ var righe=SERIE.filter(function(z){return z.k!=='i'||ar(p[z.k])||ar(q[z.k]);})
+   .map(function(z){return [z.bl, BL[z.bl].n, z.k];});
  el.className='evsel on';
  /* Il pulsante di uscita sta per ULTIMO nel markup, e non è indifferente: sopra i 660 è
     in posizione assoluta e l'ordine non conta, ma sotto è statico e va dove lo mette il
@@ -7499,7 +7553,9 @@ function serieModello(){
      27 agosto 2026 ogni punto della serie portava tre blocchi su quattro, quindi la
      tendenza PERDEVA i seggi dell'ago della bilancia — misurato su un archivio in cui ne
      ha nove, tre linee che sommavano 111 sotto una riga della maggioranza a 61. */
-  out.push({d:d,g:b.coalizione,o:b.opposizione,a:b.arabo,i:b.incerto,n:l.length});
+  var pt={d:d,n:l.length};
+  SERIE.forEach(function(z){pt[z.k]=b[z.bl];});
+  out.push(pt);
  });
  _serie=out;_serieKey=key;
  return out;
@@ -7518,8 +7574,8 @@ function notaSerie(S){
  var cp=coppieRiparto(sopraSoglia(),null);
  var ult=S[S.length-1], b=blocchi(SEG);
  var diff=[];
- [['coalizione','g'],['opposizione','o'],['arabo','a'],['incerto','i']].forEach(function(z){
-  if(ult[z[1]]!==b[z[0]]) diff.push(BL[z[0]].n+' <b>'+f(ult[z[1]])+'</b> contro <b>'+f(b[z[0]])+'</b>');
+ SERIE.forEach(function(z){
+  if(ult[z.k]!==b[z.bl]) diff.push(BL[z.bl].n+' <b>'+f(ult[z.k])+'</b> contro <b>'+f(b[z.bl])+'</b>');
  });
  /* Solo per gli accordi: una divergenza di altra origine vorrebbe un'altra diagnosi, e
     una frase che la attribuisse a questi mentirebbe. */
@@ -7535,8 +7591,9 @@ function rTrend(){
  if(S.length<3){$('k-trend').innerHTML='';return;}
  notaSerie(S);
  var punti=tutti().slice().sort(function(a,b){return a.data<b.data?-1:1;}).map(function(s){
-  var b=blocchi(s.pre?armonizza(s):s.seggi);
-  return {d:s.data,g:b.coalizione,o:b.opposizione,a:b.arabo,i:b.incerto,src:s.istituto,test:s.testata};});
+  var b=blocchi(s.pre?armonizza(s):s.seggi), o={d:s.data,src:s.istituto,test:s.testata};
+  SERIE.forEach(function(z){o[z.k]=b[z.bl];});
+  return o;});
  /* Su schermo stretto si riduce la larghezza del riquadro invece dei caratteri:
     l'SVG scala alla larghezza del contenitore, quindi un viewBox più stretto
     rende il testo proporzionalmente più grande. */
@@ -7567,7 +7624,25 @@ function rTrend(){
     Le etichette si ancorano ai MULTIPLI del passo, non a lo: lo e' calcolato dai dati
     (floor del minimo su 4) e partire da li' darebbe una scala che si sposta quando si
     sposta il minimo. */
- var PASSOY=MOB?8:4;
+ /* IL PASSO È 8 A TUTTE LE LARGHEZZE, e la ragione è aritmetica prima che grafica.
+    Sotto i 660 era già 8 dal 22 agosto 2026, per una misura di densità: sedici etichette a
+    11,66px di corpo su un passo di 10,22px lasciavano 2,07px fra una e l'altra. Sopra i 660
+    il passo restava 4, e nessuno aveva rimesso in discussione il filetto del 60 — che dista
+    UN seggio dalla riga tratteggiata del 61, cioè 3,90px a 1265 col dominio di oggi. Due
+    righe orizzontali quasi coincidenti, e una è il riferimento per cui il grafico esiste,
+    con «61 = maggioranza» schiacciato in mezzo.
+    MISURATI TUTTI E QUATTRO I PASSI, col dominio −4…68:
+      passo  4  filetto 60, a 3,90px  ·  scoperto sopra 0 seggi
+      passo  8  filetto 64, a 11,69px ·  scoperto sopra 4 seggi (15,6px)
+      passo 10  filetto 60, a 3,90px  ·  scoperto sopra 8 seggi (31,2px)
+      passo 12  filetto 60, a 3,90px  ·  scoperto sopra 8 seggi (31,2px)
+    Dieci e dodici non riparano niente e buttano via trentun pixel in cima.
+    E IL PERCHÉ È CHE 61 È UNO PIÙ DI 60, che è divisibile per 2, 3, 4, 5, 6, 10, 12, 15,
+    20 e 30: quasi ogni passo tondo cade sul 60. Restano 7, 8, 9, 11, 13, 14 e 16, e otto è
+    il solo che un lettore legga come un passo. Non è una preferenza: è l'unico numero
+    ragionevole che soddisfa la proprietà, e la prova asserisce la PROPRIETÀ — nessun
+    filetto entro due seggi dal 61 — non il numero. */
+ var PASSOY=8;
  /* I mesi si diradano CONTANDO DALL'ULTIMO, non dal primo. Alternare sull'indice del
     mese lascerebbe fuori quello piu' recente — oggi agosto — che e' il capo da cui si
     legge il grafico. Misurato a 380: «mag» e' larga 22,98px e il passo minimo fra due
@@ -7626,14 +7701,32 @@ function rTrend(){
     guarda i DATI e non una costante, quindi il giorno in cui una di quelle liste entra in
     Knesset la linea compare da sé; e guarda TUTTI E DUE gli insiemi, perché una rilevazione
     che le dà seggi va disegnata anche se la media pesata non gliene assegna ancora. */
- var SER=[['g','coal','Blocco Netanyahu','coalizione'],['o','oppo','Opposizione sionista','opposizione'],
-          ['a','arab','Partiti arabi','arabo'],['i','inc','Ago della bilancia','incerto']];
- if(!S.some(function(x){return x.i>0;})&&!punti.some(function(x){return x.i>0;})) SER=SER.slice(0,3);
+ var SER=serieInCampo(S,punti);
  var vals=[];
- S.forEach(function(x){SER.forEach(function(z){vals.push(x[z[0]]);});});
- punti.forEach(function(x){SER.forEach(function(z){vals.push(x[z[0]]);});});
- var lo=Math.min(38,Math.floor(Math.min.apply(null,vals)/4)*4);
- var hi=Math.max(64,Math.ceil(Math.max.apply(null,vals)/4)*4);
+ S.forEach(function(x){SER.forEach(function(z){vals.push(x[z.k]);});});
+ punti.forEach(function(x){SER.forEach(function(z){vals.push(x[z.k]);});});
+ /* IL PAVIMENTO STA UN GRADINO SOTTO, e non sul minimo. Misurato il 27 agosto 2026: col
+    pavimento a zero — che è dove `floor` lo lascia quando una serie tocca lo zero —
+    OTTANTA vertici su ottantasei della linea dell'ago, il 93%, cadevano entro UN seggio
+    dal fondo dell'area. Una linea che corre sul filetto più basso per il 93% dell'asse non
+    si distingue dall'asse: il filetto è grigio e sottile, la linea lo copre, e quello che
+    il lettore vede è un bordo colorato.
+    È il rimedio della soglia dei 61 negli istogrammi applicato al fondo invece che alla
+    riga: là `mn ≤ 60` lascia un cestello sotto la soglia perché l'attraversamento si legga,
+    qui un gradino d'asse sotto il minimo perché la serie si stacchi dal bordo.
+    IL PAVIMENTO PUÒ ANDARE SOTTO ZERO, e le tacche no: un asse che scrive «−4» direbbe
+    meno di zero seggi, che non vuol dire niente. Il ciclo dei filetti parte da zero, quindi
+    sotto la tacca più bassa resta un gradino di aria e nessun numero. È l'idioma delle due
+    fasce degli istogrammi: la cornice cresce, il disegno no.
+    PREZZO, misurato: il dominio passa da 0…68 a −4…68, cioè da 3,471 a 3,278 unità per
+    seggio — il 5,6% — e si paga solo quando una serie arriva davvero al fondo. Sul TETTO
+    non si fa lo stesso, ed è una scelta: sopra il grafico non c'è nessun bordo che l'occhio
+    legga come pavimento — ci sono i dischi degli eventi — e oggi restano comunque 6,9 unità
+    di aria fra la serie più alta e il margine. */
+ var PASSOD=4;
+ var lo=Math.min(38,Math.floor(Math.min.apply(null,vals)/PASSOD)*PASSOD);
+ var hi=Math.max(64,Math.ceil(Math.max.apply(null,vals)/PASSOD)*PASSOD);
+ if(Math.min.apply(null,vals)-lo<PASSOD) lo-=PASSOD;
  function X(d){return Lm+(W-Lm-Rm)*((+new Date(d)-t0)/(t1-t0||1));}
  /* Le corsie dei dischi si assegnano PRIMA di fissare T, perché è il numero di corsie a
     dire quanto spazio serve sopra il grafico. Sotto i 660 i dischi restavano tutti su una
@@ -7671,7 +7764,9 @@ function rTrend(){
   TRATTO={da:ISO.da, px:+_px.toFixed(1), gg:ISO.gg, mostrato:_px>=TRATTO_MIN};
  }
  var s='<svg viewBox="0 0 '+W+' '+H+'" role="img" aria-label="Proiezione del modello nel tempo">';
- for(var v=Math.ceil(lo/PASSOY)*PASSOY;v<=hi;v+=PASSOY){
+ /* le tacche partono da ZERO anche quando il pavimento sta sotto: meno di zero seggi non
+    vuol dire niente, e la tacca non si disegna dove il numero non esiste */
+ for(var v=Math.max(0,Math.ceil(lo/PASSOY)*PASSOY);v<=hi;v+=PASSOY){
   s+='<line x1="'+Lm+'" y1="'+Y(v).toFixed(1)+'" x2="'+(W-Rm)+'" y2="'+Y(v).toFixed(1)+
      '" stroke="'+C.hair2+'" stroke-width="1"/>'+
      '<text x="'+(Lm-6)+'" y="'+(Y(v)+4).toFixed(1)+'" text-anchor="end" font-size="'+(12*FS).toFixed(1)+'" fill="'+C.mute+'">'+v+'</text>';
@@ -7698,31 +7793,31 @@ function rTrend(){
  /* nuvola dei singoli sondaggi, sullo sfondo */
  punti.forEach(function(p){
   SER.forEach(function(z){
-   s+='<circle class="pt pt-'+z[0]+'" cx="'+X(p.d).toFixed(1)+'" cy="'+Y(p[z[0]]).toFixed(1)+
-      '" r="'+(MOB?2.2:2.6)+'" fill="'+C[z[1]]+'" opacity=".28"/>';
+   s+='<circle class="pt pt-'+z.k+'" cx="'+X(p.d).toFixed(1)+'" cy="'+Y(p[z.k]).toFixed(1)+
+      '" r="'+(MOB?2.2:2.6)+'" fill="'+z.col+'" opacity=".28"/>';
   });
  });
  /* le linee del modello, una per blocco con seggi */
  var fine=[];
  SER.forEach(function(z){
-  var d=S.map(function(x){return {d:x.d,v:x[z[0]]};});
-  s+='<path class="ln ln-'+z[0]+'" d="'+d.map(function(p,i){
+  var d=S.map(function(x){return {d:x.d,v:x[z.k]};});
+  s+='<path class="ln ln-'+z.k+'" d="'+d.map(function(p,i){
     return (i?'L':'M')+X(p.d).toFixed(1)+' '+Y(p.v).toFixed(1);}).join(' ')+
-    '" fill="none" stroke="'+C[z[1]]+'" stroke-width="'+(MOB?2.4:2.8)+'" stroke-linejoin="round" stroke-linecap="round"/>';
+    '" fill="none" stroke="'+z.col+'" stroke-width="'+(MOB?2.4:2.8)+'" stroke-linejoin="round" stroke-linecap="round"/>';
   /* il tratto acceso parte ESATTAMENTE dal marcatore e non dal punto che lo precede:
      il primo e l'ultimo vertice sono interpolati, come fa la linea sotto. Più spesso del
      tratto attenuato, perché a 380 la linea è 2,4 unità di viewBox = 1,5px reali e
      l'opacità da sola su un pixel e mezzo non basta a separarli. */
   if(ISO&&TRATTO&&TRATTO.mostrato){
-   var seg=[{d:ISO.da,v:serieAl(S,ISO.da)[z[0]]}];
-   S.forEach(function(x){ if(x.d>ISO.da&&x.d<ISO.a) seg.push({d:x.d,v:x[z[0]]}); });
-   seg.push({d:ISO.a,v:serieAl(S,ISO.a)[z[0]]});
-   s+='<path class="acc acc-'+z[0]+'" d="'+seg.map(function(pt,i3){
+   var seg=[{d:ISO.da,v:serieAl(S,ISO.da)[z.k]}];
+   S.forEach(function(x){ if(x.d>ISO.da&&x.d<ISO.a) seg.push({d:x.d,v:x[z.k]}); });
+   seg.push({d:ISO.a,v:serieAl(S,ISO.a)[z.k]});
+   s+='<path class="acc acc-'+z.k+'" d="'+seg.map(function(pt,i3){
      return (i3?'L':'M')+X(pt.d).toFixed(1)+' '+Y(pt.v).toFixed(1);}).join(' ')+
-     '" fill="none" stroke="'+C[z[1]]+'" stroke-width="'+(MOB?3.8:3.6)+
+     '" fill="none" stroke="'+z.col+'" stroke-width="'+(MOB?3.8:3.6)+
      '" stroke-linejoin="round" stroke-linecap="round"/>';
   }
-  fine.push({y:Y(d[d.length-1].v),v:d[d.length-1].v,c:C[z[1]],k:z[0],nome:z[2]});
+  fine.push({y:Y(d[d.length-1].v),v:d[d.length-1].v,c:z.col,k:z.k,nome:z.nome});
  });
  /* etichette finali, scostate se troppo vicine */
  fine.sort(function(a,b){return a.y-b.y;});
@@ -7783,13 +7878,18 @@ function rTrend(){
  $('k-trend').innerHTML=s+'</svg>';
  $('k-trend').className=ISO?'iso':'';
  if($('k-evlay')) $('k-evlay').innerHTML=lay;
- TRENDPTS=S.map(function(x){return {x:X(x.d),d:x.d,g:x.g,o:x.o,a:x.a,n:x.n};});
+ /* IL PUNTO DEL TOOLTIP PORTA TUTTE LE SERIE, e prima ne portava tre: {g,o,a}. Il
+    quarto numero non era nascosto dal tooltip — non arrivava mai fin lì. */
+ TRENDPTS=S.map(function(x){
+  var o={x:X(x.d),d:x.d,n:x.n};
+  SERIE.forEach(function(z){o[z.k]=x[z.k];});
+  return o;});
  TRENDGEO={W:W,H:H,Lm:Lm,Rm:Rm};
  attaccaTip();legendaInterattiva();
  /* legenda interattiva */
  $('k-trendleg').innerHTML=SER.map(function(z){
-  var u=S[S.length-1][z[0]];
-  return '<b data-ln="'+z[0]+'"><i style="--c:'+C[z[1]]+';background:var(--c)"></i>'+z[2]+
+  var u=S[S.length-1][z.k];
+  return '<b data-ln="'+z.k+'"><i style="--c:'+z.col+';background:var(--c)"></i>'+z.nome+
    '<s>'+u+'</s></b>';}).join('')+
   '<b class="nolink"><i style="background:'+C.ink+';height:2px;width:16px"></i>Maggioranza 61</b>';
 }
@@ -9431,8 +9531,13 @@ function attaccaTip(){
   var vx=cx/r.width*TRENDGEO.W,best=null,dm=1e9;
   TRENDPTS.forEach(function(p){var d=Math.abs(p.x-vx);if(d<dm){dm=d;best=p;}});
   if(!best||dm>18){tip.classList.remove('on');return;}
+  /* i blocchi che il tooltip nomina sono QUELLI CHE IL GRAFICO DISEGNA, non tre scritti a
+     mano: con la quarta serie in campo diceva tre numeri su quattro. E si tace sul blocco
+     che vale zero in quel punto, che è la stessa regola della quarta riga del riquadro
+     dell'evento isolato: «Ago della bilancia 0» in un tooltip stretto non aggiunge niente. */
   tip.innerHTML='<b>'+dl(best.d)+'</b> · '+best.n+' rilevazioni nella finestra<br>'+
-   'Blocco Netanyahu <b>'+best.g+'</b> · Opposizione <b>'+best.o+'</b> · Arabi <b>'+best.a+'</b>';
+   SERIE.filter(function(z){return best[z.k];})
+     .map(function(z){return BL[z.bl].n+' <b>'+best[z.k]+'</b>';}).join(' · ');
   tip.classList.add('on');
   var px=best.x/TRENDGEO.W*r.width;
   tip.style.left=Math.max(0,Math.min(r.width-170,px-85))+'px';

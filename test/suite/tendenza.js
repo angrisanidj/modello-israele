@@ -54,7 +54,7 @@ global.Blob = function(){}; global.URL = {createObjectURL(){ return ''; }};
 global.FileReader = function(){}; global.fetch = () => Promise.reject(0);
 
 let src = fs.readFileSync(__dirname + '/../app.js','utf8');
-src = src.replace('carica().then(render,render)', 'global.A={render:render,impilaEtichette:impilaEtichette};carica().then(render,render)');
+src = src.replace('carica().then(render,render)', 'global.A={render:render,impilaEtichette:impilaEtichette,piedePNG:piedePNG,PNG_DISEGNI:PNG_DISEGNI,SERIE:SERIE,BL:BL};carica().then(render,render)');
 eval(src);
 
 /* ── il reso, misurato su browser il 22 agosto 2026 ── */
@@ -96,48 +96,62 @@ const k = w => RESO[w].larghezza / RESO[w].viewBox;
 
 /* ── 1 · il passo dell'asse ── */
 /*
-   I CONTI SONO CAMBIATI IL 27 AGOSTO 2026, e non perche il passo si sia mosso: il DOMINIO
-   si e allargato. Fino a quel giorno l'asse raccoglieva tre serie su quattro e partiva da
-   8; adesso copre quello che il grafico disegna e parte da 0, quindi con lo STESSO passo
-   le tacche sono due in piu a ogni larghezza. Il passo e la sua ragione non si toccano: e
-   il NUMERO di tacche a essere una conseguenza, e per questo si ricava dal dominio.
+   RISCRITTA IL 27 AGOSTO 2026, DUE VOLTE NELLO STESSO GIORNO, e vale la pena dire perche
+   perche le due riscritture hanno cause diverse.
+   La prima: il DOMINIO si e allargato. L'asse raccoglieva tre serie su quattro e partiva
+   da 8; adesso copre quello che il grafico disegna e scende un gradino sotto il minimo,
+   quindi con lo stesso passo le tacche cambiano di numero. Il conto delle tacche e una
+   CONSEGUENZA, e per questo si ricava dal dominio invece di essere scritto.
+   La seconda: il PASSO e diventato 8 anche sopra i 660. Sotto ci era gia dal 22 agosto per
+   densita — sedici etichette a 11,66px di corpo su un passo di 10,22 lasciavano 2,07px —
+   ma sopra restava 4, e nessuno aveva rimesso in discussione il filetto del 60, che dista
+   UN seggio dalla riga del 61: 3,90px a 1265, due righe orizzontali quasi coincidenti con
+   «61 = maggioranza» schiacciato in mezzo.
+   QUINDI LE ASSERZIONI NON SONO PIU SUL NUMERO DI TACCHE PER LARGHEZZA — che era la forma
+   della prima stesura, e che ha dovuto cambiare due volte in un giorno — MA SULLA
+   PROPRIETA: il passo e uniforme, cade sui multipli, copre l'intervallo, e soprattutto non
+   mette nessun filetto addosso alla riga per cui il grafico esiste. Il numero 8 compare in
+   una asserzione sola, e accanto c'e il conto che lo sceglie.
 */
 const attese = a => Math.round((Math.max.apply(null, a.map(x => x.v)) -
   Math.min.apply(null, a.map(x => x.v))) / (a[1].v - a[0].v)) + 1;
-esito(largo.ass.length === attese(largo.ass) && largo.ass.length === 18,
-  'sopra i 660 l\'asse porta una tacca ogni 4 seggi su TUTTO il dominio, e sono diciotto',
-  largo.ass.length + ': ' + largo.ass.map(x => x.v).join(','));
-esito(stretto.ass.length === attese(stretto.ass) && stretto.ass.length === 9,
-  'sotto i 660 una ogni 8, e sono nove',
-  stretto.ass.length + ': ' + stretto.ass.map(x => x.v).join(','));
 const passi = a => [...new Set(a.map((x,i) => i ? x.v - a[i-1].v : null).filter(Boolean))];
-esito(JSON.stringify(passi(largo.ass)) === '[4]', 'e il passo sopra i 660 è uniforme a 4',
-  JSON.stringify(passi(largo.ass)));
-esito(JSON.stringify(passi(stretto.ass)) === '[8]', 'sotto i 660 uniforme a 8',
-  JSON.stringify(passi(stretto.ass)));
+esito(largo.ass.length === attese(largo.ass) && stretto.ass.length === attese(stretto.ass),
+  'le tacche coprono il dominio a passo costante, e quante siano si ricava da lui',
+  'largo ' + largo.ass.map(x => x.v).join(',') + '  ·  stretto ' + stretto.ass.map(x => x.v).join(','));
+esito(passi(largo.ass).length === 1 && passi(stretto.ass).length === 1,
+  'e il passo e uniforme a tutte e due le larghezze',
+  JSON.stringify(passi(largo.ass)) + ' · ' + JSON.stringify(passi(stretto.ass)));
+esito(passi(largo.ass)[0] === passi(stretto.ass)[0],
+  'ed e lo STESSO: il filetto addosso al 61 non e un difetto del mobile, era di tutte e due',
+  passi(largo.ass)[0] + ' contro ' + passi(stretto.ass)[0]);
 /* le etichette cadono su MULTIPLI del passo, non su lo: lo è calcolato dai dati e la
    scala si sposterebbe insieme al minimo */
-esito(stretto.ass.every(x => x.v % 8 === 0), 'e cadono sui multipli del passo, non su lo',
+const P = passi(stretto.ass)[0];
+esito(stretto.ass.every(x => x.v % P === 0) && largo.ass.every(x => x.v % P === 0),
+  'e cadono sui multipli del passo, non su lo',
   JSON.stringify(stretto.ass.map(x => x.v)));
 /* E questa è sulla FORMA, non sul valore, perché oggi il valore non discrimina: lo vale
-   8, che è già multiplo di 8, quindi ancorare le etichette a lo darebbe la stessa scala
-   e la prova qui sopra passerebbe lo stesso. Ma lo è calcolato dai dati —
-   Math.min(38, Math.floor(minimo/4)*4) — cioè è un multiplo di 4 al più 38: può valere
-   36, 28, 20, e allora la scala diventerebbe 36-44-52-60-68, che si sposta insieme al
-   minimo dell'archivio. È la stessa scelta di struttura.mjs sulle composizioni: dove il
-   comportamento non distingue, si guarda la forma. */
-esito(/for\(var v=Math\.ceil\(lo\/PASSOY\)\*PASSOY;/.test(src),
-  'e il ciclo parte dal primo multiplo del passo, non da lo: lo si sposta coi dati',
+   un multiplo del passo, quindi ancorare le etichette a lo darebbe la stessa scala e la
+   prova qui sopra passerebbe lo stesso. Ma lo è calcolato dai dati — e da quando scende
+   un gradino sotto il minimo può anche essere NEGATIVO, e una tacca a −4 direbbe meno di
+   zero seggi. Il ciclo parte dal primo multiplo del passo, e non sotto zero. */
+esito(/for\(var v=Math\.max\(0,Math\.ceil\(lo\/PASSOY\)\*PASSOY\);/.test(src),
+  'e il ciclo parte dal primo multiplo del passo e mai sotto zero: lo si sposta coi dati e ' +
+  'puo andare sotto il minimo',
   (/for\(var v=[^;]+;/.exec(src) || ['non trovato'])[0]);
+esito(largo.ass.every(x => x.v >= 0) && stretto.ass.every(x => x.v >= 0),
+  'e nessuna tacca dice meno di zero seggi',
+  largo.ass.map(x => x.v).join(','));
 /* l'intervallo resta coperto: il grafico va da lo a hi e le etichette non devono
    fermarsi molto prima */
 const lo = largo.ass[0].v, hi = largo.ass[largo.ass.length-1].v;
-esito(stretto.ass[0].v - lo <= 8 && hi - stretto.ass[stretto.ass.length-1].v <= 8,
-  'e coprono l\'intervallo: scoperti al più otto seggi per capo',
+esito(stretto.ass[0].v - lo <= P && hi - stretto.ass[stretto.ass.length-1].v <= P,
+  'e coprono l\'intervallo: scoperto al piu un passo per capo',
   'da ' + lo + ' a ' + hi + ', etichette da ' + stretto.ass[0].v +
   ' a ' + stretto.ass[stretto.ass.length-1].v);
 
-/* ── il numero per cui il passo è 8 e non 10: la linea del 61 ── */
+/* ── il numero per cui il passo è 8, e non 4 né 10 né 12: la linea del 61 ── */
 const unita = (stretto.griglia[stretto.griglia.length-1] - stretto.griglia[0]) /
               (stretto.ass[stretto.ass.length-1].v - stretto.ass[0].v);
 const dal61 = f => Math.min.apply(null, f.griglia.map(y => Math.abs(y - f.y61)));
@@ -152,8 +166,18 @@ const perSeggio = Math.abs(unita) * k(380);
 esito(perSeggio > 2 && perSeggio < 2.6,
   'un seggio vale poco piu di due pixel reali a 380: e la misura che rende il filetto del 60 il caso peggiore',
   perSeggio.toFixed(2) + 'px (era 2,55 col dominio 8…68)');
-esito(!stretto.ass.some(x => x.v === 60) && largo.ass.some(x => x.v === 60),
-  'il filetto del 60 — quello che toccava il 61 — sotto i 660 non c\'è, e sopra sì');
+/* IL FILETTO DEL 60 NON C'E PIU A NESSUNA LARGHEZZA, e prima c'era sopra i 660. La
+   proprieta non e «il 60 non c'e»: e che nessun filetto cada entro DUE seggi dal 61, e il
+   60 e solo il modo in cui ci cadeva. Sessanta e divisibile per 2, 3, 4, 5, 6, 10, 12, 15,
+   20 e 30, quindi quasi ogni passo tondo ci finisce sopra: restano 7, 8, 9, 11, 13, 14 e
+   16, e otto e il solo che un lettore legga come un passo. */
+const vicino61 = a => Math.min.apply(null, a.ass.map(x => Math.abs(x.v - 61)));
+esito(vicino61(largo) >= 2 && vicino61(stretto) >= 2,
+  'nessuna tacca cade entro due seggi dalla riga del 61, a nessuna delle due larghezze',
+  'largo ' + vicino61(largo) + ' · stretto ' + vicino61(stretto));
+esito(!largo.ass.some(x => x.v === 60) && !stretto.ass.some(x => x.v === 60),
+  'e il filetto del 60 — quello che toccava il 61 — non c\'e piu da nessuna parte',
+  largo.ass.map(x => x.v).join(','));
 
 /* ── le etichette dell'asse non si toccano più ── */
 const margineAsse = f => {
@@ -199,9 +223,12 @@ esito(margineMesi(largo) * k(760) >= 12,
 esito(stretto.elementi < largo.elementi,
   'sotto i 660 il disegno porta meno elementi',
   stretto.elementi + ' contro ' + largo.elementi);
-esito(largo.elementi - stretto.elementi === 22,
-  'ventidue in meno: nove filetti, nove etichette dell\'asse, quattro mesi — due piu di ' +
-  'prima, perche il dominio allargato porta una tacca in piu a ogni larghezza',
+/* LA DIFFERENZA FRA LE DUE LARGHEZZE SI E RISTRETTA, ed e la conseguenza voluta: da
+   quando il passo e lo stesso, sopra e sotto i 660 l'asse porta le STESSE tacche, e a
+   diradarsi restano solo i mesi. Prima erano venti elementi di scarto, poi ventidue col
+   dominio allargato, adesso quattro: e i quattro sono i mesi. */
+esito(largo.elementi - stretto.elementi === 4,
+  'quattro in meno sotto i 660, e sono i mesi: l\'asse ormai e lo stesso alle due larghezze',
   String(largo.elementi - stretto.elementi));
 /* e la nuvola dei sondaggi NON è stata toccata: dice la dispersione delle rilevazioni,
    ed è l'unica cosa nel grafico che mostra il dato grezzo invece della proiezione */
@@ -325,6 +352,88 @@ esito(D.getElementById('k-trend').querySelectorAll('.pt').length > 400,
   esito(fuoriSenza > 0,
     'e il canale di rilevazione funziona: senza il tetto la pila USCIREBBE, in ' +
     fuoriSenza + ' configurazioni su ' + casi, String(fuoriSenza));
+}
+
+
+/* ══ CHI NOMINA LE SERIE LE NOMINA TUTTE ═══════════════════════════════════════════
+ * La quarta incarnazione del quarto blocco dimenticato, e stavolta erano TRE insieme nello
+ * stesso grafico — trovate il 27 agosto 2026 guardando la pagina resa, non dal banco:
+ *   · piedePNG() scriveva tre nomi a mano, quindi la TARGA del PNG esportato nominava tre
+ *     serie mentre il disegno ne portava quattro. È il caso peggiore, perché quell'immagine
+ *     esce dalla pagina e nessuno la corregge più;
+ *   · il tooltip del passaggio del mouse diceva gli stessi tre numeri;
+ *   · TRENDPTS, da cui il tooltip li legge, non portava nemmeno il quarto: {g,o,a} e basta,
+ *     quindi il quarto numero non era nascosto — non arrivava mai fin lì.
+ * Gli altri quattro posti erano già completi, ed è esattamente la condizione in cui i tre
+ * incompleti non si notano: ogni consumatore era corretto rispetto a sé stesso.
+ * LE ASSERZIONI SONO SULLA PROPRIETÀ: chi nomina le serie le prende da SERIE, e quante siano
+ * lo decide serieInCampo(). Vale per il consumatore che qualcuno aggiunge domani. */
+{
+  const A4 = global.A;
+  A4.render();
+  const h = D.getElementById('k-trend').innerHTML;
+  const disegnate = [...h.matchAll(new RegExp('class="ln ln-(\\w)" d=', 'g'))].map(m => m[1]);
+  esito(disegnate.length === 4,
+    'premessa: oggi il grafico disegna quattro serie, quindi la prova esercita il caso',
+    disegnate.join(','));
+
+  /* 1 · IL PIEDE DELLA TARGA DEL PNG, che è l'immagine che esce dalla pagina */
+  const piede = A4.piedePNG(A4.PNG_DISEGNI['k-trend']);
+  const nomi = A4.SERIE.map(z => A4.BL[z.bl].n);
+  const dentro = disegnate.map(k => A4.BL[A4.SERIE.filter(z => z.k === k)[0].bl].n);
+  esito(dentro.every(n => piede.indexOf(n) >= 0),
+    'il piede della targa del PNG nomina TUTTE le serie che il disegno porta',
+    piede.slice(0, 120));
+  /* e il verso opposto, che e quello che tiene la proprieta: non ne nomina nessuna che il
+     disegno NON porti, o il piede direbbe il contrario dello stesso difetto. */
+  const fuori = nomi.filter(n => dentro.indexOf(n) < 0 && piede.indexOf(n) >= 0);
+  esito(fuori.length === 0,
+    'e non ne nomina nessuna che il disegno non porti',
+    fuori.join(' '));
+
+  /* 2 · IL TOOLTIP. Il gestore vive dentro un ascoltatore e non è chiamabile da qui, quindi
+     il legame si prova DOVE STA — nel sorgente — come per og:title e il job. La forma che
+     conta è che i nomi vengano da SERIE e non da tre stringhe scritte a mano. */
+  const tip = src.slice(src.indexOf('function attaccaTip()'),
+    src.indexOf('function attaccaTip()') + 2000);
+  esito(/SERIE\.filter/.test(tip) && /BL\[z\.bl\]\.n/.test(tip),
+    'il tooltip prende i nomi da SERIE invece di scriverne tre a mano',
+    (/tip\.innerHTML=[^;]{0,90}/.exec(tip) || ['non trovato'])[0]);
+  esito(!/Blocco Netanyahu <b>/.test(tip) && !/· Arabi <b>/.test(tip),
+    'e non porta piu i tre nomi cablati che gli restavano dentro');
+
+  /* 3 · TRENDPTS, da cui il tooltip legge i numeri: se il quarto non ci arriva, il tooltip
+     non puo dirlo nemmeno volendo. */
+  const tp = src.slice(src.indexOf('TRENDPTS=S.map('), src.indexOf('TRENDPTS=S.map(') + 260);
+  esito(/SERIE\.forEach/.test(tp),
+    'e i punti del tooltip portano tutte le serie, non tre chiavi scritte a mano',
+    tp.split(String.fromCharCode(10)).slice(0, 4).join(' ').slice(0, 130));
+
+  /* 4 · IL PAVIMENTO STA UN GRADINO SOTTO IL MINIMO, o la serie piu bassa corre sul filetto
+     piu basso: misurato, col pavimento sul minimo ottanta vertici su ottantasei della quarta
+     linea — il 93% — cadevano entro UN seggio dal fondo. */
+  const H2 = +(h.match(/viewBox="0 0 \d+ (\d+)"/) || [])[1];
+  const T2 = 30 + (H2 - 300), yBot2 = H2 - 34;
+  const tacche = [...h.matchAll(/<text x="(\d+(?:\.\d+)?)" y="[\d.]+"[^>]*>(\d+)<\/text>/g)]
+    .filter(m => +m[1] < 34).map(m => +m[2]).sort((a,b) => a-b);
+  const passo = tacche[1] - tacche[0];
+  const perSeggio2 = (yBot2 - T2) / (tacche[tacche.length-1] - tacche[0] + 0) *
+    ((tacche[tacche.length-1] - tacche[0]) / (tacche[tacche.length-1] - tacche[0]));
+  let giu = 0, tot = 0;
+  disegnate.forEach(k => {
+    const m = h.match(new RegExp('class="ln ln-' + k + '" d="([^"]+)"'));
+    const yy = m[1].split(/[ML]/).filter(Boolean)
+      .map(s => +s.trim().split(' ')[1]).filter(v => !isNaN(v));
+    tot += yy.length;
+    /* «un seggio» in unita: l intera area diviso il numero di seggi del dominio, che si
+       ricava dalle tacche e dal gradino sotto la prima */
+    const u = (yBot2 - T2) / ((tacche[tacche.length-1] + 0) - (tacche[0] - passo));
+    giu += yy.filter(y => yBot2 - y < u).length;
+  });
+  esito(giu === 0,
+    'nessun vertice di nessuna serie cade entro un seggio dal fondo: il pavimento sta un ' +
+    'gradino sotto il minimo, o la serie piu bassa non si distingue dall asse',
+    giu + ' vertici su ' + tot);
 }
 
 console.log('\ntendenza: ' + ok + '/' + (ok + ko));
