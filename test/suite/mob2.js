@@ -89,7 +89,12 @@ const cyDischi=[...new Set([...$('k-trend').querySelectorAll('circle')]
  .filter(c=>c.getAttribute('r')==='10').map(c=>c.getAttribute('cy')))];
 
 /* 5 · legenda del grafico */
-const legOk=[...D.querySelectorAll('#k-trendleg b[data-ln]')].length===3;
+/* Non «tre»: tante quante sono le linee disegnate. Le serie seguono i blocchi che hanno
+   seggi da quando la tendenza ha smesso di scartare l'ago della bilancia (27 agosto 2026),
+   quindi un numero scritto qui invecchia al primo deposito di liste. */
+const legLinee=new Set(($('k-trend').innerHTML.match(/class="ln ln-([a-z])"/g)||[])
+  .map(x=>x.slice(-2,-1)));
+const legOk=[...D.querySelectorAll('#k-trendleg b[data-ln]')].length===legLinee.size&&legLinee.size>=3;
 /* 6 · regole mobile presenti per i nuovi elementi */
 const R660=(css.match(/@media\(max-width:660px\)\{([\s\S]*?)\n\}/g)||[]).join(' ');
 const haRegola=n=>new RegExp(n.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')).test(css.replace(/\s+/g,' '));
@@ -118,7 +123,7 @@ const ck={
  "nessuna regola della cronologia raggiunge il riquadro spostato": mobPulito,
  "e le regole controllate sono quelle vere del foglio": mobQuanteRegole>=6,
  "i dischi degli eventi stanno su piu di una corsia": cyDischi.length>1,
- "legenda del grafico con tre serie": legOk,
+ "la legenda ha una voce per ciascuna linea disegnata": legOk,
  "regola mobile per la legenda interattiva": haRegola('.leg.lint'),
  "regola mobile per il riquadro del fatto": haRegola('.evsel .eb'),
  "regola mobile per gli ancoraggi": haRegola('.anc'),

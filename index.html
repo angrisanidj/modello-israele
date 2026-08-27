@@ -1233,6 +1233,11 @@
      per geometria, o smette di valere il giorno in cui una delle due larghezze cambia. */
   left:calc(50% - 590px - 24px - 44px);z-index:30;}
  #kn26 .colsoc .soci{background:var(--card);}
+ /* E QUI SPARISCE IL DOPPIONE. La classe la mette il render dalla costante
+    VIA_SOPRA_COLONNA, così l'elenco di ciò che se ne va è dichiarato in un posto solo —
+    è l'idioma di VIA_NELL_EMBED. Il gruppo se ne va INTERO, titolo compreso: «Condividi»
+    sopra una riga vuota sarebbe un'etichetta senza niente da etichettare. */
+ #kn26 .dupcol{display:none;}
 }
 /* ══ LE CINQUE SCHEDE ══
    Una scheda dice il nome del modello e COSA FA quel modello — non cosa fa il pulsante,
@@ -1627,10 +1632,16 @@
 #kn26 .leg.lint b.spenta i{background:transparent;box-shadow:inset 0 0 0 2px var(--c);}
 #kn26 #k-trend .ln,#kn26 #k-trend .pt{transition:opacity .18s;}
 #kn26 #k-trendwrap.solo .ln,#kn26 #k-trendwrap.solo .pt{opacity:.10;}
+/* Le quattro serie, non tre: la quarta è l'ago della bilancia, che il disegno mostra solo
+   quando ha seggi. Una regola che ne nominasse tre lascerebbe la quarta ACCESA mentre le
+   altre si spengono — cioè l'isolamento farebbe l'opposto di quello che promette, e
+   proprio sulla serie che compare di rado, dove nessuno andrebbe a guardare. */
 #kn26 #k-trendwrap.solo-g .ln-g,#kn26 #k-trendwrap.solo-g .pt-g,
 #kn26 #k-trendwrap.solo-o .ln-o,#kn26 #k-trendwrap.solo-o .pt-o,
-#kn26 #k-trendwrap.solo-a .ln-a,#kn26 #k-trendwrap.solo-a .pt-a{opacity:1;}
-#kn26 #k-trendwrap.solo-g .pt-g,#kn26 #k-trendwrap.solo-o .pt-o,#kn26 #k-trendwrap.solo-a .pt-a{opacity:.35;}
+#kn26 #k-trendwrap.solo-a .ln-a,#kn26 #k-trendwrap.solo-a .pt-a,
+#kn26 #k-trendwrap.solo-i .ln-i,#kn26 #k-trendwrap.solo-i .pt-i{opacity:1;}
+#kn26 #k-trendwrap.solo-g .pt-g,#kn26 #k-trendwrap.solo-o .pt-o,
+#kn26 #k-trendwrap.solo-a .pt-a,#kn26 #k-trendwrap.solo-i .pt-i{opacity:.35;}
 @media(max-width:660px){
  #kn26 .leg.lint{gap:6px 12px;font-size:11px;}
  #kn26 .leg.lint b s{font-size:14px;}
@@ -1695,9 +1706,13 @@
         il ripiego per chi apre il file senza JavaScript, e per questo non afferma nessun
         numero: sarebbe vero solo il giorno in cui è stato scritto. -->
    <button class="btn g xs" id="k-app" data-par="apparentamenti">Aggiungi gli accordi annunciati</button>
+   <!-- Come sopra: il nome lo scrive rBilico(), con quante liste sposta. Il testo qui e' il
+        ripiego per chi apre il file senza JavaScript, e non afferma nessun numero. -->
+   <button class="btn g xs" id="k-bilico" data-par="inbilico">Conta le liste in bilico nei due campi</button>
   </div>
   <p class="pgn">Modificano quali sondaggi entrano nel calcolo, come sono composte le liste, o quali accordi di apparentamento entrano nel riparto. Ogni istituto può essere escluso singolarmente dalla tabella <i>House effect</i>.</p>
   <p class="pgn" id="k-appriga"></p>
+  <p class="pgn" id="k-bilriga"></p>
  </div>
  <div class="pg">
   <div class="pgt">Parametri del modello <button class="lnk" id="k-reset-par">azzera</button></div>
@@ -2025,7 +2040,11 @@
      È aria-hidden e i suoi collegamenti sono fuori dall'ordine di tabulazione: la copia
      canonica è quella in fondo, e sette comandi duplicati porterebbero l'elenco dei comandi
      da sette a quattordici. -->
-<nav id="k-colsoc" class="colsoc" aria-hidden="true"></nav>
+<!-- Niente aria-hidden: sopra i 1380 questa è l'UNICA copia dei comandi di condivisione,
+     perché il gruppo in fondo se ne va. Il doppione non si ripresenta perché a ciascuna
+     larghezza uno dei due è display:none, e un elemento non visualizzato esce da solo
+     dall'albero di accessibilità e dall'ordine di tabulazione. -->
+<nav id="k-colsoc" class="colsoc" aria-label="Condividi"></nav>
 <div id="k-social"></div>
 
 <p class="firma" id="k-firma">Daniele Angrisani · Modello previsionale Knesset 2026 ·
@@ -2071,6 +2090,75 @@ var P={
  otzma       :{n:"Otzma Yehudit",      l:"Itamar Ben Gvir",    c:"#3284FF", b:"coalizione",  o:18, gov:1, r22:null}
 };
 var IDS=Object.keys(P).sort(function(a,b){return P[a].o-P[b].o;});
+
+/* ══ LE LISTE IN BILICO, E PERCHÉ LO SWING NON LE RAGGIUNGE ══════════════════════════
+   Applicata il 27 agosto 2026. Alcune liste non stanno con nessuno dei due campi e la
+   fonte lo dice: il totale «Gov.» che Wikipedia pubblica NON conta «Popolo d'Israele»
+   dentro, su tutte e tre le righe in cui quel totale compare. Quindi l'anagrafica le
+   tiene dove la fonte le mette — b:"incerto" — e questa tabella dichiara la DOMANDA che
+   un lettore si fa comunque: e se governasse con Netanyahu?
+
+   LA LEVA RICLASSIFICA, NON RICALCOLA, ed è la riga da leggere prima di toccare qualunque
+   cosa qui sotto. bloccoDi() cambia il campo in cui un seggio viene CONTATO. Non cambia
+   l'anagrafica, non cambia un colore, non tocca PAL_SCURO, e non entra nel riparto:
+   dhondt() e ripartoVeloce() non leggono il blocco di nessuna lista — l'unica .b che
+   dhondt nomina è il secondo membro di una coppia di apparentamento. Misurato il 27
+   agosto 2026 su un archivio in cui l'ago della bilancia ha nove seggi: a leva accesa i
+   totali passano da 47·49·15·9 a 56·49·15·0 e NESSUNA lista cambia di un seggio.
+
+   TRE FUNZIONI CONTINUANO A LEGGERE P[i].b E NON bloccoDi(), ED È LA DECISIONE CHE NON SI
+   DEDUCE: applicaSwing(), puntiPer() e il vettore dir[] del Monte Carlo.
+   Lo swing è una MISURA STORICA di come i voti si sono spostati fra i due campi, tarata
+   sul 2020, 2021 e 2022 — e in quelle elezioni queste liste non esistevano. Farle scalare
+   con la coalizione vorrebbe dire applicare loro un dato che non le riguarda. La leva dice
+   «se governasse con Netanyahu il blocco avrebbe N seggi», non «i suoi elettori si
+   comportano come i suoi». E la differenza non è teorica: misurato, con la leva dentro lo
+   swing, a swing −4 la lista passava da 9 seggi a 8 e Otzma da 7 a 8, e a swing +4 il
+   blocco arrivava a 61 esatti per uno spostamento di voti che nessun sondaggio ha
+   rilevato. Il Monte Carlo invece CONTA con la leva — isCo/isOp/isAr passano da
+   bloccoDi() — perché lì la domanda è «chi arriva a 61», che è la domanda della leva.
+
+   E LA LEVA NON DEVE ARRIVARE ALLA GUARDIA «Gov.» DEL PARSER NOTTURNO. Quella guardia
+   valida la colonna di Wikipedia contro PRESET.netanyahu, e la fonte non conta queste
+   liste lì dentro: se la leva la raggiungesse, ogni notte con la leva accesa il job
+   respingerebbe righe VALIDE dichiarando «blocco discordante» — nel lavoro notturno,
+   cioè dove nessuno guarda, e con l'archivio fermo finché qualcuno se ne accorge.
+   PRESET.netanyahu resta perciò il filtro su P[i].b, e struttura.mjs verifica che il
+   parser non nomini mai bloccoDi().
+
+   È UN MECCANISMO, NON UN CASO. Una leva per lista sarebbe ingestibile l'8 settembre;
+   questa ne governa TUTTE le righe insieme, come PAR.apparentamenti governa tutti gli
+   accordi annunciati, e la riga di esito dice quali ha applicato, quali no e perché. */
+var IN_BILICO=[
+ {id:'amcha', verso:'coalizione', data:'2026-08-26',
+  fonte:'il totale «Gov.» pubblicato da Wikipedia non la conta nel blocco'}
+];
+/* Il blocco in cui un seggio viene CONTATO. Senza leva è quello dell'anagrafica, cioè
+   quello che dice la fonte. Una riga che nomina una lista o un blocco che non esistono
+   viene ignorata: una riga sbagliata non deve spegnere il conteggio di tutte le altre. */
+function bloccoDi(i){
+ var d=P[i]; if(!d) return null;
+ if(PAR.inbilico) for(var k=0;k<IN_BILICO.length;k++){
+  var r=IN_BILICO[k];
+  if(r.id===i&&P[r.id]&&BL[r.verso]&&P[r.id].b!==r.verso) return r.verso;
+ }
+ return d.b;
+}
+/* Le righe che la leva applica davvero, e quelle che scarta CON LA RAGIONE. La ragione
+   nasce dentro il filtro e non accanto: raccoglierla altrove sarebbe la strada doppia di
+   sempre. Si chiede anche a leva spenta, perché l'etichetta deve poter dire che cosa
+   cambierebbe prima che qualcuno prema — è l'idioma di contoApp(). */
+function filtraBilico(seg){
+ var ok=[],scarti=[];
+ IN_BILICO.forEach(function(r){
+  if(!P[r.id]) scarti.push({r:r,perche:'la lista non è in anagrafica'});
+  else if(!BL[r.verso]) scarti.push({r:r,perche:'«'+r.verso+'» non è un blocco'});
+  else if(P[r.id].b===r.verso) scarti.push({r:r,perche:'la mette già lì anche l’anagrafica'});
+  else if(seg&&!seg[r.id]) scarti.push({r:r,perche:'non ha seggi nella proiezione'});
+  else ok.push(r);
+ });
+ return {ok:ok,scarti:scarti};
+}
 var BL={coalizione:{n:"Blocco Netanyahu",c:"#143EDB"},opposizione:{n:"Opposizione sionista",c:"#78002D"},
         arabo:{n:"Partiti arabi",c:"#007B4C"},incerto:{n:"Ago della bilancia",c:"#B57600"}};
 
@@ -2200,7 +2288,23 @@ var EMIMODE='blocchi', EMIFILT=null, TRENDPTS=[], TRENDGEO=null, FILTRI={ist:'',
    il terzo parametro: azzerando, PAR tornava a un oggetto SENZA la chiave nuova. Il
    comportamento sarebbe stato giusto per caso (undefined è falso), ma la forma
    dell'oggetto no, e _serieKey ne fa il JSON. Due copie corrette oggi divergono domani. */
-var PAR_DEF={recenti:0,listaunita:1,apparentamenti:0};
+/* `inbilico` NASCE ACCESA, e non è la scelta ovvia: le altre due leve di ipotesi partono
+   spente perché aggiungono un'ipotesi a un conteggio che senza di loro è quello della
+   fonte. Qui è il contrario. La domanda «e se governasse con Netanyahu?» è quella che un
+   lettore si fa comunque davanti a una lista che non sta con nessuno dei due campi, e
+   partire dallo stato in cui NON è posta lascerebbe il lettore davanti a un conteggio che
+   non dichiara la propria ipotesi — cioè lo stato non dichiarato contro cui il simulatore
+   accende «Blocco Netanyahu» all'apertura invece di partire da una selezione vuota.
+   IL PREZZO VA SAPUTO, ed è la ragione per cui questo commento è lungo: il conteggio
+   predefinito NON è quello della fonte. Wikipedia non conta queste liste nel totale «Gov.»,
+   e la pagina sì. Da qui due conseguenze, e sono nel codice e non solo qui:
+     · la riga di esito dichiara l'ipotesi nello stato ACCESO — quello in cui il lettore
+       arriva senza toccare niente — e non solo in quello spento;
+     · il pulsante dice «Togli», cioè l'azione che riporta il conteggio dove lo mette la
+       fonte, e non «Conta», che sarebbe l'azione di uno stato di partenza opposto.
+   L'anagrafica resta invariata: in P{} queste liste restano dove la fonte le mette, e la
+   guardia «Gov.» del parser notturno continua a leggere quella. */
+var PAR_DEF={recenti:0,listaunita:1,apparentamenti:0,inbilico:1};
 var SOND=BASE.slice(), PAR=Object.assign({},PAR_DEF), DISP=8, SW=0, SIG=1, SIM=20000, COAL={};
 
 /* ══════════ 2b · DIAGNOSTICA DI AVVIO ══════════ */
@@ -2898,9 +3002,19 @@ function colonneBlocco(ids){
    tutte. Le celle delle liste, invece, sommano 120 in 173 su 173 — ed è per questo che il
    piede fa due affermazioni separate invece di una: la prima riguarda le celle ed è sempre
    vera, la seconda riguarda i totali e ha un'eccezione dichiarata. */
-function blocchi(s){
+/* IL SECONDO ARGOMENTO È «COME LO PUBBLICA LA FONTE», e serve a un posto solo.
+   Di regola blocchi() CONTA come conta il modello, quindi passa da bloccoDi() e segue la
+   leva delle liste in bilico. L'archivio della sezione 11 no: le sue colonne di totale
+   affermano di riprodurre «i blocchi che gli istituti pubblicano», e gli istituti non
+   conoscono nessuna nostra ipotesi. Lì il conto va chiesto sull'anagrafica, che è dove
+   sta la fonte, ed è l'idioma del terzo argomento di dhondt() — una funzione sola con la
+   domanda dichiarata, non due funzioni che divergono al primo ritocco.
+   La regola generale, che vale anche per chi aggiunge un consumatore domani: le funzioni
+   che calcolano QUOTE leggono l'anagrafica — applicaSwing(), puntiPer(), l'affluenza
+   araba, dir[] nel Monte Carlo — quelle che CONTANO SEGGI leggono la leva. */
+function blocchi(s,comePubblicato){
  var b={coalizione:0,opposizione:0,arabo:0,incerto:0};
- for(var k in s) if(P[k]) b[P[k].b]+=s[k];
+ for(var k in s) if(P[k]) b[comePubblicato?P[k].b:bloccoDi(k)]+=s[k];
  return b;
 }
 /* LA FORMA DEL TITOLO, e perché non è un elenco di if.
@@ -3177,9 +3291,14 @@ function montecarlo(base,N,giorni,al){
  var dir=new Int8Array(n),bs=new Float64Array(n),sim=new Float64Array(n),seg=new Int32Array(n);
  var isCo=new Uint8Array(n),isOp=new Uint8Array(n),isAr=new Uint8Array(n);
  for(i=0;i<n;i++){
-  var b=P[ids[i]].b;
+  /* DUE LETTURE DEL BLOCCO NELLA STESSA RIGA, E NON È UNA SVISTA.
+     dir[] è la direzione dello SCOSSONE di blocco, cioè la stessa grandezza dello swing:
+     legge l'anagrafica, perché è tarata su tre elezioni in cui le liste in bilico non
+     esistevano. isCo/isOp/isAr CONTANO i seggi per rispondere a «chi arriva a 61», che è
+     esattamente la domanda della leva, e quindi passano da bloccoDi(). */
+  var b=P[ids[i]].b, bc2=bloccoDi(ids[i]);
   dir[i]=b==='coalizione'?1:(b==='opposizione'?-1:0);
-  isCo[i]=b==='coalizione'?1:0;isOp[i]=b==='opposizione'?1:0;isAr[i]=b==='arabo'?1:0;
+  isCo[i]=bc2==='coalizione'?1:0;isOp[i]=bc2==='opposizione'?1:0;isAr[i]=bc2==='arabo'?1:0;
   bs[i]=base[ids[i]];
  }
  /* Le liste vicine alla soglia sono più volatili delle grandi: il loro esito è quasi
@@ -3714,6 +3833,25 @@ function rMemoria(){
    promette di integrare l'archivio, e l'archivio torna quello di prima.
    Uno fallisce sulla comodità, l'altro sulla cosa che promette. */
 var VIA_NELL_EMBED=['k-datapanel','k-embedcode','k-aggcell'];
+/* CHE COSA SPARISCE DOVE LA COLONNA C'È, in una costante sola come VIA_NELL_EMBED.
+   Sopra i 1380 la colonna a sinistra porta gli stessi comandi del blocco in fondo, e
+   averli tutti e due vuol dire lo stesso elenco due volte: è la lezione dei quattro
+   «Scarica PNG» vista dal lato della duplicazione, con l'aggravante che qui i due gruppi
+   sono identici anche nel nome accessibile.
+   NON SI NASCONDE COL JAVASCRIPT, e non è un dettaglio: la pagina non si ridisegna al
+   ridimensionamento, quindi una scelta presa dal codice resterebbe quella della larghezza
+   di partenza appena si gira il telefono o si allarga la finestra. È l'idioma del
+   contatore dell'archivio e del sommario di testata — due forme nel DOM, e a scegliere è
+   il foglio.
+   E DA QUESTO DISCENDE CHE LA COLONNA NON È PIÙ aria-hidden. Finché il blocco in fondo
+   c'era a ogni larghezza, la colonna era una comodità per il puntatore e nasconderla
+   all'albero di accessibilità evitava di raddoppiare l'elenco dei comandi. Adesso sopra i
+   1380 è l'UNICA copia, e nasconderla vorrebbe dire che a quella larghezza per chi usa la
+   tastiera o un lettore di schermo la condivisione non esiste. Il doppione non si ripresenta
+   perché a ciascuna larghezza uno dei due gruppi è display:none, e un elemento non
+   visualizzato è fuori dall'albero e fuori dall'ordine di tabulazione da sé: non serve
+   nessun aria-hidden e nessun tabindex a mano. */
+var VIA_SOPRA_COLONNA=['k-socgr'];
 function applicaEmbed(){
  if(!EMBED) return;
  R.classList.add('embed');
@@ -3822,7 +3960,7 @@ function rTesta(){
      fosse alzata. Il quarto, gli accordi di eccedenza, è il caso opposto: il suo nome
      dice l'AZIONE e cambia premendo, quindi aria-pressed direbbe il contrario di quello
      che si legge. Lo esclude rApp(), che quel nome lo scrive. */
-  if(b.id!=='k-app') b.setAttribute('aria-pressed',PAR[b.dataset.par]?'true':'false');});
+  if(b.id!=='k-app'&&b.id!=='k-bilico') b.setAttribute('aria-pressed',PAR[b.dataset.par]?'true':'false');});
  /* LA CLAUSOLA È CONDIZIONALE, come notaSerie(): a zero aggiunte non dice niente, che è il
     caso di ogni pagina appena aperta e di quasi tutti i lettori. Da cui anche il modo di
     provarla — lo stato va ACCESO, o la prova passa a vuoto guardando la pagina di sempre.
@@ -3852,6 +3990,28 @@ function pctInteri(v){
 }
 /* colore del blocco, coerente con la palette del tema in uso */
 function BC(k){return C[k==='coalizione'?'coal':(k==='opposizione'?'oppo':(k==='arabo'?'arab':'inc'))]||C.inc;}
+/* IL TESTO SOPRA UN FONDO PIENO NON È SEMPRE --on-color, E LO SI È SCOPERTO DISEGNANDO.
+   Il token si chiama «testo sopra qualsiasi fondo pieno colorato» e su tre blocchi su
+   quattro è la scelta giusta. Sul quarto no: la pastiglia finale della tendenza è bianca
+   sul colore della serie, e --inc in tema chiaro è #B57600 — bianco sopra sta a 3,78,
+   sotto il pavimento di 4,5. Il difetto non esisteva finché la quarta serie non veniva
+   disegnata, ed è comparso il 27 agosto 2026 nello stesso commit che l'ha aggiunta:
+   l'ha colto tema.js, non l'occhio.
+   Il rimedio NON è un'eccezione per --inc: è chiedere il contrasto invece di darlo per
+   scontato. Misurati tutti e otto i casi — quattro token per due temi — il migliore dei
+   due inchiostri sta a 4,72 nel peggiore (proprio --inc chiaro) e sopra 4,75 in tutti gli
+   altri. Il giorno in cui la tavolozza si muove, questa funzione risponde da sé. */
+function lum(h){
+ var c=[1,3,5].map(function(i){var v=parseInt(h.slice(i,i+2),16)/255;
+  return v<=0.03928?v/12.92:Math.pow((v+0.055)/1.055,2.4);});
+ return 0.2126*c[0]+0.7152*c[1]+0.0722*c[2];
+}
+function contrasto(a,b){var x=lum(a),y=lum(b);return (Math.max(x,y)+0.05)/(Math.min(x,y)+0.05);}
+function inchiostroSu(fondo){
+ var a=C['on-color'], b=C.ink;
+ if(!/^#[0-9A-Fa-f]{6}$/.test(String(fondo))||!/^#[0-9A-Fa-f]{6}$/.test(String(a))) return a;
+ return contrasto(a,fondo)>=contrasto(b,fondo)?a:b;
+}
 function rProb(){
  var b=blocchi(SEG),tot=MC.n;
  var items=[
@@ -4204,9 +4364,18 @@ function montaCond(){
        e non sono cerchi monocromatici, cioè non sono la cosa che si è chiesta;
      · pesano 4,3 KB di gzip contro gli 0,72 dei sette SVG — sei volte tanto per cinque
        icone invece di sette.
-   I cinque qui sotto sono segni geometrici evocativi e palesemente nostri: una stella a
-   quattro punte, un raggiera, un esagono con le corde, uno stelo con due rami, un gancio.
-   Non sono i loghi di quelle aziende e non pretendono di esserlo.
+   I QUATTRO SEGNI DEI MODELLI SONO STATI RIFATTI IL 27 AGOSTO 2026 sul riferimento che
+   l'autore ha fornito, e con essi cambia la loro natura: da «segni evocativi nostri» a
+   marchi NOMINATIVI ridisegnati, cioè la stessa categoria dei sei della riga sopra e con
+   la stessa giustificazione — un glifo che dice a quale servizio porta il collegamento.
+   Restano ridisegnati qui e non presi altrove, per le tre ragioni di sopra, e restano
+   monocromatici e a currentColor. Quello che è cambiato è la SOMIGLIANZA, non la
+   provenienza: l'esagono con le corde era un cubo e adesso è un nodo, e la stella e la
+   raggiera sono passate dal tratto al pieno perché è così che sono i marchi.
+   Il gancio è l'unico rifatto per un motivo diverso — non somigliava a niente e alla sua
+   misura non si leggeva: vedi il commento accanto.
+   Ogni segno è stato rasterizzato con resvg e GUARDATO a 20px dentro un cerchio da 44,
+   che è la misura in cui vive. Nessuna prova guarda un tracciato.
    Tutti hanno viewBox 0 0 24 24 e prendono il colore da currentColor. */
 var GLIFO={
  /* i sei presi: marchi pieni */
@@ -4216,18 +4385,32 @@ var GLIFO={
  telegram:'<path d="M20.4 4.6 3.7 11c-1.1.4-1.1 1 .2 1.4l4.2 1.3 1.6 5.1c.2.6.4.8.9.8.4 0 .6-.2.9-.5l2.3-2.2 4.7 3.5c.9.5 1.5.2 1.7-.8l2.9-13.5c.3-1.2-.4-1.8-1.4-1.5Z"/>',
  whatsapp:'<path d="M20.5 12A8.5 8.5 0 0 1 7.7 19.4L3 20.8l1.5-4.5A8.5 8.5 0 1 1 20.5 12Zm-4.8 2.3c-.3-.1-1.6-.8-1.9-.9-.3-.1-.5-.1-.7.1l-.5.7c-.2.2-.4.2-.7.1-1.8-.9-3-2.6-3.2-2.9-.2-.3 0-.5.1-.7l.3-.4.2-.4c.1-.2 0-.5 0-.7l-.8-1.8c-.2-.5-.4-.4-.7-.4h-.6c-.2 0-.6.1-.9.4-.3.3-1.1 1.1-1.1 2.7s1.1 3.2 1.3 3.4c.2.2 2.2 3.4 5.3 4.6.7.3 1.3.5 1.8.6.8.2 1.5.2 2 .1.6-.1 1.6-.7 1.8-1.4.2-.7.2-1.3.2-1.4 0-.1-.1-.2-.4-.3Z"/>',
  /* il gancio: ridisegnato, pieno come gli altri della sua riga */
- threads:'<path d="M12.2 19.7c-3.9 0-6.5-2.8-6.5-7.6s2.6-7.6 6.5-7.6c2.6 0 4.6 1.1 5.5 3.2l-1.8.8c-.6-1.4-1.9-2.1-3.7-2.1-2.7 0-4.4 2-4.4 5.7s1.7 5.7 4.4 5.7c1.5 0 2.5-.5 3-1.4.3-.6.3-1.2 0-1.7-.2-.3-.5-.5-1-.7-.2 1-.6 1.8-1.2 2.3-.7.6-1.7.8-2.6.6-1.2-.3-2-1.2-2-2.4.1-1.5 1.3-2.3 3.2-2.3.5 0 1 0 1.5.1 0-.4-.2-.8-.4-1-.3-.3-.7-.4-1.2-.4-.8 0-1.4.3-1.8.9l-1.6-1c.7-1.1 2-1.7 3.4-1.7 1.1 0 2.1.4 2.8 1.1.6.6.9 1.5.9 2.5v.2c1.1.4 1.8 1.1 2.2 2 .5 1.2.4 2.7-.3 3.8-1 1.6-2.8 2.7-5.4 2.7Zm-.4-6.3c-1 0-1.6.3-1.6.8 0 .4.3.6.8.7.5.1.9 0 1.2-.3.3-.3.5-.8.6-1.2-.3 0-.7 0-1-.0Z"/>',
+ /* IL GANCIO, RIDISEGNATO IL 27 AGOSTO 2026 — e il difetto non era la forma grande.
+    Il tracciato di prima era un tentativo di riprodurre il marchio vero, e a occhio nudo
+    ingrandito passava; alla misura in cui vive — 20px dentro il cerchio da 44 — era una
+    macchia, con una coda che usciva in basso a sinistra e un occhiello che galleggiava
+    staccato. È «misurare convince di aver guardato» applicato a un segno: nessuna prova
+    guarda un path, e in jsdom un tracciato sbagliato non fa nessun rumore. Rasterizzato
+    con resvg — che il banco ha già per l'anteprima — e guardato ALLA MISURA VERA, dentro
+    un cerchio da 44, insieme agli altri.
+    A TRATTO E NON PIENO, ed è l'eccezione della riga: un segno pieno di questa forma a
+    20px si chiude su sé stesso e diventa un disco con due buchi. Il tratto a 2,8 tiene il
+    peso dei marchi pieni accanto — la gamba della «f» e le aste di «in» misurano quanto
+    lui — e resta leggibile dove il pieno non lo era. Provate quattro varianti e due pesi:
+    l'anello con la spirale interna è l'unica che a 20px si legge ancora come un segno e
+    non come una macchia. */
+ threads:'<g fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="7.2"/><path d="M8.6 14.3c0-1.8 1.5-3 3.5-3s3.4 1.4 3.4 3.3c0 2.3-2 3.9-4.6 3.9"/></g>',
  /* le due graffette: azioni, non marchi, quindi a tratto — è la stessa distinzione che
     fa il resto della pagina fra una cosa e un comando */
  copialink:'<g fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><path d="M10.2 13.4a4.3 4.3 0 0 1 0-6l1.3-1.3a4.3 4.3 0 0 1 6 6l-1.3 1.3"/><path d="M13.8 10.6a4.3 4.3 0 0 1 0 6l-1.3 1.3a4.3 4.3 0 0 1-6-6l1.3-1.3"/></g>',
  copiaprompt:'<g fill="none" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round"><rect x="9" y="9" width="11" height="12" rx="2"/><path d="M6 16H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></g>',
  /* i quattro segni dei modelli: ridisegnati, a tratto, una famiglia sola */
  perplexity:'<g fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4.5v15"/><path d="M12 9 7.6 4.9V9.4H4.4v5.2h3.2v4.5L12 15"/><path d="M12 9l4.4-4.1V9.4h3.2v5.2h-3.2v4.5L12 15"/></g>',
- chatgpt:'<g fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"><path d="M12 3.1 20 7.5v9L12 20.9 4 16.5v-9Z"/><path d="M12 3.1V12m0 0 7.8-4.3M12 12 4.2 7.7M12 12v8.9"/></g>',
- claude:'<g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 3.6v6M12 14.4v6M3.6 12h6M14.4 12h6M6.1 6.1l4.2 4.2M13.7 13.7l4.2 4.2M17.9 6.1l-4.2 4.2M10.3 13.7l-4.2 4.2"/></g>',
+ chatgpt:'<g fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="12" rx="8.7" ry="4.3"/><ellipse cx="12" cy="12" rx="8.7" ry="4.3" transform="rotate(60 12 12)"/><ellipse cx="12" cy="12" rx="8.7" ry="4.3" transform="rotate(120 12 12)"/></g>',
+ claude:'<path d="M12 2.6a.9.9 0 0 1 .9.9l.5 6.1 4.3-4.4a.9.9 0 0 1 1.3 1.3l-4.4 4.3 6.1.5a.9.9 0 0 1 0 1.8l-6.1.5 4.4 4.3a.9.9 0 0 1-1.3 1.3l-4.3-4.4-.5 6.1a.9.9 0 0 1-1.8 0l-.5-6.1-4.3 4.4a.9.9 0 0 1-1.3-1.3l4.4-4.3-6.1-.5a.9.9 0 0 1 0-1.8l6.1-.5-4.4-4.3a.9.9 0 0 1 1.3-1.3l4.3 4.4.5-6.1a.9.9 0 0 1 .9-.9Z"/>',
  fatto:'<g fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5 10 17.5 19 7"/></g>',
  ko:'<g fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6.5 6.5l11 11M17.5 6.5l-11 11"/></g>',
- gemini:'<g fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"><path d="M12 3c0 5 4 9 9 9-5 0-9 4-9 9 0-5-4-9-9-9 5 0 9-4 9-9Z"/></g>'
+ gemini:'<path d="M12 2c.6 5.2 4.8 9.4 10 10-5.2.6-9.4 4.8-10 10-.6-5.2-4.8-9.4-10-10 5.2-.6 9.4-4.8 10-10Z"/>',
 };
 /* UNA STRADA SOLA PER IL SEGNO: chi lo vuole chiede glifo(k), e se la chiave non c'è
    restituisce stringa vuota invece di un segno sbagliato — un cerchio vuoto in mezzo a
@@ -4288,6 +4471,10 @@ function statoLeve(){
  if(PAR.recenti!==PAR_DEF.recenti) v.push('sui soli sondaggi degli ultimi sette giorni');
  if(PAR.listaunita!==PAR_DEF.listaunita) v.push('con le liste arabe separate invece che unite');
  if(PAR.apparentamenti!==PAR_DEF.apparentamenti) v.push('con gli apparentamenti annunciati applicati al riparto');
+ /* Questa si dichiara quando è SPENTA, perché il predefinito è acceso. Il confronto è con
+    PAR_DEF e non con lo zero, quindi la frase segue il difetto anche se un giorno cambia —
+    ed è la ragione per cui tutte e tre le righe qui sopra sono scritte così. */
+ if(PAR.inbilico!==PAR_DEF.inbilico) v.push('con le liste fuori dai due campi contate a parte invece che nel blocco con cui governerebbero');
  return v.length?v.join(', '):'';
 }
 /* IL TESTO DELLA CONDIVISIONE: UNA COSTANTE, DUE FORME. Dove l'indirizzo è un parametro la
@@ -4297,7 +4484,12 @@ function testoCondivisione(conIndirizzo){
  var b=blocchi(SEG), g=ggCal(new Date(),VOTO);
  var t='Proiezione dei 120 seggi della Knesset a '+f(g)+' '+acc(g,'giorno','giorni')+
   ' dal voto: blocco Netanyahu '+f(b.coalizione)+', opposizione '+f(b.opposizione)+
-  ', partiti arabi '+f(b.arabo)+'. Aggiornata ogni notte sui sondaggi pubblicati.';
+  /* IL QUARTO BLOCCO SI DICE QUANDO C'E', e qui piu' che altrove: questa frase annuncia
+     «i 120 seggi» e poi ne elenca tre pezzi. Fino al 27 agosto 2026, con l'ago della
+     bilancia in aula, i tre numeri sommavano 111 — e questa frase non resta in pagina: va
+     su X, su Facebook e su Telegram, dove un numero sbagliato non si corregge piu'. */
+  ', partiti arabi '+f(b.arabo)+(b.incerto?', ago della bilancia '+f(b.incerto):'')+
+  '. Aggiornata ogni notte sui sondaggi pubblicati.';
  return conIndirizzo?(t+' — '+CANONICO.replace(/^https?:\/\//,'').replace(/\/$/,'')):t;
 }
 /* IL PROMPT. I numeri sono quelli vivi; le leve fuori dal predefinito si dichiarano, o il
@@ -4314,8 +4506,12 @@ function promptAI(){
  var ind=CANONICO.replace(/^https?:\/\//,'').replace(/\/$/,'');
  return 'Sto guardando un modello previsionale per le elezioni israeliane del 27 ottobre 2026, a '+
   f(g)+' giorni dal voto. La proiezione di oggi assegna '+f(b.coalizione)+' seggi al blocco Netanyahu, '+
-  f(b.opposizione)+' all\'opposizione sionista e '+f(b.arabo)+' ai partiti arabi, su 120 totali e con '+
-  'la maggioranza a 61. Le probabilità sulle 20.000 simulazioni sono: maggioranza al blocco '+
+  f(b.opposizione)+' all\'opposizione sionista e '+f(b.arabo)+' ai partiti arabi'+
+  /* «su 120 totali» va detto insieme a TUTTI gli addendi: questo testo esce dalla pagina e
+     va a un servizio terzo, che risponderebbe su un'aritmetica che non torna. Costa una
+     quarantina di caratteri sui ~690 di margine misurati nel commento qui sopra. */
+  (b.incerto?', '+f(b.incerto)+' a liste che non stanno con nessuno dei due campi':'')+
+  ', su 120 totali e con la maggioranza a 61. Le probabilità sulle 20.000 simulazioni sono: maggioranza al blocco '+
   'Netanyahu '+pc(MC.vC)+'%, all\'opposizione senza i partiti arabi '+pc(MC.vO)+'%, solo con '+
   'l\'appoggio dei partiti arabi '+pc(MC.vA)+'%, nessuna maggioranza possibile '+pc(MC.st)+'%. '+
   /* «PUBBLICATE» SOPRAVVIVE SOLO DOVE È VERO. Con delle rilevazioni che il server non ha la
@@ -4359,6 +4555,15 @@ function promptAI(){
    scorciatoia. Un'azione fuori dall'ordine di tabulazione è irraggiungibile per chi non usa
    il mouse, e nasconderla dietro aria-hidden vorrebbe dire che per quel lettore non esiste
    affatto. Nella colonna stanno le sei reti, che sono collegamenti. */
+/* Il cerchio che copia l'indirizzo, in una funzione sola perché adesso sta in DUE posti —
+   il blocco in fondo e la colonna — esattamente come cerchioRete(). Porta un ATTRIBUTO e
+   non un id: due elementi con lo stesso id sono un difetto che non solleva niente e che
+   fa rispondere getElementById al primo dei due. */
+function cerchioCopia(coda){
+ var e='Copia il collegamento alla pagina';
+ return '<button class="lnk soc soci" data-copia="link" title="'+E(e)+'" aria-label="'+E(e)+'"'+
+        (coda||'')+'>'+glifo('copialink')+'</button>';
+}
 function cerchioRete(r,U,coda){
  var t=testoCondivisione(r.porta==='testo');
  var e=E('Condividi su '+r.n);
@@ -4378,10 +4583,9 @@ function montaSocial(){
     «Condividi» sopra la riga non è una decorazione: è l'unica parola che dice al lettore
     che cosa sono quei sei cerchi. WCAG 2.5.3 qui non morde, perché non c'è nessuna
     etichetta visibile che il nome debba contenere; il problema è l'opposto, ed è questo. */
- h+='<div class="socgr"><div class="soct">Condividi</div><div class="socb">';
+ h+='<div class="socgr" id="k-socgr"><div class="soct">Condividi</div><div class="socb">';
  RETI.forEach(function(r){ h+=cerchioRete(r,U); });
- h+='<button class="lnk soc soci" id="k-copialink" title="Copia il collegamento alla pagina" '+
-    'aria-label="Copia il collegamento alla pagina">'+glifo('copialink')+'</button>';
+ h+=cerchioCopia();
  h+='</div></div>';
 
  /* ── le cinque schede, e la quinta è la copia: riusa copiaTesto(), che esiste ed è già
@@ -4416,14 +4620,21 @@ function montaSocial(){
     'quelli che si vedono aprendo l\'indirizzo. Il riquadro qui sopra mostra il testo esatto '+
     'che viene inviato.</p></div>';
  box.innerHTML=h;
+ /* LA CLASSE LA METTE LA COSTANTE, non il modello della stringa qui sopra. Scritta a mano
+    dentro l'HTML sarebbe una seconda strada: l'elenco direbbe una cosa e il markup un'altra,
+    e a divergere basterebbe un id aggiunto alla costante e dimenticato lassù. */
+ VIA_SOPRA_COLONNA.forEach(function(id){ var el=$(id); if(el) el.classList.add('dupcol'); });
 
  /* ── e la colonna, dalla stessa funzione */
  if(col){
+  /* NIENTE tabindex="-1": sopra i 1380 questa è l'unica copia, e i suoi comandi devono
+     stare nell'ordine di tabulazione. Sotto, la colonna è display:none e ne esce da sé.
+     E porta anche la copia dell'indirizzo, che prima era esclusa proprio perché un'azione
+     fuori dall'ordine di tabulazione sarebbe stata irraggiungibile: quella ragione è caduta
+     con il tabindex. */
   var c='';
-  RETI.forEach(function(r){ c+=cerchioRete(r,U,' tabindex="-1"'); });
-  /* aria-hidden sta nel MARKUP e non si riscrive qui: scritto nei due posti, toglierlo da
-     uno non cambiava niente e nessuna mutazione poteva coglierlo — una guardia che nessun
-     mutante fa cadere è codice che nessuna prova esercita. */
+  RETI.forEach(function(r){ c+=cerchioRete(r,U); });
+  c+=cerchioCopia();
   col.innerHTML=c;
  }
 }
@@ -4758,12 +4969,20 @@ function targaPNG(dis,inner,W,H,sonda,cornice){
   var yB=HT-piede-PNG_VERD+Math.round(HT*0.03);
   s+='<text x="'+PNG_LATO+'" y="'+yB+'" font-size="'+Math.round(HT*0.032)+'" font-weight="700" fill="'+C.ink+'">'+
      E(tagliaA(fraseCorta(formaTitolo(blocchi(SEG)),votoPassato()),Math.round(HT*0.032),CW-2*PNG_LATO,sonda))+'</text>';
-  var b=blocchi(SEG), voci=[['Netanyahu',b.coalizione,C.coal],['opposizione',b.opposizione,C.oppo],['arabi',b.arabo,C.arab]];
-  var x=PNG_LATO, fsv=Math.round(HT*0.026);
+  /* LE VOCI SONO QUANTE SONO I BLOCCHI IN AULA, E IL PASSO SI RICAVA DA QUANTE SONO.
+     Erano tre, cablate, con un passo fisso di 0,30 della tela: la quarta sarebbe partita a
+     0,90 e sarebbe uscita dal bordo — cioe' la stessa forma dei totali dell'emiciclo, un
+     elenco che dichiara «i 120 seggi» e ne mostra una parte, qui su un'immagine che finisce
+     dentro un post e non si corregge piu'. Il passo divide lo spazio utile per il numero di
+     voci: con tre resta 0,30 come prima, con quattro diventa 0,225 e ci stanno. */
+  var b=blocchi(SEG), voci=[['Netanyahu',b.coalizione,C.coal],['opposizione',b.opposizione,C.oppo],
+      ['arabi',b.arabo,C.arab]];
+  if(b.incerto) voci.push(['altri',b.incerto,C.inc]);
+  var passo=Math.round((CW-2*PNG_LATO)/voci.length), x=PNG_LATO, fsv=Math.round(HT*0.026);
   voci.forEach(function(v){
    s+='<text x="'+x+'" y="'+(yB+Math.round(HT*0.042))+'" font-size="'+fsv+'" fill="'+v[2]+'">'+
       E(v[0]+' '+f(v[1]))+'</text>';
-   x+=Math.round(CW*0.30);
+   x+=passo;
   });
  }
  if(conPiede) s+='<text x="'+q.lato.toFixed(1)+'" y="'+(testa+H+q.ySez).toFixed(1)+'" font-size="'+
@@ -5325,7 +5544,7 @@ function rProj(){
   var d=MC.d[i]||[0],lo=q(d,.10),hi=q(d,.90),md=SEG[i]||0,ps=MC.sotto[i]/MC.n;
   var x=function(v){return 100*v/mx;};
   h+='<div class="pr"><div class="nm">'+E(nm(i))+
-     '<i><b class="blq" style="background:'+BC(P[i].b)+'"></b>'+E(BL[P[i].b].n)+
+     '<i><b class="blq" style="background:'+BC(bloccoDi(i))+'"></b>'+E(BL[bloccoDi(i)].n)+
      ' · '+E(P[i].l)+'</i></div>'+
      '<div class="sg srf">'+(md||'—')+'</div>'+
      /* I tre marcatori stavano a tre opacità — barra .30, estremi .55, mediana piena — e
@@ -5523,6 +5742,14 @@ function rDirezione(){
   '><h4>La direzione del modello · confronto con sette giorni fa</h4><div class="row">'+
   '<div class="cell"><div class="lb">Blocco Netanyahu</div><div class="vl">'+f(b.coalizione)+d(b.coalizione-bp.coalizione)+'</div></div>'+
   '<div class="cell"><div class="lb">Opposizione sionista</div><div class="vl">'+f(b.opposizione)+d(b.opposizione-bp.opposizione)+'</div></div>'+
+  /* La cella compare quando l'ago della bilancia ha seggi ADESSO O ne aveva sette giorni
+     fa: senza il secondo verso il confronto perderebbe proprio il movimento che vale di
+     piu', cioe' un blocco che entra in aula o che ne esce. Il contenitore e' a tracce
+     automatiche — auto-fit — quindi una cella in piu' non scopre nessuna traccia: e' la
+     forma dichiarata in test/suite/griglie.js. */
+  (b.incerto||bp.incerto
+   ? '<div class="cell"><div class="lb">Ago della bilancia</div><div class="vl">'+f(b.incerto)+d(b.incerto-bp.incerto)+'</div></div>'
+   : '')+
   '<div class="cell"><div class="lb">Prob. maggioranza coalizione</div><div class="vl">'+pc(pc1)+dp(pc1,pc0)+'</div></div>'+
   '<div class="cell"><div class="lb">Prob. maggioranza opposizione</div><div class="vl">'+pc(po1)+dp(po1,po0)+'</div></div>'+
   '</div>';
@@ -5673,7 +5900,13 @@ function rAnalisi(){
 function rSommario(){
  var b=blocchi(SEG);
  $('k-deck').innerHTML='Proiezione dei 120 seggi della 26ª Knesset. Oggi il blocco Netanyahu è stimato a <b>'+
-  f(b.coalizione)+' seggi</b>, mentre l\'opposizione sionista ne otterrebbe <b>'+f(b.opposizione)+'</b>. '+
+  f(b.coalizione)+' seggi</b>, mentre l\'opposizione sionista ne otterrebbe <b>'+f(b.opposizione)+'</b>'+
+  /* Il sommario nomina due blocchi perche' la sua domanda e' chi governa, e i partiti
+     arabi arrivano nella frase dopo. Ma apre con «i 120 seggi»: quando una lista fuori dai
+     due campi ne prende, tacerlo qui vuol dire che il primo paragrafo della pagina
+     dichiara un totale di cui non nomina una parte. */
+  (b.incerto?', e <b>'+f(b.incerto)+'</b> andrebbero a liste fuori dai due campi':'')+
+  '. '+
   'Per governare senza il sostegno dei partiti arabi ne servono 61. Il modello utilizza la media ponderata di '+
   f(L.length)+' rilevazioni, assegna i seggi con il metodo Bader-Ofer ed esegue '+f(SIM)+' simulazioni per tenere '+
   'conto dell\'errore dei sondaggi.';
@@ -5711,14 +5944,25 @@ function rCrono(){
    e il riquadro si contraddiceva da solo — titolo «10.06», riga sotto «Proiezione del
    modello al 05.06». Con il tratto acceso quello scarto diventerebbe visibile, perché il
    tratto non partirebbe dal marcatore. */
+/* LE LETTERE DELLE SERIE, SCRITTE UNA VOLTA SOLA. Erano ricopiate a mano in ogni ramo di
+   serieAl(), e aggiungendo il quarto blocco il 27 agosto 2026 le tre copie avrebbero
+   lasciato cadere la 'i' in silenzio: il riquadro dell'evento avrebbe letto undefined e il
+   tratto acceso della quarta serie sarebbe uscito con le coordinate a NaN — un path che
+   non disegna niente e non solleva niente. */
+var SERIE_K=['g','o','a','i'];
 function serieAl(S,d){
- var i,pre=null,post=null;
+ var i,pre=null,post=null,out;
  for(i=0;i<S.length;i++){ if(S[i].d<=d) pre=S[i]; if(S[i].d>=d&&!post) post=S[i]; }
  if(!pre&&!post) return null;
- if(!pre) return {g:post.g,o:post.o,a:post.a,n:post.n};
- if(!post||post.d===pre.d) return {g:pre.g,o:pre.o,a:pre.a,n:pre.n};
+ if(!pre||!post||post.d===pre.d){
+  var u=pre||post; out={n:u.n};
+  SERIE_K.forEach(function(k){out[k]=u[k]||0;});
+  return out;
+ }
  var t=(+new Date(d)-+new Date(pre.d))/((+new Date(post.d)-+new Date(pre.d))||1);
- return {g:pre.g+(post.g-pre.g)*t, o:pre.o+(post.o-pre.o)*t, a:pre.a+(post.a-pre.a)*t, n:pre.n};
+ out={n:pre.n};
+ SERIE_K.forEach(function(k){var a=pre[k]||0,b=post[k]||0;out[k]=a+(b-a)*t;});
+ return out;
 }
 /* La finestra dei 30 giorni dopo l'evento, tagliata all'ultimo dato disponibile.
    Il conto è in UTC, e non è pignoleria: con setDate/getDate, che lavorano in ora
@@ -5760,8 +6004,19 @@ function rEvSel(){
     agli scarti dell'house effect. */
  function ar(v){return Math.round(v);}
  function mv(k){var x=ar(q[k])-ar(p[k]);return x===0?'invariato':(x>0?'+':'−')+f(Math.abs(x));}
+ /* LA TERNA ERA UNA TERNA, E I BLOCCHI SONO QUATTRO.
+    Questi tre numeri sono quelli per cui CLAUDE.md dichiara che la DATA di una voce-evento
+    non la tocca un agente: spostarla di un giorno cambia il riquadro che il lettore apre
+    premendo, cioè credendo di aver chiesto un dettaglio e non un altro calcolo. Fino al
+    27 agosto 2026 quei numeri ne dimenticavano un quarto — misurato, «Netanyahu 50 ·
+    Opposizione 51 · Arabi 13» su un'aula da 120 — e il riquadro più sorvegliato della
+    pagina era anche uno di quelli che non chiudevano.
+    La quarta riga compare quando c'è: alla data dell'evento o alla fine della finestra dei
+    trenta giorni. Se in tutti e due i momenti vale zero non si scrive, perché una riga che
+    dice «Ago della bilancia 0 · invariato» non aggiunge niente a un riquadro stretto. */
  var righe=[['coalizione','Blocco Netanyahu','g'],['opposizione','Opposizione sionista','o'],
             ['arabo','Partiti arabi','a']];
+ if(ar(p.i)||ar(q.i)) righe.push(['incerto','Ago della bilancia','i']);
  el.className='evsel on';
  /* Il pulsante di uscita sta per ULTIMO nel markup, e non è indifferente: sopra i 660 è
     in posizione assoluta e l'ordine non conta, ma sotto è statico e va dove lo mette il
@@ -5886,6 +6141,107 @@ function DEP_LIMITE(){
    leva; e dice l'effetto in seggi e in BLOCCHI, perché la misura del 23 agosto 2026 dice
    che l'unico accordo in tabella sposta un seggio da un blocco all'altro in tutti e
    venticinque gli stati dello swing: «un seggio» sarebbe vero e depotenziato. */
+/* ══ IL COMANDO DELLE LISTE IN BILICO ═══════════════════════════════════════════════
+   Stessa grammatica di k-app: il nome dice l'AZIONE e cambia premendo, quindi il cambio di
+   nome E' il riscontro e aria-pressed direbbe il contrario di quello che si legge.
+
+   L'ETICHETTA HA LA STESSA LARGHEZZA IN TUTTI E QUATTRO GLI STATI, ed e' una proprieta'
+   cercata, non un caso. «Assegna» e «Riporta» hanno sette lettere, «lista» e «liste» ne
+   hanno cinque: il pulsante non cambia larghezza ne' premendo ne' quando il numero passa
+   da uno a due. E' la cosa che a k-app e' costata un difetto — «Aggiungi 1 accordo
+   annunciato» stava su tre righe e «Togli 1 accordo annunciato» su due, quindi il pannello
+   si accorciava di 36px SOTTO IL DITO e tutto quello che stava sotto saltava su e giu' a
+   ogni pressione. Qui non puo' succedere.
+   La stima e' 25 caratteri, cioe' ~175px al passo misurato allora, contro i 178,9 di
+   «Aggiungi 1 apparentamento» che a 380 e' misurato stare. Resta una STIMA: la larghezza
+   resa la dice solo un browser, e con una quinta pastiglia nel gruppo va guardata.
+
+   IL PULSANTE NON C'E' QUANDO NON SPOSTEREBBE NIENTE, ed e' il caso di oggi: «Popolo
+   d'Israele» sta a 2,76% di quota contro una soglia di 3,25 e non ha seggi, quindi la leva
+   muoverebbe zero. Un comando che finge di funzionare e' peggio di un comando assente. Il
+   giorno in cui quella lista entra in Knesset il pulsante compare da se'. */
+function contoBilico(){
+ var fb=filtraBilico(SEG);
+ /* i due conti dello STESSO oggetto: con la leva e con l'anagrafica. Non c'e' un secondo
+    modo di contare i seggi, e non ce ne sara' uno domani. */
+ var conLeva=blocchi(SEG), fonte=blocchi(SEG,true), mossi=0, dett=[];
+ ['coalizione','opposizione','arabo','incerto'].forEach(function(z){
+  if(fonte[z]!==conLeva[z]) dett.push(BL[z].n+' <b>'+f(fonte[z])+' → '+f(conLeva[z])+'</b>');
+  if(conLeva[z]>fonte[z]) mossi+=conLeva[z]-fonte[z];
+ });
+ /* a leva spenta i due conti coincidono per costruzione, quindi l'effetto si misura
+    sommando i seggi delle righe che entrerebbero: e' la stessa domanda, chiesta prima */
+ if(!PAR.inbilico) mossi=fb.ok.reduce(function(a,r){return a+(SEG[r.id]||0);},0);
+ return {ok:fb.ok, scarti:fb.scarti, mossi:mossi, dett:dett};
+}
+function rBilico(){
+ var c=contoBilico(), b=$('k-bilico'), r=$('k-bilriga');
+ if(!b||!r) return;
+ var utile=c.ok.length>0;
+ b.hidden=!utile;
+ if(utile){
+  var n=c.ok.length;
+  /* «Togli» / «Conta», che è la grammatica di «Escludi / Includi» dell house effect: il
+     nome dice l AZIONE, il cambio di nome È il riscontro, e quindi niente aria-pressed.
+     Con la leva accesa per difetto il verbo che il lettore incontra per primo è «Togli»,
+     cioè quello che riporta il conteggio a quello della fonte — ed è la ragione per cui non
+     può essere «Riporta 1 lista in bilico», che diceva dove va e non da dove viene.
+     LE DUE ETICHETTE HANNO LA STESSA LUNGHEZZA, ed è cercato: «Togli» e «Conta» hanno
+     cinque lettere, «dal» e «nel» tre, «lista» e «liste» cinque. Non cambia larghezza né
+     premendo né quando il numero passa da uno a due. È la cosa che al comando degli accordi
+     è costata un difetto: il pannello si accorciava di 36px SOTTO IL DITO, e tutto quello
+     che stava sotto saltava su e giù a ogni pressione. */
+  var testo=(PAR.inbilico?'Togli ':'Conta ')+f(n)+' '+acc(n,'lista','liste')+
+    (PAR.inbilico?' dal blocco':' nel blocco');
+  /* il nome accessibile COMINCIA col testo visibile, per costruzione: chi comanda a voce
+     dice quello che vede. E' l'idioma di ETI e del comando degli accordi. */
+  var dove=c.ok.map(versoBil).join('; ');
+  var eti=testo+(PAR.inbilico
+    ? ': '+dove+' — '+acc(n,'torna','tornano')+' all’ago della bilancia, dove '+acc(n,'la','le')+' mette la fonte'
+    : ': '+dove);
+  b.setAttribute('aria-label',eti); b.setAttribute('title',eti);
+  b.textContent=testo;
+ }
+ r.innerHTML=utile?rigaBilico(c):'';
+}
+/* UNA STRINGA SOLA PER «QUESTA LISTA CON QUEL CAMPO», e la usano il nome accessibile e la
+   riga di esito. Due copie direbbero la stessa cosa oggi e diversa al primo ritocco.
+   E il nome del blocco NON si abbassa di iniziale: BL[].n e' «Blocco Netanyahu», e un
+   toLowerCase() ci farebbe «blocco netanyahu». E' la trappola gia' pagata dalla
+   cronologia, dove abbassare l'iniziale produceva «hadash, Ta'al e Balad firmano». */
+function versoBil(x){return nm(x.id)+' con '+BL[x.verso].n;}
+function rigaBilico(c){
+ var n=c.ok.length, t;
+ var quali=c.ok.map(function(x){return '<b>'+E(versoBil(x))+'</b>';}).join('; ');
+ if(PAR.inbilico){
+  /* LO STATO ACCESO È QUELLO PREDEFINITO, quindi questa frase la legge chi non ha toccato
+     niente — ed è per questo che dichiara l'ipotesi PRIMA di dire quanto vale, invece di
+     chiuderla in coda come farebbe la didascalia di un comando premuto. Un lettore che
+     arriva sulla pagina sta guardando un conteggio che la fonte non fa, e deve saperlo dal
+     primo periodo. La frase dice anche che cosa fa il pulsante, perché senza, «ipotesi»
+     resterebbe una parola senza una via d'uscita. */
+  t='<b>Il conteggio parte da un’ipotesi</b>, non da un fatto: '+quali+', '+
+    acc(n,'contata','contate')+' nel blocco con cui governerebbe'+(n>1?'ro':'')+
+    ' mentre la fonte '+acc(n,'la tiene','le tiene')+' fuori dai due campi. '+
+    (c.dett.length
+      ? '<b>'+Maiu(seg(c.mossi))+'</b> '+acc(c.mossi,'si sposta','si spostano')+
+        ' fra i blocchi: '+c.dett.join(' · ')+'. '
+      : 'Non sposta nessun seggio. ')+
+    'Il pulsante '+acc(n,'la riporta','le riporta')+' dove '+acc(n,'la mette','le mette')+' la fonte.';
+ } else {
+  t='La fonte non '+acc(n,'conta','conta')+' '+
+    c.ok.map(function(x){return '<b>'+E(nm(x.id))+'</b>';}).join(' né ')+
+    ' con nessuno dei due campi: '+c.ok.map(function(x){return x.fonte;}).join('; ')+'. '+
+    'Il pulsante prova l’ipotesi opposta — '+quali+' — e dice quanto '+
+    /* l'accordo segue il SOGGETTO, che e' la lista, non i seggi: con quattro seggi e una
+       lista sola diceva «e dice quanto peserebbero». E' la stessa regola di acc()
+       applicata dove il numero in vista non e' quello che comanda il verbo. */
+    acc(n,'peserebbe','peserebbero')+': oggi <b>'+seg(c.mossi)+'</b>.';
+ }
+ if(c.scarti.length) t+=' '+f(c.scarti.length)+' '+acc(c.scarti.length,'riga non entra','righe non entrano')+
+  ': '+c.scarti.map(function(x){return nm(x.r.id)+', perché '+x.perche;}).join('; ')+'.';
+ return t;
+}
 function rApp(){
  var c=contoApp(sopraSoglia()), b=$('k-app'), r=$('k-appriga');
  /* Dopo il termine non c'è più niente da applicare per ipotesi: il comando sparisce
@@ -6003,6 +6359,107 @@ function rCalendario(){
    '<div class="g">'+(d>0?f(d)+'<small>'+acc(d,'giorno','giorni')+'</small>':(d===0?'oggi':'passato'))+'</div>'+
    '<div class="ds">'+x.t+'. '+x.s+'</div></div>';}).join('');
 }
+/* ══ LA RIGA DEI TOTALI DENTRO L'ARCO ══════════════════════════════════════════════
+   Quanti sono lo dicono i BLOCCHI CHE HANNO SEGGI, non una costante: fino al 27 agosto
+   2026 la riga era un `trio` cablato a tre chiavi mentre la tabella delle sigle ne
+   dichiarava quattro — «incerti» era scritta e IRRAGGIUNGIBILE. Il codice diceva una
+   cosa e ne faceva un'altra, e intanto l'emiciclo disegnava i seggi dell'ago della
+   bilancia, li colorava e li nominava in legenda: misurato su un archivio in cui ne ha
+   nove, i tre numeri grandi in mezzo all'aula sommavano 111 su 120. Nove cerchi visibili
+   e non contati. Un totale che esclude dei seggi che si vedono non è una semplificazione.
+
+   E IL CORPO NON È UNA COSTANTE NEMMENO LUI, perché con quattro voci non ci starebbe.
+   Il vuoto dell'arco è largo circa 198 unità e le quattro sigle ne chiedono 165,9 di
+   solo inchiostro: a spaziatura UNIFORME — i 58 di prima — il corpo massimo scende a
+   15,0, cioè 20,9px a 1265 contro i 43,3 di oggi, il 52% in meno. Con gli slot
+   dimensionati sulla PROPRIA sigla — «arabi» ne vuole 25,9 e «opposizione» 57,0 — si
+   arriva a 27,5. Quindi la spaziatura non è uniforme, ed è la ragione per cui non c'è
+   nessun 58 qui sotto.
+   Lo slot non scende mai sotto due cifre al corpo scelto: senza quel pavimento la riga si
+   sposterebbe di qualche unità il giorno in cui un blocco passa da 9 a 10 seggi.
+
+   IL CORPO SI RICAVA DAI SEGGI VERI, non da un modello dell'arco. La differenza è grossa
+   e va saputa: trattando l'arco come una curva continua — «l'angolo più lontano della
+   scatola resti dentro il raggio 100 meno il 5,4 del seggio» — il massimo scende a 15,5,
+   perché i seggi sono DISCRETI e fra l'uno e l'altro c'è aria che quel modello non vede.
+   Qui si misura contro le posizioni che rEmi() ha appena calcolato, che è la stessa
+   regola dell'esportazione PNG: la geometria non si scrive, si legge dal disegno reso.
+   Le larghezze del testo sono stimate per ECCESSO, come ETIW — 0,55 em per carattere,
+   0,72 sopra la linea di base e 0,24 sotto, perché Georgia ha le cifre MINUSCOLE e 3 4 5
+   7 9 scendono. Sovrastimare fa scegliere un corpo un po' più piccolo del necessario:
+   mai il contrario.
+   Il tetto è 31, il corpo di prima: così con tre totali la pagina di oggi non rimpicciolisce
+   niente, e a stringersi è solo il giorno in cui un quarto blocco entra in Knesset. */
+var TOT_ORD=['arabo','opposizione','incerto','coalizione'];
+var TOT_SIGLA={arabo:'arabi',opposizione:'opposizione',incerto:'incerti',coalizione:'Netanyahu'};
+/* LA QUOTA E' LA LEVA, NON IL CORPO, ed e' il contrario di quello che si penserebbe.
+   Il vuoto dell'arco e' un semicerchio: verso l'alto si stringe, verso la base si allarga.
+   A y=180, dov'erano prima, quattro totali costringono il corpo a 17 — il 45% in meno,
+   inaccettabile per il numero piu' grosso della pagina. Portando la riga a y=204, cioe' in
+   fondo al vuoto, il corpo risale a 29 con lo stesso identico contenuto.
+   Misurato su tre configurazioni diverse a quattro blocchi (4, 9 e 11 seggi all'ago della
+   bilancia, che danno tre disposizioni di seggi diverse) e su quella a tre di oggi:
+
+     quota / varco   oggi (3 blocchi)   quattro blocchi
+       y180 / 5            31                  17          ← dov'era
+       y196 / 4            31                23-29
+       y200 / 5            31                 26,5
+       y204 / 3            31                  31          varco troppo stretto fra le sigle
+       y204 / 4            31             29 · 29 · 29     ← scelta
+       y208 / 4            31                  29
+
+   y204/4 e' l'unica combinazione che dia lo STESSO corpo in tutte e tre le configurazioni
+   a quattro: il numero non deve cambiare grandezza a seconda di dove capitano i seggi.
+   Il prezzo e' che con tre blocchi la riga scende di 24 unita' rispetto a prima, e con
+   quattro il corpo cala da 31 a 29 — il 6%, cioe' 40,5px invece di 43,3 a 1265 e 22,0
+   invece di 23,5 a 380. L'alternativa era portarli FUORI dall'arco, che costa +32 unita'
+   di viewBox (+13,8%, cioe' +44,7px a 1265) e lascia il vuoto vuoto: non serve pagarla.
+   Le sigle finiscono a y221, sotto la base dell'arco, dentro le 14,6 unita' che il
+   viewBox aveva gia' libere la': l'altezza non si muove di un pixel. */
+var TOT_Y=204, TOT_DY=17, TOT_VARCO=4, TOT_CORPO=31, TOT_FSIG=8.5, TOT_LSIG=0.06;
+var TOT_EM=0.55, TOT_SU=0.72, TOT_GIU=0.24, TOT_RSEG=5.4;
+/* NON «non si sovrappone»: «resta a mezza unita di distanza». Il confronto con lo zero
+   esatto e' sbagliato due volte. In virgola mobile una scatola che sfiora un seggio
+   restituisce 8,9e−15 invece di 0, e la bisezione continuava a stringere: il corpo usciva
+   18 invece di 27,5, cioe' il DOPPIO del prezzo, senza che niente lo dicesse. E anche
+   fosse esatto, «si toccano ma non si sovrappongono» non e' una cosa che si vuole
+   guardare. Mezza unita di viewBox e' 0,38px a 380 e 0,70 a 1265: non costa niente e
+   toglie tutte e due i problemi. */
+var TOT_ARIA=0.5;
+function largStim(t,fs,ls){return TOT_EM*fs*t.length+(ls||0)*fs*t.length;}
+/* di quanto la scatola d'inchiostro entra dentro un seggio: zero vuol dire che non lo tocca */
+function urtoSeggi(cerchi,a,c,t,bo){
+ var p=0;
+ for(var i=0;i<cerchi.length;i++){
+  var q=cerchi[i];
+  var dx=Math.max(a-q.x,q.x-c,0), dy=Math.max(t-q.y,q.y-bo,0);
+  var d=Math.sqrt(dx*dx+dy*dy);
+  if(TOT_RSEG+TOT_ARIA-d>p) p=TOT_RSEG+TOT_ARIA-d;
+ }
+ return p;
+}
+/* voci: [[chiave, valore], …] già nell'ordine dell'arco. Restituisce il corpo, i centri e
+   l'urto residuo — che è zero salvo il giorno in cui le voci non ci stanno più, e allora
+   lo dichiara invece di lasciarlo scoprire a chi guarda. */
+function disponiTotali(cerchi,voci){
+ var base=voci.map(function(v){return largStim(TOT_SIGLA[v[0]],TOT_FSIG,TOT_LSIG);});
+ function prova(F){
+  var slot=base.map(function(w){return Math.max(w,TOT_EM*F*2);});
+  var tot=slot.reduce(function(a,c){return a+c;},0)+(voci.length-1)*TOT_VARCO;
+  var x=215-tot/2, cen=[], u=0, i;
+  slot.forEach(function(w){cen.push(x+w/2);x+=w+TOT_VARCO;});
+  for(i=0;i<voci.length;i++){
+   var wn=largStim(String(voci[i][1]),F,0), ws=base[i], xc=cen[i];
+   u=Math.max(u,urtoSeggi(cerchi,xc-wn/2,xc+wn/2,TOT_Y-TOT_SU*F,TOT_Y+TOT_GIU*F));
+   u=Math.max(u,urtoSeggi(cerchi,xc-ws/2,xc+ws/2,
+      TOT_Y+TOT_DY-TOT_SU*TOT_FSIG,TOT_Y+TOT_DY+TOT_GIU*TOT_FSIG));
+  }
+  return {corpo:F,cen:cen,larg:tot,urto:u};
+ }
+ var ult=null;
+ for(var F=TOT_CORPO;F>=8;F-=0.5){ ult=prova(F); if(ult.urto<=0) return ult; }
+ return ult;
+}
 function rEmi(){
  /* Sequenza dei seggi da sinistra a destra, raggruppati per blocco. */
  var seq=[],grp=[],bb=blocchi(SEG),i;
@@ -6013,7 +6470,7 @@ function rEmi(){
   });
  } else {
   ['arabo','opposizione','incerto','coalizione'].forEach(function(b){
-   var liste=IDS.filter(function(i){return SEG[i]&&P[i].b===b;})
+   var liste=IDS.filter(function(i){return SEG[i]&&bloccoDi(i)===b;})
      .sort(function(a,c){return SEG[c]-SEG[a];}), n=0;
    liste.forEach(function(i){for(var j=0;j<SEG[i];j++){seq.push(i);n++;}});
    if(n) grp.push(n);
@@ -6068,7 +6525,7 @@ function rEmi(){
   pieni.push(p);
   var col=C.hair,tit='',gr='';
   if(id.charAt(0)==='§'){var kb=id.slice(1);col=BC(kb);tit=BL[kb].n;gr=kb;}
-  else {col=cp(P[id].c);tit=nm(id)+' — '+BL[P[id].b].n;gr=id;}
+  else {col=cp(P[id].c);tit=nm(id)+' — '+BL[bloccoDi(id)].n;gr=id;}
   /* data-g e class stanno PRIMA di cx: le prove sull'emiciclo leggono le coordinate
      con /cx="…" cy="…"/, che pretende i due attributi adiacenti. */
   s+='<circle data-g="'+E(gr)+'"'+(gr===EMIFILT?' class="on"':'')+
@@ -6097,28 +6554,25 @@ function rEmi(){
  var xt=215+(r1+24)*ca, yt=212-(r1+24)*sa;
  s+='<text x="'+xt.toFixed(1)+'" y="'+Math.max(11,yt).toFixed(1)+'" text-anchor="middle" font-size="9.5" '+
     'font-weight="700" letter-spacing="1.1" fill="'+C.ink+'">MAGGIORANZA 61</text>';
- /* I tre totali stanno dentro il vuoto dell'arco. Nessuna didascalia qui dentro:
-    alla quota della base i seggi delle estremità occupano già lo spazio — la riga
-    che c'era prima ne sovrapponeva sei — e la legenda sotto dice nomi e composizione
-    meglio di quanto possa fare una riga compressa. */
- /* I totali stanno nel vuoto dell'arco, con sotto una sigla del blocco: alla quota
-    più bassa i seggi delle estremità occupano già lo spazio. */
- var sigla={arabo:'arabi',opposizione:'opposizione',coalizione:'Netanyahu',incerto:'incerti'};
- var trio=[['arabo',b.arabo],['opposizione',b.opposizione],['coalizione',b.coalizione]]
-   .filter(function(x){return x[1];});
- var larg=trio.length*58, x0=215-larg/2+29;
- /* Sotto filtro i tre totali restano tutti e tre: sono la lettura dell'aula intera, e
-    senza di essa la soglia dei 61 non vorrebbe dire niente — un numero solo, per giunta
-    non di blocco quando si filtra una lista, resterebbe sospeso senza riferimento.
+ /* I totali stanno nel vuoto dell'arco, con sotto la sigla del blocco. Nessuna didascalia
+    qui dentro: alla quota della base i seggi delle estremità occupano già lo spazio — la
+    riga che c'era prima ne sovrapponeva sei — e la legenda sotto dice nomi e composizione
+    meglio di quanto possa fare una riga compressa. Quanti siano e quanto siano grandi lo
+    decide disponiTotali(): vedi il commento là sopra. */
+ var trio=TOT_ORD.map(function(k){return [k,b[k]];}).filter(function(x){return x[1];});
+ var disp=disponiTotali(pieni,trio);
+ /* Sotto filtro i totali restano tutti: sono la lettura dell'aula intera, e senza di essa
+    la soglia dei 61 non vorrebbe dire niente — un numero solo, per giunta non di blocco
+    quando si filtra una lista, resterebbe sospeso senza riferimento.
     In evidenza resta quello del blocco a cui appartiene la voce scelta, così il filtro
     è coerente su tutto il disegno e dice anche a quale campo appartiene la lista. */
- var blSel=EMIFILT===null?null:(P[EMIFILT]?P[EMIFILT].b:EMIFILT);
+ var blSel=EMIFILT===null?null:(P[EMIFILT]?bloccoDi(EMIFILT):EMIFILT);
  trio.forEach(function(t,ix){
-  var acc=(t[0]===blSel)?' class="on"':'';
-  s+='<text data-g="'+t[0]+'"'+acc+' x="'+(x0+ix*58)+'" y="180" text-anchor="middle" font-size="31" '+
-     'font-family="Georgia,serif" fill="'+BC(t[0])+'">'+f(t[1])+'</text>'+
-     '<text data-g="'+t[0]+'"'+acc+' x="'+(x0+ix*58)+'" y="197" text-anchor="middle" font-size="8.5" '+
-     'letter-spacing=".06em" fill="'+C.mute+'">'+E(sigla[t[0]])+'</text>';
+  var acc=(t[0]===blSel)?' class="on"':'', xc=disp.cen[ix].toFixed(1);
+  s+='<text data-g="'+t[0]+'"'+acc+' x="'+xc+'" y="'+TOT_Y+'" text-anchor="middle" font-size="'+
+     disp.corpo+'" font-family="Georgia,serif" fill="'+BC(t[0])+'">'+f(t[1])+'</text>'+
+     '<text data-g="'+t[0]+'"'+acc+' x="'+xc+'" y="'+(TOT_Y+TOT_DY)+'" text-anchor="middle" font-size="'+
+     TOT_FSIG+'" letter-spacing="'+TOT_LSIG+'em" fill="'+C.mute+'">'+E(TOT_SIGLA[t[0]])+'</text>';
  });
  s+='</svg>';
  $('k-emi').innerHTML=s;
@@ -6141,7 +6595,7 @@ function rEmi(){
   $('k-emileg').className='legb';
   $('k-emileg').innerHTML=['coalizione','opposizione','incerto','arabo'].filter(function(k){return bl2[k];})
    .map(function(k){
-    var membri=IDS.filter(function(i){return SEG[i]&&P[i].b===k;})
+    var membri=IDS.filter(function(i){return SEG[i]&&bloccoDi(i)===k;})
       .sort(function(a,b){return SEG[b]-SEG[a];})
       .map(function(i){return E(nm(i))+' '+f(SEG[i]);}).join(' · ');
     return voce(k,'In evidenza i seggi di '+BL[k].n+', '+seg(bl2[k]),
@@ -6594,7 +7048,29 @@ function serieModello(){
     tabella cambia solo quando si modifica il file, cioè quando la pagina si ricarica: è
     una cache che rispondeva giusto per una ragione che non è la sua, e l'ha trovata una
     prova che aggiungeva un accordo a mano. */
- var key=SOND.length+'|'+firmaPar()+'|'+
+ /* E LA CHIAVE COMPRENDE IL CONTENUTO, non il conteggio delle righe. Era SOND.length, che
+    e' la stessa forma del difetto qui sopra: un archivio DIVERSO della STESSA lunghezza
+    lasciava servita la serie di prima. Non si vede finche' l'archivio cresce e basta —
+    cioe' finche' lo tocca solo il lavoro notturno — ma il modulo dell'autore importa e
+    corregge le rilevazioni a mano, e li' il numero di righe puo' non muoversi mentre i
+    seggi si muovono: il grafico della tendenza avrebbe continuato a disegnare i numeri di
+    prima, senza errori in console e senza che niente lo dicesse.
+    Trovato il 27 agosto 2026 da test/suite/blocchi.js, che rifa' il render su un archivio
+    modificato di lunghezza uguale — cioe' esattamente quel caso. La somma non e' un hash
+    crittografico e non deve esserlo: deve solo muoversi quando i dati si muovono. */
+ /* La prima stesura dell'impronta pesava ogni lista per la LUNGHEZZA del suo id, e
+    «likud» e «amcha» hanno tutte e due cinque lettere: spostare quattro seggi dall'una
+    all'altra lasciava l'impronta identica, cioe' esattamente il caso che questa chiave
+    esiste per cogliere. Trovato dalla prova, non dall'attenzione. Adesso e' un hash
+    posizionale sul testo della riga: non deve essere crittografico, deve solo muoversi
+    quando i dati si muovono. */
+ var impronta=0;
+ SOND.forEach(function(x,ix){
+  var t=ix+'|'+x.data+'|'+(x.istituto||'')+'|';
+  for(var kk in x.seggi) t+=kk+':'+x.seggi[kk]+',';
+  for(var j=0;j<t.length;j++) impronta=(impronta*31+t.charCodeAt(j))|0;
+ });
+ var key=SOND.length+':'+impronta+'|'+firmaPar()+'|'+
    APPARENTAMENTI.map(function(x){return x.a+'+'+x.b+':'+x.stato+':'+x.data+':'+(x.fine||'');}).join(',');
  if(_serie&&_serieKey===key) return _serie;
  var viste={},date=[];
@@ -6609,7 +7085,11 @@ function serieModello(){
   /* `d` e non oggi: una coppia annunciata il 22 agosto non deve comparire nella
      proiezione di luglio. È la ragione per cui APPARENTAMENTI porta una data. */
   var sg=dhondt(qq,d),b=blocchi(sg);
-  out.push({d:d,g:b.coalizione,o:b.opposizione,a:b.arabo,n:l.length});
+  /* IL QUARTO CAMPO C'ERA DA CONTARE E NON DA DISEGNARE, e per questo mancava: fino al
+     27 agosto 2026 ogni punto della serie portava tre blocchi su quattro, quindi la
+     tendenza PERDEVA i seggi dell'ago della bilancia — misurato su un archivio in cui ne
+     ha nove, tre linee che sommavano 111 sotto una riga della maggioranza a 61. */
+  out.push({d:d,g:b.coalizione,o:b.opposizione,a:b.arabo,i:b.incerto,n:l.length});
  });
  _serie=out;_serieKey=key;
  return out;
@@ -6628,7 +7108,7 @@ function notaSerie(S){
  var cp=coppieRiparto(sopraSoglia(),null);
  var ult=S[S.length-1], b=blocchi(SEG);
  var diff=[];
- [['coalizione','g'],['opposizione','o'],['arabo','a']].forEach(function(z){
+ [['coalizione','g'],['opposizione','o'],['arabo','a'],['incerto','i']].forEach(function(z){
   if(ult[z[1]]!==b[z[0]]) diff.push(BL[z[0]].n+' <b>'+f(ult[z[1]])+'</b> contro <b>'+f(b[z[0]])+'</b>');
  });
  /* Solo per gli accordi: una divergenza di altra origine vorrebbe un'altra diagnosi, e
@@ -6646,7 +7126,7 @@ function rTrend(){
  notaSerie(S);
  var punti=tutti().slice().sort(function(a,b){return a.data<b.data?-1:1;}).map(function(s){
   var b=blocchi(s.pre?armonizza(s):s.seggi);
-  return {d:s.data,g:b.coalizione,o:b.opposizione,a:b.arabo,src:s.istituto,test:s.testata};});
+  return {d:s.data,g:b.coalizione,o:b.opposizione,a:b.arabo,i:b.incerto,src:s.istituto,test:s.testata};});
  /* Su schermo stretto si riduce la larghezza del riquadro invece dei caratteri:
     l'SVG scala alla larghezza del contenitore, quindi un viewBox più stretto
     rende il testo proporzionalmente più grande. */
@@ -6764,8 +7244,18 @@ function rTrend(){
     '" stroke="'+C.ink+'" stroke-width="1.4" stroke-dasharray="6 4"/>'+
     '<text x="'+(Lm+6)+'" y="'+(Y(61)-7).toFixed(1)+'" font-size="'+(11.5*FS).toFixed(1)+'" font-weight="700" fill="'+C.ink+'">61 = maggioranza</text>';
  /* nuvola dei singoli sondaggi, sullo sfondo */
+ /* LA QUARTA SERIE C'È QUANDO C'È QUALCOSA DA MOSTRARE, e non sempre.
+    L'ago della bilancia oggi non ha seggi in nessun punto della serie né in nessuna
+    rilevazione: disegnarlo comunque vorrebbe dire una linea piatta sullo zero per tutto
+    l'asse, una quarta voce di legenda che dice sempre 0 e una tinta in più da distinguere
+    — rumore al posto di un'informazione. Il giorno in cui una di quelle liste entra in
+    Knesset la linea compare da sé, perché la condizione guarda i DATI e non una costante.
+    E guarda tutti e due gli insiemi — la serie del modello e la nuvola dei sondaggi —
+    perché una rilevazione che le dà seggi va disegnata anche se la media pesata non
+    gliene assegna ancora. */
  var SER=[['g','coal','Blocco Netanyahu','coalizione'],['o','oppo','Opposizione sionista','opposizione'],
-          ['a','arab','Partiti arabi','arabo']];
+          ['a','arab','Partiti arabi','arabo'],['i','inc','Ago della bilancia','incerto']];
+ if(!S.some(function(x){return x.i>0;})&&!punti.some(function(x){return x.i>0;})) SER=SER.slice(0,3);
  punti.forEach(function(p){
   SER.forEach(function(z){
    s+='<circle class="pt pt-'+z[0]+'" cx="'+X(p.d).toFixed(1)+'" cy="'+Y(p[z[0]]).toFixed(1)+
@@ -6802,7 +7292,7 @@ function rTrend(){
   s+='<g class="ln ln-'+f.k+'">'+
      '<rect x="'+(W-Rm+4)+'" y="'+(f.y-13).toFixed(1)+'" width="'+(MOB?42:34)+'" height="26" rx="4" fill="'+f.c+'"/>'+
      '<text x="'+(W-Rm+4+(MOB?21:17))+'" y="'+(f.y+5).toFixed(1)+'" text-anchor="middle" font-size="'+(14.5*(MOB?1.35:1)).toFixed(1)+'" '+
-     'font-weight="700" fill="'+C['on-color']+'" font-family="Georgia,serif">'+f.v+'</text></g>';
+     'font-weight="700" fill="'+inchiostroSu(f.c)+'" font-family="Georgia,serif">'+f.v+'</text></g>';
  });
  /* cronologia: un segno numerato per ogni fatto politico rilevante.
     Il tratteggio resta sempre nell'SVG, perché è un segno. Il COMANDO invece è uno strato
@@ -7116,7 +7606,9 @@ function rTab(){
     con cui la pagina li ha sempre pubblicati, e riordinarli non era la richiesta. */
  h+='<th class="sep2">Coal.</th><th>Opp.</th><th>Arabi</th></tr></thead><tbody>';
  l.forEach(function(s){
-  var b=blocchi(s.seggi);
+  /* «come pubblicato»: vedi il commento di blocchi(). Il piede della sezione promette di
+     riprodurre i totali degli istituti, e un istituto non conosce le nostre ipotesi. */
+  var b=blocchi(s.seggi,true);
   if(s.pre&&!eraShown){eraShown=true;
    h+='<tr><td colspan="'+(cols.length+6)+'" class="l" style="background:var(--wash);font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:var(--mute);font-weight:700">'+ERA_PRE+'</td></tr>';}
   /* Non si attenuano: il canale è la riga di separazione qui sopra, che dice a parole di
@@ -7148,7 +7640,7 @@ function rTab(){
  var eraL=false;
  h+='<div class="sondlist">';
  vis.forEach(function(s){
-  var b=blocchi(s.seggi);
+  var b=blocchi(s.seggi,true);
   if(s.pre&&!eraL){eraL=true;h+='<div class="sondera">'+ERA_PRE+'</div>';}
   /* LA TESTATA STA NEL PANNELLO E NON NEL SOMMARIO, ed è una misura. Con «Lazar ·
      Panel4All Maariv» nel sommario la riga andava a capo: 62,8px invece di 46, su 18
@@ -7492,7 +7984,7 @@ function renderInterno(){
   pc(MC.vO/MC.n)+'</b> delle simulazioni, con esito più frequente <b>'+f(i2.moda)+' seggi</b> e stima puntuale '+f(bb.opposizione)+'. '+
   'Stima puntuale e risultato più frequente non coincidono sempre, perché la soglia di sbarramento e il riparto d\'Hondt '+
   'trasformano i voti in seggi a scatti, non con continuità.';
- mostraAff();rSwAnc();rSwNota();rDiag();rMemoria();rFirma();rSommario();rAnalisi();rDirezione();rProj();rEmi();rVeti();rCoal();rPower();rChips();rApp();rHouse();rTrend();rCrono();rCalendario();rTab();rFoot();avvisaAltezza();
+ mostraAff();rSwAnc();rSwNota();rDiag();rMemoria();rFirma();rSommario();rAnalisi();rDirezione();rProj();rEmi();rVeti();rCoal();rPower();rChips();rApp();rBilico();rHouse();rTrend();rCrono();rCalendario();rTab();rFoot();avvisaAltezza();
 }
 
 /* ══════════ PARSER DELLA TABELLA WIKIPEDIA ══════════
@@ -8135,7 +8627,7 @@ R.addEventListener('click',function(e){
    il suo ripiego, e il riscontro sul comando. Una seconda strada per copiare sarebbe la
    strada doppia di sempre. */
 R.addEventListener('click',function(e){
- var b=e.target&&e.target.closest&&e.target.closest('#k-copialink,#k-copiaprompt');
+ var b=e.target&&e.target.closest&&e.target.closest('[data-copia],#k-copiaprompt');
  if(!b) return;
  /* CHE COSA SI COPIA. Il collegamento è una costante; il prompt si legge dal RIQUADRO,
     non richiamando promptAI(). Non è pigrizia: il riquadro esiste per dichiarare «questo è
@@ -8145,6 +8637,8 @@ R.addEventListener('click',function(e){
     codice: innerText è definito in funzione della resa, e qui c'è white-space:pre-wrap. */
  var pb=$('k-prompt');
  var testo=b.id==='k-copiaprompt' ? (pb?pb.textContent:'') : CANONICO;
+ /* il riscontro sta sul comando premuto: con due cerchi identici in due posti, scambiare
+    il segno su «quello con l'id» lo scambierebbe sull'altro. Qui `b` è quello premuto. */
  copiaTesto(testo,function(esito){
   var ok=esito==='copiato', parola=ok?'Copiato':'Non riuscita';
   /* DUE MODI DI DARE IL RISCONTRO, e la differenza è se il comando ha un'etichetta VISIBILE.

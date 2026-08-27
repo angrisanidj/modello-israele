@@ -39,10 +39,23 @@ const ck={
  "affiliazione nei movers": ($('k-movers').innerHTML.match(/class="blq"/g)||[]).length>=8,
  "emiciclo senza righe sopra i pallini": !/stroke-width="3"/.test($('k-emi').innerHTML),
  "emiciclo 120 seggi": ($('k-emi').innerHTML.match(/r="5.4"/g)||[]).length===120,
- "grafico: tre linee del modello": (svg.match(/class="ln ln-/g)||[]).length>=3,
+ "grafico: almeno le tre linee di blocco": (svg.match(/class="ln ln-/g)||[]).length>=3,
  "grafico: nuvola dei sondaggi": (svg.match(/class="pt pt-/g)||[]).length>100,
- "etichette finali in pastiglia": (svg.match(/<rect[^>]*rx="4"/g)||[]).length===3,
- "legenda con valori": ($('k-trendleg').innerHTML.match(/<s>/g)||[]).length===3,
+ /* IL NUMERO DELLE SERIE NON SI SCRIVE PIÙ QUI. Erano tre, e il 27 agosto 2026 sono
+    diventate quattro il giorno in cui la tendenza ha smesso di buttare via l'ago della
+    bilancia — che nell'archivio pubblicato ha seggi in quindici rilevazioni. Un «3» in
+    questa prova avrebbe detto «difetto» dove c'era una riparazione, ed è esattamente
+    l'attesa che si aggiorna facendola tornare verde senza guardare.
+    La proprietà che conta è che le TRE VISTE della stessa serie concordino: la linea nel
+    disegno, la pastiglia col valore in fondo alla linea, la voce di legenda. Sono tre
+    strade per lo stesso insieme, ed è la regola del progetto sulle strade multiple. */
+ "etichette finali, linee e legenda dicono lo stesso numero di serie":
+   (function(){
+     var linee=new Set((svg.match(/class="ln ln-([a-z])"/g)||[]).map(function(x){return x.slice(-2,-1);}));
+     var past=(svg.match(/<rect[^>]*rx="4"/g)||[]).length;
+     var voci=($('k-trendleg').innerHTML.match(/<s>/g)||[]).length;
+     return linee.size>=3 && past===linee.size && voci===linee.size;
+   })(),
  "legenda cliccabile": /data-ln=/.test($('k-trendleg').innerHTML),
  /* Era «parte da gennaio», cioè una data assoluta: dopo che l'archivio viene riportato a
     oggi le date sono tutte spostate della stessa quantità, e gennaio non c'è più. La

@@ -1016,18 +1016,64 @@ function pagina(opz){
   esito(!!colonna, 'la colonna sta nel markup, non la crea il JavaScript');
   const cCol = [].slice.call(colonna.querySelectorAll('a'));
   esito(cCol.length === A2.RETI.length,
-    'porta le sei reti e NON la copia del collegamento: quella è un\'azione con un esito, e ' +
-    'un\'azione fuori dall\'ordine di tabulazione è irraggiungibile per chi non usa il mouse',
-    String(cCol.length));
-  esito(colonna.getAttribute('aria-hidden') === 'true',
-    'ed è fuori dall\'albero: sette comandi duplicati porterebbero l\'elenco da sette a quattordici');
-  esito(cCol.every(a => a.getAttribute('tabindex') === '-1'),
-    'e fuori dall\'ordine di tabulazione, per la stessa ragione');
+    'porta le sei reti come collegamenti', String(cCol.length));
+  /* LA DECISIONE È CAMBIATA IL 27 AGOSTO 2026, e il verso è opposto a quello di prima.
+     Finché il blocco in fondo c'era a OGNI larghezza, la colonna era una comodità per il
+     puntatore: stava fuori dall'albero e fuori dall'ordine di tabulazione per non
+     raddoppiare l'elenco dei comandi, e non portava la copia dell'indirizzo perché
+     un'azione irraggiungibile da tastiera per quel lettore non esiste affatto.
+     Adesso sopra i 1380 il gruppo in fondo se ne va — è lo stesso elenco due volte — e la
+     colonna è l'UNICA copia: nasconderla vorrebbe dire che a quella larghezza la
+     condivisione non esiste per chi usa la tastiera. Il doppione non torna perché a
+     ciascuna larghezza uno dei due è display:none, e un elemento non visualizzato esce da
+     sé dall'albero e dall'ordine di tabulazione — senza aria-hidden e senza tabindex. */
+  esito(colonna.getAttribute('aria-hidden') === null,
+    'e NON è fuori dall\'albero: sopra i 1380 è l\'unica copia dei comandi, e nasconderla ' +
+    'la toglierebbe a chi usa la tastiera o un lettore di schermo',
+    String(colonna.getAttribute('aria-hidden')));
+  esito(cCol.every(a => a.getAttribute('tabindex') === null),
+    'né fuori dall\'ordine di tabulazione, per la stessa ragione');
+  esito(!!colonna.querySelector('[data-copia="link"]'),
+    'e porta anche la copia del collegamento: la ragione per escluderla era il tabindex ' +
+    'negativo, ed è caduta con lui');
+  esito(D2.querySelectorAll('[data-copia="link"]').length === 2 &&
+        D2.querySelectorAll('#k-copialink').length === 0,
+    'che sta in due posti con un ATTRIBUTO e non con un id: due elementi con lo stesso id ' +
+    'non sollevano niente e fanno rispondere getElementById al primo dei due',
+    D2.querySelectorAll('[data-copia="link"]').length + ' cerchi di copia');
   esito(cCol.every((a, i) => a.getAttribute('href') ===
         box.querySelectorAll('a.soci')[i].getAttribute('href')),
     'e i sei indirizzi sono gli stessi della riga in fondo, nello stesso ordine');
-  esito(colonna.querySelectorAll('svg').length === A2.RETI.length,
-    'e ciascuno porta il suo segno');
+  esito(colonna.querySelectorAll('svg').length === A2.RETI.length + 1,
+    'e ciascuno dei sette porta il suo segno',
+    String(colonna.querySelectorAll('svg').length));
+  /* CHE COSA SPARISCE DOVE LA COLONNA C'È, e che sia una costante sola come per l'embed. */
+  const viaSopra = (HTML.match(/var VIA_SOPRA_COLONNA=\[([^\]]*)\]/) || [0,''])[1]
+    .split(',').map(x => x.replace(/['\s]/g,'')).filter(Boolean);
+  esito(viaSopra.length > 0,
+    'l elenco di cio che sparisce sopra i 1380 e una costante dichiarata', viaSopra.join(','));
+  esito(viaSopra.every(id => { const el = D2.getElementById(id);
+        return el && el.classList.contains('dupcol'); }),
+    'e la classe che il foglio spegne la mette QUELLA costante, non il markup scritto a mano');
+  esito((HTML.match(/#kn26 \.dupcol\{display:none;\}/g) || []).length === 1,
+    'con una regola sola nel foglio');
+  /* «DENTRO», e la prima stesura diceva «dopo». Verificava che la regola comparisse dopo
+     l apertura della fascia e prima della fascia successiva — cosa vera anche se la si
+     porta FUORI dalla graffa di chiusura, che è esattamente il difetto: il doppione
+     sparirebbe a ogni larghezza e sotto i 1380, dove la colonna non c è, la condivisione
+     non ci sarebbe affatto. Il mutante sopravviveva. Adesso la fascia si ritaglia contando
+     le graffe, che è l unico modo di dire «dentro». */
+  const i1380 = HTML.indexOf('@media(min-width:1380px)');
+  let fascia = '';
+  if (i1380 > 0) {
+    const apre = HTML.indexOf('{', i1380);
+    let d = 1, j = apre + 1;
+    while (j < HTML.length && d) { const c = HTML[j]; if (c === '{') d++; else if (c === '}') d--; j++; }
+    fascia = HTML.slice(apre, j);
+  }
+  esito(fascia.indexOf('.dupcol{display:none;}') > 0,
+    'e la regola sta DENTRO la fascia dei 1380: sotto quella larghezza la colonna non c e ' +
+    'e il gruppo in fondo deve restare');
 
   /* ══ IL RIQUADRO MOSTRA ESATTAMENTE QUELLO CHE PARTE ══
      È la ragione per cui la sezione è onesta, quindi è una proprietà e non una decorazione:
@@ -1047,7 +1093,7 @@ function pagina(opz){
      quindi le quattro asserzioni qui sotto leggevano la prosa e cadevano su un difetto che
      non c'era. Una prova che cerca una stringa nel sorgente deve guardare il CODICE, o
      trova quello che l'autore ha scritto per spiegare. */
-  const fonteCp = HTML.match(/closest\('#k-copialink,#k-copiaprompt'\)[\s\S]{0,2400}/)[0]
+  const fonteCp = HTML.match(/closest\('\[data-copia\],#k-copiaprompt'\)[\s\S]{0,2600}/)[0]
     .replace(/\/\*[\s\S]*?\*\//g, '');
   esito(/\$\('k-prompt'\)/.test(fonteCp) && !/promptAI\(\)/.test(fonteCp),
     'e «copia prompt» legge il riquadro invece di ricalcolare il prompt');
@@ -1086,7 +1132,12 @@ function pagina(opz){
      conteggio che sembrava pieno. È la quinta volta in questo progetto. Si prende il ramo
      con una guardia, e la stringa cercata è la parte che non dipende da quanti comandi il
      gestore serve. */
-  const mFonte = HTML.match(/closest\('#k-copialink[^)]*\)[\s\S]{0,2400}/);
+  /* E SI È ROTTA DI NUOVO, il 27 agosto 2026, per la stessa ragione: il selettore è
+     passato a [data-copia] quando il cerchio è finito anche nella colonna. La guardia qui
+     sotto ha fatto il suo mestiere — la suite è FALLITA invece di morire — ma l ancora era
+     ancora il selettore, cioè la cosa che cambia. Adesso è la riga che legge il riquadro del
+     prompt, che è dentro quel gestore e non dipende da quanti comandi serve. */
+  const mFonte = HTML.match(/var pb=\$\('k-prompt'\);[\s\S]{0,2400}/);
   esito(!!mFonte, 'il gestore della copia si trova nel sorgente');
   const fonte = mFonte ? mFonte[0].replace(/\/\*[\s\S]*?\*\//g, '') : '';
   /* la CHIAMATA del gestore, non la parola che capita entro 2400 caratteri: copiaTesto()

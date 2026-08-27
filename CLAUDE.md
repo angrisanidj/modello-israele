@@ -4030,6 +4030,333 @@ Nessuna scelta di colore li risolve: dipendono da come il modello disegna.
 
 ---
 
+## I quattro blocchi: l'arco che ne contava tre, e la leva che riclassifica
+
+Applicato il 27 agosto 2026. `blocchi()` restituisce **quattro** totali da sempre — e quasi
+nessun consumatore ne pubblicava quattro. È la stessa forma dei totali dell'archivio, che
+erano due e dovevano essere tre, con una differenza che la rende peggiore: **nell'archivio i
+seggi che mancano dalla somma non si vedono; nell'emiciclo sì.** Lì sono disegnati,
+colorati, e la legenda li nomina.
+
+### La diagnosi, e perché il difetto non si vedeva
+
+Nella proiezione di oggi l'ago della bilancia ha **zero seggi in tutti e 25 gli stati dello
+swing**: «Casa Sionista» sta a **2,760** di quota contro una soglia di 3,25 — mezzo punto —
+e le altre quattro liste del blocco non compaiono nemmeno fra le quote. Ogni somma faceva
+120 perché il quarto addendo era zero, e nessuna misura sull'archivio del giorno poteva dire
+niente. Le misure che seguono sono su un archivio in cui quattro seggi passano dal Likud a
+una di quelle liste.
+
+**Ma una parte del difetto era già visibile, e la diagnosi l'aveva mancata**: la nuvola dei
+sondaggi della sezione 9 scartava dei punti veri. **Quindici rilevazioni di `BASE` danno
+quattro seggi a Casa Sionista** — è un dato d'archivio, non un'ipotesi. L'ha trovato il
+banco e non l'occhio: la quarta serie ha cominciato a disegnarsi da sola nelle prove, e tre
+attese che dicevano «tre linee» sono cadute.
+
+| chi pubblica dei totali di blocco | ne diceva | |
+|---|---|---|
+| `k-verdetto` · riga di esito degli accordi · `formaTitolo()` · le quattro probabilità | **quattro** | ✓ |
+| **archivio `#k-tab`**, due forme | tre | ✓ **dichiarato** nel piede |
+| **emiciclo**, i totali dentro l'arco | tre → **111 su 120** | ✗ |
+| **`og:image`** — `anteprima.mjs` prende `#k-emi svg` alla lettera | gli stessi 111 | ✗ |
+| **`testoCondivisione()`** — X, Facebook, Telegram | «i **120** seggi» e ne elencava 111 | ✗ |
+| **`promptAI()`** — va a un servizio terzo | «su 120 totali», 111 | ✗ |
+| **`serieModello()`, nuvola e legenda** della tendenza | tre linee che sommano 111 sotto la riga del 61 | ✗ |
+| **riquadro dell'evento isolato** | «Netanyahu 50 · Opposizione 51 · Arabi 13» = 114 | ✗ |
+| **targa delle card social**, composizione B | tre voci a passo fisso `CW*0,30` | ✗ |
+| `k-deck` · `rDirezione` | due | ✗ |
+| `rSwNota` · istogrammi e didascalie | due **per costruzione** | ✓ |
+
+**E il codice diceva già che era un difetto**: `rEmi()` dichiarava
+`sigla={…, incerto:'incerti'}` e tre righe sotto il `trio` era cablato a tre chiavi. La voce
+era scritta e **irraggiungibile**.
+
+### La riga dei totali: la leva è la quota, non il corpo
+
+Il vuoto dell'arco è un semicerchio, quindi si allarga verso la base. Quattro sigle chiedono
+**165,9 unità** di solo inchiostro — «opposizione» da sola ne vale 57 e «arabi» 25,9 — e a
+spaziatura **uniforme**, i 58 di prima, il corpo massimo crolla a **15,0**. Dimensionando
+ogni slot sulla **propria** sigla si risale, e da lì a decidere è l'altezza:
+
+| quota / varco | oggi, tre blocchi | quattro blocchi |
+|---|---|---|
+| **y180 / 5** — dov'era | 31 | **17** |
+| y196 / 4 | 31 | 23–29 |
+| y200 / 5 | 31 | 26,5 |
+| y204 / 3 | 31 | 31 — varco troppo stretto fra le sigle |
+| **y204 / 4** — applicato | **31** | **29 · 29 · 29** |
+| y208 / 4 | 31 | 29 |
+
+`y204/4` è l'unica combinazione che dia lo **stesso** corpo su tre configurazioni a quattro
+blocchi diverse — 4, 9 e 11 seggi all'ago della bilancia, che danno tre disposizioni di
+seggi diverse: il numero non deve cambiare grandezza a seconda di dove capitano i seggi.
+Costa il **6%** — 40,5px invece di 43,3 a 1265, 22,0 invece di 23,5 a 380 — e **zero
+altezza**, perché le sigle finiscono a y221, dentro le 14,6 unità che il viewBox aveva già
+libere sotto l'arco. Con tre blocchi il corpo resta **31**: a stringersi è solo il giorno in
+cui un quarto blocco entra in Knesset.
+
+**L'alternativa era portarli fuori dall'arco**, ed è misurata: viewBox da 232 a **264**, cioè
+**+32 unità, il +13,8%**, che sono +44,7px a 1265 e +24,3 a 380 — e lascerebbe il vuoto
+vuoto. Non serve pagarla.
+
+**Il corpo si ricava dai seggi VERI, non da un modello dell'arco.** Trattandolo come una
+curva continua il massimo scende a 15,5: i seggi sono **discreti**, e fra l'uno e l'altro c'è
+aria che quel modello non vede. È la regola dell'esportazione PNG applicata qui — la
+geometria non si scrive, si legge dal disegno reso.
+
+### La leva: `IN_BILICO`, una sola per tutte le righe
+
+`bloccoDi(i)` cambia il campo in cui un seggio viene **contato**. Non cambia l'anagrafica,
+non cambia un colore, non tocca `PAL_SCURO`. **Misurato**: a leva accesa i totali passano da
+47·49·15·9 a 56·49·15·0 e **nessuna lista cambia di un seggio**, perché `dhondt()` e
+`ripartoVeloce()` non leggono il blocco di nessuna lista — l'unica `.b` che `dhondt` nomina è
+il secondo membro di una coppia di apparentamento.
+
+**La regola che ne esce, e vale per chi aggiunge un consumatore domani: le funzioni che
+calcolano QUOTE leggono l'anagrafica, quelle che CONTANO SEGGI leggono la leva.**
+
+| | legge | perché |
+|---|---|---|
+| `applicaSwing()`, `puntiPer()`, `dir[]` del Monte Carlo | **`P[i].b`** | lo swing è una **misura storica**, tarata su 2020-21-22, e in quelle elezioni queste liste non esistevano |
+| `isCo/isOp/isAr` del Monte Carlo | `bloccoDi()` | lì la domanda è «chi arriva a 61», che è la domanda della leva |
+| `blocchi()`, emiciclo, `rProj` | `bloccoDi()` | contano seggi |
+| **archivio `#k-tab`** | `blocchi(s.seggi, **true**)` | quelle colonne riproducono la **fonte**, e un istituto non conosce le nostre ipotesi |
+
+La leva dice «se governasse con Netanyahu il blocco avrebbe N seggi», non «i suoi elettori si
+comportano come i suoi». **E la differenza non è teorica**: misurato, con la leva dentro lo
+swing, a swing −4 la lista passava da 9 seggi a 8 e Otzma da 7 a 8, e a swing +4 il blocco
+arrivava a **61 esatti** per uno spostamento di voti che nessun sondaggio ha rilevato.
+
+**LA LEVA NON DEVE ARRIVARE ALLA GUARDIA «Gov.» DEL PARSER NOTTURNO.** Quella guardia valida
+la colonna di Wikipedia contro `PRESET.netanyahu`, e la fonte non conta queste liste lì
+dentro: se la leva la raggiungesse, **ogni notte con la leva accesa il job respingerebbe
+righe valide** dichiarando «blocco discordante» — nel lavoro notturno, cioè dove nessuno
+guarda, con l'archivio fermo finché qualcuno se ne accorge. `PRESET.netanyahu` resta il
+filtro su `P[i].b`, e `blocchi.js` legge il **sorgente** del parser per pretendere che non
+nomini mai `bloccoDi`.
+
+**È un meccanismo, non un caso.** Una leva per lista sarebbe ingestibile l'8 settembre:
+questa ne governa tutte le righe dichiarate insieme, come `PAR.apparentamenti` governa tutti
+gli accordi annunciati, e la riga di esito dice quali ha applicato, quali no e perché. Il
+caso specifico avrebbe risparmiato una riga di tabella in cambio di un id cablato, cioè la
+copia che l'8 settembre resta indietro.
+
+**L'etichetta ha la stessa larghezza in tutti e quattro gli stati**, ed è una proprietà
+cercata: «Assegna» e «Riporta» hanno sette lettere, «lista» e «liste» ne hanno cinque. È la
+cosa che al comando degli accordi è costata un difetto — il pannello si accorciava di 36px
+**sotto il dito** e tutto quello che stava sotto saltava su e giù a ogni pressione.
+
+**Oggi il pulsante non c'è**, e la riga tace: «Popolo d'Israele» non ha seggi, quindi la leva
+muoverebbe zero. Un comando che finge di funzionare è peggio di un comando assente.
+
+### Tre difetti trovati dal banco, e nessuno era quello che si stava riparando
+
+1. **`if(!urto)` su un valore in virgola mobile.** Una scatola che sfiora un seggio
+   restituisce `8,9e−15` invece di 0, che è **vero**: la bisezione continuava a stringere e
+   il corpo usciva **18 invece di 27,5** — il doppio del prezzo, senza che niente lo dicesse.
+   Adesso c'è `TOT_ARIA`, mezza unità di distanza richiesta: 0,38px a 380, e toglie il
+   problema numerico e quello estetico insieme.
+2. **La chiave della cache della serie era `SOND.length`.** Un archivio **diverso della
+   stessa lunghezza** lasciava servita la serie di prima. Non si vede finché l'archivio
+   cresce e basta, cioè finché lo tocca solo il lavoro notturno — ma il modulo dell'autore
+   importa e corregge le rilevazioni a mano, e lì il numero di righe può non muoversi mentre
+   i seggi si muovono. **E la prima impronta scritta per ripararla aveva una collisione**:
+   pesava ogni lista per la lunghezza del suo id, e `likud` e `amcha` hanno tutte e due
+   cinque lettere, quindi spostare seggi fra le due non la muoveva. Trovata dalla prova, non
+   dall'attenzione.
+3. **Bianco su `--inc` sta a 3,78.** La pastiglia finale della tendenza scrive in
+   `--on-color` sul colore della serie, e `--inc` in tema chiaro è `#B57600`: il difetto non
+   esisteva finché la quarta serie non veniva disegnata, ed è comparso nello stesso commit
+   che l'ha aggiunta. **Il rimedio non è un'eccezione per `--inc`**: `inchiostroSu()` chiede
+   il contrasto invece di darlo per scontato, e sugli otto casi — quattro token per due temi
+   — il migliore dei due inchiostri sta a **4,72** nel peggiore. Il giorno in cui la
+   tavolozza si muove, risponde da sé.
+
+### La prova che mancava
+
+`test/suite/blocchi.js`, 53 asserzioni. **In tutto il banco non esisteva un'asserzione che
+legasse i totali al 120**, ed è la ragione per cui il difetto è arrivato fin qui: `emi.js`
+non nomina mai `incerto`, e ogni consumatore era corretto rispetto a sé stesso — la forma
+contro cui questo file mette in guardia da quando i token di blocco sono stati divergenti per
+tre commit.
+
+La prova non guarda un elenco di posti, guarda una **proprietà**: «ogni vista che pubblica
+dei totali di blocco li pubblica tutti» vale anche per la vista che qualcuno aggiunge domani.
+E niente è scritto sull'archivio del giorno: la fixture sposta i seggi lì dentro, perché sui
+numeri di oggi la prova sarebbe verde **per assenza del caso**.
+
+**E quattro attese che dicevano «tre» sono state riscritte sulla proprietà invece che sul
+numero** — `graf.js`, `mob2.js`, `isola.js` e il ruolino di `PAR_DEF` in `apparentamenti.js`.
+Un «3» in quelle prove avrebbe detto «difetto» dove c'era una riparazione, ed è esattamente
+l'attesa che si fa tornare verde senza guardare.
+
+### La leva nasce ACCESA, e questo cambia il verbo e la riga
+
+Deciso dall'autore il 27 agosto 2026, poche ore dopo aver applicato la leva spenta. Il
+cambio è di una cifra in `PAR_DEF`, ma sposta due cose che vanno guardate insieme.
+
+**Perché accesa.** Le altre due leve di ipotesi partono spente perché aggiungono un'ipotesi
+a un conteggio che senza di loro è quello della fonte. Qui è il contrario: la domanda «e se
+governasse con Netanyahu?» è quella che un lettore si fa comunque davanti a una lista che
+non sta con nessuno dei due campi, e partire dallo stato in cui non è posta lo lascia
+davanti a un conteggio che **non dichiara la propria ipotesi**. È lo stato non dichiarato
+contro cui il simulatore accende «Blocco Netanyahu» all'apertura invece di partire da una
+selezione vuota.
+
+**IL PREZZO VA SAPUTO, ed è scritto accanto alla costante: il conteggio predefinito non è
+quello della fonte.** Wikipedia non conta queste liste nel totale «Gov.», e la pagina sì.
+L'anagrafica resta invariata — in `P{}` restano dove la fonte le mette — e la guardia «Gov.»
+del parser notturno continua a leggere quella, che adesso conta doppio: con la leva accesa
+per difetto, una leva che la raggiungesse farebbe respingere righe valide **ogni notte**.
+
+**Il verbo si rovescia.** Con la leva accesa il primo verbo che il lettore incontra è quello
+che **toglie**, non quello che aggiunge:
+
+| stato | etichetta |
+|---|---|
+| **acceso — il difetto** | **Togli 1 lista dal blocco** |
+| spento | Conta 1 lista nel blocco |
+
+È la grammatica di «Escludi / Includi» dell'house effect: il nome dice l'azione, il cambio
+di nome **è** il riscontro, quindi niente `aria-pressed`. E «Riporta 1 lista in bilico», che
+era l'etichetta del giorno prima, diceva dove va e **non da dove viene**.
+Le due etichette hanno la **stessa lunghezza**, ed è cercato: «Togli» e «Conta» hanno cinque
+lettere, «dal» e «nel» tre, «lista» e «liste» cinque. Non cambia larghezza né premendo né
+quando il numero passa da uno a due — è la cosa che al comando degli accordi è costata 36px
+di salto sotto il dito.
+
+**La riga di esito dichiara lo stato ACCESO, non solo quello spento**, e lo dichiara nel
+primo periodo: quella frase la legge chi non ha toccato niente.
+
+> **Il conteggio parte da un'ipotesi**, non da un fatto: **Popolo d'Israele con Blocco
+> Netanyahu**, contata nel blocco con cui governerebbe mentre la fonte la tiene fuori dai
+> due campi. **4 seggi** si spostano fra i blocchi: Blocco Netanyahu 47 → 51 · Ago della
+> bilancia 4 → 0. Il pulsante la riporta dove la mette la fonte.
+
+L'ultima frase non è cortesia: «ipotesi» senza il comando per toglierla è una parola sola.
+
+**E `statoLeve()` la dichiara quando è SPENTA**, perché il confronto è con `PAR_DEF` e non
+con lo zero — così il prompt che va al servizio terzo segue il difetto anche se un giorno
+cambia.
+
+**Il comando compare quando comincia a spostare qualcosa, e non prima.** Oggi «Popolo
+d'Israele» non ha seggi in nessuna rilevazione, quindi la leva — benché accesa — muove zero
+e il pulsante non c'è. Dal primo sondaggio che la porta sopra soglia il conteggio cambia da
+solo, perché la leva è già accesa: il pulsante deve comparire **in quel render**, o il
+lettore si troverebbe davanti a un'ipotesi applicata senza il comando per toglierla. La
+prova non indovina il punto, lo **cerca**: «al primo seggio» sarebbe falso, perché un seggio
+per rilevazione vale una quota dello 0,8% contro una soglia di 3,25.
+
+---
+
+## La condivisione: lo stesso elenco due volte, e il glifo che non si leggeva
+
+Applicato il 27 agosto 2026.
+
+### Sopra i 1380 il blocco in fondo se ne va
+
+La colonna a sinistra e il gruppo «Condividi» in fondo sono la stessa cosa montata due
+volte — è dichiarato nel codice da quando esistono, e nascono dalla stessa `cerchioRete()`.
+Finché la colonna era una comodità in più il doppione si pagava con `aria-hidden` e
+`tabindex="-1"`: sette comandi duplicati avrebbero portato l'elenco da sette a quattordici,
+tutti con lo stesso nome accessibile a coppie.
+
+Adesso, sopra i 1380, **il gruppo in fondo sparisce** e la colonna resta l'unica copia. Da
+cui la conseguenza che non si deduce e che va scritta: **la colonna non è più
+`aria-hidden`**, e i suoi comandi sono tornati nell'ordine di tabulazione. Nasconderla
+adesso vorrebbe dire che a quella larghezza, per chi usa la tastiera o un lettore di
+schermo, la condivisione **non esiste**.
+
+**Il doppione non si ripresenta, e non serve nessuna guardia**: a ciascuna larghezza uno dei
+due gruppi è `display:none`, e un elemento non visualizzato esce da sé dall'albero di
+accessibilità e dall'ordine di tabulazione. Misurato sulla pagina viva: a **1440** colonna
+`flex` con sette cerchi e gruppo in fondo `none`; a **1265** colonna `none` e gruppo in
+fondo `block` con sette cerchi, sforamento orizzontale zero.
+
+**Non si nasconde col JavaScript**, e non è un dettaglio: la pagina non si ridisegna al
+ridimensionamento, quindi una scelta presa dal codice resterebbe quella della larghezza di
+partenza appena si allarga la finestra. È l'idioma del contatore dell'archivio e del
+sommario di testata — due forme nel DOM, e a scegliere è il foglio.
+
+**L'elenco di ciò che sparisce è una costante sola**, `VIA_SOPRA_COLONNA`, come
+`VIA_NELL_EMBED`. La classe che il foglio spegne la mette **quella costante** e non il
+modello della stringa: scritta a mano nell'HTML sarebbe la seconda strada, e a divergere
+basterebbe un id aggiunto alla costante e dimenticato lassù.
+
+### La copia del collegamento entra nella colonna, e l'id diventa un attributo
+
+Era esclusa con una ragione scritta — «un'azione fuori dall'ordine di tabulazione è
+irraggiungibile per chi non usa il mouse» — e **quella ragione è caduta insieme al
+`tabindex`**. Adesso è il settimo cerchio in tutti e due i posti.
+
+Da cui una cosa piccola e necessaria: il cerchio porta **`data-copia="link"` e non un id**.
+Due elementi con lo stesso id non sollevano niente e fanno rispondere `getElementById` al
+primo dei due — e il riscontro (il glifo che diventa una spunta) finirebbe sul cerchio
+sbagliato.
+
+### I glifi: quello che non si leggeva era Threads, e non alla misura grande
+
+**I quattro segni dei modelli non erano PNG in base64**: lo sono nel modello Germania, ed è
+esattamente la ragione per cui erano già stati ridisegnati qui. Sono stati rifatti lo stesso,
+sul riferimento fornito dall'autore, e con essi cambia la loro **natura**: da «segni
+evocativi nostri» a marchi **nominativi** ridisegnati, cioè la stessa categoria dei sei della
+riga sopra e con la stessa giustificazione. L'esagono con le corde era un cubo e adesso è un
+nodo; la stella e la raggiera sono passate dal tratto al **pieno**, perché è così che sono i
+marchi.
+
+**Threads è l'unico rifatto per un altro motivo, e il motivo è la misura.** Il tracciato di
+prima tentava di riprodurre il marchio vero: ingrandito passava, e **alla misura in cui vive
+— 20px dentro il cerchio da 44 — era una macchia**, con una coda che usciva in basso a
+sinistra e un occhiello staccato. È «misurare convince di aver guardato» applicato a un
+segno: nessuna prova guarda un tracciato, e in jsdom un path sbagliato non fa **nessun
+rumore**.
+
+**Come si sono guardati.** Rasterizzati con **resvg** — che il banco ha già per l'anteprima
+`og:image` — e messi tutti insieme in un foglio di contatto, ciascuno due volte: grande, e a
+20px dentro un cerchio da 44. Provate quattro forme del gancio e due pesi; la prima tornata,
+un anello con lo stelo, leggeva come una **«d» minuscola** accanto a X e a «f». L'anello con
+la spirale interna è l'unica che a 20px resta un segno.
+
+**A tratto e non pieno, ed è l'eccezione della riga**: un segno pieno di quella forma a 20px
+si chiude su sé stesso e diventa un disco con due buchi. Il tratto a 2,8 tiene il peso dei
+marchi pieni accanto — la gamba della «f» e le aste di «in» misurano quanto lui.
+
+---
+
+### Venti mutazioni, e i tre che sono sopravvissuti al primo giro
+
+Tutti e venti morti alla fine, ma **tre erano vivi al primo giro** e ciascuno diceva una cosa
+diversa. Vale la pena tenerli, perché nessuno dei tre era un difetto del codice: erano buchi
+delle prove, e due si sarebbero potuti scoprire solo mutando.
+
+**1 · L'ANCORA DELLA PROVA ERA DOPPIA, ed è la trappola della prima occorrenza vista dal
+lato sbagliato.** L'asserzione «la guardia Gov non nomina bloccoDi» cercava
+`PRESET.netanyahu.forEach`, che in questo file compare **due volte**: nella guardia del
+parser e nell'inizializzazione di `COAL`. `indexOf` trovava la seconda, quindi la prova
+esaminava un pezzo di file a duemila caratteri di distanza da quello che credeva di
+guardare — e il mutante che porta la guardia a leggere la leva restava **vivo**, cioè la
+protezione che vale il lavoro notturno non era protetta da niente. Questo progetto aveva già
+pagato la prima occorrenza nel *misuratore* di mutanti; qui era nella *prova*. L'ancora
+adesso è il messaggio della guardia — unico, e la prova lo verifica prima di usarlo — e la
+regione esaminata è tutta la funzione che lo contiene.
+
+**2 · Un mutante può essere invisibile perché i dati non lo esercitano mai.** Il ramo che
+spegne la quarta serie quando non ha niente da dire non si esercita con l'archivio del
+progetto, e la ragione è quel dato: **quindici rilevazioni di `BASE` danno seggi a Casa
+Sionista**, quindi la nuvola dei sondaggi ha sempre dei punti dell'ago della bilancia anche
+quando la proiezione non gliene assegna nessuno. Serviva la fixture **opposta** — l'ago
+della bilancia tolto da ogni riga e i seggi rimessi al Likud, così ogni riga chiude ancora a
+120 — e senza quella il mutante che disegna sempre quattro serie sarebbe rimasto vivo per
+sempre.
+
+**3 · Una prova che verifica «non si sovrappongono» non coglie «si toccano».** Il mutante che
+riporta `TOT_ARIA` a zero sopravviveva perché l'asserzione misurava la sovrapposizione con
+la stessa geometria senza margine. Adesso il pavimento si **legge dal sorgente** invece di
+essere ricopiato — una costante ricopiata in una prova è la strada doppia di sempre, e per
+giunta quella che decide se la prova morde.
+
+---
+
 ## Da dove riprendere
 
 Scritto il 20 agosto 2026, a fine sessione. Serve a chi apre il progetto domani senza
@@ -4090,6 +4417,24 @@ Due conseguenze pratiche, e sono quelle da ricordare:
 - **una misura di posizione non è una misura di leggibilità.** Dopo aver verificato che
   una cosa sta dove deve, la domanda successiva è sempre se si legge — e quella, in
   questo progetto, la risponde solo un occhio su un browser vero.
+
+### Lo stato al 27 agosto 2026
+
+Banco a **2294**, struttura pulita, spazzola pulita. È entrato il giro dei **quattro
+blocchi** — vedi la sezione omonima: l'emiciclo che ne contava tre su quattro, i nove
+consumatori che perdevano il quarto, la leva `IN_BILICO` che riclassifica senza ricalcolare,
+e `test/suite/blocchi.js`, che è la prova che legava i totali al 120 e che non esisteva.
+Con essa tre difetti che non c'entravano con la riparazione: il confronto in virgola mobile
+con lo zero esatto, la chiave della cache della serie fatta sul **numero di righe**, e bianco
+su `--inc` a 3,78.
+
+Poi, nello stesso giro: la leva **accesa per difetto** col verbo rovesciato e la riga di
+esito che dichiara l'ipotesi a chi non tocca niente; la **condivisione** che sopra i 1380
+smette di essere lo stesso elenco due volte, con la colonna che torna nell'albero di
+accessibilità e prende la copia del collegamento; e i **glifi** — i quattro marchi dei
+modelli rifatti sul riferimento dell'autore, e il gancio di Threads ridisegnato perché alla
+misura in cui vive era una macchia. Mutazioni: **20 su 20** nel primo giro e **13 su 13**
+nel secondo.
 
 ### Lo stato al 26 agosto 2026
 

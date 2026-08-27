@@ -415,8 +415,12 @@ A.par('apparentamenti', 0);
    nuova. Il comportamento sarebbe stato giusto per caso, la forma dell'oggetto no, e
    _serieKey ne fa il JSON. */
 {
-  esito(Object.keys(A.PAR_DEF).sort().join(',') === 'apparentamenti,listaunita,recenti',
-    'PAR_DEF porta tutti e tre i parametri', Object.keys(A.PAR_DEF).sort().join(','));
+  /* L'elenco è nominale apposta: è l'unica cosa che si accorge di una chiave aggiunta o
+     tolta in silenzio, e la seconda copia di PAR_DEF dentro «azzera» è stata trovata così.
+     Il quarto parametro — inbilico, la leva delle liste che non stanno con nessuno dei due
+     campi — è entrato il 27 agosto 2026. */
+  esito(Object.keys(A.PAR_DEF).sort().join(',') === 'apparentamenti,inbilico,listaunita,recenti',
+    'PAR_DEF porta tutti e quattro i parametri', Object.keys(A.PAR_DEF).sort().join(','));
   esito(Object.keys(A.parTutto()).sort().join(',') === Object.keys(A.PAR_DEF).sort().join(','),
     'e PAR ha esattamente le sue chiavi');
   const app3 = fs.readFileSync(__dirname + '/../app.js','utf8');

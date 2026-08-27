@@ -237,7 +237,14 @@ setTimeout(function(){
   click(voci()[5]);
   esito(A.EVSEL() === scelto.data, 'il clic isola quel fatto', A.EVSEL());
   esito(/\biso\b/.test($('k-trend').className), 'il grafico entra in stato isolato');
-  esito(acc().length === 3, 'e accende un tratto per ciascuna delle tre linee', String(acc().length));
+  /* UN TRATTO PER LINEA, e non «tre»: dal 27 agosto 2026 le serie sono quante sono i
+     blocchi con seggi, e l'ago della bilancia ne ha in quindici rilevazioni dell'archivio.
+     La proprietà è la corrispondenza, non il conteggio. */
+  const nLinee = new Set(($('k-trend').innerHTML.match(/class="ln ln-([a-z])"/g) || [])
+    .map(x => x.slice(-2,-1))).size;
+  esito(nLinee >= 3, 'il grafico disegna almeno le tre linee di blocco', String(nLinee));
+  esito(acc().length === nLinee, 'e accende un tratto per ciascuna linea disegnata',
+    acc().length + ' tratti per ' + nLinee + ' linee');
   esito(voci()[5].getAttribute('aria-pressed') === 'true' &&
         voci().filter(b=>b.getAttribute('aria-pressed')==='true').length === 1,
     'una sola voce risulta premuta, ed è quella');
@@ -289,9 +296,9 @@ setTimeout(function(){
   esito(stato.every(x => x.mostrato === (x.px >= A.MIN())),
     'il tratto si disegna esattamente quando supera la soglia, non un caso a parte',
     JSON.stringify(stato.filter(x => x.mostrato !== (x.px >= A.MIN())).slice(0,2)));
-  esito(stato.every(x => x.tratti === (x.mostrato ? 3 : 0)),
-    'sopra soglia i tratti sono tre, sotto soglia nessuno',
-    JSON.stringify(stato.filter(x => x.tratti !== (x.mostrato?3:0)).map(x=>x.n)));
+  esito(stato.every(x => x.tratti === (x.mostrato ? nLinee : 0)),
+    'sopra soglia un tratto per ciascuna linea, sotto soglia nessuno',
+    JSON.stringify(stato.filter(x => x.tratti !== (x.mostrato?nLinee:0)).map(x=>x.n)));
   esito(stato.every(x => x.spiega === (!x.mostrato && x.gg > 0)),
     'e la spiegazione compare esattamente dove il tratto manca: mai muto, mai di troppo',
     JSON.stringify(stato.filter(x => x.spiega !== (!x.mostrato && x.gg>0)).map(x=>x.n)));
