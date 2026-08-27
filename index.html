@@ -6802,6 +6802,41 @@ function impilaEtichette(ys,DY,H,MEZ){
  }
  return ys;
 }
+/* ══ CHI STA VICINO A CHI DENTRO UN BLOCCO ═════════════════════════════════════════
+   ARCO_ORD dice in che ordine stanno i BLOCCHI; dentro un blocco l'arco ordinava per seggi
+   decrescenti, e nient'altro. Non è una scelta sbagliata — è un ordine che non dice niente,
+   e che quindi decide per caso una cosa che conta: quale lista di un blocco decisivo tocca
+   il campo che le sta accanto.
+   Oggi il blocco arabo ha la Lista Unita a 7 seggi e Ra'am a 5, quindi l'ordine per seggi
+   metteva la Lista Unita dal lato dell'opposizione. È il verso sbagliato: RA'AM HA GIÀ
+   GOVERNATO CON L'OPPOSIZIONE — è stata nella coalizione Bennett-Lapid dal 2021 al 2022 —
+   mentre la Lista Unita non è mai entrata in un governo. Fra le due, quella che può essere
+   decisiva è Ra'am, e sta dove la sua decisività si legge: attaccata al campo che potrebbe
+   raggiungere, cioè esattamente la logica per cui i gruppi decisivi stanno in mezzo.
+
+   IL VERSO SI DICHIARA COL VICINO, NON CON LA POSIZIONE. «Ra'am in testa al blocco» sarebbe
+   vero solo finché ARCO_ORD tiene l'opposizione a sinistra degli arabi: il giorno in cui
+   quell'ordine cambiasse, «in testa» vorrebbe dire il contrario di quello che si intende, e
+   lo farebbe in silenzio. Scritto come «Ra'am verso l'opposizione», il capo giusto lo ricava
+   il codice da ARCO_ORD, e le due dichiarazioni non possono divergere.
+
+   LE LISTE NON NOMINATE RESTANO IN ORDINE DI SEGGI, che è il ripiego e va bene: dove non c'è
+   un'affinità da dichiarare, la grandezza è l'unico ordine che il lettore possa verificare
+   da sé guardando il disegno. */
+var ARCO_VICINI=[{id:'raam', verso:'opposizione'}];
+/* Porta in fondo al lato che guarda «verso» le liste dichiarate. `dopo` dice se quel lato è
+   la coda della sequenza: lo decide ARCO_ORD, non chi scrive la tabella. */
+function ordinaDentro(liste,b,giu){
+ var out=liste.slice().sort(giu);
+ var mio=ARCO_ORD.indexOf(b);
+ ARCO_VICINI.forEach(function(v){
+  var i=out.indexOf(v.id); if(i<0) return;
+  var suo=ARCO_ORD.indexOf(v.verso); if(suo<0||suo===mio) return;
+  out.splice(i,1);
+  if(suo<mio) out.unshift(v.id); else out.push(v.id);
+ });
+ return out;
+}
 function rEmi(){
  /* ══ I SEGMENTI DELL'ARCO, E PERCHÉ NON SONO SEMPRE I BLOCCHI ═════════════════════
     Da sinistra a destra i seggi sono raggruppati per blocco. Nella vista PER LISTA un
@@ -6857,7 +6892,7 @@ function rEmi(){
       questo file una proprietà regge per coincidenza — l'house effect in ordine di blocco,
       l'ordine del pannello dell'archivio, la targa dove tela e disegno coincidevano — e le
       prime tre sono state chiuse così: rendendola vera per costruzione. */
-   var qui=liste.filter(function(i){return P[i].b===b;}).sort(giu);
+   var qui=ordinaDentro(liste.filter(function(i){return P[i].b===b;}),b,giu);
    var ipo=liste.filter(function(i){return P[i].b!==b;}).sort(giu);
    [qui,ipo].forEach(function(gruppo,k){
     if(!gruppo.length) return;

@@ -59,7 +59,7 @@ global.FileReader = function(){}; global.fetch = () => Promise.reject(0);
 let src = fs.readFileSync(__dirname + '/../app.js','utf8');
 src = src.slice(0, src.indexOf('carica().then(render,render)')) +
   'global.A={P:P,IDS:IDS,BL:BL,IN_BILICO:IN_BILICO,bloccoDi:bloccoDi,filtraBilico:filtraBilico,' +
-  'blocchi:blocchi,render:render,PRESET:PRESET,ARCO_ORD:ARCO_ORD,TOT_SIGLA:TOT_SIGLA,' +
+  'blocchi:blocchi,render:render,PRESET:PRESET,ARCO_ORD:ARCO_ORD,ARCO_VICINI:ARCO_VICINI,TOT_SIGLA:TOT_SIGLA,' +
   'testoCondivisione:testoCondivisione,promptAI:promptAI,serieModello:serieModello,' +
   'get SOND(){return SOND;},set SOND(v){SOND=v;},get SEG(){return SEG;},' +
   'get PAR(){return PAR;},PAR_DEF:PAR_DEF,statoLeve:statoLeve,' +
@@ -1102,6 +1102,75 @@ function confini(f){
     spente.map(c => c.map(v => v.toFixed(2)).join(' ')).join(' · '));
   A.EMIMODE = 'blocchi';
   conAgo(4);
+}
+
+
+/* ══ 14 · CHI STA VICINO A CHI DENTRO UN BLOCCO ════════════════════════════════════
+ * ARCO_ORD dice l'ordine dei BLOCCHI; dentro un blocco l'arco ordinava per seggi
+ * decrescenti, e nient'altro — un ordine che non dice niente e che decideva per caso una
+ * cosa che conta: quale lista di un blocco decisivo tocca il campo che le sta accanto.
+ * Ra'am ha già governato con l'opposizione, la Lista Unita no; ma la Lista Unita ha più
+ * seggi, quindi l'ordine per grandezza metteva LEI dal lato dell'opposizione.
+ * E IL VERSO SI DICHIARA COL VICINO, NON CON LA POSIZIONE: «in testa» sarebbe vero solo
+ * finché ARCO_ORD tiene l'opposizione a sinistra degli arabi, e il giorno in cui quell'ordine
+ * cambiasse vorrebbe dire il contrario, in silenzio. La prova lo esercita girando ARCO_ORD. */
+{
+  A.PAR.inbilico = 0;
+  conAgo(0); A.EMIMODE = 'liste'; A.render();
+  const dellaFila = () => fileArco().map(x => {
+    const o = []; x.g.forEach(p => { if (o[o.length-1] !== p.g) o.push(p.g); });
+    return o;
+  });
+  /* LA TABELLA VUOTA VA COLTA, NON SUBITA: senza questa riga la prova ESPLODE invece di
+     cadere — «cannot read properties of undefined» — e questo progetto ha gia pagato tre
+     volte la differenza fra una suite che fallisce e una che muore. */
+  esito(A.ARCO_VICINI.length > 0,
+    'la tabella dei vicini dichiara almeno una lista: svuotarla toglierebbe la proprieta ' +
+    'senza che nessuna asserzione se ne accorga', String(A.ARCO_VICINI.length));
+  const v = A.ARCO_VICINI[0] || {id:'', verso:''};
+  const suoBlocco = A.bloccoDi(v.id);
+  esito(!!A.SEG[v.id] && !!suoBlocco,
+    'premessa: la lista dichiarata vicina a un campo ha seggi, quindi il caso si esercita',
+    v.id + ' → ' + suoBlocco + ', ' + A.SEG[v.id] + ' seggi');
+  /* la proprietà: dentro il suo blocco non c'è nessuna lista dello stesso blocco DAL LATO
+     del campo che ARCO_VICINI le assegna. Il lato si ricava da ARCO_ORD, come fa il codice. */
+  function tocca(){
+    let male = 0, viste = 0;
+    const mio = A.ARCO_ORD.indexOf(suoBlocco), suo = A.ARCO_ORD.indexOf(v.verso);
+    dellaFila().forEach(o => {
+      const i = o.indexOf(v.id); if (i < 0) return;
+      viste++;
+      const stesso = k => A.bloccoDi(k) === suoBlocco;
+      if (suo < mio) { for (let j = 0; j < i; j++) if (stesso(o[j])) male++; }
+      else           { for (let j = i+1; j < o.length; j++) if (stesso(o[j])) male++; }
+    });
+    return {male: male, viste: viste};
+  }
+  const t = tocca();
+  esito(t.viste > 0 && t.male === 0,
+    'la lista dichiarata sta all estremo del suo blocco che guarda il campo dichiarato, in ' +
+    'ogni fila in cui compare', t.viste + ' file, ' + t.male + ' liste dello stesso blocco dal lato sbagliato');
+  /* E NON PER GRANDEZZA: se fosse l'ordine per seggi, la lista dichiarata sarebbe li solo
+     quando e la piu grande del blocco. Oggi non lo e — ed e proprio per questo che il caso
+     si esercita da se. */
+  const compagne = A.IDS.filter(i => i !== v.id && A.SEG[i] && A.bloccoDi(i) === suoBlocco);
+  esito(compagne.some(i => A.SEG[i] > A.SEG[v.id]),
+    'e non ci sta per grandezza: nel suo blocco c e una lista con PIU seggi, quindi ' +
+    'l ordine per seggi la metterebbe altrove',
+    v.id + ' ' + A.SEG[v.id] + ' contro ' + compagne.map(i => i + ' ' + A.SEG[i]).join(', '));
+  /* IL VERSO SEGUE ARCO_ORD, e si prova girandolo: con i blocchi allo specchio la lista
+     dichiarata deve passare all altro capo del suo blocco DA SOLA. Senza questa, «verso» e
+     «in testa» sarebbero indistinguibili — cioe la dichiarazione col vicino non varrebbe
+     piu di una posizione scritta a mano. */
+  const vero = A.ARCO_ORD.slice();
+  A.ARCO_ORD.reverse(); A.render();
+  const t2 = tocca();
+  esito(t2.viste > 0 && t2.male === 0,
+    'e girando ARCO_ORD la lista passa dall altro capo del suo blocco da sola: il verso lo ' +
+    'ricava dall ordine dei blocchi, non da una posizione scritta a mano',
+    t2.viste + ' file, ' + t2.male + ' dal lato sbagliato');
+  A.ARCO_ORD.length = 0; vero.forEach(k => A.ARCO_ORD.push(k));
+  A.EMIMODE = 'blocchi'; conAgo(4);
 }
 
 console.log('\nblocchi: ' + ok + '/' + (ok + ko));
