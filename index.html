@@ -2304,23 +2304,37 @@ var EMIMODE='blocchi', EMIFILT=null, TRENDPTS=[], TRENDGEO=null, FILTRI={ist:'',
    il terzo parametro: azzerando, PAR tornava a un oggetto SENZA la chiave nuova. Il
    comportamento sarebbe stato giusto per caso (undefined è falso), ma la forma
    dell'oggetto no, e _serieKey ne fa il JSON. Due copie corrette oggi divergono domani. */
-/* `inbilico` NASCE ACCESA, e non è la scelta ovvia: le altre due leve di ipotesi partono
-   spente perché aggiungono un'ipotesi a un conteggio che senza di loro è quello della
-   fonte. Qui è il contrario. La domanda «e se governasse con Netanyahu?» è quella che un
-   lettore si fa comunque davanti a una lista che non sta con nessuno dei due campi, e
-   partire dallo stato in cui NON è posta lascerebbe il lettore davanti a un conteggio che
-   non dichiara la propria ipotesi — cioè lo stato non dichiarato contro cui il simulatore
-   accende «Blocco Netanyahu» all'apertura invece di partire da una selezione vuota.
-   IL PREZZO VA SAPUTO, ed è la ragione per cui questo commento è lungo: il conteggio
-   predefinito NON è quello della fonte. Wikipedia non conta queste liste nel totale «Gov.»,
-   e la pagina sì. Da qui due conseguenze, e sono nel codice e non solo qui:
-     · la riga di esito dichiara l'ipotesi nello stato ACCESO — quello in cui il lettore
-       arriva senza toccare niente — e non solo in quello spento;
-     · il pulsante dice «Togli», cioè l'azione che riporta il conteggio dove lo mette la
-       fonte, e non «Conta», che sarebbe l'azione di uno stato di partenza opposto.
-   L'anagrafica resta invariata: in P{} queste liste restano dove la fonte le mette, e la
-   guardia «Gov.» del parser notturno continua a leggere quella. */
-var PAR_DEF={recenti:0,listaunita:1,apparentamenti:0,inbilico:1};
+/* `inbilico` NASCE SPENTA, ed è tornata così il 27 agosto 2026 dopo mezza giornata accesa.
+   La forma del comando non cambia — cambia quale dei due versi il lettore incontra per primo.
+   PERCHÉ SPENTA. Il conteggio predefinito dev'essere quello della FONTE. Wikipedia non conta
+   «Popolo d'Israele» dentro il totale «Gov.», e una pagina che di suo la ci mette pubblica un
+   numero che non esiste da nessun'altra parte: chi confronta il nostro 53 col 49 della fonte
+   non trova la spiegazione nel numero, la trova in una riga di prosa sotto un pulsante. Un
+   modello può fare un'ipotesi — deve poterla fare — ma la fa a partire dal fatto, non al posto
+   suo, ed è la stessa regola per cui gli apparentamenti annunciati e i soli ultimi sette giorni
+   partono spenti. E non è un caso di scuola: misurato il 27 agosto, con la leva accesa il
+   blocco Netanyahu esce 53 e con la leva spenta 49 — quattro seggi, cioè più dell'errore che il
+   banco dichiara nell'ultima settimana di campagna.
+   LA RAGIONE PER CUI ERA STATA ACCESA RESTA VERA A METÀ, e va lasciata scritta perché è
+   l'obiezione: un conteggio che tiene una lista fuori dai due campi non risponde alla domanda
+   «e se governasse con Netanyahu?», che è quella che un lettore si fa comunque. La risposta non
+   è accendere la leva per lui: è che la domanda si veda. Ci pensano il pulsante — che c'è
+   appena la leva sposta qualcosa — e la riga di esito, che nello stato spento dice quanto
+   peserebbe l'ipotesi senza applicarla.
+   CHE COSA CAMBIA NEL CODICE, e sono tre cose che seguono dal difetto invece di essere scritte
+   a parte: il pulsante dice «Conta», cioè l'azione che aggiunge l'ipotesi; la riga di esito
+   prende il ramo che descrive la fonte e mette l'ipotesi al condizionale; e statoLeve() —
+   che risponde a «che cosa ha cambiato il lettore» — torna a dichiarare la leva quando è
+   ACCESA. Nessuna delle tre è una costante: tutte confrontano con PAR_DEF, ed è la ragione
+   per cui questa riga è l'unica da toccare.
+   E `ipotesiNeiNumeri()` NON cambia di una virgola, perché risponde a un'altra domanda — «che
+   cosa c'è dentro questi numeri» — e la risposta non dipende da chi ce l'ha messo: parla quando
+   la leva è accesa, che il predefinito sia acceso o spento. È esattamente la distinzione per
+   cui le due funzioni sono due, e il giorno in cui un altro predefinito diventasse un'ipotesi
+   sarebbe ipotesiNeiNumeri() a doverlo sapere, non statoLeve().
+   L'anagrafica non si tocca né in un verso né nell'altro: in P{} queste liste restano dove la
+   fonte le mette, e la guardia «Gov.» del parser notturno continua a leggere quella. */
+var PAR_DEF={recenti:0,listaunita:1,apparentamenti:0,inbilico:0};
 var SOND=BASE.slice(), PAR=Object.assign({},PAR_DEF), DISP=8, SW=0, SIG=1, SIM=20000, COAL={};
 
 /* ══════════ 2b · DIAGNOSTICA DI AVVIO ══════════ */
@@ -2983,7 +2997,12 @@ function invD(seggi,sotto,q){
    che questo progetto ha già pagato quattro volte. Qui non c'è nemmeno l'elenco dei
    quattro blocchi: l'ordine FRA i blocchi è quello in cui l'anagrafica li presenta, cioè
    il minimo `o` di ciascuno, e oggi dà arabi · opposizione · ago della bilancia ·
-   coalizione, che è la lettura da sinistra a destra che la pagina usa dappertutto.
+   coalizione. NON È «la lettura che la pagina usa dappertutto», e per tre commit questa
+   riga lo ha affermato: l'emiciclo ha un ordine SUO, dichiarato in ARCO_ORD e scelto per
+   dove cade la linea dei 61, e per mesi i due hanno coinciso soltanto perché l'anagrafica
+   li presentava così. Qui l'ordine è dei DATI — le colonne di una tabella seguono la fonte
+   — e là è del DISEGNO. Due domande diverse, due strade, e questa riga esiste perché la
+   coincidenza non torni a passare per un legame.
    Il minimo si calcola su IDS INTERO e non sulle colonne passate: le due tabelle filtrano
    in modo diverso — l'archivio tiene le liste con almeno un seggio in una rilevazione,
    l'house effect quelle con almeno tre rilevazioni — e se l'ordine dei blocchi dipendesse
@@ -4548,10 +4567,12 @@ function statoLeve(){
  if(PAR.recenti!==PAR_DEF.recenti) v.push('sui soli sondaggi degli ultimi sette giorni');
  if(PAR.listaunita!==PAR_DEF.listaunita) v.push('con le liste arabe separate invece che unite');
  if(PAR.apparentamenti!==PAR_DEF.apparentamenti) v.push('con gli apparentamenti annunciati applicati al riparto');
- /* Questa si dichiara quando è SPENTA, perché il predefinito è acceso. Il confronto è con
-    PAR_DEF e non con lo zero, quindi la frase segue il difetto anche se un giorno cambia —
-    ed è la ragione per cui tutte e tre le righe qui sopra sono scritte così. */
- if(PAR.inbilico!==PAR_DEF.inbilico) v.push('con le liste fuori dai due campi contate a parte invece che nel blocco con cui governerebbero');
+ /* Questa si dichiara quando è ACCESA, perché il predefinito è spento — ed è già stata
+    scritta nell'altro verso, il 27 agosto 2026, quando il predefinito era l'opposto. Il
+    confronto è con PAR_DEF e non con lo zero, quindi il RAMO segue il difetto da sé; la
+    FRASE no, perché nomina lo stato, e va riscritta insieme al valore. È l'unico punto in cui
+    girare quella cifra non basta, ed è per questo che questa riga porta un commento. */
+ if(PAR.inbilico!==PAR_DEF.inbilico) v.push('con le liste fuori dai due campi contate nel blocco con cui governerebbero invece che a parte');
  return v.length?v.join(', '):'';
 }
 /* IL TESTO DELLA CONDIVISIONE: UNA COSTANTE, DUE FORME. Dove l'indirizzo è un parametro la
@@ -6274,9 +6295,10 @@ function rBilico(){
   var n=c.ok.length;
   /* «Togli» / «Conta», che è la grammatica di «Escludi / Includi» dell house effect: il
      nome dice l AZIONE, il cambio di nome È il riscontro, e quindi niente aria-pressed.
-     Con la leva accesa per difetto il verbo che il lettore incontra per primo è «Togli»,
-     cioè quello che riporta il conteggio a quello della fonte — ed è la ragione per cui non
-     può essere «Riporta 1 lista in bilico», che diceva dove va e non da dove viene.
+     Con la leva spenta per difetto il verbo che il lettore incontra per primo è «Conta», cioè
+     quello che AGGIUNGE l'ipotesi a un conteggio che senza di lui è quello della fonte; premuto,
+     diventa «Togli», che riporta il conteggio dov'era. Nessuno dei due dice dove va senza dire
+     da dove viene, ed è la ragione per cui non può essere «Riporta 1 lista in bilico».
      LE DUE ETICHETTE HANNO LA STESSA LUNGHEZZA, ed è cercato: «Togli» e «Conta» hanno
      cinque lettere, «dal» e «nel» tre, «lista» e «liste» cinque. Non cambia larghezza né
      premendo né quando il numero passa da uno a due. È la cosa che al comando degli accordi
@@ -6305,12 +6327,12 @@ function rigaBilico(c){
  var n=c.ok.length, t;
  var quali=c.ok.map(function(x){return '<b>'+E(versoBil(x))+'</b>';}).join('; ');
  if(PAR.inbilico){
-  /* LO STATO ACCESO È QUELLO PREDEFINITO, quindi questa frase la legge chi non ha toccato
-     niente — ed è per questo che dichiara l'ipotesi PRIMA di dire quanto vale, invece di
-     chiuderla in coda come farebbe la didascalia di un comando premuto. Un lettore che
-     arriva sulla pagina sta guardando un conteggio che la fonte non fa, e deve saperlo dal
-     primo periodo. La frase dice anche che cosa fa il pulsante, perché senza, «ipotesi»
-     resterebbe una parola senza una via d'uscita. */
+  /* QUESTO RAMO NON È PIÙ QUELLO PREDEFINITO — lo è stato per mezza giornata, il 27 agosto
+     2026 — ma la frase resta scritta com'era, e non per inerzia: chi ha premuto il pulsante ha
+     appena messo un'ipotesi dentro i numeri, e va dichiarata PRIMA di dire quanto vale
+     esattamente come andava dichiarata a chi non aveva toccato niente. Un'ipotesi applicata è
+     un'ipotesi applicata, che l'abbia scelta il lettore o il predefinito. La frase dice anche
+     che cosa fa il pulsante, perché senza, «ipotesi» resterebbe una parola senza via d'uscita. */
   t='<b>Il conteggio parte da un’ipotesi</b>, non da un fatto: '+quali+', '+
     acc(n,'contata','contate')+' nel blocco con cui governerebbe'+(n>1?'ro':'')+
     ' mentre la fonte '+acc(n,'la tiene','le tiene')+' fuori dai due campi. '+
@@ -6481,7 +6503,69 @@ function rCalendario(){
    mai il contrario.
    Il tetto è 31, il corpo di prima: così con tre totali la pagina di oggi non rimpicciolisce
    niente, e a stringersi è solo il giorno in cui un quarto blocco entra in Knesset. */
-var TOT_ORD=['arabo','opposizione','incerto','coalizione'];
+/* ══ L'ORDINE DEI BLOCCHI NELL'ARCO ═══════════════════════════════════════════════
+   UNA COSTANTE SOLA, e fino al 27 agosto 2026 erano QUATTRO copie scritte a mano: la
+   sequenza dei seggi in vista «per blocco», quella in vista «per lista», la riga dei
+   totali — e la legenda, che portava un ordine SUO, «coalizione, opposizione, incerto,
+   arabo». Non l'arco e nemmeno il suo specchio: un terzo ordine, e nessuna riga lo
+   dichiarava. Tre copie d'accordo e una divergente è la forma peggiore, perché le tre
+   fanno sembrare la quarta una svista invece di una decisione — e nessuna prova poteva
+   dire quale delle due fosse.
+
+   E NON È L'ORDINE DELL'ANAGRAFICA, benché per mesi abbia coinciso. `colonneBlocco()` lo
+   ricava dal minimo `o` di ogni blocco, perché per una tabella l'ordine giusto è quello in
+   cui la fonte presenta le liste. Qui è una SCELTA, e il giorno in cui l'anagrafica cambia
+   — l'8 settembre, con una lista nuova a `o` basso in un altro blocco — le tabelle si
+   riordinano e l'arco no. È voluto: sono due domande diverse, e adesso sono due strade
+   dichiarate invece di una coincidenza.
+
+   ══ LA RAGIONE, che non c'era scritta da nessuna parte ══
+   NON È L'EMICICLO DELLO SPETTRO POLITICO: È L'EMICICLO DELLE MAGGIORANZE POSSIBILI.
+   La linea dei 61 sta al CENTRO dell'arco e non si muove mai — è il punto medio fra il 60°
+   e il 61° seggio contando da sinistra, quindi con 120 seggi cade sempre lì. Misurato nei
+   due ordini: x=214,50 in tutti e due. Non è la linea che si sposta: è l'ordine che decide
+   che cosa il lettore ci trova sotto.
+   Da qui i due gruppi decisivi in mezzo, ciascuno accanto al campo con cui potrebbe stare:
+   gli arabi accanto all'opposizione, che al massimo appoggiano; l'ago della bilancia
+   accanto alla coalizione, perché oggi è una lista di destra che parla di un governo di
+   destra ampio. Così sotto la linea c'è sempre il gruppo da cui il campo più vicino alla
+   maggioranza deve pescare, e «quanti seggi arabi servono all'opposizione» si legge invece
+   di contarsi.
+
+   ══ E FUNZIONA PER COSTRUZIONE, non per la configurazione di oggi ══
+   Enumerate TUTTE le 302.621 partizioni dei 120 seggi in quattro gruppi, e classificate per
+   che cosa il lettore trova a sinistra della linea:
+
+                                                       ordine vecchio   questo
+     un campo in testa taglia sé stesso: governa da solo      0,6%        12,5%
+     l'altro campo governa da solo                           11,9%        11,9%
+     un gruppo decisivo accanto al suo campo                 35,1%        70,8%
+     bordo fra due gruppi                                     2,4%         2,4%
+     UN CAMPO TAGLIATO A METÀ: nessuna lettura, si conta     49,0%         1,8%
+                                          → SI LEGGE        50,0%        97,6%
+
+   Ristretto alla scatola plausibile — arabi 8-16, ago 0-12, i due campi 35-70, 3.693
+   configurazioni — il caso «si conta» passa da 57,9% a ZERO e la lettura da 42,1% a 100%.
+   Non è un numero dell'archivio di oggi: con i due gruppi decisivi al centro la sinistra
+   della linea è sempre un prefisso che comincia da un campo, e i quattro casi — O≥61,
+   l'opposizione tira dagli arabi, la coalizione tira dall'ago, C≥61 — sono esaustivi. Il
+   caso «la linea taglia un campo che la maggioranza non ce l'ha» NON PUÒ ESISTERE.
+
+   Sui 25 stati dello swing, con l'archivio del 26 agosto 2026: la linea cade nel gruppo
+   arabo in 18, su un bordo in 2, dentro l'ago della bilancia in 1 — che è lo specchio, la
+   coalizione a 57 cui servono tutti e 4 quei seggi — e dentro l'opposizione in 4, che sono
+   i casi in cui governa da sola. Con l'ordine vecchio: 24 su 25 la linea tagliava
+   l'opposizione con i 12 arabi a sinistra, sempre a offset 48. Costo del cambio: ZERO —
+   il corpo dei totali resta 28 nei due ordini, cambia solo dove stanno le sigle.
+
+   ══ LA LEGENDA SEGUE L'ARCO, e adesso è detto ══
+   La legenda sta sotto il disegno ed è la sua chiave: la prima voce dev'essere il gruppo
+   più a sinistra, o il lettore cerca. Questo è il criterio, e distingue le due convenzioni
+   che convivono in questa pagina senza confonderle — la PROSA elenca i blocchi come li
+   nomina il testo (Blocco Netanyahu · opposizione · arabi: il verdetto, la targa delle
+   card, il riquadro dell'evento isolato), il DISEGNO e tutto ciò che ne è la chiave
+   seguono l'arco. */
+var ARCO_ORD=['opposizione','arabo','incerto','coalizione'];
 var TOT_SIGLA={arabo:'arabi',opposizione:'opposizione',incerto:'incerti',coalizione:'Netanyahu'};
 /* LA QUOTA E' LA LEVA, NON IL CORPO, ed e' il contrario di quello che si penserebbe.
    Il vuoto dell'arco e' un semicerchio: verso l'alto si stringe, verso la base si allarga.
@@ -6593,65 +6677,139 @@ function disponiTotali(cerchi,voci){
  for(var F=TOT_CORPO;F>=8;F-=0.5){ ult=prova(F); if(ult.urto<=0) return ult; }
  return ult;
 }
+/* Quanti seggi di ciascun gruppo in ciascuna fila dell'emiciclo. Le DUE somme devono
+   tornare esatte — ogni fila i suoi posti, ogni gruppo i suoi seggi — o l'invariante dei
+   120 cade in un modo che nessun numero in pagina denuncia.
+   Resto più alto per fila, poi riparazione dei totali di gruppo con scambi DENTRO una
+   fila: uno scambio non tocca il totale della fila, quindi la prima somma non si può
+   rompere riparando la seconda. Scartato l'arrotondamento cumulativo nelle due direzioni
+   — la differenza seconda di round(M·G/120) — che è più elegante e va NEGATIVA: misurato,
+   con i gruppi 50/12/2/56 dà una cella a −1, cioè meno seggi di zero in una fila.
+   Lo scambio toglie alla fila in cui il gruppo è più lontano dalla sua quota, e basta.
+   QUI C'ERA UNA PREFERENZA IN PIÙ — mezzo punto a favore delle file in cui il gruppo ha più
+   di un seggio, per non lasciarne nessuna a zero — ed è stata TOLTA il 27 agosto 2026 dopo
+   averla misurata: sulle 3.693 configurazioni plausibili non cambiava il risultato in
+   NESSUNA. Era una guardia che nessuna mutazione fa cadere, cioè codice che nessuna prova
+   esercita, e questo file dice di toglierlo invece di scrivergli intorno una prova che non
+   morde. Il caso che voleva evitare esiste — un gruppo con meno di cinque seggi non arriva a
+   tutte le file — ma è l'aritmetica a imporlo, non la ripartizione: misurato, il numero di
+   file senza un gruppo è il minimo possibile in 3.658 configurazioni su 3.693. */
+function ripartiFile(grp,m){
+ var nG=grp.length, TOT=m.reduce(function(a,b){return a+b;},0), q=[], r, g;
+ for(r=0;r<m.length;r++){
+  var id=grp.map(function(s){return s*m[r]/TOT;});
+  var fl=id.map(Math.floor);
+  var resto=m[r]-fl.reduce(function(a,b){return a+b;},0);
+  var ord=id.map(function(v,i){return [v-fl[i],i];}).sort(function(a,b){return b[0]-a[0];});
+  for(var i2=0;i2<resto;i2++) fl[ord[i2%nG][1]]++;
+  q.push(fl);
+ }
+ var d=grp.map(function(s,i){return q.reduce(function(a,f){return a+f[i];},0)-s;});
+ var giri=0;
+ while(d.some(function(v){return v!==0;})&&giri++<400){
+  var piu=d.findIndex(function(v){return v>0;}), meno=d.findIndex(function(v){return v<0;});
+  var best=-1, bv=-Infinity;
+  for(r=0;r<m.length;r++){
+   if(q[r][piu]<=0) continue;
+   var v=q[r][piu]-grp[piu]*m[r]/TOT;
+   if(v>bv){bv=v;best=r;}
+  }
+  if(best<0) break;
+  q[best][piu]--; q[best][meno]++; d[piu]--; d[meno]++;
+ }
+ return q;
+}
 function rEmi(){
  /* Sequenza dei seggi da sinistra a destra, raggruppati per blocco. */
  var seq=[],grp=[],bb=blocchi(SEG),i;
  if(EMIMODE==='blocchi'){
-  ['arabo','opposizione','incerto','coalizione'].forEach(function(k){
+  ARCO_ORD.forEach(function(k){
    var n=bb[k]||0; if(!n) return;
    grp.push(n); for(var j=0;j<n;j++) seq.push('§'+k);
   });
  } else {
-  ['arabo','opposizione','incerto','coalizione'].forEach(function(b){
+  ARCO_ORD.forEach(function(b){
    var liste=IDS.filter(function(i){return SEG[i]&&bloccoDi(i)===b;})
      .sort(function(a,c){return SEG[c]-SEG[a];}), n=0;
    liste.forEach(function(i){for(var j=0;j<SEG[i];j++){seq.push(i);n++;}});
    if(n) grp.push(n);
   });
  }
- /* Il distacco fra blocchi si ottiene lasciando seggi VUOTI, non spostando quelli
-    pieni: così le file restano allineate lungo archi regolari. */
- /* IL VUOTO DI SEPARAZIONE NON PUÒ ESSERE PIÙ LARGO DEL GRUPPO CHE SEPARA, e con tre era
-    quello che succedeva. VUOTI conta posti vuoti nella sequenza LINEARE, che poi viene
-    distribuita su cinque archi di lunghezza diversa: lo stesso vuoto rende uno o due seggi
-    a seconda di dove cade. Misurato sulla fila esterna, con l'ago della bilancia a nove
-    seggi: il gruppo è largo 2 seggi — 18,3 unità — e i vuoti ai suoi lati 36,5 e 36,5,
-    cioè il DOPPIO del gruppo da tutte e due le parti. Quattro pastiglie in un buco, non un
-    gruppo dentro l'arco.
-    E i vuoti non erano nemmeno uguali fra loro: 1/2/2 con l'ago a nove, 1/1/2 con l'ago a
-    sedici. Con VUOTI=1 diventano 1/1/1, e — misurato su quattro configurazioni — con TRE
-    blocchi la pagina non cambia di un pixel: i salti restano 2/2 come prima, perché un
-    posto lineare rende comunque due seggi in fila esterna. Si paga solo dove serviva. */
- var VUOTI=1, nG=grp.length, TOT=120+VUOTI*Math.max(0,nG-1);
- var pieno=[],g;
- for(g=0;g<nG;g++){
-  var da=grp.slice(0,g).reduce(function(a,b){return a+b;},0);
-  for(i=0;i<grp[g];i++) pieno.push(seq[da+i]);
-  if(g<nG-1) for(i=0;i<VUOTI;i++) pieno.push(null);
- }
- /* file di raggio crescente, con seggi proporzionali al raggio */
- var righe=5,r0=100,r1=188,rad=[];
+ /* ══ IL VUOTO FRA I GRUPPI È UN ANGOLO, NON UNA POSIZIONE NELLA SEQUENZA ══════════
+    Riscritto il 27 agosto 2026, e quello che c'era prima non faceva quello che il suo
+    commento diceva. I posti vuoti si inserivano nella sequenza LINEARE dei 120 seggi, che
+    poi veniva distribuita sulle cinque file ordinando i posti per ANGOLO: un posto vuoto
+    cancellava un seggio a un certo angolo, cioè in UNA fila, e alle altre quattro, a quello
+    stesso angolo, non succedeva niente.
+    Misurato sulla pagina resa — replica della geometria verificata contro l'SVG vero, 120
+    seggi su 120 e scarto massimo 0,005 unità: con tre blocchi e VUOTI=1, su DIECI coppie
+    fila×confine il vuoto c'era in DUE. Otto su dieci non mostravano niente. Non è che i
+    buchi fossero disuguali: il confine era disegnato in una fila sola, e quale fosse
+    dipendeva da dove capitava l'angolo. La fila esterna sembrava uniforme perché lì il
+    confine non c'era affatto, e le file interne mostravano un buco doppio che sembrava un
+    errore di spaziatura.
+    E ALZARE «VUOTI» NON RIPARAVA: con 2 i buchi si spostavano su altre file (0/2/3/4
+    invece di 0/2), con 5 restavano una fila senza confine e una con un buco TRIPLO. Il
+    numero non era la leva: la leva era che il vuoto smettesse di essere un posto in una
+    coda e diventasse una posizione sull'arco, uguale per tutte le file.
+
+    COME FUNZIONA ADESSO, e le due somme devono tornare esatte o l'invariante 1 cade:
+      · i SEGGI per fila sono proporzionali al raggio e sommano 120 — non 120 più i vuoti,
+        che è la differenza da prima;
+      · ripartiFile() dice quanti seggi di ciascun gruppo stanno in ciascuna fila, con i
+        totali esatti nelle DUE direzioni: ogni fila i suoi, ogni gruppo i suoi;
+      · ogni fila mette un vuoto fra due gruppi CHE IN QUELLA FILA CI SONO, quindi il numero
+        di posti di una fila è i suoi seggi più i suoi confini, e le file possono avere
+        lunghezze diverse. È la mossa che toglie i buchi doppi: un gruppo troppo piccolo per
+        arrivare a una fila — l'ago della bilancia con quattro seggi non arriva alla prima —
+        lì non ha due confini, ne ha uno.
+    Misurato su otto configurazioni, comprese quelle che oggi non esistono: 120 pastiglie
+    su 120, totali di gruppo esatti, e il vuoto a OGNI confine di OGNI fila largo 2,00 volte
+    il passo — mai 1,00 (confine invisibile), mai 3× o 4× (buco doppio). Costo: il passo fra
+    due seggi scende da ~19,1 a ~17,2 unità, il 7-9%, perché i vuoti lo spazio lo occupano.
+
+    IL PREZZO, dichiarato: l'ordine globale per angolo non è più esattamente l'ordine dei
+    gruppi. Una fila il cui confine cade un posto più in là mette un suo seggio dopo il primo
+    seggio del gruppo successivo di un'altra fila. Lo scarto è di UN seggio, e tocca solo
+    dove la linea dei 61 cade su una cucitura: spazzolando i 25 stati dello swing, il gruppo
+    in cui la linea cade coincide con l'aritmetica in 24 su 25 — l'unico scarto è a swing +6,
+    dove il conto dice «un seggio dentro l'ago della bilancia» e il disegno mette la linea
+    sulla cucitura fra arabi e ago. L'invariante non si muove: la linea è il punto medio fra
+    il 60° e il 61° seggio contando dall'angolo, quindi separa sempre 60 e 60. */
+ var nG=grp.length, righe=5, r0=100, r1=188, rad=[], g;
  for(i=0;i<righe;i++) rad.push(r0+(r1-r0)*i/(righe-1));
  var sm=rad.reduce(function(a,b){return a+b;},0);
- var cnt=rad.map(function(r){return Math.max(1,Math.round(TOT*r/sm));});
- var df=TOT-cnt.reduce(function(a,b){return a+b;},0),k=righe-1;
- while(df!==0){cnt[k]+=(df>0?1:-1);df+=(df>0?-1:1);k=(k-1+righe)%righe;}
+ var m=rad.map(function(r){return Math.max(1,Math.round(120*r/sm));});
+ var df=120-m.reduce(function(a,b){return a+b;},0),k=righe-1;
+ while(df!==0){m[k]+=(df>0?1:-1);df+=(df>0?-1:1);k=(k-1+righe)%righe;}
+ var q=ripartiFile(grp,m);
  var pts=[];
  rad.forEach(function(r,ri){
-  var n=cnt[ri];
+  /* i posti di questa fila: i seggi di ogni gruppo presente, con un vuoto in mezzo */
+  var slot=[],gg,j;
+  for(gg=0;gg<nG;gg++){ if(!q[ri][gg]) continue;
+   if(slot.length) slot.push(-1);
+   for(j=0;j<q[ri][gg];j++) slot.push(gg); }
+  var n=slot.length;
   /* Sfasamento minimo fra una fila e l'altra — due decimi di grado, invisibile.
      Serve a rendere univoco l'ordine dei seggi da sinistra a destra: senza, le file
      di numero dispari hanno un seggio esattamente a metà arco e quattro seggi
      finiscono a pari angolo, rendendo ambiguo quale sia il 61°. */
   var sfasa=ri*0.004, MG=0.004*(righe-1);
-  for(var j=0;j<n;j++){
+  for(j=0;j<n;j++){
    /* l'arco resta dentro [0, pi]: sfasamenti che lo sforassero verrebbero
       riportati dall'altra parte dal calcolo dell'angolo */
    var t=(n===1)?0.5:j/(n-1), a=(Math.PI-MG)-t*(Math.PI-2*MG)+sfasa;
-   pts.push({x:215+r*Math.cos(a),y:212-r*Math.sin(a),a:a});
+   pts.push({x:215+r*Math.cos(a),y:212-r*Math.sin(a),a:a,g:slot[j]});
   }
  });
  pts.sort(function(a,b){return b.a-a.a;});
+ /* DENTRO UN GRUPPO GLI ID SI ASSEGNANO IN ORDINE DI ANGOLO, non di fila: così in vista
+    «per lista» una lista resta uno SPICCHIO che attraversa le cinque file, com'era.
+    Assegnandoli fila per fila la lista più grande finirebbe tutta nella fila interna. */
+ var cur=[],base=0;
+ for(g=0;g<nG;g++){ cur.push(base); base+=grp[g]; }
+ var pieno=pts.map(function(p){ return p.g<0?null:seq[cur[p.g]++]; });
 
  /* Il filtro della legenda: EMIFILT è la chiave di un blocco in vista «Per blocco» e
     l'id di una lista in vista «Per lista». Se il gruppo scelto non esiste più — cambio
@@ -6703,7 +6861,7 @@ function rEmi(){
     riga che c'era prima ne sovrapponeva sei — e la legenda sotto dice nomi e composizione
     meglio di quanto possa fare una riga compressa. Quanti siano e quanto siano grandi lo
     decide disponiTotali(): vedi il commento là sopra. */
- var trio=TOT_ORD.map(function(k){return [k,b[k]];}).filter(function(x){return x[1];});
+ var trio=ARCO_ORD.map(function(k){return [k,b[k]];}).filter(function(x){return x[1];});
  var disp=disponiTotali(pieni,trio);
  /* Sotto filtro i totali restano tutti: sono la lettura dell'aula intera, e senza di essa
     la soglia dei 61 non vorrebbe dire niente — un numero solo, per giunta non di blocco
@@ -6737,7 +6895,9 @@ function rEmi(){
  if(EMIMODE==='blocchi'){
   var bl2=blocchi(SEG);
   $('k-emileg').className='legb';
-  $('k-emileg').innerHTML=['coalizione','opposizione','incerto','arabo'].filter(function(k){return bl2[k];})
+  /* nell ordine dell arco, non in quello della prosa: la legenda e la chiave del
+     disegno che le sta sopra — vedi ARCO_ORD */
+  $('k-emileg').innerHTML=ARCO_ORD.filter(function(k){return bl2[k];})
    .map(function(k){
     var membri=IDS.filter(function(i){return SEG[i]&&bloccoDi(i)===k;})
       .sort(function(a,b){return SEG[b]-SEG[a];})

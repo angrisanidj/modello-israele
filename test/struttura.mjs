@@ -1,6 +1,6 @@
 /* Controlli strutturali sul file pubblicato: HTML bilanciato, nessun id orfano,
    nessuna funzione duplicata, dimensione entro i limiti. */
-import {readFileSync,readdirSync} from 'node:fs';
+import {readFileSync,readdirSync,existsSync} from 'node:fs';
 import {execFileSync} from 'node:child_process';
 import {gzipSync} from 'node:zlib';
 import {fileURLToPath} from 'node:url';
@@ -470,6 +470,62 @@ p('il canonical e og:url sono lo stesso indirizzo'+(CANON?' ('+CANON+')':''),
   !!CANON && CANON===OGU && /^https:\/\//.test(CANON));
 p('og:type e twitter:card dichiarati', contenuto('og:type')==='website' &&
   /summary/.test(contenuto('twitter:card')||''));
+
+/* ══ L'IMMAGINE DICHIARATA DEVE ESSERE QUELLA CHE IL JOB PRODUCE ══
+   Scritto il 27 agosto 2026, dopo il difetto peggiore che questa pagina abbia avuto: la card
+   scaricata diceva 12 · 55 · 53 e l'anteprima del link 12 · 57 · 51, con la data di tre giorni
+   prima. DUE IMMAGINI DELLA STESSA PAGINA CON NUMERI DIVERSI, nella stessa conversazione.
+   LA CAUSA NON ERA UNA CACHE, ed è la prima cosa che il controllo dei dieci secondi ha detto:
+   rigenerando, anteprima.mjs ha risposto «scritta» e non «identica, non riscritta».
+   L'immagine sul server era vecchia perché NESSUNO LA GENERAVA. .github/scripts/anteprima.mjs
+   esisteva, era provato, aveva le sue due guardie — e non era invocato da nessuna parte: né dal
+   workflow né da uno script di npm. È stato eseguito a mano due volte in tutta la sua vita,
+   mentre l'archivio andava avanti ogni notte e og:title con lui.
+   NESSUNA PROVA POTEVA ACCORGERSENE, ed è la forma di sempre: png.js e meta.js provavano che
+   l'immagine fosse giusta, e lo era — provata sulla sua COMPOSIZIONE, mai sulla sua CONSEGNA.
+   Un file corretto che nessuno scrive è indistinguibile da un file corretto, finché non lo si
+   guarda dal lato di chi lo riceve.
+   Quindi il controllo non guarda l'immagine: guarda il LEGAME. Il file che index.html dichiara
+   come og:image dev'essere (1) rigenerato da un passo del lavoro notturno e (2) messo in scena
+   nello STESSO «git add» dell'archivio che racconta. La seconda metà è quella che conta: in un
+   commit a parte i due divergerebbero di una notte, che è precisamente il difetto.
+   E vale per l'og:image di domani e non per anteprima.png: il percorso si ricava dalla meta. */
+await (async function(){
+ const ogimg=contenuto('og:image');
+ if(!ogimg){ na('og:image non è dichiarata: non c\'è nessuna immagine da tenere allineata'); return; }
+ /* il percorso nel repository si ricava dall'indirizzo, non si riscrive qui */
+ const rel=CANON&&ogimg.indexOf(CANON)===0?ogimg.slice(CANON.length).replace(/^\//,''):null;
+ if(!rel){ p('og:image sta sotto il canonical, quindi è un file di questo repository ('+ogimg+')',false); return; }
+ p('il file dichiarato in og:image esiste nel repository ('+rel+')', existsSync(join(qui,'..',rel)));
+ let load; try{ load=(await import('js-yaml')).load; }
+ catch(e){ p('og:image: js-yaml non installato',false); return; }
+ let generato=false, inScena=false, conArchivio=false, dove='';
+ for(const f of readdirSync(join(qui,'..','.github','workflows'))){
+  if(!/\.ya?ml$/.test(f)) continue;
+  const doc=load(readFileSync(join(qui,'..','.github','workflows',f),'utf8'));
+  for(const j of Object.values((doc&&doc.jobs)||{})){
+   const run=((j&&j.steps)||[]).filter(x=>typeof x.run==='string').map(x=>x.run);
+   /* 1 · QUALCUNO LO GENERA. Si risale allo script dai comandi del job e si guarda che quello
+      script scriva davvero quel percorso: un passo che invocasse il file sbagliato passerebbe
+      un controllo fatto sul solo nome del comando. */
+   for(const r of run) for(const m of r.matchAll(/node\s+(\.github\/scripts\/[\w.-]+\.mjs)/g)){
+    const src=join(qui,'..',m[1]);
+    if(existsSync(src)&&readFileSync(src,'utf8').indexOf(rel.split('/').pop())>=0){
+     generato=true; dove=f+' · '+m[1];
+    }
+   }
+   /* 2 · E STA NELLO STESSO «git add» DELL'ARCHIVIO. È la metà che chiude il difetto:
+      generarlo e committarlo a parte li farebbe divergere di una notte. */
+   for(const r of run) for(const riga of r.split('\n')){
+    if(!/^\s*git add\b/.test(riga)) continue;
+    if(riga.indexOf(rel)>=0){ inScena=true; if(/dati\/archivio\.json/.test(riga)) conArchivio=true; }
+   }
+  }
+ }
+ p('l\'immagine di og:image la RIGENERA il lavoro notturno'+(dove?' ('+dove+')':''), generato);
+ p('e finisce nello stesso «git add» di dati/archivio.json, così l\'immagine e i numeri che '+
+   'racconta non possono divergere di una notte', inScena&&conArchivio);
+})();
 
 /* ══ LA REGIONE CHE IL LAVORO NOTTURNO PUÒ RISCRIVERE ══
    Prima la regola era «il job tocca solo dati/», ed era anche il segnale d'allarme: un

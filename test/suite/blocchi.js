@@ -59,7 +59,7 @@ global.FileReader = function(){}; global.fetch = () => Promise.reject(0);
 let src = fs.readFileSync(__dirname + '/../app.js','utf8');
 src = src.slice(0, src.indexOf('carica().then(render,render)')) +
   'global.A={P:P,IDS:IDS,BL:BL,IN_BILICO:IN_BILICO,bloccoDi:bloccoDi,filtraBilico:filtraBilico,' +
-  'blocchi:blocchi,render:render,PRESET:PRESET,TOT_ORD:TOT_ORD,TOT_SIGLA:TOT_SIGLA,' +
+  'blocchi:blocchi,render:render,PRESET:PRESET,ARCO_ORD:ARCO_ORD,TOT_SIGLA:TOT_SIGLA,' +
   'testoCondivisione:testoCondivisione,promptAI:promptAI,serieModello:serieModello,' +
   'get SOND(){return SOND;},set SOND(v){SOND=v;},get SEG(){return SEG;},' +
   'get PAR(){return PAR;},PAR_DEF:PAR_DEF,statoLeve:statoLeve,' +
@@ -83,7 +83,16 @@ const SEME = A.SOND.slice();
    bilancia ce l ha per anagrafica e che nessuna riga di IN_BILICO nomina — ed e' anche
    piu' onesto, perche' la proprieta' e' del BLOCCO e non della lista che la leva sposta. */
 const ENTRA = 'casa_sionista';
-function conAgo(seggi){
+/* LA LEVA È UN ARGOMENTO, NON UN'EREDITÀ, e questa riga è costata dodici asserzioni.
+   Fino al 27 agosto 2026 le due fixture facevano «PAR.inbilico = PAR_DEF.inbilico», con
+   scritto accanto «al DIFETTO, non a zero: una fixture che la spegnesse proverebbe uno
+   stato che il lettore non incontra mai». Il ragionamento era buono e la forma no: girando
+   PAR_DEF la sera stessa, dodici asserzioni si sono trovate sotto l'altro stato e sono
+   cadute insieme — non perché il codice fosse rotto, ma perché nessuna di loro diceva in
+   quale dei due stati valeva. Adesso lo dicono, e lo stato PREDEFINITO ha un'asserzione sua
+   che legge PAR_DEF invece di ereditarlo in silenzio: è la stessa mossa dei totali
+   dell'archivio, dove il numero si legge dal colspan che lo dichiara al lettore. */
+function conAgo(seggi, leva){
   A.SOND = SEME.map(s => {
     const o = JSON.parse(JSON.stringify(s));
     delete o._q; delete o._qk;
@@ -92,11 +101,16 @@ function conAgo(seggi){
     }
     return o;
   });
-  /* al DIFETTO, non a zero: dal 27 agosto la leva nasce accesa, e una fixture che la
-     spegnesse proverebbe uno stato che il lettore non incontra mai. */
-  A.PAR.inbilico = A.PAR_DEF.inbilico;
+  A.PAR.inbilico = leva ? 1 : 0;
   A.render();
 }
+/* PRIMA DI QUALUNQUE FIXTURE, o l'asserzione non può cadere: appena una fixture tocca PAR,
+   confrontarlo con PAR_DEF verifica quello che la fixture ha appena scritto. Qui invece
+   dice la cosa che deve dire — che la pagina parte da PAR_DEF e non da uno stato suo — e
+   coglie la seconda copia di PAR_DEF rimasta indietro, che in questo file è già successa. */
+esito(A.PAR.inbilico === A.PAR_DEF.inbilico,
+  'lo stato di partenza della pagina e quello di PAR_DEF, non uno stato suo',
+  A.PAR.inbilico + ' contro ' + A.PAR_DEF.inbilico);
 conAgo(0);
 const SENZA = A.blocchi(A.SEG);
 esito(SENZA.incerto === 0,
@@ -129,7 +143,7 @@ function totaliArco(){
   esito(t.length === CHIAVI.filter(k => CON[k]).length,
     'e sono tanti quanti i blocchi che hanno seggi, non un numero scritto',
     t.length + ' totali per ' + CHIAVI.filter(k => CON[k]).length + ' blocchi con seggi');
-  esito(t.map(z => z.g).join(',') === A.TOT_ORD.filter(k => CON[k]).join(','),
+  esito(t.map(z => z.g).join(',') === A.ARCO_ORD.filter(k => CON[k]).join(','),
     'nell ordine in cui i blocchi siedono nell arco, da sinistra a destra',
     t.map(z => z.g).join(','));
 }
@@ -142,16 +156,77 @@ conAgo(0);
   esito(t.length === 3, 'dove i totali sono tre perche i blocchi con seggi sono tre', String(t.length));
 }
 
-/* ══ 2 · NESSUNA VOCE IRRAGGIUNGIBILE ═══════════════════════════════════════════════
+/* ══ 2 · NESSUNA VOCE IRRAGGIUNGIBILE, E UNA STRADA SOLA PER L'ORDINE ═══════════════
  * Il difetto di partenza, in una riga: la tabella delle sigle dichiarava «incerti» e la
  * riga dei totali era cablata a tre chiavi. Una sigla che nessuno stato può mostrare è
- * codice che dice una cosa mentre il disegno ne fa un'altra. */
+ * codice che dice una cosa mentre il disegno ne fa un'altra.
+ * E IL SECONDO, TROVATO IL 27 AGOSTO 2026: l'ordine dei blocchi nell'arco era scritto a
+ * mano in QUATTRO posti, tre d'accordo e la legenda con un ordine suo — «coalizione,
+ * opposizione, incerto, arabo», né l'arco né il suo specchio. Nessuna prova poteva dire
+ * quale delle due fosse la svista, perché ciascuna era corretta rispetto a sé stessa.
+ * Il legame si prova DOVE STA, cioè nel sorgente: che le quattro sedi chiamino la costante
+ * invece di riscriverla. È l'idioma di og:title col job e di colonneBlocco() con le due
+ * tabelle. */
 esito(Object.keys(A.TOT_SIGLA).sort().join(',') === CHIAVI.slice().sort().join(','),
   'ogni blocco ha la sua sigla e nessuna sigla e di un blocco che non esiste',
   Object.keys(A.TOT_SIGLA).sort().join(','));
-esito(A.TOT_ORD.slice().sort().join(',') === Object.keys(A.TOT_SIGLA).sort().join(','),
+esito(A.ARCO_ORD.slice().sort().join(',') === Object.keys(A.TOT_SIGLA).sort().join(','),
   'e l ordine dell arco copre esattamente le sigle dichiarate: nessuna irraggiungibile',
-  A.TOT_ORD.join(','));
+  A.ARCO_ORD.join(','));
+/* L ORDINE SI PROVA COME PROPRIETA, NON COME ELENCO. Scrivere qui
+   ['opposizione','arabo','incerto','coalizione'] sarebbe ricopiare la costante che il
+   codice ha appena smesso di scrivere quattro volte, e cadrebbe il giorno in cui la
+   ragione cambia invece del giorno in cui l ordine sbaglia.
+   La ragione e questa: non e l emiciclo dello SPETTRO politico, e quello delle
+   MAGGIORANZE possibili. La linea dei 61 sta al centro dell arco e non si muove mai —
+   e il punto medio fra il 60 e il 61 seggio, quindi con 120 seggi cade sempre li — e
+   l ordine decide che cosa il lettore ci trova sotto. Con i due campi agli ESTREMI e i
+   due gruppi decisivi in mezzo, cio che sta a sinistra della linea e sempre un prefisso
+   che comincia da un campo: o il campo di testa governa da solo, o gli manca un pezzo
+   del gruppo decisivo che gli sta accanto. Enumerando tutte le 302.621 partizioni dei
+   120 seggi in quattro gruppi, il caso «la linea taglia a meta un campo che la
+   maggioranza non ce l ha» — quello in cui non si legge niente e bisogna contare —
+   passa dal 49,0% a ZERO. */
+const CAMPI = ['opposizione','coalizione'], DECISIVI = ['arabo','incerto'];
+esito(CAMPI.indexOf(A.ARCO_ORD[0]) >= 0 && CAMPI.indexOf(A.ARCO_ORD[3]) >= 0,
+  'i due CAMPI stanno agli estremi dell arco: e la condizione per cui a sinistra della ' +
+  'linea dei 61 c e sempre un prefisso che comincia da un campo', A.ARCO_ORD.join(','));
+esito(DECISIVI.indexOf(A.ARCO_ORD[1]) >= 0 && DECISIVI.indexOf(A.ARCO_ORD[2]) >= 0,
+  'e i due gruppi DECISIVI stanno in mezzo, dove cade la linea', A.ARCO_ORD.join(','));
+esito(A.ARCO_ORD[0] === 'opposizione' && A.ARCO_ORD[1] === 'arabo',
+  'gli arabi stanno accanto all OPPOSIZIONE, che e l unico campo che potrebbero ' +
+  'appoggiare: «all opposizione servono N seggi arabi» si legge invece di contarsi',
+  A.ARCO_ORD.join(','));
+esito(A.ARCO_ORD[2] === 'incerto' && A.ARCO_ORD[3] === 'coalizione',
+  'e l ago della bilancia accanto alla COALIZIONE, cosi la stessa lettura vale a ' +
+  'specchio: «alla coalizione servono N seggi dell ago»', A.ARCO_ORD.join(','));
+{
+  const js = fs.readFileSync(__dirname + '/../app.js','utf8');
+  /* un elenco delle quattro chiavi scritto a mano, in qualunque ordine: è la copia che
+     diverge. Non si cerca UN ordine — si cerca la FORMA, così vale anche per quello che
+     qualcuno scrive domani. */
+  const QUATTRO = /\[\s*'(?:coalizione|opposizione|arabo|incerto)'\s*,\s*'(?:coalizione|opposizione|arabo|incerto)'\s*,\s*'(?:coalizione|opposizione|arabo|incerto)'\s*,\s*'(?:coalizione|opposizione|arabo|incerto)'\s*\]/g;
+  const copie = js.match(QUATTRO) || [];
+  esito(copie.filter(c => c === "['opposizione','arabo','incerto','coalizione']").length === 1,
+    'l ordine dell arco e scritto UNA volta sola: ARCO_ORD',
+    copie.length + ' elenchi di quattro chiavi in tutto il file');
+  /* SI GUARDANO I COMANDI, NON I COMMENTI CHE LI NOMINANO, ed e la trappola che questo
+     progetto ha gia pagato nel controllo dell autostash. Il primo giro contava «ARCO_ORD»
+     nel sorgente crudo: il commento accanto alla legenda dice «vedi ARCO_ORD», quindi
+     rimettendo un elenco a mano al posto della chiamata il conto restava quattro e il
+     mutante SOPRAVVIVEVA. I commenti si tolgono prima di contare.
+     E la proprieta forte non e «quante volte la chiama»: e che dentro rEmi non ci sia
+     NESSUN elenco delle quattro chiavi. Cosi non conta in quale ordine lo si riscrive. */
+  const daRE = js.indexOf('function rEmi()');
+  const rEmi = js.slice(daRE, js.indexOf(String.fromCharCode(10) + 'function ', daRE + 10))
+    .replace(/\/\*[\s\S]*?\*\//g, '');
+  esito(!QUATTRO.test(rEmi),
+    'e dentro rEmi non c e nessun elenco di blocchi scritto a mano: le sedi la CHIAMANO',
+    (rEmi.match(QUATTRO) || []).join(' · '));
+  esito((rEmi.match(/ARCO_ORD/g) || []).length >= 4,
+    'e le quattro sedi la chiamano davvero: le due sequenze dei seggi, la riga dei totali ' +
+    'e la legenda', String((rEmi.match(/ARCO_ORD/g) || []).length) + ' chiamate dentro rEmi');
+}
 
 /* ══ 3 · I TOTALI NON TOCCANO I SEGGI ═══════════════════════════════════════════════
  * Il corpo si ricava dal disegno reso, quindi la prova lo verifica sul disegno reso e non
@@ -320,7 +395,7 @@ conAgo(4);
 
 /* La fixture della LEVA e' un altra cosa: qui i seggi vanno alla lista che IN_BILICO
    nomina, o non ci sarebbe niente da spostare. */
-function conBilico(seggi){
+function conBilico(seggi, leva){
   const id = A.IN_BILICO[0].id;
   A.SOND = SEME.map(s => {
     const o = JSON.parse(JSON.stringify(s));
@@ -330,7 +405,7 @@ function conBilico(seggi){
     }
     return o;
   });
-  A.PAR.inbilico = A.PAR_DEF.inbilico;
+  A.PAR.inbilico = leva ? 1 : 0;
   A.render();
 }
 esito(A.IN_BILICO.every(r => r.id !== ENTRA),
@@ -344,8 +419,7 @@ esito(A.IN_BILICO.every(r => r.id !== ENTRA),
  * queste asserzioni cadono. */
 function seggiOra(){ return A.IDS.filter(i => A.SEG[i]).map(i => i + ':' + A.SEG[i]).join(' '); }
 {
-  conBilico(4);
-  A.PAR.inbilico = 0; A.render();
+  conBilico(4, 0);
   const spenta = seggiOra(), bSpenta = A.blocchi(A.SEG);
   A.PAR.inbilico = 1; A.render();
   const accesa = seggiOra(), bAccesa = A.blocchi(A.SEG);
@@ -407,26 +481,26 @@ function seggiOra(){ return A.IDS.filter(i => A.SEG[i]).map(i => i + ':' + A.SEG
 }
 
 /* ══ 8 · IL COMANDO, E LO STATO IN CUI IL LETTORE ARRIVA ═══════════════════════════
- * Dal 27 agosto 2026 la leva nasce ACCESA: chi apre la pagina e non tocca niente sta
- * guardando un conteggio che la fonte non fa. Quindi qui non si prova solo il comando —
- * si prova che quello stato sia DICHIARATO, che e' la ragione per cui il difetto e
- * l'ipotesi non si possono confondere. */
+ * Il 27 agosto 2026 la leva è nata accesa la mattina ed è tornata spenta la sera, e questa
+ * sezione è stata scritta due volte. La seconda stesura non è una correzione: è il difetto
+ * girato, e quello che prova è lo stesso — che lo stato in cui il lettore ARRIVA sia
+ * dichiarato, e che l'altro si raggiunga con un comando che dice che cosa fa.
+ * QUELLO CHE È CAMBIATO È DA DOVE SI PARTE, e adesso è scritto: le fixture non seguono più
+ * PAR_DEF in silenzio — prendono la leva come argomento — così ogni asserzione dice in
+ * quale dei due stati vale invece di ereditarlo. Finché la seguivano, girare la cifra in
+ * PAR_DEF spostava dodici asserzioni sotto un altro stato senza che nessuna riga lo dicesse:
+ * è successo, e le dodici sono cadute tutte insieme. */
 {
-  esito(A.PAR_DEF.inbilico === 1,
-    'PAR_DEF porta la leva ACCESA: «Azzera» ripristina PAR_DEF, quindi non la spegne',
+  esito(A.PAR_DEF.inbilico === 0,
+    'PAR_DEF porta la leva SPENTA: il conteggio predefinito e quello della FONTE, e ' +
+    '«Azzera» — che ripristina PAR_DEF — ci riporta',
     String(A.PAR_DEF.inbilico));
-  /* e il difetto arriva davvero in PAR: se azzera copiasse un oggetto diverso, o se una
-     seconda copia di PAR_DEF fosse rimasta indietro, si vedrebbe qui */
-  conBilico(4);
-  esito(A.PAR.inbilico === A.PAR_DEF.inbilico,
-    'e lo stato di partenza della pagina e quello di PAR_DEF, non uno stato suo');
 
   /* IL COMANDO COMPARE QUANDO COMINCIA A SPOSTARE QUALCOSA, E NON PRIMA.
-     Oggi la lista non ha seggi in nessuna rilevazione, quindi la leva — benche' accesa —
-     muove zero e il pulsante non c'e'. Dal primo sondaggio che le da' un seggio il
-     conteggio cambia DA SOLO, perche' la leva e' gia' accesa: il pulsante deve comparire
-     in quel momento, o il lettore si troverebbe davanti a un'ipotesi applicata senza il
-     comando per toglierla. E' la transizione, non i due stati separati. */
+     Vale nei due stati, e si prova su quello ACCESO perché lì il comando è anche l'unica
+     via d'uscita da un'ipotesi già dentro i numeri: se comparisse un render dopo, il
+     lettore si troverebbe davanti a un conteggio che non può disfare. È la transizione,
+     non i due stati separati. */
   /* IL PUNTO NON SI INDOVINA, SI CERCA. «Al primo seggio» sarebbe falso: un seggio per
      rilevazione vale una quota dello 0,8% e la soglia e' 3,25, quindi la lista resta fuori
      dal riparto e la leva continua a muovere zero. La proprieta' e' che il comando compaia
@@ -434,16 +508,15 @@ function seggiOra(){ return A.IDS.filter(i => A.SEG[i]).map(i => i + ':' + A.SEG
      dall'archivio, quindi scriverne uno qui sarebbe la costante che scade. */
   const id = A.IN_BILICO[0].id;
   let entra = 0;
-  for (let n = 0; n <= 8 && !entra; n++) { conBilico(n); if (A.SEG[id]) entra = n; }
+  for (let n = 0; n <= 8 && !entra; n++) { conBilico(n, 1); if (A.SEG[id]) entra = n; }
   esito(entra > 0, 'esiste un numero di seggi che fa entrare la lista nella proiezione',
     'provati 0..8');
-  conBilico(entra - 1);
+  conBilico(entra - 1, 1);
   esito(!A.SEG[id] && $('k-bilico').hidden === true,
     'finche la lista resta sotto soglia il comando non c e: uno che non fa niente e ' +
     'peggio di uno assente', 'con ' + (entra - 1) + ' seggi per rilevazione');
   esito(testo('k-bilriga') === '', 'e la riga di esito tace');
-  const b0 = A.blocchi(A.SEG);
-  conBilico(entra);
+  conBilico(entra, 1);
   const b1 = A.blocchi(A.SEG);
   esito($('k-bilico').hidden === false,
     'e compare da se nello stesso render in cui la lista entra, senza che nessuno prema ' +
@@ -454,44 +527,54 @@ function seggiOra(){ return A.IDS.filter(i => A.SEG[i]).map(i => i + ':' + A.SEG
      della FONTE quei seggi ci sono: cioe' l ipotesi e' gia' applicata, ed e' esattamente
      il render in cui il comando compare. */
   esito(b1.incerto === 0 && A.blocchi(A.SEG, true).incerto === A.SEG[id] && A.SEG[id] > 0,
-    'e i seggi entrano gia nel blocco, perche la leva e accesa: non c e un render in cui ' +
+    'e con la leva accesa i seggi sono gia contati nel blocco: non c e un render in cui ' +
     'l ipotesi e applicata e il comando per toglierla non c e ancora',
     JSON.stringify(b1) + ' contro la fonte ' + JSON.stringify(A.blocchi(A.SEG, true)));
 
-  conBilico(4);
+  /* ── LO STATO IN CUI IL LETTORE ARRIVA: leva spenta, cioè il conto della fonte ── */
+  conBilico(4, 0);
   const b = $('k-bilico');
-  const acceso = b.textContent, eti = b.getAttribute('aria-label');
-  esito(/^Togli /.test(acceso),
-    'nello stato in cui il lettore arriva il verbo e «Togli», cioe l azione che riporta ' +
-    'il conteggio a quello della fonte', acceso);
-  esito(eti.indexOf(acceso) === 0,
+  const spento = b.textContent, eti = b.getAttribute('aria-label');
+  esito(/^Conta /.test(spento),
+    'nello stato in cui il lettore arriva il verbo e «Conta», cioe l azione che AGGIUNGE ' +
+    'l ipotesi a un conteggio che senza di lei e quello della fonte', spento);
+  esito(eti.indexOf(spento) === 0,
     'il nome accessibile comincia col testo visibile, come chiede WCAG 2.5.3', eti);
   esito(b.getAttribute('aria-pressed') === null,
     'e non porta aria-pressed: il nome dice l azione, quindi il riscontro e il nome che cambia');
-  const riga = testo('k-bilriga');
-  esito(/^Il conteggio parte da un/.test(riga),
-    'e la riga di esito dichiara l ipotesi nel PRIMO periodo, perche questo e lo stato ' +
-    'in cui si arriva senza toccare niente', riga.slice(0, 160));
-  esito(/→/.test(riga),
-    'dicendo quanti seggi si spostano e fra quali blocchi', riga.slice(0, 240));
-  esito(/pulsante/.test(riga),
-    'e dove sta la via d uscita: «ipotesi» senza il comando per toglierla e una parola sola');
+  const rigaSp = testo('k-bilriga');
+  esito(/^La fonte non conta/.test(rigaSp),
+    'e la riga di esito apre da quello che dice la FONTE, che e la ragione per cui la ' +
+    'lista sta fuori dai due campi', rigaSp.slice(0, 160));
+  esito(/peserebbe/.test(rigaSp) && /seggi/.test(rigaSp),
+    'e dice quanto peserebbe l ipotesi senza applicarla: il condizionale e il canale che ' +
+    'distingue una misura da un conteggio', rigaSp.slice(0, 240));
 
-  A.PAR.inbilico = 0; A.render();
-  const spento = $('k-bilico').textContent;
-  esito(spento !== acceso, 'premendo, il nome cambia — ed e il riscontro', acceso + ' -> ' + spento);
-  esito(spento.length === acceso.length,
+  /* ── E LO STATO CHE SI RAGGIUNGE PREMENDO: l'ipotesi dentro i numeri ── */
+  A.PAR.inbilico = 1; A.render();
+  const acceso = $('k-bilico').textContent;
+  esito(acceso !== spento, 'premendo, il nome cambia — ed e il riscontro', spento + ' -> ' + acceso);
+  esito(/^Togli /.test(acceso),
+    'e diventa «Togli», cioe l azione che riporta il conteggio a quello della fonte', acceso);
+  esito(acceso.length === spento.length,
     'e ha la STESSA lunghezza nei due stati: il pannello non si accorcia sotto il dito, ' +
     'che e il difetto costato al comando degli accordi 36px di salto',
-    acceso + ' (' + acceso.length + ') · ' + spento + ' (' + spento.length + ')');
-  esito(/La fonte non conta/.test(testo('k-bilriga')),
-    'e a leva spenta la riga dichiara che cosa dice la fonte, che e la ragione per cui la ' +
-    'lista sta li', testo('k-bilriga').slice(0, 140));
-  /* la leva si dichiara nel prompt quando e SPENTA, perche accesa e il difetto */
-  esito(/contate a parte/.test(A.promptAI()),
-    'e il prompt che va al servizio terzo dichiara la leva SPENTA, perche accesa e il difetto');
+    spento + ' (' + spento.length + ') · ' + acceso + ' (' + acceso.length + ')');
+  const rigaAc = testo('k-bilriga');
+  esito(/^Il conteggio parte da un/.test(rigaAc),
+    'e la riga dichiara l ipotesi nel PRIMO periodo: un ipotesi applicata va dichiarata ' +
+    'prima di dire quanto vale, che l abbia scelta il lettore o il predefinito',
+    rigaAc.slice(0, 160));
+  esito(/→/.test(rigaAc),
+    'dicendo quanti seggi si spostano e fra quali blocchi', rigaAc.slice(0, 240));
+  esito(/pulsante/.test(rigaAc),
+    'e dove sta la via d uscita: «ipotesi» senza il comando per toglierla e una parola sola');
+  /* la leva si dichiara nel prompt quando e ACCESA, perche spenta e il difetto: statoLeve
+     risponde a «che cosa ha cambiato il lettore», e il confronto e con PAR_DEF */
+  esito(/contate nel blocco/.test(A.promptAI()),
+    'e il prompt che va al servizio terzo dichiara la leva ACCESA, perche spenta e il difetto');
   A.PAR.inbilico = A.PAR_DEF.inbilico; A.render();
-  esito(!/contate a parte/.test(A.promptAI()),
+  esito(!/contate nel blocco/.test(A.promptAI()) && !/contate a parte/.test(A.promptAI()),
     'e non la dichiara quando e al valore predefinito: statoLeve confronta con PAR_DEF');
   conAgo(4);
 }
@@ -529,20 +612,42 @@ function seggiOra(){ return A.IDS.filter(i => A.SEG[i]).map(i => i + ':' + A.SEG
  * l'ipotesi è applicata. Le due funzioni devono restare due, e queste asserzioni sono
  * quelle che lo tengono. */
 {
-  conBilico(0);
+  conBilico(0, 1);
   esito(A.ipotesiNeiNumeri() === '',
-    'senza seggi da spostare non si dichiara niente: un ipotesi che non muove un numero e ' +
-    'rumore, e insegna a saltare la riga prima del giorno in cui conta');
+    'senza seggi da spostare non si dichiara niente, nemmeno a leva accesa: un ipotesi che ' +
+    'non muove un numero e rumore, e insegna a saltare la riga prima del giorno in cui conta');
   esito(A.testoCondivisione(false).indexOf('ipotesi') < 0,
     'e la frase di condivisione non ne parla');
 
-  conBilico(4);
+  conBilico(4, 1);
   const ip = A.ipotesiNeiNumeri();
   esito(ip.length > 0 && /ipotesi/.test(ip) && /non un fatto/.test(ip),
-    'con la lista in Knesset la dichiarazione c e, e dice che e un ipotesi', ip);
-  esito(/statoLeve/.test('') === false && A.statoLeve() === '',
-    'mentre statoLeve TACE, perche il lettore non ha cambiato niente: e la ragione per cui ' +
-    'le due funzioni sono due', '«' + A.statoLeve() + '»');
+    'con la lista in Knesset e la leva accesa la dichiarazione c e, e dice che e un ipotesi', ip);
+  /* LE DUE FUNZIONI RESTANO DUE, E ADESSO LA PROVA NON DIPENDE DA DOVE PUNTA IL DIFETTO.
+     Fino al 27 agosto 2026 qui c'era: «ipotesiNeiNumeri parla mentre statoLeve tace». Era
+     vero perche' il predefinito era ACCESO — cioe' l'asserzione provava la regola sfruttando
+     una configurazione, e la sera stessa, girato il predefinito, e' diventata falsa senza
+     che la regola fosse cambiata di una virgola. E' la stessa forma dell'house effect in
+     ordine di blocco «per fortuna»: corretta rispetto a se stessa, e muta sul giorno che
+     conta.
+     LA REGOLA E': ipotesiNeiNumeri() risponde a «che cosa c'e' dentro questi numeri» e NON
+     consulta PAR_DEF; statoLeve() risponde a «che cosa ha cambiato il lettore» e lo consulta.
+     Il caso in cui divergono e' quello in cui il predefinito E' l'ipotesi, e si esercita
+     spostando PAR_DEF invece di aspettare il giorno in cui qualcuno lo sposta davvero — che
+     e' anche il giorno in cui una prova assente non lo direbbe a nessuno. */
+  esito(A.statoLeve().indexOf('fuori dai due campi') >= 0,
+    'e statoLeve la dichiara, perche il lettore ha cambiato qualcosa rispetto al predefinito',
+    '«' + A.statoLeve() + '»');
+  const DIFETTO = A.PAR_DEF.inbilico;
+  A.PAR_DEF.inbilico = 1;                    /* il giorno in cui il predefinito E l ipotesi */
+  esito(A.ipotesiNeiNumeri() === ip,
+    'col predefinito spostato sull ipotesi, ipotesiNeiNumeri dice la STESSA cosa: non ' +
+    'consulta PAR_DEF, perche la sua domanda non dipende da chi ce l ha messa', ip.slice(0,80));
+  esito(A.statoLeve().indexOf('fuori dai due campi') < 0,
+    'e statoLeve TACE, perche il lettore non ha piu cambiato niente: e il caso per cui le ' +
+    'due funzioni sono due, e quello in cui una sola direbbe la cosa giusta per la ragione ' +
+    'sbagliata', '«' + A.statoLeve() + '»');
+  A.PAR_DEF.inbilico = DIFETTO;
   /* le tre strade che escono dalla pagina la portano, e la portano UGUALE */
   esito(A.testoCondivisione(false).indexOf(ip) >= 0,
     'la frase di condivisione la porta — X, Telegram, WhatsApp e Threads ricevono il testo');
@@ -638,6 +743,149 @@ function seggiOra(){ return A.IDS.filter(i => A.SEG[i]).map(i => i + ':' + A.SEG
   esito(/somma è minore di 120/.test(testoPagina) && /I tre totali in fondo/.test(testoPagina),
     'ma il piede dell archivio tiene i suoi TRE, che li sono di proposito: quelle colonne ' +
     'riproducono la fonte e lo dichiarano');
+}
+
+
+/* ══ 12 · IL VUOTO FRA I GRUPPI È UN ANGOLO, E VALE PER TUTTE E CINQUE LE FILE ══════
+ * La prova che non c'era. Fino al 27 agosto 2026 i posti vuoti si inserivano nella sequenza
+ * LINEARE dei 120 seggi, che poi veniva distribuita sulle cinque file ordinando i posti per
+ * angolo: un vuoto cancellava un seggio in UNA fila, e alle altre quattro, a quello stesso
+ * angolo, non succedeva niente. Misurato sulla pagina resa, con tre blocchi: su dieci
+ * coppie fila×confine il vuoto c'era in DUE. La fila esterna sembrava uniforme perché lì il
+ * confine non c'era affatto.
+ * NESSUNA PROVA POTEVA VEDERLO, ed è la famiglia di sempre: emi.js contava i seggi, blocchi
+ * contava i totali, soglia.js misurava le etichette — nessuna guardava lo SPAZIO FRA due
+ * pastiglie. Il documento non scorreva, niente usciva dalla finestra, e tutto era verde.
+ * QUELLO CHE SI ASSERISCE È LA PROPRIETÀ, non i numeri di oggi: il disegno porta 120
+ * pastiglie, e in ogni fila ogni cambio di colore ha un vuoto — uno solo, non due. Vale con
+ * tre blocchi, con quattro, e con quelli che avrà l'8 settembre. */
+/* Le due letture del disegno stanno in un posto solo: le usano tutte e due le meta della
+   sezione, e riscriverle sarebbe la strada doppia dentro la prova che ne cerca una. */
+function fileArco(){
+  const per = {};
+  [...D.querySelectorAll('#k-emi svg circle')].forEach(c => {
+    const x = +c.getAttribute('cx'), y = +c.getAttribute('cy');
+    const r = Math.round(Math.hypot(x - 215, 212 - y));
+    (per[r] = per[r] || []).push({x: x, y: y, g: c.getAttribute('data-g')});
+  });
+  return Object.keys(per).map(Number).sort((a,b) => a-b).map(r => ({r: r, g: per[r]}));
+}
+/* i confini di una fila, misurati in MULTIPLI del passo di quella fila: un numero assoluto
+   non direbbe niente, perche le file hanno passi diversi */
+function confini(f){
+  const d = [];
+  for (let i = 1; i < f.length; i++)
+    d.push({v: Math.hypot(f[i].x - f[i-1].x, f[i].y - f[i-1].y), c: f[i].g !== f[i-1].g});
+  const nor = d.filter(z => !z.c).map(z => z.v);
+  const passo = nor.reduce((a,b) => a+b, 0) / nor.length;
+  return d.filter(z => z.c).map(z => z.v / passo);
+}
+{
+  conAgo(4);
+  const cerchi = [...D.querySelectorAll('#k-emi svg circle')].map(c => ({
+    x: +c.getAttribute('cx'), y: +c.getAttribute('cy'), g: c.getAttribute('data-g')
+  }));
+  esito(cerchi.length === 120,
+    'l arco disegna 120 pastiglie: i vuoti sono posti in piu, non seggi in meno',
+    String(cerchi.length));
+  /* le file si riconoscono dal raggio, che e la cosa che le definisce */
+  const fila = {};
+  cerchi.forEach(p => {
+    const r = Math.round(Math.hypot(p.x - 215, 212 - p.y));
+    (fila[r] = fila[r] || []).push(p);
+  });
+  const raggi = Object.keys(fila).map(Number).sort((a,b) => a-b);
+  esito(raggi.length === 5, 'su cinque file', raggi.join(' '));
+  const dett = [];
+  let mancanti = 0, doppi = 0, quanti = 0;
+  raggi.forEach(r => {
+    const f = fila[r], d = [];
+    for (let i = 1; i < f.length; i++)
+      d.push({v: Math.hypot(f[i].x - f[i-1].x, f[i].y - f[i-1].y), c: f[i].g !== f[i-1].g});
+    const nor = d.filter(z => !z.c).map(z => z.v);
+    const passo = nor.reduce((a,b) => a+b, 0) / nor.length;
+    const c = d.filter(z => z.c).map(z => z.v / passo);
+    quanti += c.length;
+    c.forEach(v => { if (v < 1.5) mancanti++; if (v > 2.5) doppi++; });
+    /* i gruppi PRESENTI in questa fila: i confini devono essere tanti quanti i passaggi
+       fra loro, cioe uno di meno. Un gruppo troppo piccolo per arrivare a una fila li non
+       ha due confini, ne ha uno — ed e la mossa che toglie i buchi doppi. */
+    const presenti = new Set(f.map(p => p.g)).size;
+    dett.push('r' + r + ': ' + c.length + ' confini per ' + presenti + ' gruppi [' +
+      c.map(v => v.toFixed(2)).join(' ') + ']');
+    esito(c.length === presenti - 1,
+      'fila r=' + r + ': un vuoto per ogni passaggio fra gruppi presenti, ne uno di piu ne uno di meno',
+      c.length + ' confini per ' + presenti + ' gruppi presenti');
+  });
+  esito(mancanti === 0,
+    'e NESSUN cambio di colore avviene senza vuoto: il confine si vede in tutte e cinque ' +
+    'le file, non in quella dove capita l angolo', dett.join(' · '));
+  esito(doppi === 0,
+    'e nessun vuoto e doppio: un gruppo assente da una fila unisce due confini in UNO, ' +
+    'invece di lasciare un buco largo il doppio', dett.join(' · '));
+  esito(quanti >= 5,
+    'e i confini misurati sono abbastanza da rendere la prova capace di cadere',
+    String(quanti) + ' confini in tutto');
+  /* LA SOMMA DEI GRUPPI TORNA ANCHE NEL DISEGNO, non solo nei totali scritti: e la
+     seconda meta di ripartiFile(), quella che una ripartizione sbagliata romperebbe in
+     silenzio disegnando 119 o 121 pastiglie con i totali giusti sotto. */
+  const perGruppo = {};
+  cerchi.forEach(p => { perGruppo[p.g] = (perGruppo[p.g] || 0) + 1; });
+  const attesi = A.blocchi(A.SEG);
+  esito(A.ARCO_ORD.every(k => (perGruppo[k] || 0) === attesi[k]),
+    'e ogni gruppo ha nel disegno esattamente i seggi che il totale gli attribuisce',
+    JSON.stringify(perGruppo) + ' contro ' + JSON.stringify(attesi));
+  /* ── E IL CASO CHE IL PRIMO NON ESERCITA: un gruppo troppo piccolo per arrivare a tutte
+     le file. Lì i suoi due confini diventano UNO, e la mutazione che li lascia tutti e due
+     apre un buco largo il doppio — invisibile alla prova qui sopra, perché con l'archivio
+     del progetto ogni blocco arriva a tutte e cinque le file.
+     LA CONFIGURAZIONE NON SI SCRIVE, SI CERCA: quanti seggi prenda una lista dipende
+     dall'archivio del giorno, e un numero scritto qui sarebbe la costante che scade. Si
+     spazzola finché una fila resta senza un gruppo, e se non si trova la prova lo DICHIARA
+     invece di passare in silenzio. */
+  let trovata = null;
+  for (let quota = 3; quota <= 6 && !trovata; quota++)
+    for (let n = 4; n <= 7 && !trovata; n++) {
+      A.SOND = SEME.map((s, i) => {
+        const o = JSON.parse(JSON.stringify(s));
+        delete o._q; delete o._qk;
+        if (o.seggi && o.seggi.likud >= 8 && i % quota === 0) {
+          o.seggi.likud -= n; o.seggi[ENTRA] = (o.seggi[ENTRA] || 0) + n;
+        }
+        return o;
+      });
+      A.PAR.inbilico = 0; A.render();
+      const f = fileArco();
+      const gruppi = new Set([].concat.apply([], f.map(x => x.g.map(p => p.g))));
+      if (gruppi.size >= 3 && f.some(x => new Set(x.g.map(p => p.g)).size < gruppi.size))
+        trovata = 'n=' + n + ' ogni ' + quota + ' rilevazioni';
+    }
+  if (!trovata) {
+    esito(true, 'nessuna configurazione con un gruppo assente da una fila: il caso del ' +
+      'vuoto doppio non e esercitato da questo archivio — DICHIARATO, non passato in silenzio');
+  } else {
+    const f = fileArco();
+    const tot = f.reduce((a, x) => a + x.g.length, 0);
+    esito(tot === 120, 'col gruppo piccolo l arco disegna ancora 120 pastiglie (' + trovata + ')',
+      String(tot));
+    let manc = 0, dop = 0, righeCorte = 0;
+    f.forEach(x => {
+      const presenti = new Set(x.g.map(p => p.g)).size;
+      const c = confini(x.g);
+      if (presenti < 4) righeCorte++;
+      esito(c.length === presenti - 1,
+        'fila r=' + x.r + ': ' + presenti + ' gruppi presenti, ' + c.length + ' confini — ' +
+        'un gruppo che non arriva a una fila li non ha due confini, ne ha uno',
+        c.map(v => v.toFixed(2)).join(' '));
+      c.forEach(v => { if (v < 1.5) manc++; if (v > 2.5) dop++; });
+    });
+    esito(righeCorte > 0,
+      'e la configurazione esercita davvero il caso: almeno una fila non ha tutti i gruppi',
+      righeCorte + ' file su ' + f.length);
+    esito(manc === 0 && dop === 0,
+      'e nessun vuoto manca ne e doppio nemmeno li: ' + manc + ' mancanti, ' + dop + ' doppi');
+  }
+  conAgo(4);
 }
 
 console.log('\nblocchi: ' + ok + '/' + (ok + ko));

@@ -1,7 +1,9 @@
 # Aggiornamento notturno dell'archivio da Wikipedia.
 #
 # Il job scarica la pagina dei sondaggi, esegue il parser vero (estratto da index.html),
-# unisce le rilevazioni nuove a dati/archivio.json e deposita le voci-evento nel registro.
+# unisce le rilevazioni nuove a dati/archivio.json, deposita le voci-evento nel registro e
+# RIGENERA dati/anteprima.png, che è l'og:image: l'immagine è un prodotto dell'archivio, e
+# finché non lo era il link condiviso mostrava numeri diversi da quelli della pagina.
 # Tocca dati/ e, di index.html, LA SOLA REGIONE FRA I DUE MARCATORI «META DELLO STATO»,
 # dove sta og:title — che deve dire lo stato del modello a chi legge il file servito senza
 # eseguire niente, cioè a ogni aggregatore. Fino al 23 agosto 2026 la regola era «solo
@@ -64,6 +66,25 @@ jobs:
         env:
           ESECUZIONI_FERME: ${{ steps.ferme.outputs.ferme }}
         run: node .github/scripts/aggiorna.mjs
+      # L'ANTEPRIMA È UN PRODOTTO DELL'ARCHIVIO, e per tre giorni non lo è stata.
+      # og:image era dichiarata in index.html dal 24 agosto 2026 e QUESTO PASSO NON ESISTEVA:
+      # nessuno chiamava anteprima.mjs, né qui né in un npm script. L'immagine è stata scritta
+      # due volte in tutta la sua vita, tutte e due a mano, mentre l'archivio andava avanti ogni
+      # notte. Il 27 agosto il risultato era quello che un modello previsionale non può
+      # permettersi: la card scaricata dalla pagina diceva 12 · 55 · 53 e l'anteprima del link
+      # 12 · 57 · 51, con la data del 24 — DUE IMMAGINI DELLA STESSA PAGINA CON NUMERI DIVERSI,
+      # nella stessa conversazione. E non era solo una figura vecchia: og:title lo scrive il job
+      # ed era fresco, quindi sotto una frase di oggi c'era un disegno di tre giorni prima.
+      # Il passo sta QUI, subito dopo il parser e prima della verifica, perché è lo stesso atto:
+      # l'archivio è cambiato, quindi l'immagine è cambiata. Il file entra nel MEDESIMO commit
+      # dell'archivio — è la sola forma in cui i due non possono divergere — e test/struttura.mjs
+      # lo pretende invece di lasciarlo alla buona volontà di chi tocca questo file.
+      # Se una guardia del rasterizzatore scatta il passo fallisce e la notte non pubblica
+      # niente: un archivio nuovo con l'anteprima di ieri è esattamente il difetto che questo
+      # passo esiste per chiudere, e pubblicarlo a metà è peggio che non pubblicarlo.
+      # A mani vuote non scrive: anteprima.mjs confronta i byte e dice «identica, non riscritta».
+      - name: Anteprima Open Graph
+        run: node .github/scripts/anteprima.mjs
       # LAVORO_NOTTURNO=1 accende, dentro test/struttura.mjs, il controllo sul diff di
       # index.html: qui è il solo posto in cui esiste un «commit notturno» da giudicare.
       - name: Verifica completa con i dati nuovi
@@ -86,7 +107,9 @@ jobs:
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           # index.html entra per la sola regione delle meta dello stato: il passo di
           # verifica qui sopra ha già fallito se il diff toccava altro
-          git add dati/archivio.json dati/eventi-grezzi.json dati/stato-job.json index.html
+          # dati/anteprima.png sta QUI e non in un commit suo: l'immagine e i numeri che
+          # racconta si muovono insieme o non si muovono affatto.
+          git add dati/archivio.json dati/eventi-grezzi.json dati/stato-job.json dati/anteprima.png index.html
           # UNA NOTTE A MANI VUOTE NON È UN FALLIMENTO. Senza questa guardia, quando il
           # parser non cambia un byte «git commit» esce 1 perché non c'è niente da
           # committare, e con «bash -e» il passo muore: il job risulterebbe fallito e il
