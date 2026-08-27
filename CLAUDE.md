@@ -4554,7 +4554,114 @@ Due conseguenze pratiche, e sono quelle da ricordare:
   una cosa sta dove deve, la domanda successiva è sempre se si legge — e quella, in
   questo progetto, la risponde solo un occhio su un browser vero.
 
-### Lo stato al 27 agosto 2026
+### Lo stato al 27 agosto 2026, sera
+
+Ultimo commit spinto: **`a89deed`**. Banco a **2330**, struttura pulita, spazzola pulita.
+Il tetto del gzip è stato **rifatto** — non alzato — e sta a **287 KB** contro 223,7 di file.
+
+**Che cosa è entrato oggi**, in tre commit. Il giro dei **quattro blocchi**: l'emiciclo che ne
+contava tre su quattro, i nove consumatori che perdevano il quarto, la leva `IN_BILICO`, e
+`test/suite/blocchi.js` — la prova che legava i totali al 120 e che non esisteva. Poi la
+**dichiarazione dell'ipotesi** in tutto ciò che esce dalla pagina. Poi cinque riparazioni
+indipendenti: l'aria dei totali, il vuoto fra i gruppi, i quattro conti scritti a mano, la
+parità del workflow col battito che ne discende, e i glifi presi da Simple Icons.
+
+**Il lavoro notturno è tornato a girare, e va letto con attenzione.** Il cron delle 03:30
+del 27 agosto è partito alle **14:28 UTC** — in ritardo di undici ore, non assente: le
+esecuzioni programmate di GitHub sono a sforzo migliore, e questo è il modo in cui slittano.
+È arrivato in fondo: `stato-job.json` dice **27 agosto, 161 valide**. Ma
+**`dati/da-fare.json` è rimasto al 25**, perché quel run usava il workflow di prima: il
+difetto dell'`--autostash` si è ripetuto sotto osservazione, ed è la conferma migliore che
+la diagnosi fosse giusta. La riparazione è spinta e vale dalla prossima notte — **la prima
+cosa da guardare domani è che `da-fare.json` si sia mosso.**
+
+### Le quattro cose decise oggi che dal codice non si deducono
+
+**1 · `statoLeve()` e `ipotesiNeiNumeri()` sono due domande diverse, e lo sono diventate
+oggi.** La prima risponde a «che cosa ha cambiato il lettore» — confronta con `PAR_DEF` — ed
+è la domanda giusta finché il predefinito è il conteggio della fonte. La seconda risponde a
+«che cosa c'è dentro questi numeri», e la risposta non dipende da chi ce l'ha messa.
+Da quando `PAR.inbilico` nasce accesa le due divergono **nel caso peggiore**: quando
+l'ipotesi è applicata `statoLeve()` tace, perché nessuno ha cambiato niente.
+**Il giorno in cui un altro predefinito diventa un'ipotesi, `ipotesiNeiNumeri()` deve
+saperlo** — non `statoLeve()`, che continuerà a rispondere correttamente alla sua domanda.
+Vedi la trappola omonima e «Quello che esce dalla pagina deve portare l'ipotesi con sé».
+
+**2 · `og:title` ha UN CARATTERE di margine: 58 su 59.** Qualunque cosa si voglia aggiungere
+lì va misurata prima, e la risposta è quasi certamente no. Non c'è spazio per una clausola,
+per un inciso, per una sigla: nemmeno per «·». È il motivo per cui la dichiarazione
+dell'ipotesi è finita nel testo di condivisione e nella targa dell'anteprima.
+
+**3 · I glifi si prendono da una fonte con licenza, non si ridisegnano.** Tre giri di
+ridisegno a occhio in un giorno, tre fallimenti — il gancio somigliava a una «d» minuscola,
+poi a un uncino in un cerchio; il nodo a un ingranaggio. Un marchio non si ricostruisce a
+memoria: **o si prende il file, o si disegna una cosa che NON pretende di essere quel
+marchio.** Nove vengono da Simple Icons; tre sono nostri e dichiarati uno per uno in
+`embed.js` con la ragione, ChatGPT compreso — che è nostro perché Simple Icons non ha
+l'icona di OpenAI, e l'assenza è del repository, non della ricerca.
+
+**4 · `PAR.inbilico` nasce ACCESA e l'anagrafica non si tocca.** In `P{}` «Popolo d'Israele»
+resta ago della bilancia, perché è lì che la mette la fonte. La regola che ne discende, e
+che vale per chi aggiunge un consumatore domani: **le funzioni che calcolano QUOTE leggono
+l'anagrafica — `applicaSwing()`, `puntiPer()`, `dir[]` del Monte Carlo, l'affluenza araba —
+quelle che CONTANO SEGGI leggono la leva.** E la leva non deve raggiungere la guardia «Gov.»
+del parser notturno, o ogni notte respingerebbe righe valide dove nessuno guarda.
+
+### Il parser e le due convenzioni: diagnosticato il 27 agosto, NON applicato
+
+Wikipedia usa due notazioni per le liste sotto soglia, **nella stessa schermata**. Il
+sospetto di partenza era che il parser leggesse `(1,8%)` come 1,8 seggi; misurato, è
+**rovesciato**.
+
+- **`(N%)` è già gestito**, parentesi comprese: l'espressione ammette `(`, `<`, `~`, `≈`, e
+  `wClean` toglie le note a piè di pagina prima, quindi anche `(1,4%)[o]` — 5 celle in pagina
+  — arriva pulita. **1075 celle** di questa forma, tutte lette.
+- **`(N)` nella colonna di una lista è ILLEGGIBILE e scarta la riga.** L'espressione dei
+  seggi vuole un intero nudo, `/^(\d+)$/`, quindi `(3)` non è né percentuale né seggi:
+  `ok=false`, motivo «valore non interpretabile». Misurato sulla fonte vera: **34 righe
+  scartate — 24 ambigue, 6 somma, 3 blocco, UNA illeggibile**, ed è **Maagar Mochot del 26
+  agosto**. Una riga sola, non parecchie. Ma la forma tornerà: `(N)` compare in 5 celle,
+  tutte in quella riga.
+- **Che cosa vuol dire `(N)`, dalla riga vera**: `21 | 16 | (3) | 9 | (1) | …` — **i numeri
+  nudi sommano già 120**, e i cinque fra parentesi sono in più. Quindi `(N)` dice esattamente
+  quello che dice `(N%)`: la lista è sotto soglia e prende **zero** seggi, e N è quanti ne
+  prenderebbe se passasse. È un condizionale, non un'assegnazione.
+- **N NON VA USATO, e le due strade sbagliate sono entrambe silenziose.** Metterlo in `sotto`
+  sarebbe un errore di unità — quella mappa contiene **percentuali**, e 3 verrebbe letto come
+  3%, spostando `ws` e quindi `q`. Convertirlo (3/120 ≈ 2,5%) sarebbe una **stima**, non un
+  dato: i voti di una lista esclusa non stanno nel monte valido, quindi «tre seggi» viene da
+  un'altra aritmetica. La lettura giusta è **«sotto soglia, zero seggi»** e basta: la riga
+  entra e quella lista cade sul ripiego `DISP`, come ogni sondaggio che non dichiara le
+  percentuali.
+- **E la percentuale dichiarata `invD()` la usa GIÀ**, in due modi, tutti e due in
+  `quoteDa()`: `q = 100 − max(ws, DISP)` restringe il monte con le percentuali vere invece
+  del ripiego, e `sh = Object.assign({}, s._q, sotto)` mette la percentuale dichiarata come
+  quota **così com'è**. Non la stima. Il che rende la riga persa più cara di quanto sembri:
+  se ne vanno i seggi *e* le quote dichiarate.
+- **La stessa forma in altre due colonne fallisce IN SILENZIO**, ed è peggio:
+
+  | colonna | `(N)` | conseguenza |
+  |---|---|---|
+  | **lista** | `(3)` | riga **scartata**, e lo dichiara |
+  | **Gov.** | `(46)` | `gov=null` → **la guardia del blocco non si esegue** |
+  | **campione** | `(552)` | `campione` assente → **il peso per numerosità decade al ripiego** |
+
+  Oggi nessuna delle due seconde forme compare. La riga che scarta è rumorosa; queste due
+  non lasciano traccia da nessuna parte.
+
+### Due buchi noti nel banco, dichiarati invece che taciuti
+
+- **`VUOTI` non è provato**: nessuna asserzione guarda il vuoto fra i gruppi, e il mutante
+  che lo riporta a 3 resta vivo. È il difetto riparato oggi, senza la prova che lo tenga.
+- **I due mutanti di `TOT_ARIA` sono equivalenti**, e va detto per iscritto perché un
+  mutante vivo si legge come una prova mancante: con il tetto del corpo a 28 è il **tetto**
+  a mordere, non il vincolo dell'aria, quindi portare `ARIA` a 0,5 o a 0 non cambia il
+  disegno. Il vincolo diventa vincolante solo se la riga cresce — un quinto blocco, sigle
+  più lunghe — e per esercitarlo servirebbe una fixture di quella forma. Finché non c'è,
+  **l'aria è garantita dal tetto e non dal vincolo**, e questa riga è l'unica cosa che lo
+  dice.
+
+#### Che cosa era entrato nella prima metà della giornata
 
 Ultimo commit spinto: **`9682011`**, CI e Pages verdi. Banco a **2311**, struttura pulita,
 spazzola pulita.
@@ -4675,6 +4782,68 @@ su cui poggiava era falso: **«Winter party», al singolare, compare come colonn
 tabella di SEGGI**. Avevo cercato la parola nel markup, visto il plurale, e concluso
 sull'insieme invece che sulla stringa esatta.
 
+### DUE IMMAGINI DELLA STESSA PAGINA CON NUMERI DIVERSI — segnalato il 27 agosto 2026, NON ancora diagnosticato
+
+**È la cosa peggiore che un modello previsionale possa fare**, e va chiusa prima di tutto il
+resto. Segnalato dall'autore: nella stessa conversazione la **card esportata** e
+l'**anteprima del link** mostrano numeri diversi.
+
+| | arabi · opposizione · Netanyahu | data |
+|---|---|---|
+| card esportata | **12 · 55 · 53** | — |
+| anteprima del link | **12 · 57 · 51** | **24 agosto** |
+
+**Quello che si sa già, e sono fatti misurati, non ipotesi:**
+
+- `dati/stato-job.json` dice oggi **27 agosto, 161 valide, coalizione 53**. Quindi la
+  **card** porta i numeri di adesso e l'**anteprima** porta quelli di prima — 51 era il
+  blocco Netanyahu fino al 26.
+- Il commit del lavoro notturno del 27 agosto (run `33082436348`, `schedule`, riuscito alle
+  14:28 UTC) ha toccato **solo `dati/archivio.json` e `dati/stato-job.json`**. Verificato sul
+  diff: **`dati/anteprima.png` NON è stata riscritta.**
+- L'ultima scrittura dell'immagine è **a mano**, in questa sessione, e viene da un archivio
+  che finiva il **24 agosto** — che è esattamente la data che l'anteprima porta.
+
+**Le due cause sono opposte e i rimedi anche, quindi la diagnosi viene prima:**
+
+1. **L'immagine sul server è vecchia.** Se il job non rigenera `anteprima.png` — o la
+   rigenera e il commit non passa, che è il difetto dell'`--autostash` appena riparato — non
+   c'è nessuna cache da incolpare: la pagina serve davvero un'immagine di tre giorni fa.
+   Da verificare: che il workflow abbia un passo che la genera, che quel passo giri, e che il
+   file finisca fra quelli messi in scena.
+2. **L'immagine è fresca e l'aggregatore serve la sua copia.** È il rovescio già annotato
+   quando è stata scritta `og:image`: *«gli aggregatori mettono in cache per indirizzo, e
+   l'indirizzo non cambia mai; se un giorno pesa, il rimedio è un indirizzo con la data»*.
+
+**Il primo controllo che le separa, e costa dieci secondi**: rigenerare l'immagine con
+`node .github/scripts/anteprima.mjs` e guardare che cosa dice. Il generatore confronta i byte
+prima di scrivere — se risponde «identica, non riscritta», il file su disco è già quello
+giusto e la causa è la 2; se la riscrive, era vecchio e la causa è la 1. E poi confrontare i
+byte del file locale con quello **servito** da Pages, che è la sola cosa che l'aggregatore
+vede.
+
+**Se è la 2, la via è un'impronta nell'indirizzo** — `og:image` con un parametro che cambia
+quando cambia l'immagine, come fa il modello Germania con `?v=20260825d`. Il costo va
+misurato prima di scriverla, e ha una forma precisa: **l'indirizzo lo scrive il job, quindi
+deve scrivere anche l'impronta, e sta dentro la regione fra i marcatori** «META DELLO STATO».
+Oggi quella regione ammette **solo `og:title`**, e `struttura.mjs` verifica che non contenga
+nient'altro: allargarla è una decisione dichiarata, non uno scarto. L'impronta dev'essere
+del CONTENUTO e non della data, o un giorno senza rilevazioni nuove cambierebbe l'indirizzo
+per niente e butterebbe la cache di tutti.
+
+**E `og:title` ha lo stesso problema**, che è la parte che rende la cosa peggiore: se
+l'anteprima è in cache, il **titolo** lo è con lei — quindi non è solo un'immagine vecchia,
+è una frase vecchia sui numeri di tre giorni fa, sotto il nome del modello.
+
+**Le domande ancora aperte**, da rispondere prima di scegliere:
+
+- quanto dura la cache di **WhatsApp, Facebook, X e Telegram**;
+- se esista un modo di forzarne l'aggiornamento che **non** sia cambiare l'indirizzo — il
+  Debugger di Facebook lo fa per il suo grafo, e va verificato se WhatsApp lo condivide;
+- se l'impronta debba stare anche su `og:url` e sul `canonical`, o solo su `og:image`: sono
+  tre indirizzi e due significati, e cambiare quello sbagliato spezzerebbe la deduplicazione
+  che gli aggregatori fanno per pagina.
+
 ### Nell'ordine, quando si riprende
 
 **Prima di tutto la voce già scritta in coda a questo file: «Winter party» è mappata, ma
@@ -4685,28 +4854,45 @@ tabella di seggi.** È la domanda a cui non avevo risposto.
 sono cambiate a schermo e nessun occhio le ha ancora viste — i numeri tornano, ma è
 layout, e in questo progetto il layout lo dice solo un browser:
 
-- **i totali dell'emiciclo sono scesi di 24 unità**, da y 180/197 a **y 204/221**. Con tre
-  blocchi il corpo resta 31; con quattro scende a 29. Da guardare nei due temi e alle due
-  larghezze;
+- **i totali dell'emiciclo sono scesi di 24 unità**, da y 180/197 a **y 204/221**, il corpo
+  è **28 in tutte le configurazioni** — costante, non più 29 o 31 a seconda di dove capitano
+  i seggi — e la sigla è scesa da 8,5 a **7,5**, che a 380 rende **5,69px** contro un
+  pavimento di 5: è il testo più piccolo della pagina, con 0,69px di margine. Da guardare nei
+  due temi e alle due larghezze, e la sigla è la cosa da guardare per prima;
+- **il vuoto fra i gruppi** è passato da tre posti a uno: con tre blocchi non cambia un
+  pixel, con quattro i salti passano da 1/2/2 a 1/1/1;
+- **i glifi**: nove marchi vengono ora dai file di Simple Icons. Guardati rasterizzati a
+  20px dentro il cerchio da 44 e affiancati agli altri, ma non ancora **in pagina**;
 - **la colonna di condivisione sopra i 1380** ha sette cerchi e il gruppo gemello in fondo
   non c'è più. Misurato: a 1440 colonna `flex` e gruppo `none`, a 1265 il contrario,
   sforamento orizzontale zero.
 
 Poi, in quest'ordine:
 
-1. **Le card social.** La proposta è chiusa e misurata — quattro formati, la regola sola
+1. **L'anteprima e la card che dicono numeri diversi**, segnalata a fine giornata e **non
+   ancora diagnosticata**: vedi la sezione qui sopra. Va per prima perché è l'unica cosa
+   che il lettore vede SBAGLIATA — due immagini della stessa pagina con numeri diversi
+   nella stessa conversazione — e perché il primo controllo che separa le due cause costa
+   dieci secondi.
+2. **Il parser e le due convenzioni**, che è la sola voce con un difetto VIVO nel codice: una riga
+   valida può finire fra le scartate, e due colonne falliscono in silenzio. La diagnosi è
+   chiusa e sta qui sopra — «Il parser e le due convenzioni» — con la misura, la semantica di
+   `(N)` letta dalla riga vera, e la ragione per cui N **non** va usato. Resta da scrivere:
+   leggere `(N)` come «sotto soglia, zero seggi», e decidere che cosa fare delle due colonne
+   mute. Va prima delle card, perché è l'unica voce della coda che perde dati.
+3. **Le card social.** La proposta è chiusa e misurata — quattro formati, la regola sola
    («si riempie lo spazio che avanza con i pezzi che esistono già»), `targaPNG()` che
    prende l'altezza come parametro, il quinto consumatore di `fraseCorta()` — e il codice
    non è scritto. Vedi «Le card e la condivisione: una targa sola, e il comando che non
    c'è», che porta le tele e gli inchiostri resi.
-2. **I 44px dei bersagli, con `scroll-margin-top` RICALCOLATO NELLO STESSO COMMIT.** Oggi i
+4. **I 44px dei bersagli, con `scroll-margin-top` RICALCOLATO NELLO STESSO COMMIT.** Oggi i
    bersagli sotto i 44 sono 76 su 99 e il pezzo grosso è l'house effect, 20px di altezza,
    il 37% del costo. L'accoppiamento non si riscopre rompendolo: alzare le sole voci
    dell'indice porta `.idx.on` da 97,4 a 113,4, cioè **oltre i 112** dello
    `scroll-margin-top` sotto i 660, e la fascia coprirebbe la sezione appena raggiunta da
    un'ancora. I due numeri sono di sotto i 660 e vanno rimisurati lì: a desktop sono 78,5 e
    92, e confrontarli è l'errore che ho già fatto il 25 agosto.
-3. **La prova di regia del 16 ottobre**, sul modello di quella appena fatta per le liste —
+5. **La prova di regia del 16 ottobre**, sul modello di quella appena fatta per le liste —
    che è il punto: **non si simula, si esegue.** Quel giorno il comando degli accordi
    sparisce, la riga di esito cambia ramo e gli annunciati mai depositati smettono di
    contare. Con l'orologio congelato al 15, al 16 e al 17 si guarda che le tre schermate
@@ -4714,10 +4900,10 @@ Poi, in quest'ordine:
    prove lo verificano; nessuno l'ha ancora **guardato**. La mappatura di Amcha è costata
    venticinque minuti e ha trovato due posti che il contratto non aveva: qui il contratto è
    `docs/aggiungere-un-apparentamento.md`, e non è mai stato percorso.
-4. **La verifica a scenari**, le sei tabelle in fondo a questo file. Ha due righe nuove
+6. **La verifica a scenari**, le sei tabelle in fondo a questo file. Ha due righe nuove
    dalla prova di regia: la lista mappata che non ha ancora seggi, e la caduta sotto soglia
    mentre un'altra entra.
-5. **L'agente del mattino.** Viene ultimo perché ogni cosa sopra è una procedura che gli si
+7. **L'agente del mattino.** Viene ultimo perché ogni cosa sopra è una procedura che gli si
    può delegare o un difetto che gli farebbe sbagliare più in fretta. Il terreno è pronto —
    `dati/da-fare.json` con il conto in testa, i tre contratti in `docs/` coi passi di
    giudizio marcati, le convalide, e il confine scritto in questo file — e adesso c'è anche
