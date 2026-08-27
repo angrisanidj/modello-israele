@@ -222,6 +222,61 @@ setTimeout(function(){
       A.ed('è x') + ' · ' + A.ed('sono x') + ' · ' + A.ed('escluse') + ' · ' + A.ed('altre'));
   }
 
+
+/* ══ UN INTERO FRA PARENTESI, E TRE COLONNE CHE LO LEGGONO ═════════════════════════
+ * Wikipedia usa DUE notazioni per una lista sotto soglia, nella stessa schermata: «(1,8%)»
+ * e «(3)». La prima era già letta, la seconda no — l'espressione dei seggi voleva un intero
+ * NUDO — e la riga finiva fra le scartate come «valore non interpretabile». Sulla fonte
+ * vera era una riga sola, Maagar Mochot del 26 agosto 2026, con cinque celle di quella
+ * forma; rilanciando il parser sulla pagina reale rientra e la proiezione si muove di un
+ * seggio: opposizione 56 → 55, ago della bilancia 4 → 5.
+ * MA LE ALTRE DUE COLONNE FALLIVANO IN SILENZIO, ed è peggio: «(46)» in Gov. dava gov=null
+ * e la guardia del blocco non si eseguiva, «(552)» nel campione faceva decadere il peso per
+ * numerosità al ripiego. La riga scartata lascia un motivo nel messaggio; queste due non
+ * lasciano traccia da nessuna parte.
+ * LA REGOLA È UNA — un intero fra parentesi si legge come l'intero — E A DECIDERE IL
+ * SIGNIFICATO È LA COLONNA: nella colonna di una lista vuol dire «sotto soglia, zero
+ * seggi», nelle altre due vuol dire soltanto quel numero. */
+{
+  const r = per('2026-08-16')[0];
+  esito(!!r, 'la riga con gli interi fra parentesi rientra: prima era scartata come illeggibile',
+    r ? r.istituto : out.scartate.filter(x => x.data === '2026-08-16').map(x => x.motivo).join(''));
+  if (r) {
+    esito(somma(r) === 120, 'e i suoi numeri nudi sommano 120', String(somma(r)));
+    /* N NON SI USA: né come seggi, né come percentuale in `sotto` — quella mappa contiene
+       percentuali, e 3 verrebbe letto come 3%, spostando ws e quindi q. */
+    esito(!r.seggi.sionismo_rel && !r.seggi.balad && !r.seggi.casa_sionista,
+      'la lista con «(3)» prende ZERO seggi: la parentesi dice sotto soglia, non tre',
+      JSON.stringify(r.seggi));
+    esito(!r.sotto || (!r.sotto.sionismo_rel && !r.sotto.balad),
+      'e N non finisce nemmeno fra le percentuali: sarebbe un errore di unita, non un dato',
+      JSON.stringify(r.sotto || {}));
+    esito(r.campione === 552,
+      'il campione fra parentesi si legge: prima era null e il peso per numerosita decadeva ' +
+      'al ripiego, in silenzio', String(r.campione));
+  }
+  /* LA GUARDIA DEL BLOCCO SI ESEGUE, ed e la meta che non lasciava traccia: con gov=null
+     la riga entrava senza il controllo che esiste per lei. Si prova al contrario — una riga
+     con Gov fra parentesi e DISCORDANTE dev essere scartata — perche una guardia che non si
+     esegue e una guardia che passa danno lo stesso risultato su una riga giusta. */
+  const g = A.parseWiki(require('../../dati/fixture.js')
+    .replace('<td>—N/a</td><td>(50)</td></tr>', '<td>—N/a</td><td>(46)</td></tr>'), ['2026']);
+  const sc = g.scartate.filter(x => x.data === '2026-08-16')[0];
+  esito(!!sc && sc.tipo === 'blocco',
+    'e con «Gov.» fra parentesi la guardia del blocco SI ESEGUE: una riga discordante viene ' +
+    'scartata invece di entrare senza controllo', sc ? sc.motivo : 'entrata lo stesso');
+  /* UNA PARENTESI SOLA È UNA CELLA ROTTA, e va distinta da un intero: «(3» o «3)» non sono
+     ne un intero ne una notazione di Wikipedia — sono una cella troncata, e leggerle come
+     3 vorrebbe dire inventare un dato dove la fonte e rotta. Senza questa riga il mutante
+     che toglie il controllo sulle parentesi appaiate resta vivo. */
+  const rotta = A.parseWiki(require('../../dati/fixture.js')
+    .replace('<td>(3)</td>', '<td>(3</td>'), ['2026']);
+  const sr = rotta.scartate.filter(x => x.data === '2026-08-16')[0];
+  esito(!!sr && sr.tipo === 'illeggibile',
+    'e una parentesi SOLA resta illeggibile: una cella troncata non e un intero',
+    sr ? sr.motivo : 'entrata lo stesso');
+}
+
   console.log('\ntestwiki: ' + ok + '/' + (ok + ko));
   if (ko) process.exit(1);
 }, 3000);

@@ -7797,6 +7797,31 @@ function rTrend(){
       '" r="'+(MOB?2.2:2.6)+'" fill="'+z.col+'" opacity=".28"/>';
   });
  });
+ /* ══ L'ALONE SOTTO LE LINEE, sesto uso di un idioma già in pagina ══════════════════
+    La linea corre sopra la nuvola dei singoli sondaggi, che è la stessa tinta al 28% sul
+    fondo. Misurato nei due temi, e il sospetto era rovesciato: in scuro la serie dell'ago
+    della bilancia è la PIÙ forte delle quattro — 9,82 su --card contro 7,47, 5,74 e 4,38 —
+    e la più debole è quella araba. Il difetto è sopra la NUVOLA, e tocca due serie su
+    quattro, una per tema:
+      chiaro  --inc  su --card 3,78 · sulla sua nuvola 2,71 · sulla peggiore 2,08
+      scuro   --arab su --card 4,38 · sulla sua nuvola 3,11 · sulla peggiore 2,36
+    Sotto il 3:1 che WCAG 1.4.11 chiede a un oggetto grafico. L'alone --card riporta il caso
+    peggiore al contrasto della linea sul fondo — 3,78 in chiaro e 4,38 in scuro — perché
+    sotto la linea non c'è più la nuvola ma la carta.
+    NON AGGIUNGE NESSUN TOKEN: --card è il fondo, ed è lo stesso idioma della linea della
+    maggioranza nell'emiciclo, dell'anello degli istogrammi, del tratto del simulatore, del
+    disco della sparkline e del filetto fra i blocchi.
+    E GLI ALONI VANNO TUTTI PRIMA DELLE LINEE, non ciascuno prima della sua: disegnati a
+    coppie, l'alone della seconda serie taglierebbe la prima dove si incrociano — e con
+    quattro serie gli incroci ci sono, misurati. Due passate, non una.
+    Largo due unità più della linea: una per parte, che a 1265 sono 1,19px di carta per lato. */
+ var ALONE=(MOB?2.4:2.8)+2;
+ SER.forEach(function(z){
+  s+='<path class="ln ln-'+z.k+'" d="'+S.map(function(x,i){
+    return (i?'L':'M')+X(x.d).toFixed(1)+' '+Y(x[z.k]).toFixed(1);}).join(' ')+
+    '" fill="none" stroke="'+C.card+'" stroke-width="'+ALONE+
+    '" stroke-linejoin="round" stroke-linecap="round"/>';
+ });
  /* le linee del modello, una per blocco con seggi */
  var fine=[];
  SER.forEach(function(z){
@@ -8538,6 +8563,22 @@ function renderInterno(){
 var WIKI_PAGE='Opinion_polling_for_the_2026_Israeli_legislative_election';
 var WIKI_URL='https://en.wikipedia.org/api/rest_v1/page/html/'+WIKI_PAGE;
 
+/* UN INTERO, NUDO O FRA PARENTESI, e la parentesi è un'informazione che si CONSEGNA a chi
+   chiama invece di essere buttata. È la regola sola per le tre colonne che leggono un
+   intero — lista, «Gov.» e campione — e dove il significato cambia lo decide la COLONNA,
+   non il formato: fra parentesi, nella colonna di una lista vuol dire «sotto soglia»,
+   nelle altre due vuol dire soltanto quel numero.
+   Prima erano tre espressioni identiche, `/^(\d+)$/`, e nessuna ammetteva la parentesi:
+   una riga scartata rumorosamente e DUE FALLIMENTI IN SILENZIO — «(46)» in Gov. dava
+   gov=null e la guardia del blocco non si eseguiva, «(552)» nel campione faceva decadere
+   il peso per numerosità al ripiego. La riga scartata lascia un motivo nel messaggio; le
+   altre due non lasciano traccia da nessuna parte, ed è il modo peggiore di sbagliare. */
+function wIntero(t){
+ var m=String(t==null?'':t).trim().match(/^(\()?\s*(\d+)\s*(\))?$/);
+ if(!m) return null;
+ if(!!m[1]!==!!m[3]) return null;            /* una parentesi sola è una cella rotta */
+ return {n:+m[2], tonda:!!m[1]};
+}
 var W_LISTA={
  'likud':'likud','together':'byachad','yesh atid':'yesh_atid','bennett 2026':'bennett26',
  'rzp':'sionismo_rel','religious zionism':'sionismo_rel','mafdal-rz':'sionismo_rel','mafdal- rz':'sionismo_rel',
@@ -8716,12 +8757,34 @@ function parseWikiTabella(tab,anno,out){
       di approssimazione e le parentesi — «(2,4%)», «<1%», «(<1%)», «~1.8%». */
    var mp=v.match(/^[\s(<>~≈≤≥]*(\d+(?:[.,]\d+)?)\s*%[\s)]*$/);
    if(mp){sotto[dest]=parseFloat(mp[1].replace(',','.'));return;}
-   var mi=v.match(/^(\d+)$/);
-   if(mi){var n=+mi[1];seggi[dest]=(seggi[dest]||0)+n;tot+=n;}
+   /* UN INTERO FRA PARENTESI, e qui la parentesi cambia il SIGNIFICATO. Wikipedia usa due
+      notazioni per una lista sotto soglia, nella stessa schermata: «(1,8%)» e «(3)». La
+      prima era già letta — l'espressione delle percentuali ammette le parentesi — la
+      seconda no, perché quella dei seggi voleva un intero NUDO: la riga finiva fra le
+      scartate come «valore non interpretabile». Misurato sulla fonte vera: una riga sola,
+      Maagar Mochot del 26 agosto 2026, con cinque celle di quella forma.
+      CHE COSA DICE «(3)», letto dalla riga vera: «21 | 16 | (3) | 9 | (1) | …», dove i
+      numeri nudi sommano già 120 e i cinque fra parentesi sono in più. Dice esattamente
+      quello che dice «(N%)»: la lista è sotto soglia e prende ZERO seggi, e N è quanti ne
+      prenderebbe se passasse. È un condizionale, non un'assegnazione.
+      E N NON SI USA, che è la parte da non sbagliare. Metterlo in «sotto» sarebbe un errore
+      di UNITÀ — quella mappa contiene percentuali, e 3 verrebbe letto come 3%, spostando ws
+      e quindi q. Convertirlo (3/120 ≈ 2,5%) sarebbe una STIMA e non un dato: i voti di una
+      lista esclusa non stanno nel monte valido. La lettura giusta è «sotto soglia, zero
+      seggi» e basta, e quella lista cade sul ripiego DISP come ogni sondaggio che non
+      dichiara le percentuali. */
+   var mi=wIntero(v);
+   if(mi){ if(mi.tonda) return;               /* sotto soglia: zero seggi, e N non si usa */
+    seggi[dest]=(seggi[dest]||0)+mi.n; tot+=mi.n; }
    else ok=false;
   });
   var gov=null;
-  if(iGov>=0&&row[iGov]){var mg=wClean(row[iGov].t).match(/^(\d+)$/); if(mg) gov=+mg[1];}
+  /* LE ALTRE DUE COLONNE FALLIVANO IN SILENZIO, ed è peggio della riga scartata: là il
+     motivo si legge nel messaggio, qui non resta traccia da nessuna parte. «(46)» in Gov.
+     dava gov=null e la guardia del blocco NON SI ESEGUIVA — cioè la riga entrava senza il
+     controllo che esiste per lei. Qui la parentesi non cambia il significato: quarantasei
+     seggi di blocco sono quarantasei. Stessa espressione, e a decidere è la colonna. */
+  if(iGov>=0&&row[iGov]){var mg=wIntero(wClean(row[iGov].t)); if(mg) gov=mg.n;}
   var gcalc=0;
   /* TERZA copia della stessa lista, trovata dal controllo strutturale il 22 agosto 2026.
      La colonna «Gov» di Wikipedia riporta i seggi del blocco di governo, che e' lo stesso
@@ -8747,7 +8810,9 @@ function parseWikiTabella(tab,anno,out){
   var npub=W_TEST[wKey(pub)]||wClean(pub);
   var o={data:data,istituto:nist,testata:npub,seggi:seggi};
   if(Object.keys(sotto).length) o.sotto=sotto;
-  if(iCamp>=0&&row[iCamp]){var mc=wClean(row[iCamp].t).replace(/[.,]/g,'').match(/^(\d+)$/); if(mc) o.campione=+mc[1];}
+  /* e «(552)» nel campione faceva decadere il peso per numerosità al ripiego, in silenzio:
+     un sondaggio da 552 intervistati pesava come uno di cui non si sa niente. */
+  if(iCamp>=0&&row[iCamp]){var mc=wIntero(wClean(row[iCamp].t).replace(/[.,]/g,'')); if(mc) o.campione=mc.n;}
   if(/direct|filber|channel 14|canale 14/i.test(nist+' '+npub)) o.casa=1;
   if(liste&&Object.keys(liste).map(function(i){return liste[i];}).indexOf('yesh_atid')>=0&&
      Object.keys(liste).map(function(i){return liste[i];}).indexOf('bennett26')>=0) o.pre=1;

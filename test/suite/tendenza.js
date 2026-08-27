@@ -372,7 +372,10 @@ esito(D.getElementById('k-trend').querySelectorAll('.pt').length > 400,
   const A4 = global.A;
   A4.render();
   const h = D.getElementById('k-trend').innerHTML;
-  const disegnate = [...h.matchAll(new RegExp('class="ln ln-(\\w)" d=', 'g'))].map(m => m[1]);
+  /* le serie disegnate sono la META dei tracciati: da quando ogni linea porta il suo alone
+     ce ne sono due per serie, e contarli tutti direbbe otto dove sono quattro. */
+  const tutti = [...h.matchAll(new RegExp('class="ln ln-(\\w)" d=', 'g'))].map(m => m[1]);
+  const disegnate = tutti.slice(tutti.length / 2);
   esito(disegnate.length === 4,
     'premessa: oggi il grafico disegna quattro serie, quindi la prova esercita il caso',
     disegnate.join(','));
@@ -434,6 +437,40 @@ esito(D.getElementById('k-trend').querySelectorAll('.pt').length > 400,
     'nessun vertice di nessuna serie cade entro un seggio dal fondo: il pavimento sta un ' +
     'gradino sotto il minimo, o la serie piu bassa non si distingue dall asse',
     giu + ' vertici su ' + tot);
+}
+
+
+/* ══ L'ALONE SOTTO LE LINEE ════════════════════════════════════════════════════════
+ * La linea corre sopra la nuvola, che è la stessa tinta al 28% sul fondo. Misurato nei due
+ * temi, e il sospetto era rovesciato: in scuro la serie dell'ago è la PIÙ forte delle
+ * quattro, e la più debole è quella araba. Il difetto è sopra la NUVOLA, e tocca due serie
+ * su quattro, una per tema — --inc in chiaro a 2,08 sulla nuvola peggiore, --arab in scuro
+ * a 2,36, sotto il 3:1 di WCAG 1.4.11 per un oggetto grafico.
+ * E GLI ALONI VANNO TUTTI PRIMA DELLE LINEE: disegnati a coppie, l'alone della seconda
+ * serie taglierebbe la prima dove si incrociano, e con quattro serie gli incroci ci sono. */
+{
+  const A5 = global.A;
+  A5.render();
+  const hh = D.getElementById('k-trend').innerHTML;
+  const tratti = [...hh.matchAll(new RegExp(
+    '<path class="ln ln-(\\w)"[^>]*stroke="([^"]+)" stroke-width="([\\d.]+)"', 'g'))]
+    .map(m => ({k: m[1], col: m[2].toUpperCase(), w: +m[3]}));
+  const serie = [...hh.matchAll(new RegExp('class="ln ln-(\\w)" d=', 'g'))].map(m => m[1]).length / 2;
+  esito(tratti.length === serie * 2,
+    'ogni serie porta due tracciati: l alone e la linea',
+    tratti.length + ' tracciati per ' + serie + ' serie');
+  const meta = tratti.length / 2;
+  const aloni = tratti.slice(0, meta), linee = tratti.slice(meta);
+  esito(aloni.every(t => t.col === '#FFFFFF' || t.col === '#0F1727'),
+    'gli aloni sono del colore del PANNELLO, non un token nuovo: sotto la linea non c e piu ' +
+    'la nuvola ma la carta', aloni.map(t => t.col).join(' '));
+  esito(aloni.every((t, i) => t.w > linee[i].w),
+    'e sono piu larghi della linea che coprono',
+    aloni.map((t, i) => t.w + '>' + linee[i].w).join(' '));
+  esito(aloni.map(t => t.k).join(',') === linee.map(t => t.k).join(','),
+    'TUTTI gli aloni stanno prima di TUTTE le linee: a coppie, l alone della seconda serie ' +
+    'taglierebbe la prima dove si incrociano',
+    tratti.map(t => t.k + (t.col === '#FFFFFF' || t.col === '#0F1727' ? '·' : '')).join(' '));
 }
 
 console.log('\ntendenza: ' + ok + '/' + (ok + ko));

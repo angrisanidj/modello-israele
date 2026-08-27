@@ -19,6 +19,9 @@ module.exports=`
 <tr><td>18–19 Aug</td><td>Kantar</td><td>Kan 11<sup>[21]</sup></td><td>558</td>
  <td>23</td><td>14</td><td>5</td><td>9</td><td><i>(1.4%)</i></td><td>7</td><td>8</td><td>9</td><td>5</td>
  <td>6</td><td><i>(2.1%)</i></td><td>10</td><td><b>24</b></td><td><i>(2.9%)</i></td><td><i>(1.6%)</i></td><td>—N/a</td><td>52</td></tr>
+<tr><td>16 Aug</td><td>Maagar Mochot</td><td>Israel Hayom</td><td>(552)</td>
+ <td>26</td><td>16</td><td>(3)</td><td>9</td><td>(1)</td><td>7</td><td>8</td><td>9</td><td>5</td>
+ <td>6</td><td>(2)</td><td>10</td><td><b>24</b></td><td>(2)</td><td>(1)</td><td>—N/a</td><td>(50)</td></tr>
 <tr><td>17 Aug</td><td colspan="19">Likud conducts a primary to select candidates for the election<sup>[23]</sup></td></tr>
 <tr><td colspan="20">26 Apr — Bennett 2026 and Yesh Atid form the Together alliance under Bennett's leadership</td></tr>
 <tr><td rowspan="2">12–13 Aug</td><td rowspan="2">Lazar</td><td rowspan="2">Maariv<sup>[27]</sup></td><td rowspan="2">506</td>
