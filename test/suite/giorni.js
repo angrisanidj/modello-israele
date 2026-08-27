@@ -262,7 +262,10 @@ setTimeout(function(){
   /* e QUATTORDICI e non quindici: unificando testoCondivisione — che il banco ha
      dichiarato duplicata, invariante 3 — è sparita una delle due chiamate. L'inventario
      segue la cosa contata in tutti e due i versi. */
-  esito(usi.length === 14,
+  /* E QUINDICI dal 27 agosto 2026: la testata ha imparato a dire quando il lavoro notturno
+     non GIRA, che è un fatto diverso dal non aver CONCLUSO, e quel ritardo è un conto di
+     giorni di calendario come gli altri. L'inventario cresce quando cresce la cosa contata. */
+  esito(usi.length === 15,
     'ggCal è usata nei punti che contano giorni di calendario, e in nessun altro',
     usi.length + ' occorrenze, definizione compresa: ' + usi.join(' · '));
   esito(/function ggOggi\(\)\{return Math\.max\(0,ggCal\(new Date\(\),VOTO\)\);\}/.test(app),

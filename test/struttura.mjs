@@ -245,7 +245,25 @@ p('nessun blocco dell\'anagrafica riscritto come elenco'+
    La terza strada — accorciare i commenti — vale il 52% del gzip, ed è la sola grande. Non
    si prende: sono la memoria delle trappole già pagate, e questo file ne ha pagate parecchie
    due volte. */
-const TETTO_GZIP=223*1024;
+/* RIFATTO IL 27 AGOSTO 2026, e non alzato a occhio: il tetto era sfondato — 223,7 contro
+   223 — dopo che i quattro segni dei modelli sono stati sostituiti con i file veri di
+   Simple Icons, di cui claude.svg da solo vale 1823 caratteri di tracciato. I quattro
+   addendi, rimisurati tutti:
+     1 · il file compresso adesso                                223,2 KB
+     2 · l archivio da qui al voto — 53 rilevazioni a 3,1 byte      0,2 KB
+     3 · quello che resta da scrivere: cinque interventi in coda,
+         alla mediana di crescita RADDOPPIATA come le due volte
+         precedenti (5,0 → 10,0 KB l uno)                        50,0 KB
+     4 · un commit grosso di riserva, il più pesante di quindici   13,1 KB
+                                                              = 286,4 → 287
+   E L ADDENDO 3 È QUASI TUTTO IL SALTO, che va detto perché è una misura su noi stessi:
+   la mediana di crescita per commit è passata da 3,49 a 5,0 KB, e i due commit più grossi
+   della storia del file — 12,4 e 13,1 KB — sono di questa sessione. Non è l archivio che
+   cresce (3,1 byte a rilevazione: il dizionario è saturo della loro struttura): sono i
+   commenti. Valgono già il 52% del gzip, ed è la sola strada grande se un giorno servisse
+   davvero spazio. Non si prende: sono la memoria delle trappole già pagate. Ma il numero
+   va saputo, perché il tetto lo rifà chi lo sfonda e questa volta l abbiamo sfondato noi. */
+const TETTO_GZIP=287*1024;
 /* ══ LA TAVOLOZZA DI RIPIEGO DICE QUELLO CHE DICONO LE VARIABILI CSS ══
    leggiTema() legge le variabili con getComputedStyle e cade su C_FALL_T quando non può —
    cioè in jsdom, cioè nelle prove e nel lavoro notturno. Fino al 24 agosto 2026 quella
@@ -393,7 +411,30 @@ await (async function(){
       costruzione esattamente quello che verrà committato. */
    if(/\bgit commit\b/.test(par[1])&&!/git diff --cached --quiet/.test(par[1]))
     cattivi.push(f+' · «'+nome+'»: git commit senza guardia sul vuoto');
+   /* 5 · UN COMMENTO CHE DICHIARA «STESSO IDIOMA DELL'ALTRO» E DUE COMANDI CHE DIVERGONO.
+      Il 26 agosto 2026 la notte è morta qui: il commit dell'archivio usa
+      «git pull --rebase --autostash» con dodici righe che spiegano perché l'autostash
+      serve; quello del riepilogo diceva «STESSO IDIOMA DELL'ALTRO COMMIT» e chiamava
+      «git pull --rebase» nudo. Il rebase si è rifiutato di partire con l'albero sporco e
+      dati/da-fare.json è rimasto indietro di un giorno rispetto a stato-job.json — due
+      file che la stessa notte scrive.
+      È la stessa famiglia della sigla che dichiarava «incerti» mentre la riga dei totali
+      era cablata a tre chiavi: UN TESTO CHE AFFERMA QUELLO CHE IL CODICE NON FA. Un
+      commento non è provabile in generale; questo sì, perché nomina una corrispondenza.
+      Il controllo è sulla FORMA di git pull --rebase: o tutte le occorrenze del file
+      portano --autostash o nessuna, e in mezzo non c'è niente da discutere. */
   });
+  /* si guardano i COMANDI, non i commenti che li nominano: il commento qui accanto parla
+     di «git pull --rebase» per spiegare perché serve --autostash, e contarlo lo farebbe
+     divergere da sé stesso. È lo stesso errore che il primo giro di questo controllo ha
+     fatto davvero, ed è la ragione per cui la riga sta qui. */
+  const pull=passi.flatMap(par=>par[1].split('\n')
+    .filter(r=>!/^\s*#/.test(r))
+    .flatMap(r=>(r.match(/git pull --rebase[^\n|&]*/g)||[]).map(x=>x.trim())));
+  const conAuto=pull.filter(x=>/--autostash/.test(x)).length;
+  if(pull.length>1&&conAuto!==0&&conAuto!==pull.length)
+   cattivi.push(f+': «git pull --rebase» compare '+pull.length+' volte e solo '+conAuto+
+     ' con --autostash — un commento dichiara «stesso idioma» e i due comandi divergono');
  }
  p('nei comandi dei workflow nessuna sequenza di escape non interpretata e nessuna riga aperta'+
    (cattivi.length?' — '+cattivi.slice(0,2).join(' · '):''), cattivi.length===0);

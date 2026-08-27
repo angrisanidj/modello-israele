@@ -1044,6 +1044,44 @@ function pagina(opz){
   esito(cCol.every((a, i) => a.getAttribute('href') ===
         box.querySelectorAll('a.soci')[i].getAttribute('href')),
     'e i sei indirizzi sono gli stessi della riga in fondo, nello stesso ordine');
+  /* ══ L'INVENTARIO DEI GLIFI: chi è preso e chi è nostro ══════════════════════════
+   * Nove marchi vengono dai file di Simple Icons, presi come sono — CC0 sui file, marchi
+   * dei proprietari, uso nominativo. Tre segni sono nostri, e sono dichiarati qui con la
+   * ragione, perché la differenza non si vede guardando un tracciato.
+   * È l'inventario di opacita.js applicato ai segni: non un permesso, un elenco con un
+   * perché — e cade se ne compare uno non dichiarato, cioè se qualcuno torna a
+   * ridisegnare a mano un marchio. Il metodo del ridisegno a occhio è stato provato tre
+   * volte il 27 agosto 2026 e ha fallito tre volte: il gancio somigliava a una «d»
+   * minuscola, poi a un uncino in un cerchio; il nodo a un ingranaggio. */
+  (function(){
+    const NOSTRI = {
+      chatgpt: 'Simple Icons NON HA l icona di OpenAI — verificato sull albero del ' +
+               'repository, 3457 icone e nessuna «openai» ne «chatgpt»',
+      copialink: 'e un AZIONE e non un marchio: sta a tratto, come chiede la grammatica ' +
+                 'della pagina fra una cosa e un comando',
+      copiaprompt: 'stessa ragione della graffetta: copiare e un azione, e nessun marchio ' +
+                   'la rappresenta',
+      fatto: 'e il riscontro di un comando riuscito, non il segno di un servizio',
+      ko: 'e il riscontro di un comando fallito, e vale la stessa ragione della spunta'
+    };
+    const blocco = HTML.slice(HTML.indexOf('var GLIFO={'), HTML.indexOf('\n};', HTML.indexOf('var GLIFO={')));
+    const glifi = {};
+    for (const m of blocco.matchAll(/^\s*([a-z]+):'(.+)',?$/gm)) glifi[m[1]] = m[2];
+    esito(Object.keys(glifi).length >= 12,
+      'i glifi si leggono dall anagrafica', String(Object.keys(glifi).length));
+    const presi = Object.keys(glifi).filter(k => !NOSTRI[k]);
+    const strani = presi.filter(k => !/^<path /.test(glifi[k]) || /stroke=/.test(glifi[k]));
+    esito(strani.length === 0,
+      'ogni marchio PRESO e un <path> pieno solo, che e la forma dei file di Simple Icons: ' +
+      'un segno a tratto o composto qui dentro vuol dire che qualcuno lo ha ridisegnato',
+      strani.join(', '));
+    esito(Object.keys(NOSTRI).every(k => glifi[k] && NOSTRI[k].length > 20),
+      'e i segni NOSTRI sono dichiarati uno per uno con la loro ragione',
+      Object.keys(NOSTRI).join(', '));
+    esito(/Simple Icons NON HA l/.test(HTML) && /openaigym/.test(HTML),
+      'e il codice dichiara PERCHE chatgpt e rimasto nostro, con la prova che e stata ' +
+      'cercata: l assenza e del repository, non della ricerca');
+  })();
   esito(colonna.querySelectorAll('svg').length === A2.RETI.length + 1,
     'e ciascuno dei sette porta il suo segno',
     String(colonna.querySelectorAll('svg').length));

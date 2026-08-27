@@ -213,6 +213,38 @@ commit* spiegando perché nel messaggio.
 
 ## Trappole già incontrate, da non ripetere
 
+- **UN PREDEFINITO CHE DIVENTA UN'IPOTESI SPACCA UNA DOMANDA IN DUE, E LA FUNZIONE CHE
+  RISPONDEVA A TUTTE E DUE COMINCIA A TACERE NEL CASO PEGGIORE.**
+  Scritto il 27 agosto 2026, il giorno in cui `PAR.inbilico` è nata accesa. È la trappola
+  più difficile da vedere di tutte quelle qui elencate, perché **non produce un verde
+  sbagliato: produce un silenzio**, e un silenzio somiglia a «non c'è niente da dire».
+
+  `statoLeve()` risponde a **«che cosa ha cambiato il lettore»**: confronta `PAR` con
+  `PAR_DEF` e serve a dire a un servizio terzo che i numeri ricevuti non sono quelli che
+  troverebbe all'indirizzo. È la domanda giusta **finché il predefinito è il conteggio
+  della fonte** — e per mesi lo è stata, perché tutte le leve nascevano spente.
+  `ipotesiNeiNumeri()` risponde a **«che cosa c'è dentro questi numeri»**, e la risposta
+  non dipende da chi ce l'ha messo.
+
+  Finché nessun predefinito era un'ipotesi le due domande avevano la stessa risposta, ed è
+  precisamente la condizione in cui una sola funzione sembra bastare. Dal momento in cui un
+  predefinito è diventato un'ipotesi, `statoLeve()` **tace proprio quando l'ipotesi è
+  applicata** — perché nessuno ha cambiato niente — cioè tace nel solo caso in cui bisogna
+  parlare. Una funzione sola per le due domande direbbe la cosa giusta per la ragione
+  sbagliata, e continuerebbe a farlo senza che nessuna prova cada.
+
+  **LA REGOLA CHE VALE OLTRE QUESTO CASO: il giorno in cui un altro predefinito diventa
+  un'ipotesi, `ipotesiNeiNumeri()` deve saperlo.** Non `statoLeve()`, che continuerà a
+  rispondere correttamente alla sua domanda. Chi accende una leva per difetto deve
+  chiedersi se quello che ne esce sia un fatto o un'ipotesi, e se è un'ipotesi aggiungerla
+  **là dentro** — è la funzione che alimenta tutto ciò che esce dalla pagina: il testo di
+  condivisione, il prompt che va a un servizio terzo, la targa dell'anteprima. Vedi «Quello
+  che esce dalla pagina deve portare l'ipotesi con sé».
+
+  E il corollario che rende la regola verificabile: `ipotesiNeiNumeri()` parla **solo
+  quando l'ipotesi sposta davvero un numero**. Dichiararne una che non cambia niente
+  insegna a saltare la riga proprio prima del giorno in cui conta.
+
 - **IL MISURATORE DI MUTANTI SBAGLIA IN DUE MODI, E TUTTI E DUE PRODUCONO UN VERDE.**
   Scritto il 26 agosto 2026 dopo esserci cascato tre volte in una sessione sola. È la
   trappola peggiore della famiglia, perché **uno strumento che dichiara morti i mutanti è
@@ -3096,6 +3128,35 @@ non ne afferma: lo leggono chi apre il file da disco, chi arriva prima della pri
 chiunque lo trovi con il job fermo, e a nessuno dei tre può essere diventato falso. Lo
 stesso valore sta dentro i marcatori come **ripiego** di `og:title`, e la notte lo sostituisce.
 
+### `og:title` HA UN CARATTERE DI MARGINE, e la risposta è quasi certamente no
+
+Misurato il 27 agosto 2026, cercando dove far entrare la dichiarazione dell'ipotesi:
+
+| | |
+|---|---|
+| il tetto | **60 caratteri**, coda « · Knesset 2026» compresa (15) |
+| il titolo più lungo, su tutte le celle e tutti i valori di `[X]` | **58** |
+| **margine** | **1 carattere** |
+
+**Qualunque cosa si voglia aggiungere lì va misurata PRIMA, e la risposta è quasi certamente
+no.** Non c'è spazio per una clausola, per un inciso, per una sigla: nemmeno per «·».
+
+E il tetto non è arbitrario, che è la ragione per cui non si alza. È il `<title>`: finisce
+nella linguetta del browser, dove oltre i sessanta caratteri viene troncato con i puntini, e
+nella scheda di condivisione, dove la parte tagliata è la coda — cioè « · Knesset 2026»,
+l'unica cosa che dice di che paese si parla. Un titolo che perde quella coda diventa
+«Maggioranza solo con i partiti arabi», che è una frase su nessun luogo.
+
+**Il numero lo tiene già una prova**: `test/suite/titolo.js` verifica il tetto su ogni cella
+e ogni valore di `[X]` fino a tre cifre, e in più asserisce che **il tetto morde davvero** —
+che almeno un titolo ci arrivi vicino. Senza quella seconda asserzione la prima passerebbe
+anche il giorno in cui tutti i testi si accorciassero, e non coglierebbe un testo allungato
+domani.
+
+Quando è servito dichiarare un'ipotesi, quel margine ha deciso da solo dove NON poteva
+andare: la dichiarazione è finita nel testo di condivisione e nella targa dell'anteprima.
+Vedi «Quello che esce dalla pagina deve portare l'ipotesi con sé».
+
 ### La regola del job: riscritta, non aggirata
 
 Fino al 23 agosto 2026 il lavoro notturno **toccava solo `dati/`**, e quella regola era
@@ -4495,7 +4556,30 @@ Due conseguenze pratiche, e sono quelle da ricordare:
 
 ### Lo stato al 27 agosto 2026
 
-Banco a **2311**, struttura pulita, spazzola pulita. È entrato il giro dei **quattro
+Ultimo commit spinto: **`9682011`**, CI e Pages verdi. Banco a **2311**, struttura pulita,
+spazzola pulita.
+
+**LA LEVA C'È MA IL COMANDO NON SI VEDE, ED È GIUSTO COSÌ.** Misurato il 27 agosto:
+`IN_BILICO` ha una riga sola, `amcha → coalizione`, e «Popolo d'Israele» **non compare
+nemmeno fra le quote** — zero seggi in tutte e 175 le rilevazioni. La leva è accesa e muove
+zero, quindi il pulsante non è reso e la riga di esito tace: la pagina di oggi è identica a
+prima. Il pulsante compare da sé dal primo sondaggio che la porta sopra soglia — misurato,
+bastano **due seggi per rilevazione** perché ne prenda cinque nella proiezione.
+
+E una cosa che serve sapere prima di aspettarsi che la leva conti: **la lista dell'ago della
+bilancia più vicina alla soglia NON è quella che la leva nomina.** «Casa Sionista» sta a
+**2,809** e le mancano 0,441 punti; Amcha è assente. Se Casa Sionista entrasse domani, il
+quarto blocco comparirebbe in pagina — arco, tendenza, riquadro dell'evento — ma **la leva
+non si muoverebbe**, perché nessuna riga di `IN_BILICO` la nomina. Aggiungercela è una
+decisione sul blocco di una lista, cioè quella che il confine dell'agente riserva a una
+persona: si fa se e quando la fonte dice che quella lista starebbe con un campo.
+
+**Per esercitare la leva senza aspettare un sondaggio** si usa il modulo dell'archivio, che
+esiste per questo: `Esporta JSON` → si danno dei seggi ad Amcha in un po' di rilevazioni →
+`Importa JSON`. Dalla console non si può: tutto sta dentro una funzione anonima e `PAR` non
+è globale.
+
+È entrato il giro dei **quattro
 blocchi** — vedi la sezione omonima: l'emiciclo che ne contava tre su quattro, i nove
 consumatori che perdevano il quarto, la leva `IN_BILICO` che riclassifica senza ricalcolare,
 e `test/suite/blocchi.js`, che è la prova che legava i totali al 120 e che non esisteva.
@@ -4596,6 +4680,17 @@ sull'insieme invece che sulla stringa esatta.
 **Prima di tutto la voce già scritta in coda a questo file: «Winter party» è mappata, ma
 va guardato se la fonte usa anche `'winter'` nudo come intestazione di colonna di una
 tabella di seggi.** È la domanda a cui non avevo risposto.
+
+**E una revisione visiva in sospeso, dal 27 agosto 2026, che è dell'autore.** Due cose
+sono cambiate a schermo e nessun occhio le ha ancora viste — i numeri tornano, ma è
+layout, e in questo progetto il layout lo dice solo un browser:
+
+- **i totali dell'emiciclo sono scesi di 24 unità**, da y 180/197 a **y 204/221**. Con tre
+  blocchi il corpo resta 31; con quattro scende a 29. Da guardare nei due temi e alle due
+  larghezze;
+- **la colonna di condivisione sopra i 1380** ha sette cerchi e il gruppo gemello in fondo
+  non c'è più. Misurato: a 1440 colonna `flex` e gruppo `none`, a 1265 il contrario,
+  sforamento orizzontale zero.
 
 Poi, in quest'ordine:
 

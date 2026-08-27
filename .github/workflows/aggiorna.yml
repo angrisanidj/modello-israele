@@ -163,12 +163,25 @@ jobs:
           # verranno committati. Qui l'insieme è uno solo e le due forme coinciderebbero,
           # ma è precisamente la condizione in cui la forma sbagliata non si vede — nel
           # passo di sopra i due insiemi divergevano e il job moriva.
+          #
+          # E «STESSO IDIOMA» ERA UNA DICHIARAZIONE CHE IL CODICE NON MANTENEVA. Il commit
+          # di sopra usa «git pull --rebase --autostash» con dodici righe che spiegano
+          # perché l'autostash serve; questo diceva di fare la stessa cosa e chiamava
+          # «git pull --rebase» nudo. Il 26 agosto 2026 la notte è andata così: il parser
+          # ha trovato due cose che bloccavano, il job si è fermato — giustamente — la
+          # issue è stata aperta, e poi QUESTO passo è morto su «cannot pull with rebase:
+          # You have unstaged changes». Risultato: dati/da-fare.json è rimasto al 25 agosto
+          # mentre stato-job.json diceva 26, cioè due file che la stessa notte scrive,
+          # divergenti di un giorno.
+          # È la stessa famiglia della sigla che dichiarava «incerti» mentre la riga era
+          # cablata a tre chiavi: un testo che afferma quello che il codice non fa. Adesso
+          # test/struttura.mjs confronta i due comandi e cade se divergono.
           git config user.name "aggiornamento-notturno"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add dati/da-fare.json
           if ! git diff --cached --quiet; then
             git commit -m "Aggiornare il riepilogo delle cose da fare (lavoro notturno)"
-            git pull --rebase origin main && git push origin main || { git rebase --abort || true; echo "rebase non pulito: il file resta locale"; }
+            git pull --rebase --autostash origin main && git push origin main || { git rebase --abort || true; echo "rebase non pulito: il file resta locale"; }
           fi
           TITOLO="Cose da fare — riepilogo del lavoro notturno"
           NUM=$(gh issue list --state open --search "\"$TITOLO\" in:title" --json number,title                   --jq ".[] | select(.title==\"$TITOLO\") | .number" | head -1)

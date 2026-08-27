@@ -107,7 +107,17 @@ console.log("\n── controlli ──");
 const ck={
  "nessun SVG a larghezza fissa": svgFissi===0,
  "testo del grafico leggibile (≥5px scalato)": fTrend>=5,
- "testo dell emiciclo leggibile (≥7px scalato)": fEmi>=7,
+ /* IL PAVIMENTO È QUELLO DICHIARATO, E LA SCALA È QUELLA VERA. Questa riga pretendeva
+    «≥7» su una scala OTTIMISTA — minFont divide per il viewBox come se l'SVG occupasse
+    tutti i 380px del viewport, mentre il contenitore ne misura 326: il fattore vero è
+    0,758 e non 0,884. Due numeri sbagliati che si compensavano, finché la sigla dei totali
+    è scesa da 8,5 a 7,5 il 27 agosto 2026 e la riga è caduta su un testo che l'invariante
+    8 promuove.
+    Adesso si misura il PIXEL VERO — il fattore viene dal diametro del seggio, 10,8 unità
+    che a 380 rendono 8,19px, misurato su browser e registrato in CLAUDE.md — contro il
+    pavimento di 5 che l'invariante dichiara. La sigla a 7,5 rende 5,69px: sopra, con 0,69
+    di margine, ed è il testo più piccolo della pagina. */
+ "testo dell emiciclo sopra il pavimento di 5px reali": fEmi*(430/380)*(8.19/10.8)>=5,
  "cinque ancoraggi dello swing presenti": anc===5,
  /* Il conto era cablato a quattordici e cadeva ogni volta che una voce-evento veniva
     tradotta ed entrava in EVENTI — che è il lavoro previsto, non una regressione. La

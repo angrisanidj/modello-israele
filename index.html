@@ -71,7 +71,10 @@
 <meta property="og:image" content="https://angrisanidj.github.io/modello-israele/dati/anteprima.png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
-<meta property="og:image:alt" content="L'emiciclo della Knesset con i seggi proiettati per i tre blocchi e la linea della maggioranza a 61.">
+<!-- «i blocchi» e non «i tre blocchi»: i blocchi sono quattro e quanti ne hanno seggi lo
+     decide la proiezione, non questo testo. Un conto scritto a mano in una meta è peggio che
+     altrove, perché questa stringa ESCE dalla pagina e la legge chi non vede l'immagine. -->
+<meta property="og:image:alt" content="L'emiciclo della Knesset con i seggi proiettati per blocco e la linea della maggioranza a 61.">
 
 
 <!-- ══ META DELLO STATO · INIZIO — LE SCRIVE IL LAVORO NOTTURNO, NON UNA PERSONA ══
@@ -1866,10 +1869,10 @@
    <span class="emist" id="k-emist" aria-live="polite"></span>
   </div>
   <p class="fn">I posti vuoti fra un gruppo e l'altro segnano il confine fra i blocchi: le file restano
-   allineate e nessuna linea passa sopra i seggi. I tre numeri al centro sono i totali dei blocchi,
-   nello stesso ordine in cui compaiono nel grafico. <b>Facendo clic su una voce della legenda</b>
+   allineate e nessuna linea passa sopra i seggi. I numeri al centro sono i totali dei blocchi che
+   hanno seggi, nello stesso ordine in cui compaiono nel grafico. <b>Facendo clic su una voce della legenda</b>
    restano in evidenza soltanto i seggi di quel gruppo e gli altri si attenuano; si sceglie un
-   gruppo per volta. I tre totali restano tutti e tre — sono la lettura dell'aula intera, senza la
+   gruppo per volta. I totali restano tutti — sono la lettura dell'aula intera, senza la
    quale la soglia dei 61 non vorrebbe dire niente — e in evidenza resta quello del blocco a cui
    appartiene la voce scelta. Si torna alla vista piena con un nuovo clic sulla stessa voce, con il
    tasto Esc o con «Mostra tutti i seggi».</p>
@@ -2004,7 +2007,7 @@
         width="100%" height="900" style="border:0"
         loading="lazy" title="Modello previsionale Knesset 2026"
         sandbox="allow-scripts allow-popups"&gt;&lt;/iframe&gt;</code></pre>
- <p class="fn"><b>Una figura sola:</b> l&rsquo;emiciclo con i tre blocchi, la riga che dice come sta andando, e la data. È la scelta giusta per un riquadro dentro un articolo.</p>
+ <p class="fn"><b>Una figura sola:</b> l&rsquo;emiciclo coi blocchi, la riga che dice come sta andando, e la data. È la scelta giusta per un riquadro dentro un articolo.</p>
  <pre class="cod" data-copia="il codice della figura sola"><code>&lt;iframe src="https://angrisanidj.github.io/modello-israele/?embed=sintesi"
         width="100%" height="520" style="border:0"
         loading="lazy" title="Modello previsionale Knesset 2026"
@@ -2279,8 +2282,21 @@ var EVENTI=[
      verifica è dello stesso giorno.
    · GAP_SONDAGGI — nella finestra dei 60 giorni escono in media più di due rilevazioni a
      settimana, quindi sette giorni di silenzio con il job che gira sono un fatto, non un
-     guasto: è la distinzione che il lettore non poteva fare. */
-var GAP_VERIFICA=2, GAP_SONDAGGI=7;
+     guasto: è la distinzione che il lettore non poteva fare.
+   · GAP_GIRO — e questa è la terza, aggiunta il 27 agosto 2026 per un caso che le altre
+     due non coprivano. GAP_VERIFICA misura l'ultima verifica RIUSCITA, e a fermarla
+     bastano due cose diversissime: il job che gira e viene bloccato da una guardia — che
+     è il job che funziona — oppure il job che non gira affatto. Le due si vedono uguali
+     da qui, e la seconda non la dice nessuno.
+     Il 27 agosto il cron delle 03:30 UTC non è partito: nessuna esecuzione, e la testata
+     ha continuato a dire «verificato il 26 agosto» senza segnalare niente, perché un
+     giorno di scarto sta sotto GAP_VERIFICA. Sarebbe rimasta muta fino al 28.
+     La distinzione esiste in un file che il job scrive SEMPRE, riuscito o no:
+     dati/da-fare.json porta «generato» e l'esito. Quello è il battito, e finora la pagina
+     non lo leggeva. Due giorni come GAP_VERIFICA, per la stessa ragione: il job gira ogni
+     notte, e due notti senza che sia PARTITO sono un guasto della macchina, non del
+     modello. */
+var GAP_VERIFICA=2, GAP_SONDAGGI=7, GAP_GIRO=2;
 var ESCL={}, AFF=0;
 var EMIMODE='blocchi', EMIFILT=null, TRENDPTS=[], TRENDGEO=null, FILTRI={ist:'',per:'0',txt:''};
 /* I VALORI PREDEFINITI STANNO SCRITTI QUI E IN NESSUN ALTRO POSTO. Erano due copie —
@@ -3936,10 +3952,23 @@ function rTesta(){
  var v=JOB&&JOB.data;
  var ritardo=v?ggCal(new Date(v+'T00:00:00'),new Date()):null;
  var eu=$('k-upd');
- eu.textContent=v
-  ? 'verificato il '+dl(v)+(ritardo>=GAP_VERIFICA?' · '+f(ritardo)+' '+acc(ritardo,'giorno','giorni')+' fa':'')
-  : 'ultima verifica non nota';
- eu.className=(v&&ritardo>=GAP_VERIFICA)||!v?'vecchio':'';
+ /* IL CASO CHE NESSUNO DICEVA. Un ritardo nella verifica ha due cause che da qui si
+    vedono uguali: il job che gira e viene FERMATO da una guardia — cioè il job che fa il
+    suo mestiere, e allora il rimedio è guardare la issue — oppure il job che NON GIRA, e
+    allora il rimedio è tutt'altro. Il battito le distingue: se anche lui è vecchio, la
+    macchina è ferma; se è fresco, la macchina gira e qualcosa la blocca.
+    La frase è più corta di quella che non si scrive: al posto di «verificato il … · N
+    giorni fa» dice «non gira dal …», perché quando la macchina è ferma la data della
+    verifica non è più la notizia. */
+ var g=GIRO&&GIRO.generato;
+ var fermo=g?ggCal(new Date(g+'T00:00:00'),new Date()):null;
+ var nonGira=g&&fermo>=GAP_GIRO;
+ eu.textContent=nonGira
+  ? 'il lavoro notturno non gira dal '+dl(g)
+  : (v
+     ? 'verificato il '+dl(v)+(ritardo>=GAP_VERIFICA?' · '+f(ritardo)+' '+acc(ritardo,'giorno','giorni')+' fa':'')
+     : 'ultima verifica non nota');
+ eu.className=nonGira||(v&&ritardo>=GAP_VERIFICA)||!v?'vecchio':'';
  var quiete=v?ggCal(new Date(u+'T00:00:00'),new Date(v+'T00:00:00')):null;
  $('k-fresh').innerHTML=(str?'sondaggi al <b>'+dc(u)+'</b>':'ultimo sondaggio <b>'+dl(u)+'</b>')+
   (quiete!==null&&quiete>=GAP_SONDAGGI
@@ -4071,7 +4100,7 @@ function rProb(){
 }
 /* ══════════ LA FORMA COMPATTA DELL'EMBED ══════════
    Chi incorpora in un articolo vuole UNA FIGURA, non undici sezioni. La forma compatta
-   porta l'emiciclo — che dentro il suo viewBox ha già i tre totali di blocco, la linea
+   porta l'emiciclo — che dentro il suo viewBox ha già i totali di blocco, la linea
    della maggioranza e la legenda: 175,9px a 380, il pezzo più denso della pagina — la riga
    di sintesi, le quattro probabilità in forma corta e la firma con le due date.
 
@@ -4147,7 +4176,7 @@ function potaSintesi(){
    lo stesso errore del punto 7 dell'esportazione, dove le targhe erano calcolate su un
    viewBox vecchio di due giorni. Qui si MISURA: si compone la forma A, si guarda se ci sta
    nell'altezza che l'ospite ha dato al riquadro, e se non ci sta si tolgono le probabilità,
-   che è il pezzo più sacrificabile — l'emiciclo porta già i tre totali, la riga dice lo
+   che è il pezzo più sacrificabile — l'emiciclo porta già i totali di blocco, la riga dice lo
    stato, la firma è obbligatoria.
    `window.innerHeight` dentro un iframe È l'altezza del riquadro: è un fatto, non una
    stima, ed è la stessa grammatica del ramo sulla capacità invece che sull'identità.
@@ -4210,7 +4239,7 @@ function rSintRiga(){
    L'emiciclo è largo e piatto (386,7 × 217, rapporto 1,78), quindi nei formati larghi la
    larghezza si esaurisce prima dell'altezza e non avanza niente; nel quadrato avanzano
    286px e nel verticale 498. La regola è una: SI RIEMPIE LO SPAZIO CHE AVANZA CON I PEZZI
-   CHE ESISTONO GIÀ — la riga di sintesi e i tre totali di blocco, cioè gli stessi due
+   CHE ESISTONO GIÀ — la riga di sintesi e i totali di blocco, cioè gli stessi due
    della forma compatta dell'embed. Quinto consumatore di fraseCorta(), non un testo nuovo.
    E serve proprio dove non c'è un link: Instagram non ne ammette. */
 var CARD=[
@@ -4364,18 +4393,31 @@ function montaCond(){
        e non sono cerchi monocromatici, cioè non sono la cosa che si è chiesta;
      · pesano 4,3 KB di gzip contro gli 0,72 dei sette SVG — sei volte tanto per cinque
        icone invece di sette.
-   I QUATTRO SEGNI DEI MODELLI SONO STATI RIFATTI IL 27 AGOSTO 2026 sul riferimento che
-   l'autore ha fornito, e con essi cambia la loro natura: da «segni evocativi nostri» a
-   marchi NOMINATIVI ridisegnati, cioè la stessa categoria dei sei della riga sopra e con
-   la stessa giustificazione — un glifo che dice a quale servizio porta il collegamento.
-   Restano ridisegnati qui e non presi altrove, per le tre ragioni di sopra, e restano
-   monocromatici e a currentColor. Quello che è cambiato è la SOMIGLIANZA, non la
-   provenienza: l'esagono con le corde era un cubo e adesso è un nodo, e la stella e la
-   raggiera sono passate dal tratto al pieno perché è così che sono i marchi.
-   Il gancio è l'unico rifatto per un motivo diverso — non somigliava a niente e alla sua
-   misura non si leggeva: vedi il commento accanto.
-   Ogni segno è stato rasterizzato con resvg e GUARDATO a 20px dentro un cerchio da 44,
-   che è la misura in cui vive. Nessuna prova guarda un tracciato.
+   E QUATTRO DEI CINQUE RIDISEGNATI SONO STATI SOSTITUITI IL 27 AGOSTO 2026 CON I FILE
+   VERI DI SIMPLE ICONS — threads, perplexity, claude, googlegemini — presi come sono e
+   adattati solo nel non avere piu il <title>. La licenza e quella gia dichiarata qui sopra:
+   CC0 sui FILE, marchi dei loro proprietari, uso NOMINATIVO. E il metodo e cambiato perche
+   quello di prima non funzionava: tre giri di ridisegno a occhio, e ogni volta il segno
+   somigliava a qualcos altro — il gancio a una «d» minuscola, poi a un uncino dentro un
+   cerchio, il nodo a un ingranaggio. Un marchio non si ricostruisce a memoria: o si prende
+   il file, o si disegna una cosa che NON pretende di essere quel marchio.
+
+   CHATGPT E L UNICO RIMASTO NOSTRO, E NON PER SCELTA: Simple Icons NON HA l icona di
+   OpenAI. Verificato il 27 agosto 2026 sull albero del repository — 3457 icone, nessuna
+   «openai» ne «chatgpt»; c e «openaigym», che e un altra cosa. Le icone spariscono da quel
+   repository quando un proprietario ne chiede la rimozione, quindi l assenza e con ogni
+   probabilita deliberata e non tornera.
+   Quello che resta e un segno NOSTRO in mezzo a quattro presi, ed e la cosa da sapere
+   guardando la riga: se un giorno stona, la via non e ridisegnarlo meglio — e sostituirlo
+   con un segno che non imiti nessun marchio, oppure togliere la scheda.
+
+   Restano nostri anche i tre segni che NON sono marchi: le due graffette — copialink e
+   copiaprompt — e i due riscontri «fatto» e «ko». Sono AZIONI, non cose, e per questo
+   stanno a tratto invece che pieni: e la stessa distinzione che il resto della pagina fa
+   fra una cosa e un comando.
+   Ogni segno e stato rasterizzato con resvg e GUARDATO a 20px dentro un cerchio da 44,
+   che e la misura in cui vive, e affiancato agli altri della sua riga. Nessuna prova
+   guarda un tracciato.
    Tutti hanno viewBox 0 0 24 24 e prendono il colore da currentColor. */
 var GLIFO={
  /* i sei presi: marchi pieni */
@@ -4384,33 +4426,19 @@ var GLIFO={
  linkedin:'<path d="M6.2 8.4A1.9 1.9 0 1 1 6.2 4.6a1.9 1.9 0 0 1 0 3.8zM4.8 9.8h2.9v9.4H4.8V9.8zm4.8 0h2.8v1.3h.1c.4-.7 1.4-1.6 2.9-1.6 3.1 0 3.7 2 3.7 4.7v5h-2.9v-4.4c0-1 0-2.3-1.4-2.3s-1.6 1.1-1.6 2.2v4.5H9.6V9.8z"/>',
  telegram:'<path d="M20.4 4.6 3.7 11c-1.1.4-1.1 1 .2 1.4l4.2 1.3 1.6 5.1c.2.6.4.8.9.8.4 0 .6-.2.9-.5l2.3-2.2 4.7 3.5c.9.5 1.5.2 1.7-.8l2.9-13.5c.3-1.2-.4-1.8-1.4-1.5Z"/>',
  whatsapp:'<path d="M20.5 12A8.5 8.5 0 0 1 7.7 19.4L3 20.8l1.5-4.5A8.5 8.5 0 1 1 20.5 12Zm-4.8 2.3c-.3-.1-1.6-.8-1.9-.9-.3-.1-.5-.1-.7.1l-.5.7c-.2.2-.4.2-.7.1-1.8-.9-3-2.6-3.2-2.9-.2-.3 0-.5.1-.7l.3-.4.2-.4c.1-.2 0-.5 0-.7l-.8-1.8c-.2-.5-.4-.4-.7-.4h-.6c-.2 0-.6.1-.9.4-.3.3-1.1 1.1-1.1 2.7s1.1 3.2 1.3 3.4c.2.2 2.2 3.4 5.3 4.6.7.3 1.3.5 1.8.6.8.2 1.5.2 2 .1.6-.1 1.6-.7 1.8-1.4.2-.7.2-1.3.2-1.4 0-.1-.1-.2-.4-.3Z"/>',
- /* il gancio: ridisegnato, pieno come gli altri della sua riga */
- /* IL GANCIO, RIDISEGNATO IL 27 AGOSTO 2026 — e il difetto non era la forma grande.
-    Il tracciato di prima era un tentativo di riprodurre il marchio vero, e a occhio nudo
-    ingrandito passava; alla misura in cui vive — 20px dentro il cerchio da 44 — era una
-    macchia, con una coda che usciva in basso a sinistra e un occhiello che galleggiava
-    staccato. È «misurare convince di aver guardato» applicato a un segno: nessuna prova
-    guarda un path, e in jsdom un tracciato sbagliato non fa nessun rumore. Rasterizzato
-    con resvg — che il banco ha già per l'anteprima — e guardato ALLA MISURA VERA, dentro
-    un cerchio da 44, insieme agli altri.
-    A TRATTO E NON PIENO, ed è l'eccezione della riga: un segno pieno di questa forma a
-    20px si chiude su sé stesso e diventa un disco con due buchi. Il tratto a 2,8 tiene il
-    peso dei marchi pieni accanto — la gamba della «f» e le aste di «in» misurano quanto
-    lui — e resta leggibile dove il pieno non lo era. Provate quattro varianti e due pesi:
-    l'anello con la spirale interna è l'unica che a 20px si legge ancora come un segno e
-    non come una macchia. */
- threads:'<g fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="7.2"/><path d="M8.6 14.3c0-1.8 1.5-3 3.5-3s3.4 1.4 3.4 3.3c0 2.3-2 3.9-4.6 3.9"/></g>',
+ /* il gancio: il file di Simple Icons, preso come e` — vedi la provenienza qui sopra */
+ threads:'<path d="M18.263 11.097c-.03-3.486-1.92-5.586-5.111-5.586-2.13 0-3.922.963-4.863 2.499l2.062 1.438c.535-.843 1.272-1.543 2.628-1.543 1.528 0 2.318.85 2.544 2.431a15 15 0 0 0-2.236-.173c-4.125 0-6.068 1.867-6.068 4.336s1.943 3.99 4.804 3.99c3.139 0 5.013-2.115 5.781-4.735.798.361 1.348 1.204 1.348 2.47 0 3.387-3.907 5.232-7.22 5.232-4.885 0-8.077-3.207-8.077-8.424 0-6.392 4.223-10.487 9.9-10.487 3.808 0 5.69 1.671 6.97 3.914l2.108-1.475C21.44 2.078 18.331 0 13.663 0 6.227 0 1.168 5.277 1.168 12.934c0 7 4.953 11.066 10.856 11.066 4.878 0 9.809-2.846 9.809-7.716 0-2.545-1.46-4.231-3.569-5.187m-6.33 4.855c-1.077 0-2.026-.512-2.026-1.453 0-1.483 1.822-1.934 3.606-1.934.678 0 1.34.045 1.927.173-.422 1.927-1.671 3.215-3.508 3.214Z"/>',
  /* le due graffette: azioni, non marchi, quindi a tratto — è la stessa distinzione che
     fa il resto della pagina fra una cosa e un comando */
  copialink:'<g fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><path d="M10.2 13.4a4.3 4.3 0 0 1 0-6l1.3-1.3a4.3 4.3 0 0 1 6 6l-1.3 1.3"/><path d="M13.8 10.6a4.3 4.3 0 0 1 0 6l-1.3 1.3a4.3 4.3 0 0 1-6-6l1.3-1.3"/></g>',
  copiaprompt:'<g fill="none" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round"><rect x="9" y="9" width="11" height="12" rx="2"/><path d="M6 16H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></g>',
  /* i quattro segni dei modelli: ridisegnati, a tratto, una famiglia sola */
- perplexity:'<g fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4.5v15"/><path d="M12 9 7.6 4.9V9.4H4.4v5.2h3.2v4.5L12 15"/><path d="M12 9l4.4-4.1V9.4h3.2v5.2h-3.2v4.5L12 15"/></g>',
+ perplexity:'<path d="M22.3977 7.0896h-2.3106V.0676l-7.5094 6.3542V.1577h-1.1554v6.1966L4.4904 0v7.0896H1.6023v10.3976h2.8882V24l6.932-6.3591v6.2005h1.1554v-6.0469l6.9318 6.1807v-6.4879h2.8882V7.0896zm-3.4657-4.531v4.531h-5.355l5.355-4.531zm-13.2862.0676 4.8691 4.4634H5.6458V2.6262zM2.7576 16.332V8.245h7.8476l-6.1149 6.1147v1.9723H2.7576zm2.8882 5.0404v-3.8852h.0001v-2.6488l5.7763-5.7764v7.0111l-5.7764 5.2993zm12.7086.0248-5.7766-5.1509V9.0618l5.7766 5.7766v6.5588zm2.8882-5.0652h-1.733v-1.9723L13.3948 8.245h7.8478v8.087z"/>',
  chatgpt:'<g fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="12" rx="8.7" ry="4.3"/><ellipse cx="12" cy="12" rx="8.7" ry="4.3" transform="rotate(60 12 12)"/><ellipse cx="12" cy="12" rx="8.7" ry="4.3" transform="rotate(120 12 12)"/></g>',
- claude:'<path d="M12 2.6a.9.9 0 0 1 .9.9l.5 6.1 4.3-4.4a.9.9 0 0 1 1.3 1.3l-4.4 4.3 6.1.5a.9.9 0 0 1 0 1.8l-6.1.5 4.4 4.3a.9.9 0 0 1-1.3 1.3l-4.3-4.4-.5 6.1a.9.9 0 0 1-1.8 0l-.5-6.1-4.3 4.4a.9.9 0 0 1-1.3-1.3l4.4-4.3-6.1-.5a.9.9 0 0 1 0-1.8l6.1-.5-4.4-4.3a.9.9 0 0 1 1.3-1.3l4.3 4.4.5-6.1a.9.9 0 0 1 .9-.9Z"/>',
+ claude:'<path d="m4.7144 15.9555 4.7174-2.6471.079-.2307-.079-.1275h-.2307l-.7893-.0486-2.6956-.0729-2.3375-.0971-2.2646-.1214-.5707-.1215-.5343-.7042.0546-.3522.4797-.3218.686.0608 1.5179.1032 2.2767.1578 1.6514.0972 2.4468.255h.3886l.0546-.1579-.1336-.0971-.1032-.0972L6.973 9.8356l-2.55-1.6879-1.3356-.9714-.7225-.4918-.3643-.4614-.1578-1.0078.6557-.7225.8803.0607.2246.0607.8925.686 1.9064 1.4754 2.4893 1.8336.3643.3035.1457-.1032.0182-.0728-.164-.2733-1.3539-2.4467-1.445-2.4893-.6435-1.032-.17-.6194c-.0607-.255-.1032-.4674-.1032-.7285L6.287.1335 6.6997 0l.9957.1336.419.3642.6192 1.4147 1.0018 2.2282 1.5543 3.0296.4553.8985.2429.8318.091.255h.1579v-.1457l.1275-1.706.2368-2.0947.2307-2.6957.0789-.7589.3764-.9107.7468-.4918.5828.2793.4797.686-.0668.4433-.2853 1.8517-.5586 2.9021-.3643 1.9429h.2125l.2429-.2429.9835-1.3053 1.6514-2.0643.7286-.8196.85-.9046.5464-.4311h1.0321l.759 1.1293-.34 1.1657-1.0625 1.3478-.8804 1.1414-1.2628 1.7-.7893 1.36.0729.1093.1882-.0183 2.8535-.607 1.5421-.2794 1.8396-.3157.8318.3886.091.3946-.3278.8075-1.967.4857-2.3072.4614-3.4364.8136-.0425.0304.0486.0607 1.5482.1457.6618.0364h1.621l3.0175.2247.7892.522.4736.6376-.079.4857-1.2142.6193-1.6393-.3886-3.825-.9107-1.3113-.3279h-.1822v.1093l1.0929 1.0686 2.0035 1.8092 2.5075 2.3314.1275.5768-.3218.4554-.34-.0486-2.2039-1.6575-.85-.7468-1.9246-1.621h-.1275v.17l.4432.6496 2.3436 3.5214.1214 1.0807-.17.3521-.6071.2125-.6679-.1214-1.3721-1.9246L14.38 17.959l-1.1414-1.9428-.1397.079-.674 7.2552-.3156.3703-.7286.2793-.6071-.4614-.3218-.7468.3218-1.4753.3886-1.9246.3157-1.53.2853-1.9004.17-.6314-.0121-.0425-.1397.0182-1.4328 1.9672-2.1796 2.9446-1.7243 1.8456-.4128.164-.7164-.3704.0667-.6618.4008-.5889 2.386-3.0357 1.4389-1.882.929-1.0868-.0062-.1579h-.0546l-6.3385 4.1164-1.1293.1457-.4857-.4554.0608-.7467.2307-.2429 1.9064-1.3114Z"/>',
  fatto:'<g fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5 10 17.5 19 7"/></g>',
  ko:'<g fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6.5 6.5l11 11M17.5 6.5l-11 11"/></g>',
- gemini:'<path d="M12 2c.6 5.2 4.8 9.4 10 10-5.2.6-9.4 4.8-10 10-.6-5.2-4.8-9.4-10-10 5.2-.6 9.4-4.8 10-10Z"/>',
+ gemini:'<path d="M11.04 19.32Q12 21.51 12 24q0-2.49.93-4.68.96-2.19 2.58-3.81t3.81-2.55Q21.51 12 24 12q-2.49 0-4.68-.93a12.3 12.3 0 0 1-3.81-2.58 12.3 12.3 0 0 1-2.58-3.81Q12 2.49 12 0q0 2.49-.96 4.68-.93 2.19-2.55 3.81a12.3 12.3 0 0 1-3.81 2.58Q2.49 12 0 12q2.49 0 4.68.96 2.19.93 3.81 2.55t2.55 3.81"/>',
 };
 /* UNA STRADA SOLA PER IL SEGNO: chi lo vuole chiede glifo(k), e se la chiave non c'è
    restituisce stringa vuota invece di un segno sbagliato — un cerchio vuoto in mezzo a
@@ -5064,7 +5092,7 @@ function dataPNG(){
  return u?'ultimo sondaggio '+dl(u):'data non disponibile';
 }
 /* Il piede porta quello che in pagina sta in HTML accanto al disegno: per gli istogrammi la
-   didascalia dell'80%, per la tendenza le tre serie. L'emiciclo non ha piede perché la
+   didascalia dell'80%, per la tendenza le serie. L'emiciclo non ha piede perché la
    legenda ce l'ha dentro il disegno. */
 function piedePNG(dis){
  if(dis.tit==='Il modello giorno per giorno')
@@ -6000,7 +6028,7 @@ function rCrono(){
    '</b><span><em>'+dc(e.data)+'</em> '+E(e.testo)+'</span></button>';}).join('');
  rEvSel();
 }
-/* Il valore delle tre linee a una data qualunque.
+/* Il valore delle linee a una data qualunque.
    Fra due punti la serie è DISEGNATA come una retta, quindi il valore interpolato è
    esattamente quello che il lettore legge sul grafico in quel punto: non è una seconda
    strada verso lo stesso numero, è la stessa. Prima si agganciava l'ultimo punto <= data
@@ -6479,25 +6507,65 @@ var TOT_SIGLA={arabo:'arabi',opposizione:'opposizione',incerto:'incerti',coalizi
    di viewBox (+13,8%, cioe' +44,7px a 1265) e lascia il vuoto vuoto: non serve pagarla.
    Le sigle finiscono a y221, sotto la base dell'arco, dentro le 14,6 unita' che il
    viewBox aveva gia' libere la': l'altezza non si muove di un pixel. */
-var TOT_Y=204, TOT_DY=17, TOT_VARCO=4, TOT_CORPO=31, TOT_FSIG=8.5, TOT_LSIG=0.06;
+/* LA SIGLA A 7,5 E IL CORPO A 28, e sono due misure legate.
+   La riga è larga 184 unità in un vuoto che ne offre 198: sette per parte. E ciò che la
+   allarga non sono i numeri — sono le SIGLE: «opposizione» da sola vale 57 unità su 165,9
+   di inchiostro totale. Rimpicciolirle è la leva che costa meno di tutte, perché non tocca
+   né i numeri né l'altezza né l'anteprima.
+   Misurato, con il varco del disegno preteso come aria (vedi TOT_ARIA):
+
+     sigla   corpo costante che regge il varco   reso a 1265   sigla a 380
+      8,5              8  (collassa)                11,2px         6,4px
+      8,0             24                            33,5px         6,1px
+      7,5             28                            39,1px         5,7px
+      7,0             30                            41,9px         5,3px
+
+   7,5 è la scelta: la sigla scende da 6,4 a 5,7px a 380 — sopra il pavimento di 5
+   dell'invariante 8 — e in cambio il corpo resta lo STESSO in tutte e cinque le
+   configurazioni provate. Un numero che cambia grandezza a seconda di dove capitano i
+   seggi è peggio di una sigla più piccola: è la stessa ragione per cui y204/4 era stata
+   scelta fra sei combinazioni.
+   IL TETTO È 28 E NON 31, e costa il 10% — 39,1px invece di 43,3 a 1265, 21,2 invece di
+   23,5 a 380. Si paga anche oggi, dove con tre blocchi ci sarebbero 21,56 unità d'aria e
+   31 starebbe comodo. Si paga lo stesso, perché il tetto è quello che rende il corpo una
+   COSTANTE invece di un esito: con 31 sarebbe 31 · 30 · 30 · 28 a seconda della
+   configurazione, cioè esattamente la cosa che si voleva togliere. */
+var TOT_Y=204, TOT_DY=17, TOT_VARCO=4, TOT_CORPO=28, TOT_FSIG=7.5, TOT_LSIG=0.06;
 var TOT_EM=0.55, TOT_SU=0.72, TOT_GIU=0.24, TOT_RSEG=5.4;
-/* NON «non si sovrappone»: «resta a mezza unita di distanza». Il confronto con lo zero
-   esatto e' sbagliato due volte. In virgola mobile una scatola che sfiora un seggio
-   restituisce 8,9e−15 invece di 0, e la bisezione continuava a stringere: il corpo usciva
-   18 invece di 27,5, cioe' il DOPPIO del prezzo, senza che niente lo dicesse. E anche
-   fosse esatto, «si toccano ma non si sovrappongono» non e' una cosa che si vuole
-   guardare. Mezza unita di viewBox e' 0,38px a 380 e 0,70 a 1265: non costa niente e
-   toglie tutte e due i problemi. */
-var TOT_ARIA=0.5;
+/* LA PROPRIETÀ NON È «NON COLLIDE», È «IL VUOTO SI VEDE» — e mezza unità non la rendeva.
+   Il confronto con lo zero esatto era sbagliato due volte, e il primo rimedio ne ha
+   corretto uno solo. In virgola mobile una scatola che sfiora un seggio restituisce
+   8,9e−15 invece di 0, che è VERO: la bisezione continuava a stringere e il corpo usciva
+   18 invece di 27,5. Mezza unità toglieva quel problema numerico e lasciava l'altro:
+   misurato dopo, con quattro blocchi il numero più a sinistra stava a **0,68 unità** dal
+   seggio più vicino, cioè 0,9px a 1265. Non è «ci sta»: è un contatto mancato. E la
+   sigla più piccola lo ripara per conseguenza, non per costruzione — il giorno in cui un
+   blocco cambia forma si torna a 0,68.
+
+   QUANTO VUOL DIRE «SI VEDE» LO DICE IL DISEGNO, NON UN NUMERO SCELTO. Fra due seggi
+   contigui l'emiciclo lascia **7,45 unità** di varco — 10,4px a 1265 e 5,6px a 380 — ed è
+   l'unità visiva di questo disegno: se un numero sta a un seggio più vicino di quanto due
+   seggi stiano fra loro, si legge attaccato. Quindi l'aria richiesta È quel varco, letta
+   dai cerchi appena calcolati invece di essere scritta qui: se un giorno cambiano il
+   raggio del seggio o il numero di file, la pretesa segue da sé. È la regola
+   dell'esportazione PNG applicata al vincolo invece che alla misura. */
+function varcoFraSeggi(cerchi){
+ var m=Infinity;
+ for(var i=0;i<cerchi.length;i++) for(var j=i+1;j<cerchi.length;j++){
+  var dx=cerchi[i].x-cerchi[j].x, dy=cerchi[i].y-cerchi[j].y;
+  var d=dx*dx+dy*dy; if(d<m) m=d;
+ }
+ return m===Infinity?0:Math.max(0,Math.sqrt(m)-2*TOT_RSEG);
+}
 function largStim(t,fs,ls){return TOT_EM*fs*t.length+(ls||0)*fs*t.length;}
 /* di quanto la scatola d'inchiostro entra dentro un seggio: zero vuol dire che non lo tocca */
-function urtoSeggi(cerchi,a,c,t,bo){
+function urtoSeggi(cerchi,a,c,t,bo,aria){
  var p=0;
  for(var i=0;i<cerchi.length;i++){
   var q=cerchi[i];
   var dx=Math.max(a-q.x,q.x-c,0), dy=Math.max(t-q.y,q.y-bo,0);
   var d=Math.sqrt(dx*dx+dy*dy);
-  if(TOT_RSEG+TOT_ARIA-d>p) p=TOT_RSEG+TOT_ARIA-d;
+  if(TOT_RSEG+aria-d>p) p=TOT_RSEG+aria-d;
  }
  return p;
 }
@@ -6505,6 +6573,8 @@ function urtoSeggi(cerchi,a,c,t,bo){
    l'urto residuo — che è zero salvo il giorno in cui le voci non ci stanno più, e allora
    lo dichiara invece di lasciarlo scoprire a chi guarda. */
 function disponiTotali(cerchi,voci){
+ /* una volta sola, non a ogni tentativo di corpo: e' O(n²) sui 120 seggi */
+ var ARIA=varcoFraSeggi(cerchi);
  var base=voci.map(function(v){return largStim(TOT_SIGLA[v[0]],TOT_FSIG,TOT_LSIG);});
  function prova(F){
   var slot=base.map(function(w){return Math.max(w,TOT_EM*F*2);});
@@ -6513,11 +6583,11 @@ function disponiTotali(cerchi,voci){
   slot.forEach(function(w){cen.push(x+w/2);x+=w+TOT_VARCO;});
   for(i=0;i<voci.length;i++){
    var wn=largStim(String(voci[i][1]),F,0), ws=base[i], xc=cen[i];
-   u=Math.max(u,urtoSeggi(cerchi,xc-wn/2,xc+wn/2,TOT_Y-TOT_SU*F,TOT_Y+TOT_GIU*F));
+   u=Math.max(u,urtoSeggi(cerchi,xc-wn/2,xc+wn/2,TOT_Y-TOT_SU*F,TOT_Y+TOT_GIU*F,ARIA));
    u=Math.max(u,urtoSeggi(cerchi,xc-ws/2,xc+ws/2,
-      TOT_Y+TOT_DY-TOT_SU*TOT_FSIG,TOT_Y+TOT_DY+TOT_GIU*TOT_FSIG));
+      TOT_Y+TOT_DY-TOT_SU*TOT_FSIG,TOT_Y+TOT_DY+TOT_GIU*TOT_FSIG,ARIA));
   }
-  return {corpo:F,cen:cen,larg:tot,urto:u};
+  return {corpo:F,cen:cen,larg:tot,urto:u,aria:ARIA};
  }
  var ult=null;
  for(var F=TOT_CORPO;F>=8;F-=0.5){ ult=prova(F); if(ult.urto<=0) return ult; }
@@ -6541,7 +6611,18 @@ function rEmi(){
  }
  /* Il distacco fra blocchi si ottiene lasciando seggi VUOTI, non spostando quelli
     pieni: così le file restano allineate lungo archi regolari. */
- var VUOTI=3, nG=grp.length, TOT=120+VUOTI*Math.max(0,nG-1);
+ /* IL VUOTO DI SEPARAZIONE NON PUÒ ESSERE PIÙ LARGO DEL GRUPPO CHE SEPARA, e con tre era
+    quello che succedeva. VUOTI conta posti vuoti nella sequenza LINEARE, che poi viene
+    distribuita su cinque archi di lunghezza diversa: lo stesso vuoto rende uno o due seggi
+    a seconda di dove cade. Misurato sulla fila esterna, con l'ago della bilancia a nove
+    seggi: il gruppo è largo 2 seggi — 18,3 unità — e i vuoti ai suoi lati 36,5 e 36,5,
+    cioè il DOPPIO del gruppo da tutte e due le parti. Quattro pastiglie in un buco, non un
+    gruppo dentro l'arco.
+    E i vuoti non erano nemmeno uguali fra loro: 1/2/2 con l'ago a nove, 1/1/2 con l'ago a
+    sedici. Con VUOTI=1 diventano 1/1/1, e — misurato su quattro configurazioni — con TRE
+    blocchi la pagina non cambia di un pixel: i salti restano 2/2 come prima, perché un
+    posto lineare rende comunque due seggi in fila esterna. Si paga solo dove serviva. */
+ var VUOTI=1, nG=grp.length, TOT=120+VUOTI*Math.max(0,nG-1);
  var pieno=[],g;
  for(g=0;g<nG;g++){
   var da=grp.slice(0,g).reduce(function(a,b){return a+b;},0);
@@ -7325,7 +7406,7 @@ function rTrend(){
       '" r="'+(MOB?2.2:2.6)+'" fill="'+C[z[1]]+'" opacity=".28"/>';
   });
  });
- /* le tre linee del modello */
+ /* le linee del modello, una per blocco con seggi */
  var fine=[];
  SER.forEach(function(z){
   var d=S.map(function(x){return {d:x.d,v:x[z[0]]};});
@@ -8346,7 +8427,7 @@ function salva(){memSet(KEY,JSON.stringify({s:SOND,t:Date.now(),eg:Object.keys(E
    viene toccato, ed è esattamente ciò che rende lo stallo misurabile.
    Aprendo il file da disco il fetch fallisce come quello dell'archivio, e JOB resta
    nullo: la testata lo dichiara invece di inventare una data. */
-var JOB=null;
+var JOB=null, GIRO=null;
 function statoJob(){
  try{
   return fetch('dati/stato-job.json',{cache:'no-cache'}).then(function(r){
@@ -8354,6 +8435,22 @@ function statoJob(){
    return r.json();
   }).then(function(j){
    if(j&&typeof j.data==='string'&&/^\d{4}-\d{2}-\d{2}$/.test(j.data)) JOB=j;
+  })['catch'](function(){});
+ }catch(e){ return Promise.resolve(); }
+}
+/* IL BATTITO DEL LAVORO NOTTURNO, che è un'altra cosa dal suo esito.
+   dati/stato-job.json viene riscritto SOLO quando il job arriva in fondo; dati/da-fare.json
+   lo scrive il passo del riepilogo, che gira con «if: always()» — quindi anche quando una
+   guardia ha fermato tutto. È l'unico posto da cui si può sapere che il job È PARTITO.
+   Come per lo stato: se il file non c'è — pagina aperta da disco, o servita senza dati/ —
+   GIRO resta null e la testata dichiara di non sapere invece di ripiegare in silenzio. */
+function battitoJob(){
+ try{
+  return fetch('dati/da-fare.json',{cache:'no-cache'}).then(function(r){
+   if(!r||!r.ok) return null;
+   return r.json();
+  }).then(function(j){
+   if(j&&typeof j.generato==='string'&&/^\d{4}-\d{2}-\d{2}$/.test(j.generato)) GIRO=j;
   })['catch'](function(){});
  }catch(e){ return Promise.resolve(); }
 }
@@ -8373,6 +8470,9 @@ function archivioFresco(){
 function carica(){
  return Promise.resolve(archivioFresco()).then(function(){
   return statoJob();
+ }).then(function(){
+  /* il battito dopo lo stato: due file, due fatti, e la testata li confronta */
+  return battitoJob();
  }).then(function(){
   return memGet(KEY);
  }).then(function(v){

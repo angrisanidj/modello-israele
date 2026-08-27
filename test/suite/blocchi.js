@@ -159,18 +159,29 @@ esito(A.TOT_ORD.slice().sort().join(',') === Object.keys(A.TOT_SIGLA).sort().joi
  * per ECCESSO: se la stima e il codice divergessero, cadrebbe qui. */
 /* IL PAVIMENTO SI LEGGE DAL SORGENTE, non si riscrive qui: una costante copiata in una
    prova e' la strada doppia di sempre, e per giunta quella che decide se la prova morde. */
-const ARIA = +((/var TOT_ARIA=([0-9.]+);/.exec(HTML) || [0, '0'])[1]);
-esito(ARIA > 0,
-  'il codice pretende una DISTANZA fra i totali e i seggi, non il solo «non si sovrappone»: ' +
-  'con lo zero esatto un contatto vale 8,9e-15 in virgola mobile, cioe VERO, e la bisezione ' +
-  'stringe il corpo fino a 18 invece di 27,5 senza che niente lo dica',
-  'TOT_ARIA = ' + ARIA);
+/* L'ARIA RICHIESTA NON È PIÙ UNA COSTANTE DA LEGGERE: È IL VARCO DEL DISEGNO.
+   La prima stesura pretendeva TOT_ARIA > 0 — bastava a togliere il confronto con lo zero
+   esatto in virgola mobile (un contatto vale 8,9e-15, che è VERO, e la bisezione stringeva
+   il corpo fino a 18 invece di 27,5) e NON bastava a rendere vera la proprietà: con mezza
+   unità il numero più a sinistra finiva a 0,68 unità dal seggio, cioè 0,9px a 1265. Non è
+   «ci sta»: è un contatto mancato.
+   «Il vuoto si vede» quanto lo dice il disegno: fra due seggi contigui l'emiciclo lascia
+   un varco, e se un numero sta a un seggio più vicino di quanto due seggi stiano fra loro
+   si legge attaccato. Quel varco è quindi la pretesa, LETTA dai cerchi resi invece che
+   scritta — e la prova qui verifica la stessa cosa sul disegno vero. */
+esito(/function varcoFraSeggi\(/.test(HTML) && !/var TOT_ARIA=/.test(HTML),
+  'l aria richiesta si RICAVA dal varco fra due seggi, invece di essere un numero scelto');
 function urtoTotali(){
   const svg = $('k-emi').innerHTML;
   const cer = [...svg.matchAll(/cx="([\d.]+)" cy="([\d.]+)"/g)].map(m => ({x:+m[1], y:+m[2]}));
   const txt = [...svg.matchAll(/<text data-g="[a-z]+"[^>]*x="([\d.]+)" y="(\d+)"[^>]*font-size="([\d.]+)"[^>]*>([^<]*)<\/text>/g)];
-  const EM = 0.55, SU = 0.72, GIU = 0.24, R = 5.4 + ARIA;
-  let peggio = 0;
+  const EM = 0.55, SU = 0.72, GIU = 0.24, R = 5.4;
+  /* il varco vero del disegno, calcolato qui come lo calcola il codice */
+  let vicini = Infinity;
+  for (let i = 0; i < cer.length; i++) for (let j = i + 1; j < cer.length; j++)
+    vicini = Math.min(vicini, Math.hypot(cer[i].x - cer[j].x, cer[i].y - cer[j].y));
+  const VARCO = vicini - 2 * R;
+  let peggio = 0, minAria = Infinity;
   txt.forEach(m => {
     const x = +m[1], y = +m[2], corpo = +m[3], contenuto = m[4];
     const ls = /letter-spacing="([\d.]+)em"/.exec(m[0]);
@@ -180,26 +191,38 @@ function urtoTotali(){
       const dx = Math.max(a - q.x, q.x - c, 0), dy = Math.max(t - q.y, q.y - b, 0);
       const d = Math.sqrt(dx * dx + dy * dy);
       if (d < R) peggio = Math.max(peggio, R - d);
+      minAria = Math.min(minAria, d - R);
     });
   });
-  return {peggio: peggio, quanti: cer.length};
+  return {peggio: peggio, quanti: cer.length, varco: VARCO, aria: minAria};
 }
-{
-  const u3 = urtoTotali();
-  esito(u3.peggio === 0 && u3.quanti === 120,
-    'con tre totali nessuna cifra e nessuna sigla tocca uno dei 120 seggi',
-    u3.peggio.toFixed(2) + ' unita su ' + u3.quanti + ' seggi');
-}
-conAgo(4);
-{
-  const u4 = urtoTotali();
-  esito(u4.peggio === 0 && u4.quanti === 120,
-    'e nemmeno con quattro, che e il caso per cui il corpo si stringe',
-    u4.peggio.toFixed(2) + ' unita');
+/* NON «non tocca»: «sta lontano almeno quanto due seggi stanno fra loro». È la proprietà
+   che «non collide» non esprimeva, e la differenza è misurata: con la vecchia pretesa il
+   numero più a sinistra stava a 0,68 unità dal seggio — 0,9px a 1265 — e nessuna
+   asserzione cadeva. Il varco si calcola qui dai cerchi resi, come lo calcola il codice:
+   se il codice smettesse di ricavarlo, i due numeri divergerebbero e questa cade. */
+const corpi = [];
+function guardaTotali(tag){
+  const u = urtoTotali();
+  esito(u.quanti === 120 && u.aria >= u.varco,
+    tag + ': ogni numero e ogni sigla stanno dal seggio piu vicino almeno quanto due seggi ' +
+    'stanno fra loro',
+    'aria ' + u.aria.toFixed(2) + ' contro un varco di ' + u.varco.toFixed(2) + ' unita');
   const m = /<text data-g="[a-z]+"[^>]*y="204"[^>]*font-size="([\d.]+)"/.exec($('k-emi').innerHTML);
-  esito(m && +m[1] > 20,
-    'e il corpo resta sopra 20 unita: stringersi e un prezzo, non una resa', m ? m[1] : 'nessun totale');
+  corpi.push(m ? +m[1] : 0);
+  return u;
 }
+guardaTotali('tre blocchi');
+conAgo(2);  guardaTotali('quattro blocchi, ago piccolo');
+conAgo(4);  guardaTotali('quattro blocchi, ago medio');
+conAgo(9);  guardaTotali('quattro blocchi, ago grande');
+/* IL CORPO È UNA COSTANTE, NON UN ESITO, ed è la ragione per cui il tetto è 28 e non 31.
+   Con 31 sarebbe 31 · 30 · 30 · 28 a seconda di dove capitano i seggi, e un numero che
+   cambia grandezza secondo la configurazione è peggio di una sigla più piccola. */
+esito(new Set(corpi).size === 1 && corpi[0] > 20,
+  'e il corpo e lo STESSO in tutte le configurazioni: non cambia con la disposizione dei seggi',
+  corpi.join(' · '));
+conAgo(4);
 
 /* ══ 4 · LA PROPRIETÀ, NON L'ELENCO ═════════════════════════════════════════════════
  * Ogni vista che pubblica un insieme di totali di blocco li pubblica TUTTI, e le viste si
@@ -588,6 +611,33 @@ function seggiOra(){ return A.IDS.filter(i => A.SEG[i]).map(i => i + ':' + A.SEG
     'la corta e piu corta della lunga, che e quello che le distingue',
     corta.length + ' contro ' + ip.length);
   conAgo(4);
+}
+
+/* ══ 11 · NESSUN CONTO DEI BLOCCHI SCRITTO A MANO NEL TESTO ═══════════════════════
+ * La didascalia dell'emiciclo diceva «I tre numeri al centro» e «restano tutti e tre», e
+ * og:image:alt — che ESCE dalla pagina — diceva «per i tre blocchi». Un conto scritto in
+ * una frase è la stessa forma della sigla irraggiungibile: un testo che afferma quello che
+ * il codice non fa, e che nessuna prova sui numeri può cogliere.
+ * L'ECCEZIONE È DICHIARATA E RESTA: il piede dell'archivio dice «I tre totali in fondo», e
+ * lì sono tre di proposito — quelle colonne riproducono la fonte. */
+{
+  const testoPagina = D.body.textContent.replace(/\s+/g, ' ');
+  const conti = [
+    ['I tre numeri al centro', 'la didascalia dell emiciclo'],
+    ['I tre totali restano', 'la didascalia del filtro'],
+    ['con i tre blocchi', 'la nota dell embed']
+  ];
+  conti.forEach(function(c){
+    esito(testoPagina.indexOf(c[0]) < 0,
+      c[1] + ' non scrive a mano quanti sono i blocchi', c[0]);
+  });
+  const alt = (HTML.match(/<meta property="og:image:alt" content="([^"]*)"/) || [0,''])[1];
+  esito(alt.length > 20 && !/\btre blocchi\b/.test(alt),
+    'e og:image:alt nemmeno, che e il caso peggiore: quella stringa esce dalla pagina e la ' +
+    'legge chi non vede l immagine', alt);
+  esito(/somma è minore di 120/.test(testoPagina) && /I tre totali in fondo/.test(testoPagina),
+    'ma il piede dell archivio tiene i suoi TRE, che li sono di proposito: quelle colonne ' +
+    'riproducono la fonte e lo dichiarano');
 }
 
 console.log('\nblocchi: ' + ok + '/' + (ok + ko));

@@ -43,7 +43,7 @@ process.env.TZ = 'Europe/Rome';
 
 /* Rende l'intera pagina con l'orologio fermo a `iso` e il registro del lavoro notturno
    uguale a `job` (null = file assente, come quando si apre index.html da disco). */
-async function alGiorno(iso, job, stretto){
+async function alGiorno(iso, job, stretto, giro){
   const quando = new Date(iso + 'T10:00:00+02:00').getTime();
   const D0 = Date;
   class DF extends D0 {
@@ -71,12 +71,21 @@ async function alGiorno(iso, job, stretto){
   global.FileReader = function(){};
   /* l'archivio si rifiuta — vale il seme BASE, come da doppio clic — e il registro si
      serve solo se il caso lo prevede */
-  global.fetch = u => (job && /stato-job\.json/.test(u))
-    ? Promise.resolve({ok:true, json:() => Promise.resolve(job)})
-    : Promise.reject(0);
+  /* DUE FILE, DUE FATTI. stato-job.json dice l'ultima verifica RIUSCITA; da-fare.json lo
+     scrive il passo del riepilogo, che gira anche quando una guardia ha fermato tutto, e
+     dice quando il job È PARTITO. Il finto fetch li serve tutti e due, o la prova non
+     potrebbe distinguere «il job è bloccato» da «il job è fermo». */
+  global.fetch = u => {
+    if (job && /stato-job\.json/.test(u))
+      return Promise.resolve({ok:true, json:() => Promise.resolve(job)});
+    if (giro && /da-fare\.json/.test(u))
+      return Promise.resolve({ok:true, json:() => Promise.resolve(giro)});
+    return Promise.reject(0);
+  };
   const src = src0.replace('carica().then(render,render)',
     'global.A={render:render,stato:function(){return{GIORNI:GIORNI,ORIZZONTE:ORIZZONTE,MC:MC,SEG:SEG,' +
-    'JOB:JOB,SOND:SOND,L:L,VOTO:VOTO,GAP_VERIFICA:GAP_VERIFICA,GAP_SONDAGGI:GAP_SONDAGGI};},' +
+    'JOB:JOB,GIRO:GIRO,SOND:SOND,L:L,VOTO:VOTO,GAP_VERIFICA:GAP_VERIFICA,'+
+    'GAP_SONDAGGI:GAP_SONDAGGI,GAP_GIRO:GAP_GIRO};},' +
     'q:q,ggCal:ggCal,blocchi:blocchi,finestra:finestra};carica().then(render,render)');
   eval(src);
   /* la catena di carica() è fatta di microtask: un setTimeout(0) è un macrotask e arriva
@@ -89,6 +98,7 @@ async function alGiorno(iso, job, stretto){
   const out = {
     S: global.A.stato(),
     upd: (D.getElementById('k-upd') || {}).textContent,
+    GIRO: global.A.stato().GIRO,
     updClasse: (D.getElementById('k-upd') || {}).className,
     fresh: testo('k-fresh'),
     cd: testo('k-cd'),
@@ -123,6 +133,16 @@ const FERMO  = await alGiorno('2026-09-05', {data:'2026-08-22'});
    sette, ed è il caso in cui il lettore deve sapere che il job gira e non trova niente */
 const QUIETE = await alGiorno('2026-09-05', {data:'2026-08-30'});
 const SENZA  = await alGiorno('2026-08-22', null);
+/* ══ IL JOB BLOCCATO CONTRO IL JOB FERMO ══════════════════════════════════════════
+ * Due cause dello stesso ritardo, e da qui si vedevano uguali. Il 27 agosto 2026 il cron
+ * delle 03:30 non è partito e la testata ha continuato a dire «verificato il 26 agosto»
+ * senza segnalare niente: un giorno di scarto sta sotto GAP_VERIFICA, e sarebbe rimasta
+ * muta fino al 28. Il battito le distingue — dati/da-fare.json lo scrive il passo del
+ * riepilogo, che gira con «if: always()» anche quando una guardia ha fermato tutto. */
+const BLOCCATO = await alGiorno('2026-09-05', {data:'2026-08-22'}, false,
+  {generato:'2026-09-05', job:{esito:'ko'}});
+const SPENTO   = await alGiorno('2026-09-05', {data:'2026-08-22'}, false,
+  {generato:'2026-08-22', job:{esito:'ok'}});
 
 /* ══ 1 · LA FASCIA DEL DOPO-VOTO ══════════════════════════════════════════════ */
 
@@ -394,6 +414,33 @@ esito(/Voto concluso/.test(VOTO.cd) && /Voto concluso/.test(DOPO.cd),
   esito(![OGGI, NOV, UNA].some(g => /\b1 rilevazioni\b/.test(g.anmeta + ' ' + g.analisi)),
     'e in nessuno stato compare «1 rilevazioni»');
 }
+
+/* ══ IL BATTITO: «non ha CONCLUSO» e «non ha GIRATO» sono due fatti ═══════════════ */
+
+esito(/verificato il 22 agosto/.test(BLOCCATO.upd) && !/non gira/.test(BLOCCATO.upd),
+  'job che gira e viene bloccato: la testata dice la verifica vecchia, non che sia fermo',
+  BLOCCATO.upd);
+esito(/vecchio/.test(BLOCCATO.updClasse),
+  'e la segnala comunque, perche quattordici giorni senza una verifica riuscita sono tanti');
+esito(/non gira dal 22 agosto/.test(SPENTO.upd),
+  'job che NON gira: la testata lo dice, ed e un altra frase perche e un altro fatto',
+  SPENTO.upd);
+esito(!/verificato il/.test(SPENTO.upd),
+  'e smette di dire la data della verifica: con la macchina ferma non e piu quella la notizia',
+  SPENTO.upd);
+esito(/vecchio/.test(SPENTO.updClasse), 'e resta marcata vecchia');
+/* il caso di oggi, che è quello che il difetto ha attraversato: il job ha girato ieri e
+   ha concluso ieri, quindi non si segnala niente */
+const IERI = await alGiorno('2026-08-23', {data:'2026-08-22'}, false,
+  {generato:'2026-08-22', job:{esito:'ok'}});
+esito(!/non gira/.test(IERI.upd) && !/vecchio/.test(IERI.updClasse),
+  'e un solo giorno di scarto non allarma nessuno dei due: la soglia c e per non gridare',
+  IERI.upd);
+esito(SPENTO.S.GAP_GIRO >= 1 && SPENTO.S.GAP_GIRO <= 3,
+  'la soglia del battito e dichiarata e sta fra uno e tre giorni', String(SPENTO.S.GAP_GIRO));
+/* e senza il file il battito non inventa niente, come per lo stato */
+esito(SENZA.GIRO === null,
+  'senza dati/da-fare.json il battito resta nullo invece di ripiegare su una data');
 
 console.log('\ndate: ' + ok + '/' + (ok + ko));
 if (ko) process.exit(1);
