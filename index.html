@@ -3248,7 +3248,16 @@ var TIT_CODA=' · Knesset 2026';
 var TIT_CORTO_PRIMA={
  f1:function(X){return 'Netanyahu alla maggioranza: '+X+' seggi';},
  f2:function(X){return 'Maggioranza all’opposizione: '+X+' seggi';},
- f3:function(){return 'Maggioranza solo con i partiti arabi';},
+/* f3 AFFERMAVA DOVE LA LUNGA CONDIZIONA, ed e' la correzione del 25 agosto 2026 su
+    «sono decisivi» che nella forma corta non era mai arrivata. La lunga dice «i partiti
+    arabi POTREBBERO essere decisivi»; la corta diceva «Maggioranza solo con i partiti
+    arabi», cioe' una proposizione piatta su una configurazione che il modello da' come
+    possibile e non come certa — e la corta e' quella che esce dalla pagina, dove nessuno
+    puo' confrontarla con la lunga. Identiche non possono essere: il tetto lascia 45
+    caratteri alla frase e la lunga ne usa 76. Ma la POSIZIONE dev'essere la stessa, ed e'
+    l'unica cosa che il taglio non ha il permesso di cambiare.
+    Misurata: 42 caratteri, 57 con la coda, contro un tetto di 60. */
+ f3:function(){return 'I partiti arabi potrebbero essere decisivi';},
  f4:function(){return 'Nessuna maggioranza possibile: stallo pieno';},
  f5c:function(X){return 'Netanyahu a '+X+', uno dalla maggioranza';},
  f5o3:function(X){return 'Opposizione a '+X+': servono i partiti arabi';},

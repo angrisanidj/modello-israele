@@ -577,5 +577,66 @@ const viste = {};      /* cella → insieme dei valori di [X] che può portare *
     'e la cella è una sola: datiTitolo non ne calcola una seconda');
 }
 
+/* LA FORMA CORTA NON PUO' AFFERMARE DOVE LA LUNGA CONDIZIONA.
+ * Il 28 agosto 2026 og:title diceva «Maggioranza solo con i partiti arabi» mentre l'h1
+ * diceva «i partiti arabi POTREBBERO essere decisivi». La corta aveva perso il modale, ed
+ * e' la corta quella che ESCE dalla pagina — la scheda di Telegram, quella di WhatsApp, il
+ * risultato di ricerca — cioe' proprio dove nessuno puo' confrontarla con la lunga. Era la
+ * correzione del 25 agosto su «sono decisivi», che nella forma corta non era mai arrivata.
+ *
+ * LE DUE FORME NON POSSONO ESSERE IDENTICHE, e non e' quello che si prova: il tetto lascia
+ * 45 caratteri alla frase e la lunga di f3 ne usa 76. Il taglio ha il permesso di togliere
+ * il numero, la frequenza, le subordinate. NON ha il permesso di cambiare la POSIZIONE: se
+ * la lunga dice che una cosa potrebbe accadere, la corta non puo' dire che accade.
+ *
+ * SI PROVA LA CLASSE, NON L'ISTANZA: qualunque cella la cui forma lunga porti un modale deve
+ * portarne uno anche nella corta, comprese le celle scritte domani. Asserire che f3 dice
+ * «potrebbero» sarebbe provare la stringa che ho appena scritto io — e infatti questa
+ * asserzione, appena scritta, ne ha trovata subito una seconda che nessuno aveva vista. */
+const MODALE = /pot(rebbe|rebbero|eva|evano)/;
+/* L'INVENTARIO, con l'idioma di opacita.js: una scivolata dichiarata con la sua ragione non fa
+   cadere, una NON dichiarata si'. Serve perche' la corta di DOPO/f3 non si ripara
+   accorciando: il parallelo diretto della PRIMA — «Vigilia: i partiti arabi potevano essere
+   decisivi» — misura 49 caratteri, 64 con la coda, e SFORA il tetto di 60. E ogni altra
+   forma DOPO apre con «Vigilia:», quindi toglierlo per una cella sola romperebbe il
+   registro dell'era. La formulazione la sceglie l'autore: i testi sono suoi, e quarantadue su
+   quarantotto li ha dettati lui. Le misurate che starebbero nel tetto sono nel messaggio
+   del commit del 28 agosto 2026. */
+const SCIVOLATE_NOTE = {
+  'DOPO/f3': 'la corta afferma dove la lunga condiziona. Il parallelo della PRIMA ' +
+             'sfora di 4 caratteri con la coda, quindi la riparazione non è meccanica: ' +
+             'la formulazione la sceglie chi scrive i testi.'
+};
+{
+  const scivola = [];
+  for (const era of ['PRIMA', 'DOPO']) {
+    const L = A['TIT_' + era], C = A['TIT_CORTO_' + era];
+    for (const k of Object.keys(L)) {
+      const lu = L[k](61, 'nel 42%'), co = C[k](61);
+      if (MODALE.test(lu) && !MODALE.test(co)) scivola.push(era + '/' + k);
+    }
+  }
+  const nuove = scivola.filter(k => !(k in SCIVOLATE_NOTE));
+  esito(nuove.length === 0,
+    'nessuna forma corta NON DICHIARATA afferma dove la lunga condiziona',
+    nuove.join(' · '));
+  /* IL VERSO OPPOSTO, o l'inventario diventa una lista di scuse che nessuno toglie: una voce
+     dichiarata che non scivola piu' deve far cadere la prova, cosi' chi la ripara e'
+     costretto a cancellarla. E' il numero di opacita.js che chi ne aggiunge una deve alzare. */
+  const risolte = Object.keys(SCIVOLATE_NOTE).filter(k => scivola.indexOf(k) < 0);
+  esito(risolte.length === 0,
+    'e nessuna voce dichiarata è già risolta: chi la ripara toglie la riga',
+    risolte.join(' · '));
+  /* E IL CONTROLLO CHE SA FALLIRE: se un giorno nessuna forma lunga portasse piu' un modale,
+     la prima asserzione sarebbe verde per ASSENZA DEL CASO, cioe' non proverebbe niente. */
+  const conModale = [];
+  for (const era of ['PRIMA', 'DOPO'])
+    for (const k of Object.keys(A['TIT_' + era]))
+      if (MODALE.test(A['TIT_' + era][k](61, 'nel 42%'))) conModale.push(era + '/' + k);
+  esito(conModale.length > 0,
+    'e almeno una forma lunga porta un modale, o la prova di sopra sarebbe verde per assenza '+
+    'del caso', conModale.join(' · '));
+}
+
 console.log('\ntitolo: ' + ok + '/' + (ok + ko));
 if (ko) process.exit(1);

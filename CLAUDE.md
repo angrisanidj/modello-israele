@@ -3275,6 +3275,76 @@ Quando è servito dichiarare un'ipotesi, quel margine ha deciso da solo dove NON
 andare: la dichiarazione è finita nel testo di condivisione e nella targa dell'anteprima.
 Vedi «Quello che esce dalla pagina deve portare l'ipotesi con sé».
 
+### La forma corta non può AFFERMARE dove la lunga condiziona
+
+Trovato il 28 agosto 2026 guardando l'anteprima di un link, non il codice. `og:title` diceva
+**«Maggioranza solo con i partiti arabi»** mentre l'h1 della stessa pagina diceva **«i
+partiti arabi POTREBBERO essere decisivi»**. Era la correzione del 25 agosto su «sono
+decisivi», **che nella forma corta non era mai arrivata**.
+
+**È peggio di una svista, per dove vive.** La forma corta è quella che **esce** dalla pagina
+— la scheda di Telegram, quella di WhatsApp, il risultato di ricerca — cioè finisce
+precisamente dove nessuno può confrontarla con la lunga. La forma lunga la corregge un
+lettore che ha la pagina davanti; la corta la legge chi ha solo quella.
+
+**Le due non possono essere identiche, e non è quello il vincolo.** Il tetto lascia **45
+caratteri** alla frase — 60 meno i 15 della coda « · Knesset 2026» — e la lunga di `f3` ne usa
+76. Il taglio ha il permesso di togliere il numero, la frequenza, le subordinate. **Non ha il
+permesso di cambiare la posizione**: se la lunga dice che una cosa *potrebbe* accadere, la
+corta non può dire che *accade*.
+
+Applicata: **«I partiti arabi potrebbero essere decisivi»**, 42 caratteri, **57 con la coda**.
+
+#### La prova è sulla classe, e ha trovato subito una seconda scivolata
+
+Asserire che `f3` dice «potrebbero» sarebbe provare la stringa appena scritta. La proprietà è
+un'altra: **qualunque cella la cui forma lunga porti un modale deve portarne uno anche nella
+corta** — comprese le celle scritte domani. Confrontate tutte e ventiquattro le coppie:
+
+| | forma lunga | forma corta | |
+|---|---|---|---|
+| **PRIMA/f3** | «potrebbero essere decisivi» | «Maggioranza solo con i partiti arabi» | **riparata** |
+| **DOPO/f3** | «potevano essere decisivi» | «Vigilia: serve l'appoggio dei partiti arabi» | **aperta** |
+
+La seconda non l'aveva vista nessuno, e l'ha trovata l'asserzione al primo giro.
+
+**E non si ripara accorciando, che è la ragione per cui è dichiarata invece che chiusa**: il
+parallelo diretto — «Vigilia: i partiti arabi potevano essere decisivi» — misura **49
+caratteri, 64 con la coda, e sfora**. Le misurate che starebbero: «Vigilia: i partiti arabi
+potevano decidere» (42 · 57), «Vigilia: gli arabi potevano essere decisivi» (43 · 58), «I
+partiti arabi potevano essere decisivi» (40 · 55, ma perde il «Vigilia:» con cui aprono tutte
+le altre undici forme dell'era). **La formulazione la sceglie l'autore**: quarantadue testi su
+quarantotto li ha dettati lui.
+
+Sta in `SCIVOLATE_NOTE` dentro `test/suite/titolo.js`, con l'idioma di `opacita.js`: una
+scivolata **dichiarata** non fa cadere, una **non dichiarata** sì — e una voce dichiarata che
+**non scivola più** fa cadere anche lei, così chi la ripara è costretto a togliere la riga
+invece di lasciarci una scusa. Più il controllo che sa fallire: se un giorno nessuna forma
+lunga portasse più un modale, la prima asserzione sarebbe verde **per assenza del caso**, e
+allora cade la terza.
+
+Quattro mutazioni, quattro morti: `f3` PRIMA che torna ad affermare, la voce tolta
+dall'inventario, `DOPO/f3` riparato con la voce lasciata, e i modali tolti da tutte e due le
+lunghe.
+
+#### Le altre due famiglie trovate confrontando, che NON sono questa
+
+Il confronto delle ventiquattro coppie ne ha mostrate altre due. **Non sono scivolate di
+posizione e la prova non le copre**: sono qui perché la domanda «quali altre?» è stata fatta
+e queste sono la risposta onesta.
+
+- **Il qualificatore «senza i partiti arabi» sparisce in sei celle** — `f2`, `f6o`, `f7o`,
+  nelle due ere. La lunga di `f2` dice «raggiunge la maggioranza **senza i partiti arabi**»,
+  la corta dice «Maggioranza all'opposizione: X seggi». **È la clausola che distingue quella
+  cella da `f5o3` e da `f3`**, cioè l'intera questione politica del paese, e nella corta non
+  c'è. Non è riparabile con un ritocco: aggiungerla costa 21 caratteri su un budget di 45 che
+  è già quasi tutto speso.
+- **`f4` afferma di più della lunga.** La lunga dice «nessun blocco ha la maggioranza… **a
+  decidere sono le liste dell'ago della bilancia**»; la corta dice «Nessuna maggioranza
+  possibile: stallo pieno». Ma una maggioranza **è** possibile — con l'ago della bilancia, che
+  è esattamente quello che la lunga afferma. La corta **nega la cosa che la lunga dichiara**.
+  È una delle sei celle non dettate dall'autore, e va riletta con le altre cinque.
+
 ### La regola del job: riscritta, non aggirata
 
 Fino al 23 agosto 2026 il lavoro notturno **toccava solo `dati/`**, e quella regola era
@@ -5026,67 +5096,69 @@ su cui poggiava era falso: **«Winter party», al singolare, compare come colonn
 tabella di SEGGI**. Avevo cercato la parola nel markup, visto il plurale, e concluso
 sull'insieme invece che sulla stringa esatta.
 
-### DUE IMMAGINI DELLA STESSA PAGINA CON NUMERI DIVERSI — segnalato il 27 agosto 2026, NON ancora diagnosticato
+### DUE IMMAGINI DELLA STESSA PAGINA CON NUMERI DIVERSI — CHIUSA il 28 agosto 2026
 
-**È la cosa peggiore che un modello previsionale possa fare**, e va chiusa prima di tutto il
-resto. Segnalato dall'autore: nella stessa conversazione la **card esportata** e
-l'**anteprima del link** mostrano numeri diversi.
+**Era la cosa peggiore che un modello previsionale possa fare**, ed era **due difetti
+diversi con lo stesso sintomo**, scoperti a ventiquattr'ore di distanza. Vale la pena
+tenerli distinti, perché il primo era nel nostro codice e il secondo non lo è — e la
+conclusione del secondo è **l'opposto** di quella che questo file dava per scontata.
 
-| | arabi · opposizione · Netanyahu | data |
-|---|---|---|
-| card esportata | **12 · 55 · 53** | — |
-| anteprima del link | **12 · 57 · 51** | **24 agosto** |
+**Primo: l'immagine era vecchia davvero, e nessuno la generava.** `og:image` era dichiarata
+dal 24 agosto e il passo che la produce **non esisteva**: `anteprima.mjs` era scritto,
+provato, con le sue guardie, e non lo chiamava nessuno. Poi il passo è stato aggiunto e
+**andava verde senza fare niente**, perché la guardia del punto d'ingresso componeva
+`'file:///'` a mano e funzionava solo su Windows. Chiuso con `pathToFileURL` — vedi «Far
+riconoscere all'anteprima il proprio punto d'ingresso anche fuori da Windows». Questa metà
+era la **causa 1** delle due che il testo di ieri elencava.
 
-**Quello che si sa già, e sono fatti misurati, non ipotesi:**
+**Secondo, ed è la metà che decide: quando il file era finalmente giusto, WhatsApp mostrava
+i numeri del 28 e Telegram quelli del 24.** Stesso indirizzo, stesso file, due piattaforme
+che dicono cose diverse — quindi il PNG pubblicato è corretto e **il rimedio non è nel
+codice**.
 
-- `dati/stato-job.json` dice oggi **27 agosto, 161 valide, coalizione 53**. Quindi la
-  **card** porta i numeri di adesso e l'**anteprima** porta quelli di prima — 51 era il
-  blocco Netanyahu fino al 26.
-- Il commit del lavoro notturno del 27 agosto (run `33082436348`, `schedule`, riuscito alle
-  14:28 UTC) ha toccato **solo `dati/archivio.json` e `dati/stato-job.json`**. Verificato sul
-  diff: **`dati/anteprima.png` NON è stata riscritta.**
-- L'ultima scrittura dell'immagine è **a mano**, in questa sessione, e viene da un archivio
-  che finiva il **24 agosto** — che è esattamente la data che l'anteprima porta.
+#### L'IMPRONTA NELL'INDIRIZZO NON SERVE, e la ragione è quella misura
 
-**Le due cause sono opposte e i rimedi anche, quindi la diagnosi viene prima:**
+Il testo di ieri diceva: *«se è la 2, la via è un'impronta nell'indirizzo»*. **È sbagliato**,
+e si vede proprio dal caso che avrebbe dovuto confermarlo.
 
-1. **L'immagine sul server è vecchia.** Se il job non rigenera `anteprima.png` — o la
-   rigenera e il commit non passa, che è il difetto dell'`--autostash` appena riparato — non
-   c'è nessuna cache da incolpare: la pagina serve davvero un'immagine di tre giorni fa.
-   Da verificare: che il workflow abbia un passo che la genera, che quel passo giri, e che il
-   file finisca fra quelli messi in scena.
-2. **L'immagine è fresca e l'aggregatore serve la sua copia.** È il rovescio già annotato
-   quando è stata scritta `og:image`: *«gli aggregatori mettono in cache per indirizzo, e
-   l'indirizzo non cambia mai; se un giorno pesa, il rimedio è un indirizzo con la data»*.
+Telegram aveva in cache **la scheda intera** — titolo, descrizione e immagine — e WhatsApp
+no. Il file era **lo stesso per tutti e due**. Quindi il problema non è *quale indirizzo ha
+l'immagine*: è **quando l'aggregatore rilegge la pagina**. E un aggregatore che non rilegge
+la pagina **non vede nemmeno un `og:image` nuovo**, perché quell'indirizzo sta dentro la
+pagina che non ha riletto. L'impronta risolverebbe un problema di secondo ordine — la pagina
+riletta e l'immagine no — al prezzo di **riaprire l'eccezione più stretta del progetto**, la
+regione fra i marcatori «META DELLO STATO», che oggi ammette solo `og:title`.
 
-**Il primo controllo che le separa, e costa dieci secondi**: rigenerare l'immagine con
-`node .github/scripts/anteprima.mjs` e guardare che cosa dice. Il generatore confronta i byte
-prima di scrivere — se risponde «identica, non riscritta», il file su disco è già quello
-giusto e la causa è la 2; se la riscrive, era vecchio e la causa è la 1. E poi confrontare i
-byte del file locale con quello **servito** da Pages, che è la sola cosa che l'aggregatore
-vede.
+**E `og:title` lo conferma**: se la scheda è in cache, il titolo lo è con lei. Una scheda
+vecchia non è un'immagine vecchia sotto una frase fresca — è **tutto vecchio insieme**, che
+è esattamente ciò che ci si aspetta da una cache di scheda e non da una cache di immagine.
 
-**Se è la 2, la via è un'impronta nell'indirizzo** — `og:image` con un parametro che cambia
-quando cambia l'immagine, come fa il modello Germania con `?v=20260825d`. Il costo va
-misurato prima di scriverla, e ha una forma precisa: **l'indirizzo lo scrive il job, quindi
-deve scrivere anche l'impronta, e sta dentro la regione fra i marcatori** «META DELLO STATO».
-Oggi quella regione ammette **solo `og:title`**, e `struttura.mjs` verifica che non contenga
-nient'altro: allargarla è una decisione dichiarata, non uno scarto. L'impronta dev'essere
-del CONTENUTO e non della data, o un giorno senza rilevazioni nuove cambierebbe l'indirizzo
-per niente e butterebbe la cache di tutti.
+#### La condizione per riaprirla, riscritta perché quella di prima si è verificata e dice il contrario
 
-**E `og:title` ha lo stesso problema**, che è la parte che rende la cosa peggiore: se
-l'anteprima è in cache, il **titolo** lo è con lei — quindi non è solo un'immagine vecchia,
-è una frase vecchia sui numeri di tre giorni fa, sotto il nome del modello.
+Nel commit del 27 agosto era scritto: *«se ne riparla se si vede una scheda vecchia dopo
+qualche notte di job che rigenera davvero»*. **Quella condizione si è verificata il giorno
+dopo, la scheda vecchia c'era — e la causa non era quella che l'impronta risolve.** Lasciata
+com'era, porterebbe a riaprire la regione dei marcatori per niente, che è il costo più alto
+del progetto pagato per il problema sbagliato.
 
-**Le domande ancora aperte**, da rispondere prima di scegliere:
+**La condizione giusta è un'altra, ed è più stretta**: si riapre **solo** se si osserva un
+aggregatore che ha **riletto la pagina** — titolo o descrizione nuovi — **e continua a
+servire l'immagine vecchia**. Quello è il solo caso che un'impronta chiude. Finché titolo e
+immagine invecchiano *insieme*, la cache è della scheda e l'indirizzo dell'immagine non
+c'entra.
 
-- quanto dura la cache di **WhatsApp, Facebook, X e Telegram**;
-- se esista un modo di forzarne l'aggiornamento che **non** sia cambiare l'indirizzo — il
-  Debugger di Facebook lo fa per il suo grafo, e va verificato se WhatsApp lo condivide;
-- se l'impronta debba stare anche su `og:url` e sul `canonical`, o solo su `og:image`: sono
-  tre indirizzi e due significati, e cambiare quello sbagliato spezzerebbe la deduplicazione
-  che gli aggregatori fanno per pagina.
+#### La riga che vale per tutte e quattro le piattaforme
+
+**Un messaggio già inviato tiene la sua anteprima per sempre.** Svuotare la cache agisce solo
+sulle condivisioni **successive**: la conversazione in cui il difetto è comparso resta com'è,
+e nessun intervento su questo repository la cambierà mai. Chi verifica una riparazione deve
+mandare il link **in una chat nuova**, o misura il passato.
+
+#### Lo strumento pubblico ce l'ha solo Telegram
+
+`@WebpageBot`, verificato il 28 agosto 2026 ed è ancora quello: `/start` la prima volta, poi
+si incolla l'indirizzo, **fino a dieci per volta**. Forza i crawler di Telegram a rileggere
+le meta. Le altre tre non offrono niente di equivalente a chiunque.
 
 ### Nell'ordine, quando si riprende
 
