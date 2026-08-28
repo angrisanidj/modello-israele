@@ -55,6 +55,26 @@ sparito dal markup — ora `esegui.mjs` la dichiara fallita); un'asserzione scri
 secondo argomento (aff.js, due su due); e un'asserzione tautologica —
 `esito(D.title === undefined || true, …)` — che non può cadere.
 
+**E il rovescio esatto, incontrato il 28 agosto 2026: un comando che segnala il SUCCESSO con
+il codice del fallimento.** Un controllo scritto come
+`grep -c "nessuna asserzione" verifica.log` esce **1 quando non trova niente** — che è la
+convenzione di `grep`, «nessuna corrispondenza» — cioè restituisce fallimento **proprio nel
+caso buono**. Messo in coda a `npm run verifica`, ha fatto risultare rossa una verifica
+passata a 2418 su 2418, e il rosso l’ha prodotto la riga che doveva confermare che andava
+tutto bene.
+
+È **la stessa famiglia dei quattordici `forEach` che uscivano zero stampando KO, rovesciata**:
+là il codice d’uscita diceva bene dove il testo diceva male, qui dice male dove non c’è
+niente da dire. La lezione è la stessa e vale per qualunque comando messo in coda a una
+verifica: **il codice d’uscita di un filtro non è il verdetto di un controllo.** Se serve
+contare qualcosa e fallire su un numero, il conteggio va confrontato esplicitamente — `test
+"$(grep -c … || true)" -eq 0` — o si sta lasciando decidere l’esito a una convenzione che
+parla di un’altra cosa.
+
+Costa poco riconoscerlo e molto no: un rosso falso su un banco verde manda a cercare un
+difetto che non c’è, ed è esattamente il tempo che si sarebbe risparmiato scrivendo la riga
+giusta.
+
 **Nessuna modifica a `index.html` è finita finché `npm run verifica` non passa per intero.**
 
 E `npm run verifica` ha un terzo esito, dal 23 agosto 2026: `··`, per un controllo che in
@@ -3339,7 +3359,7 @@ fuori contesto. Nella forma DOPO invece «dell’ago» resta, perché lì il par
 basta a disambiguare: **«Vigilia: decidevano le liste dell’ago della bilancia» misura 52
 caratteri e 67 con la coda, e sfora.**
 
-#### Famiglia 3 · il qualificatore che sparisce — DUE su sei chiuse
+#### Famiglia 3 · il qualificatore che sparisce — CHIUSE tutte e sei
 
 Sei celle lasciavano cadere **«senza i partiti arabi»**: `f2`, `f6o`, `f7o`, nelle due ere. È
 la clausola che distingue quella cella da `f5o3` e da `f3`, cioè l’intera questione politica
@@ -3347,23 +3367,49 @@ del paese. **«Da sola» dice la stessa cosa e costa 8 caratteri invece di 21**,
 modello l’alternativa è una sola.
 
 **Non entra come inserimento in nessuna delle sei** — misurato con `[X]` a **tre cifre**, che
-è il caso che il tetto deve reggere. Due entrano barattandola con « seggi»:
+è il caso che il tetto deve reggere. Sono entrate tutte, ma pagando due prezzi diversi, e la
+differenza fra i due è la cosa da ricordare.
 
-| | corta nuova | con coda | |
+| | corta nuova | con coda | che cosa ha ceduto |
 |---|---|---|---|
-| **PRIMA/f2** | «Maggioranza all’opposizione da sola: 120» | **55** | applicata |
-| **PRIMA/f7o** | «Opposizione oltre la soglia da sola: 120» | **55** | applicata |
-| PRIMA/f6o | non ha « seggi» da barattare | 62 | **aperta** |
-| DOPO/f2 · f6o · f7o | | 66 · 66 · 66 | **aperte** |
+| **PRIMA/f2** | «Maggioranza all’opposizione da sola: 120» | 55 | « seggi» |
+| **PRIMA/f7o** | «Opposizione oltre la soglia da sola: 120» | 55 | « seggi» |
+| **PRIMA/f6o** | «Maggioranza minima, opposizione da sola: 120» | 59 | «all’» |
+| **DOPO/f2** | «Vigilia: maggioranza all’opposizione da sola» | 59 | **`[X]`** |
+| **DOPO/f6o** | «Vigilia: minima all’opposizione da sola» | 54 | **`[X]`** (già assente) |
+| **DOPO/f7o** | «Vigilia: opposizione oltre la soglia da sola» | 59 | **`[X]`** |
 
-**Il baratto è voluto e va saputo**: i sei caratteri di « seggi» il lettore li ricava dal
-contesto — il titolo di una pagina che conta seggi — mentre ventun caratteri di clausola
+**NELLE FORME `DOPO` IL NUMERO CONTA MENO, ed è la ragione che governa quelle tre.** Quelle
+frasi si leggono **a elezioni avvenute**, in un’anteprima condivisa mesi dopo, dove chi le
+incontra vuole sapere **cosa diceva il modello** — non quanti seggi esatti gli assegnava. La
+clausola «da sola» distingue lo scenario; `[X]` è un dettaglio che chi lo vuole trova aprendo
+la pagina.
+
+**Nelle `PRIMA` vale il contrario e il numero resta: lì è la notizia.** `f6o` è l’eccezione,
+e non per scelta editoriale ma perché il tetto non lascia entrare tutti e due i pezzi — non
+ha « seggi» da barattare. Lì si è tenuto **«Maggioranza»**, che dice *cosa sta succedendo*:
+«minima» da sola non lo dice, e un lettore che incontra la sola parola «Minima» non sa minima
+di che cosa. Nella `DOPO` invece «minima» può restare sola, perché la forma `PRIMA` le sta
+accanto e disambigua — **lo stesso argomento con cui «dell’ago» resta nella `f4` di
+quell’era.**
+
+**Il baratto con « seggi» è voluto e va saputo**: i sei caratteri il lettore li ricava dal
+contesto — è il titolo di una pagina che conta seggi — mentre ventun caratteri di clausola
 politica non si ricavano da niente.
 
-**Le quattro aperte non hanno una prova, ed è dichiarato**: togliere un qualificatore non è
-affermare di più, quindi nessuna delle due asserzioni le coglie. Verificato mutando —
-rimettere `f2` come stava lascia il banco verde. Sta scritto qui, e la mutazione che
-sopravvive è **prevista**, non un buco scoperto dopo.
+#### E questa famiglia NON HA UNA PROVA, per costruzione
+
+Togliere un qualificatore **non è affermare di più**, quindi nessuna delle due proprietà la
+coglie: una guarda che il modale sopravviva, l’altra che la corta non alzi la scala, e una
+corta che *toglie* passa tutte e due.
+
+**Verificato mutando, non sperato**: rimettere `f2` come stava — «Vigilia: opposizione a X e
+la maggioranza», senza «da sola» — **lascia il banco verde**. È il mutante che sopravvive
+*per progetto*.
+
+**Sta scritto qui perché chi lo trova vivo domani non lo chiami buco.** Un mutante vivo in
+questo progetto è quasi sempre una prova che manca; questo no, ed è l’unico modo di
+distinguere i due casi — dichiararlo prima che qualcuno lo trovi.
 
 #### Le prove: due classi, e nessuna nomina una stringa
 

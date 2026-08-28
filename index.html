@@ -3278,7 +3278,13 @@ var TIT_CORTO_PRIMA={
  f5o4:function(X){return 'Opposizione a '+X+', stallo pieno';},
  f5e:function(X){return 'Netanyahu e opposizione a '+X+': stallo pieno';},
  f6c:function(X){return 'Maggioranza minima al blocco Netanyahu: '+X;},
- f6o:function(X){return 'Maggioranza minima all’opposizione: '+X;},
+/* L'ECCEZIONE DELLE FORME PRIMA: qui il numero E' la notizia, e infatti f2 e f7o lo tengono
+    barattando « seggi» con «da sola». f6o non ha « seggi» da barattare — «Maggioranza minima
+    all’opposizione da sola: 120» misura 62 con la coda — quindi il tetto non lascia entrare
+    tutti e due i pezzi e uno va scelto. Si tiene «Maggioranza», che dice COSA STA SUCCEDENDO:
+    «minima» da sola non lo dice, e un lettore che incontra la sola parola «Minima» non sa
+    minima cosa. 44 caratteri, 59 con la coda, con [X] a tre cifre. */
+ f6o:function(X){return 'Maggioranza minima, opposizione da sola: '+X;},
  f7c:function(X){return 'Netanyahu oltre la soglia: '+X+' seggi';},
 /* Stesso baratto della f2 qui sopra, stessa ragione: la lunga dice «senza i partiti arabi»
     e la corta lo lasciava cadere. 40 caratteri, 55 con la coda. */
@@ -3286,7 +3292,14 @@ var TIT_CORTO_PRIMA={
 };
 var TIT_CORTO_DOPO={
  f1:function(X){return 'Vigilia: Netanyahu a '+X+' e la maggioranza';},
- f2:function(X){return 'Vigilia: opposizione a '+X+' e la maggioranza';},
+/* NELLE FORME DOPO IL NUMERO CONTA MENO, ed e' la ragione che governa tutte e tre le corte
+    di quest’era riscritte il 28 agosto 2026. Queste frasi si leggono A ELEZIONI AVVENUTE, in
+    un’anteprima condivisa mesi dopo, dove chi le incontra vuole sapere COSA DICEVA IL MODELLO
+    e non quanti seggi esatti gli assegnava. La clausola «da sola» distingue lo scenario — la
+    maggioranza senza i partiti arabi da quella che ne ha bisogno, che e' l’intera questione
+    politica del paese — mentre [X] e' un dettaglio che chi lo vuole trova aprendo la pagina.
+    Nelle forme PRIMA vale il contrario e il numero resta: li' e' la notizia. 44 · 59. */
+ f2:function(){return 'Vigilia: maggioranza all’opposizione da sola';},
 /* Stessa correzione della f3 di sopra, altra era, e non si e' potuta fare copiando: il
     parallelo diretto — «Vigilia: i partiti arabi potevano essere decisivi» — misura 49
     caratteri e 64 con la coda, cioe' SFORA. «Potevano decidere» dice la stessa cosa in 42,
@@ -3303,9 +3316,13 @@ var TIT_CORTO_DOPO={
  f5o4:function(X){return 'Vigilia: opposizione a '+X+', stallo pieno';},
  f5e:function(X){return 'Vigilia: due blocchi a '+X+', stallo pieno';},
  f6c:function(){return 'Vigilia: maggioranza minima a Netanyahu';},
- f6o:function(){return 'Vigilia: maggioranza minima all’opposizione';},
+/* Come la f2 di sopra: [X] non c’era gia' prima, e adesso entra «da sola» al posto suo.
+    Qui «minima» puo' restare da sola perche' la forma PRIMA le sta accanto e disambigua,
+    che e' lo stesso argomento con cui «dell’ago» resta nella f4 di quest’era. 39 · 54. */
+ f6o:function(){return 'Vigilia: minima all’opposizione da sola';},
  f7c:function(X){return 'Vigilia: Netanyahu a '+X+', oltre la soglia';},
- f7o:function(X){return 'Vigilia: opposizione a '+X+', oltre la soglia';}
+/* Come le due di sopra: si scambia [X] con «da sola». 44 · 59. */
+ f7o:function(){return 'Vigilia: opposizione oltre la soglia da sola';}
 };
 /* I seggi che il titolo nomina e la frequenza con cui quel numero esce, da una funzione
    sola per le due forme: se il lungo dicesse 62 e il corto 61, nessuna prova che le
