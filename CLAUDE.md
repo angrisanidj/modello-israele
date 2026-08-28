@@ -3275,75 +3275,140 @@ Quando è servito dichiarare un'ipotesi, quel margine ha deciso da solo dove NON
 andare: la dichiarazione è finita nel testo di condivisione e nella targa dell'anteprima.
 Vedi «Quello che esce dalla pagina deve portare l'ipotesi con sé».
 
-### La forma corta non può AFFERMARE dove la lunga condiziona
+### La forma corta non può dire più della lunga
 
-Trovato il 28 agosto 2026 guardando l'anteprima di un link, non il codice. `og:title` diceva
-**«Maggioranza solo con i partiti arabi»** mentre l'h1 della stessa pagina diceva **«i
-partiti arabi POTREBBERO essere decisivi»**. Era la correzione del 25 agosto su «sono
-decisivi», **che nella forma corta non era mai arrivata**.
+Trovato il 28 agosto 2026 guardando l'anteprima di un link, non il codice — e cercando la
+classe invece dell'istanza sono venuti fuori **tre difetti dove se ne cercava uno**, di due
+famiglie diverse.
 
 **È peggio di una svista, per dove vive.** La forma corta è quella che **esce** dalla pagina
 — la scheda di Telegram, quella di WhatsApp, il risultato di ricerca — cioè finisce
-precisamente dove nessuno può confrontarla con la lunga. La forma lunga la corregge un
-lettore che ha la pagina davanti; la corta la legge chi ha solo quella.
+precisamente dove nessuno può confrontarla con la lunga. La lunga la corregge un lettore che
+ha la pagina davanti; la corta la legge chi ha solo quella.
 
 **Le due non possono essere identiche, e non è quello il vincolo.** Il tetto lascia **45
 caratteri** alla frase — 60 meno i 15 della coda « · Knesset 2026» — e la lunga di `f3` ne usa
 76. Il taglio ha il permesso di togliere il numero, la frequenza, le subordinate. **Non ha il
-permesso di cambiare la posizione**: se la lunga dice che una cosa *potrebbe* accadere, la
-corta non può dire che *accade*.
+permesso di cambiare la posizione né di alzare la scala.**
 
-Applicata: **«I partiti arabi potrebbero essere decisivi»**, 42 caratteri, **57 con la coda**.
+E una cosa da sapere prima di misurare: **il tetto si verifica con `[X]` a TRE cifre**, non a
+due. Un blocco arriva a 120, e quella cifra in più ha deciso da sola metà delle risposte qui
+sotto.
 
-#### La prova è sulla classe, e ha trovato subito una seconda scivolata
-
-Asserire che `f3` dice «potrebbero» sarebbe provare la stringa appena scritta. La proprietà è
-un'altra: **qualunque cella la cui forma lunga porti un modale deve portarne uno anche nella
-corta** — comprese le celle scritte domani. Confrontate tutte e ventiquattro le coppie:
+#### Famiglia 1 · la corta perde il modale della lunga — CHIUSA
 
 | | forma lunga | forma corta | |
 |---|---|---|---|
-| **PRIMA/f3** | «potrebbero essere decisivi» | «Maggioranza solo con i partiti arabi» | **riparata** |
-| **DOPO/f3** | «potevano essere decisivi» | «Vigilia: serve l'appoggio dei partiti arabi» | **aperta** |
+| **PRIMA/f3** | «potrebbero essere decisivi» | ~~«Maggioranza solo con i partiti arabi»~~ → **«I partiti arabi potrebbero essere decisivi»** (42 · 57) | **riparata** |
+| **DOPO/f3** | «potevano essere decisivi» | ~~«Vigilia: serve l'appoggio dei partiti arabi»~~ → **«Vigilia: i partiti arabi potevano decidere»** (42 · 57) | **riparata** |
 
-La seconda non l'aveva vista nessuno, e l'ha trovata l'asserzione al primo giro.
+La seconda non l'aveva vista nessuno: l'ha trovata l'asserzione al primo giro.
 
-**E non si ripara accorciando, che è la ragione per cui è dichiarata invece che chiusa**: il
-parallelo diretto — «Vigilia: i partiti arabi potevano essere decisivi» — misura **49
-caratteri, 64 con la coda, e sfora**. Le misurate che starebbero: «Vigilia: i partiti arabi
-potevano decidere» (42 · 57), «Vigilia: gli arabi potevano essere decisivi» (43 · 58), «I
-partiti arabi potevano essere decisivi» (40 · 55, ma perde il «Vigilia:» con cui aprono tutte
-le altre undici forme dell'era). **La formulazione la sceglie l'autore**: quarantadue testi su
-quarantotto li ha dettati lui.
+**E non si è potuta riparare copiando la prima**: il parallelo diretto — «Vigilia: i partiti
+arabi potevano essere decisivi» — misura **49 caratteri, 64 con la coda, e sfora**. Le due
+alternative che stavano nel tetto sono state **scartate con la loro ragione**, e le ragioni
+valgono oltre il caso: «Vigilia: gli arabi potevano essere decisivi» (43 · 58) dice **«gli
+arabi»**, che è una designazione **etnica** dove «i partiti arabi» è **politica**, e la pagina
+tiene quella distinzione dappertutto; «I partiti arabi potevano essere decisivi» (40 · 55)
+rompe il **«Vigilia:»** con cui aprono tutte e dodici le forme dell'era.
 
-Sta in `SCIVOLATE_NOTE` dentro `test/suite/titolo.js`, con l'idioma di `opacita.js`: una
-scivolata **dichiarata** non fa cadere, una **non dichiarata** sì — e una voce dichiarata che
-**non scivola più** fa cadere anche lei, così chi la ripara è costretto a togliere la riga
-invece di lasciarci una scusa. Più il controllo che sa fallire: se un giorno nessuna forma
-lunga portasse più un modale, la prima asserzione sarebbe verde **per assenza del caso**, e
-allora cade la terza.
+**L'inventario `SCIVOLATE_NOTE` è tornato vuoto**, e resta la struttura senza la voce: è
+l'idioma di `opacita.js` che funziona fino in fondo — la voce dichiarata è stata tolta perché
+il difetto è stato chiuso, e la prova lo pretende.
 
-Quattro mutazioni, quattro morti: `f3` PRIMA che torna ad affermare, la voce tolta
-dall'inventario, `DOPO/f3` riparato con la voce lasciata, e i modali tolti da tutte e due le
-lunghe.
+#### Famiglia 2 · la corta AFFERMA più della lunga — CHIUSA
 
-#### Le altre due famiglie trovate confrontando, che NON sono questa
+**`f4` non perdeva nessun modale e sbagliava lo stesso, anzi peggio.** La lunga dice «nessun
+blocco ha la maggioranza… **a decidere sono le liste dell’ago della bilancia**»; la corta
+diceva «Nessuna maggioranza **possibile**: stallo pieno». Ma una maggioranza **è** possibile —
+con l’ago della bilancia, cioè con la cosa che la lunga afferma. **La corta negava quello che
+la lunga dichiara**: non una sfumatura persa, una contraddizione. E dal 28 agosto non era più
+un caso di scuola: l’ago della bilancia ha **cinque seggi**.
 
-Il confronto delle ventiquattro coppie ne ha mostrate altre due. **Non sono scivolate di
-posizione e la prova non le copre**: sono qui perché la domanda «quali altre?» è stata fatta
-e queste sono la risposta onesta.
+| | corta nuova | car. | con coda |
+|---|---|---|---|
+| **PRIMA/f4** | «Decidono le liste dell’ago della bilancia» | 41 | **56** |
+| **DOPO/f4** | «Vigilia: decidevano le liste dell’ago» | 37 | **52** |
 
-- **Il qualificatore «senza i partiti arabi» sparisce in sei celle** — `f2`, `f6o`, `f7o`,
-  nelle due ere. La lunga di `f2` dice «raggiunge la maggioranza **senza i partiti arabi**»,
-  la corta dice «Maggioranza all'opposizione: X seggi». **È la clausola che distingue quella
-  cella da `f5o3` e da `f3`**, cioè l'intera questione politica del paese, e nella corta non
-  c'è. Non è riparabile con un ritocco: aggiungerla costa 21 caratteri su un budget di 45 che
-  è già quasi tutto speso.
-- **`f4` afferma di più della lunga.** La lunga dice «nessun blocco ha la maggioranza… **a
-  decidere sono le liste dell'ago della bilancia**»; la corta dice «Nessuna maggioranza
-  possibile: stallo pieno». Ma una maggioranza **è** possibile — con l'ago della bilancia, che
-  è esattamente quello che la lunga afferma. La corta **nega la cosa che la lunga dichiara**.
-  È una delle sei celle non dettate dall'autore, e va riletta con le altre cinque.
+Dicono **chi decide invece di negare**, e sono quasi verbatim dalla lunga.
+
+**Due scarti con la loro ragione, e valgono oltre il caso.** «Nessun blocco ha i numeri:
+decide l’ago» (54) sta nel tetto ed è stata scartata perché **«l’ago» senza «della bilancia»
+è un termine tecnico che fuori contesto nessuno riconosce** — e la corta vive precisamente
+fuori contesto. Nella forma DOPO invece «dell’ago» resta, perché lì il parallelo con la PRIMA
+basta a disambiguare: **«Vigilia: decidevano le liste dell’ago della bilancia» misura 52
+caratteri e 67 con la coda, e sfora.**
+
+#### Famiglia 3 · il qualificatore che sparisce — DUE su sei chiuse
+
+Sei celle lasciavano cadere **«senza i partiti arabi»**: `f2`, `f6o`, `f7o`, nelle due ere. È
+la clausola che distingue quella cella da `f5o3` e da `f3`, cioè l’intera questione politica
+del paese. **«Da sola» dice la stessa cosa e costa 8 caratteri invece di 21**, perché nel
+modello l’alternativa è una sola.
+
+**Non entra come inserimento in nessuna delle sei** — misurato con `[X]` a **tre cifre**, che
+è il caso che il tetto deve reggere. Due entrano barattandola con « seggi»:
+
+| | corta nuova | con coda | |
+|---|---|---|---|
+| **PRIMA/f2** | «Maggioranza all’opposizione da sola: 120» | **55** | applicata |
+| **PRIMA/f7o** | «Opposizione oltre la soglia da sola: 120» | **55** | applicata |
+| PRIMA/f6o | non ha « seggi» da barattare | 62 | **aperta** |
+| DOPO/f2 · f6o · f7o | | 66 · 66 · 66 | **aperte** |
+
+**Il baratto è voluto e va saputo**: i sei caratteri di « seggi» il lettore li ricava dal
+contesto — il titolo di una pagina che conta seggi — mentre ventun caratteri di clausola
+politica non si ricavano da niente.
+
+**Le quattro aperte non hanno una prova, ed è dichiarato**: togliere un qualificatore non è
+affermare di più, quindi nessuna delle due asserzioni le coglie. Verificato mutando —
+rimettere `f2` come stava lascia il banco verde. Sta scritto qui, e la mutazione che
+sopravvive è **prevista**, non un buco scoperto dopo.
+
+#### Le prove: due classi, e nessuna nomina una stringa
+
+Asserire che `f3` dice «potrebbero» sarebbe provare la stringa appena scritta. Le due
+proprietà sono meccaniche e valgono anche per le celle scritte domani:
+
+1. **il modale sopravvive** — se la lunga porta `potrebbe/potrebbero/poteva/potevano`, la
+   corta ne porta uno;
+2. **la corta non alza la scala** — un elenco chiuso di parole che rendono una proposizione
+   assoluta (`solo`, `possibile`, `sempre`, `mai`, `unico`, `certo`, `sicuro`) non può
+   comparire nella corta se non compare nella lunga.
+
+La seconda è **grossolana di proposito**: non legge l’italiano, guarda un elenco. Coglie i due
+casi veri di questo file senza pretendere di capire la frase.
+
+**E CONFRONTA PAROLE INTERE, non sottostringhe — una scelta che un mutante ha dovuto
+insegnarmi.** Avevo scritto che serviva per non accendere «da sola», ed **era sbagliato**:
+«solo» non è sottostringa di «sola», s-o-l-a contro s-o-l-o, quindi quel caso non distingue
+le due strategie e il mutante a sottostringa **sopravviveva**. Il caso vero è una parola
+dell’elenco **nascosta dentro un’altra** — «comunicata» contiene «unica» — e adesso è
+l’autotest che uccide quel mutante. La difesa scritta a ragionamento era plausibile, coerente
+e falsa: l’ha smentita la mutazione, non la rilettura.
+
+**Il limite è dichiarato**: nessuna delle due coglie la **perdita** di un qualificatore, cioè
+la famiglia 3. Una corta che lascia cadere «senza i partiti arabi» passa, perché toglie
+invece di aggiungere.
+
+**I due inventari sono tornati vuoti**, ed è l’idioma di `opacita.js` che gira per intero:
+una voce **non dichiarata** fa cadere, una voce dichiarata **già risolta** fa cadere anche
+lei — così chi ripara è costretto a togliere la riga invece di lasciarci una scusa — e le
+quattro celle riparate hanno fatto togliere le loro righe.
+
+**E il controllo che sa fallire è diverso per le due, e la differenza conta.** Per il modale è
+una proprietà del corpus: «almeno una lunga porta un modale», e resta vera dopo la
+riparazione. Per la scala **non poteva esserlo**: «almeno una cella la esercita» sarebbe
+caduta *per la riparazione* invece che per un difetto, appena f4 è stata sistemata. Lì il
+rilevatore si prova su **casi costruiti** — sa accendersi, sa stare zitto, confronta parole
+intere — così la garanzia non dipende dal corpus e resta valida il giorno in cui il corpus è
+pulito. *Una guardia che si spegne quando il codice guarisce non è una guardia.*
+
+**Quindici mutazioni fra i tre giri, quattordici morte e una viva per progetto**: le quattro
+celle che tornano al testo vecchio, le voci tolte dai due inventari, le celle «riparate» con
+la voce lasciata, i modali tolti da tutte le lunghe, l’elenco delle assolute svuotato, il
+confronto portato a sottostringa. **La viva è `f2` che riperde «da sola»**: è la famiglia 3,
+che per costruzione nessuna prova copre, ed è verificata come tale invece che sperata.
 
 ### La regola del job: riscritta, non aggirata
 

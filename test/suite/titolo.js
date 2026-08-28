@@ -602,11 +602,11 @@ const MODALE = /pot(rebbe|rebbero|eva|evano)/;
    registro dell'era. La formulazione la sceglie l'autore: i testi sono suoi, e quarantadue su
    quarantotto li ha dettati lui. Le misurate che starebbero nel tetto sono nel messaggio
    del commit del 28 agosto 2026. */
-const SCIVOLATE_NOTE = {
-  'DOPO/f3': 'la corta afferma dove la lunga condiziona. Il parallelo della PRIMA ' +
-             'sfora di 4 caratteri con la coda, quindi la riparazione non è meccanica: ' +
-             'la formulazione la sceglie chi scrive i testi.'
-};
+/* VUOTO, ed e' l'idioma che funziona: DOPO/f3 e' stata riparata il 28 agosto 2026 e la
+   sua riga e' stata tolta, come la prova di sotto pretende. Resta la struttura, non la
+   voce: il giorno in cui una corta perde il modale della sua lunga, o si ripara o si
+   dichiara qui con la ragione. */
+const SCIVOLATE_NOTE = {};
 {
   const scivola = [];
   for (const era of ['PRIMA', 'DOPO']) {
@@ -636,6 +636,83 @@ const SCIVOLATE_NOTE = {
   esito(conModale.length > 0,
     'e almeno una forma lunga porta un modale, o la prova di sopra sarebbe verde per assenza '+
     'del caso', conModale.join(' · '));
+}
+
+/* E LA CORTA NON PUO' AFFERMARE PIU' DELLA LUNGA — la proprieta' che ha lasciato passare f4.
+ * Il modale e' un caso particolare: la corta di f3 diceva «Maggioranza SOLO con i partiti
+ * arabi» dove la lunga condizionava. Ma f4 non perdeva nessun modale e sbagliava lo stesso,
+ * anzi peggio: la lunga dice «nessun blocco ha la maggioranza... a decidere sono le liste
+ * dell ago della bilancia», la corta diceva «Nessuna maggioranza POSSIBILE». Una maggioranza
+ * E possibile — con l ago della bilancia, cioe' con la cosa che la lunga afferma. La corta
+ * NEGAVA quello che la lunga dichiara, e con l ago a cinque seggi non era piu' un caso di
+ * scuola. Riparata il 28 agosto 2026.
+ *
+ * COME SI PROVA SENZA LEGGERE L ITALIANO. Non si confrontano i significati: si guarda un
+ * elenco chiuso di parole che rendono una proposizione ASSOLUTA. Se la corta ne porta una
+ * che la lunga non porta, sta affermando su una scala che la lunga non usa.
+ *
+ * SI CONFRONTANO PAROLE INTERE, non sottostringhe, e la ragione e' «da sola». «Solo» e' un
+ * avverbio restrittivo che stringe la proposizione — «maggioranza SOLO con i partiti arabi»
+ * — mentre «sola» e' un aggettivo che dice compagnia: «la maggioranza da sola», cioe' senza
+ * i partiti arabi. Due parole diverse con due forze diverse, e le celle che portano «da
+ * sola» dicono ESATTAMENTE quello che dice la loro lunga. Un confronto per sottostringa le
+ * avrebbe accese tutte e sei, cioe' avrebbe chiamato difetto una riparazione.
+ *
+ * Il limite, scritto perche' non si scopra dopo: NON coglie la perdita di un qualificatore.
+ * Una corta che lascia cadere «senza i partiti arabi» senza sostituirlo passa, perche'
+ * toglie invece di aggiungere. Quelle sono annotate in CLAUDE.md e non hanno una prova. */
+const ASSOLUTI = ['solo', 'soltanto', 'unico', 'unica', 'possibile', 'possibili',
+                  'impossibile', 'impossibili', 'sempre', 'mai', 'certo', 'certa',
+                  'certi', 'sicuro', 'sicura'];
+const LETTERE = 'abcdefghijklmnopqrstuvwxyzàèéìòóùïü';
+function parole(t){
+  let fuori = '';
+  for (const ch of (t + '').toLowerCase()) fuori += LETTERE.indexOf(ch) >= 0 ? ch : ' ';
+  return fuori.split(' ').filter(Boolean);
+}
+function alzaLaScala(lungo, corto){
+  const L = parole(lungo);
+  return parole(corto).filter(w => ASSOLUTI.indexOf(w) >= 0 && L.indexOf(w) < 0);
+}
+/* VUOTO: PRIMA/f4 e DOPO/f4 sono state riparate il 28 agosto 2026 e le loro righe tolte,
+   come la prova di sotto pretende. Resta la struttura, non la voce. */
+const AFFERMA_NOTE = {};
+{
+  const piu = [];
+  for (const era of ['PRIMA', 'DOPO']) {
+    const L = A['TIT_' + era], C = A['TIT_CORTO_' + era];
+    for (const k of Object.keys(L))
+      if (alzaLaScala(L[k](120, 'nel 42%'), C[k](120)).length) piu.push(era + '/' + k);
+  }
+  const nuove = piu.filter(k => !(k in AFFERMA_NOTE));
+  esito(nuove.length === 0,
+    'nessuna forma corta NON DICHIARATA afferma su una scala che la lunga non usa',
+    nuove.join(' · '));
+  const risolte = Object.keys(AFFERMA_NOTE).filter(k => piu.indexOf(k) < 0);
+  esito(risolte.length === 0,
+    'e nessuna voce dichiarata è già risolta: chi la ripara toglie la riga',
+    risolte.join(' · '));
+  /* IL CONTROLLO CHE SA FALLIRE, e qui NON puo' essere «almeno una cella la esercita»: con
+     le due riparate nessuna la esercita piu', e quella guardia cadrebbe per una riparazione
+     invece che per un difetto. Si prova il RILEVATORE su casi costruiti, cosi' la garanzia
+     non dipende dal corpus e resta valida il giorno in cui il corpus e' pulito. */
+  esito(alzaLaScala('nessun blocco ha la maggioranza', 'nessuna maggioranza possibile').length > 0,
+    'e il rilevatore sa accendersi: su una corta costruita che dice «possibile» dove la '+
+    'lunga non lo dice, trova la parola');
+  esito(alzaLaScala('una maggioranza possibile', 'nessuna maggioranza possibile').length === 0,
+    'e sa stare zitto quando la parola sta anche nella lunga: li non è la corta ad alzare '+
+    'la scala');
+  /* E QUESTA E' LA SOLA CHE SEPARA LE DUE STRATEGIE, scritta dopo che un mutante e'
+     sopravvissuto: «da sola» NON le distingue, perche' «solo» non e' sottostringa di «sola»
+     — s-o-l-a contro s-o-l-o. La difesa che avevo scritto era sbagliata. Il caso vero e' una
+     parola dell elenco NASCOSTA DENTRO un altra: «comunicata» contiene «unica», e per un
+     confronto a sottostringa e' un assoluto dove non c e' niente. Con le parole intere no. */
+  esito(alzaLaScala('il blocco governa', 'la scelta è comunicata').length === 0,
+    'e confronta PAROLE INTERE e non sottostringhe: «comunicata» contiene «unica», che a '+
+    'pezzi sembrerebbe un assoluto');
+  esito(alzaLaScala('la maggioranza senza i partiti arabi', 'la maggioranza da sola').length === 0,
+    'e «da sola» non conta come «solo»: un aggettivo di compagnia non è un avverbio '+
+    'restrittivo, e il confronto è per parole intere');
 }
 
 console.log('\ntitolo: ' + ok + '/' + (ok + ko));

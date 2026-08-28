@@ -3247,7 +3247,14 @@ var TIT_DOPO={
 var TIT_CODA=' · Knesset 2026';
 var TIT_CORTO_PRIMA={
  f1:function(X){return 'Netanyahu alla maggioranza: '+X+' seggi';},
- f2:function(X){return 'Maggioranza all’opposizione: '+X+' seggi';},
+/* «DA SOLA» AL POSTO DI « SEGGI», e il baratto e' voluto. La lunga dice «raggiunge la
+    maggioranza SENZA I PARTITI ARABI», ed e' la clausola che distingue questa cella da f5o3
+    e da f3 — cioe' l'intera questione politica del paese — mentre la corta la lasciava
+    cadere. «Senza i partiti arabi» costa 21 caratteri e non ci sta; «da sola» ne costa 8 e
+    dice la stessa cosa, perche' nel modello l'alternativa e' una sola. I 6 di « seggi» li
+    ricava il lettore dal contesto, la clausola no. 40 caratteri, 55 con la coda — misurati
+    con [X] a TRE cifre, che e' il caso che il tetto deve reggere. */
+ f2:function(X){return 'Maggioranza all’opposizione da sola: '+X;},
 /* f3 AFFERMAVA DOVE LA LUNGA CONDIZIONA, ed e' la correzione del 25 agosto 2026 su
     «sono decisivi» che nella forma corta non era mai arrivata. La lunga dice «i partiti
     arabi POTREBBERO essere decisivi»; la corta diceva «Maggioranza solo con i partiti
@@ -3258,7 +3265,14 @@ var TIT_CORTO_PRIMA={
     l'unica cosa che il taglio non ha il permesso di cambiare.
     Misurata: 42 caratteri, 57 con la coda, contro un tetto di 60. */
  f3:function(){return 'I partiti arabi potrebbero essere decisivi';},
- f4:function(){return 'Nessuna maggioranza possibile: stallo pieno';},
+/* f4 NEGAVA QUELLO CHE LA LUNGA DICHIARA, e non era una sfumatura persa: una
+    contraddizione. La lunga dice «nessun blocco ha la maggioranza... a decidere sono le
+    liste dell'ago della bilancia»; la corta diceva «Nessuna maggioranza POSSIBILE». Ma una
+    maggioranza e' possibile — con l'ago della bilancia, cioe' con la cosa che la lunga
+    afferma. Dal 28 agosto 2026 non e' piu' un caso di scuola: l'ago ha cinque seggi.
+    Adesso dice CHI decide invece di negare, ed e' quasi verbatim dalla lunga. 41 caratteri,
+    56 con la coda. */
+ f4:function(){return 'Decidono le liste dell’ago della bilancia';},
  f5c:function(X){return 'Netanyahu a '+X+', uno dalla maggioranza';},
  f5o3:function(X){return 'Opposizione a '+X+': servono i partiti arabi';},
  f5o4:function(X){return 'Opposizione a '+X+', stallo pieno';},
@@ -3266,13 +3280,24 @@ var TIT_CORTO_PRIMA={
  f6c:function(X){return 'Maggioranza minima al blocco Netanyahu: '+X;},
  f6o:function(X){return 'Maggioranza minima all’opposizione: '+X;},
  f7c:function(X){return 'Netanyahu oltre la soglia: '+X+' seggi';},
- f7o:function(X){return 'Opposizione oltre la soglia: '+X+' seggi';}
+/* Stesso baratto della f2 qui sopra, stessa ragione: la lunga dice «senza i partiti arabi»
+    e la corta lo lasciava cadere. 40 caratteri, 55 con la coda. */
+ f7o:function(X){return 'Opposizione oltre la soglia da sola: '+X;}
 };
 var TIT_CORTO_DOPO={
  f1:function(X){return 'Vigilia: Netanyahu a '+X+' e la maggioranza';},
  f2:function(X){return 'Vigilia: opposizione a '+X+' e la maggioranza';},
- f3:function(){return "Vigilia: serve l'appoggio dei partiti arabi";},
- f4:function(){return 'Vigilia: nessuna maggioranza possibile';},
+/* Stessa correzione della f3 di sopra, altra era, e non si e' potuta fare copiando: il
+    parallelo diretto — «Vigilia: i partiti arabi potevano essere decisivi» — misura 49
+    caratteri e 64 con la coda, cioe' SFORA. «Potevano decidere» dice la stessa cosa in 42,
+    57 con la coda. Scartate con la loro ragione: «gli arabi» e' una designazione etnica
+    dove «i partiti arabi» e' politica, e la pagina tiene quella distinzione dappertutto;
+    e togliere «Vigilia:» avrebbe rotto il parallelo con le altre undici forme dell'era. */
+ f3:function(){return 'Vigilia: i partiti arabi potevano decidere';},
+/* Come la f4 di sopra. «Della bilancia» NON ci sta — «Vigilia: decidevano le liste dell'ago
+    della bilancia» misura 52 caratteri e 67 con la coda — e qui il parallelo con la forma
+    PRIMA basta a disambiguare il termine. 37 caratteri, 52 con la coda. */
+ f4:function(){return 'Vigilia: decidevano le liste dell’ago';},
  f5c:function(X){return 'Vigilia: Netanyahu a '+X+', stallo pieno';},
  f5o3:function(X){return 'Vigilia: opposizione a '+X+', non bastava';},
  f5o4:function(X){return 'Vigilia: opposizione a '+X+', stallo pieno';},
