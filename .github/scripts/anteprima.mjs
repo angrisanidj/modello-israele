@@ -45,7 +45,7 @@
  */
 import {readFileSync, writeFileSync, existsSync} from 'node:fs';
 import {dirname, join} from 'node:path';
-import {fileURLToPath} from 'node:url';
+import {fileURLToPath, pathToFileURL} from 'node:url';
 import {JSDOM} from 'jsdom';
 import {Resvg} from '@resvg/resvg-js';
 
@@ -238,7 +238,21 @@ export async function genera(){
  return png;
 }
 
-if (import.meta.url === 'file:///' + process.argv[1].replace(/\\/g, '/')) {
+/* IL PUNTO D'INGRESSO SI RICONOSCE CON pathToFileURL, NON CONCATENANDO «file:///».
+   La forma di prima funzionava SOLO SU WINDOWS, e per questo non l'ha vista nessuno: là
+   argv[1] è «C:\...», diventa «C:/...», e «file:///» + quello è esattamente
+   import.meta.url. Su Linux il percorso comincia GIÀ con una barra, quindi il confronto
+   costruiva «file:////home/runner/...» — quattro barre contro le tre di import.meta.url —
+   e non coincideva mai. Il 28 agosto 2026 il passo «Anteprima Open Graph» del lavoro
+   notturno è andato VERDE stampando zero righe: lo script usciva 0 senza scrivere niente,
+   mentre i blocchi passavano da 53·55·12·0 a 48·55·12·5. Cioè il difetto che questo file
+   esiste per chiudere — l'anteprima che dice numeri diversi dalla pagina — era ancora
+   aperto, con sopra un passo verde. Le due sole generazioni della sua vita erano a mano,
+   da Windows: la piattaforma su cui la guardia funziona.
+   Né png.js né meta.js potevano coglierlo: provano componi() e genera(), cioè la
+   COMPOSIZIONE, e struttura.mjs legge il sorgente del workflow. L'unica cosa rotta era il
+   punto d'ingresso, che nessuna delle due esercita. */
+if (import.meta.url === pathToFileURL(process.argv[1]).href) {
  genera().then(png => {
   /* SI CONFRONTANO I BYTE PRIMA DI SCRIVERE. Senza, il job committerebbe un'immagine anche
      quando gira a vuoto e non è cambiato niente — e un commit che non cambia niente rende

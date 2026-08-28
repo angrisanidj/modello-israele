@@ -6,6 +6,7 @@ import {gzipSync} from 'node:zlib';
 import {fileURLToPath} from 'node:url';
 import {dirname,join} from 'node:path';
 const qui=dirname(fileURLToPath(import.meta.url));
+const NL=String.fromCharCode(10);
 const html=readFileSync(join(qui,'..','index.html'),'utf8');
 const js=[...html.matchAll(/<script>([\s\S]*?)<\/script>/g)].pop()[1];
 const prove=[];
@@ -500,6 +501,7 @@ await (async function(){
  let load; try{ load=(await import('js-yaml')).load; }
  catch(e){ p('og:image: js-yaml non installato',false); return; }
  let generato=false, inScena=false, conArchivio=false, dove='';
+ let srcGen='';
  for(const f of readdirSync(join(qui,'..','.github','workflows'))){
   if(!/\.ya?ml$/.test(f)) continue;
   const doc=load(readFileSync(join(qui,'..','.github','workflows',f),'utf8'));
@@ -512,6 +514,7 @@ await (async function(){
     const src=join(qui,'..',m[1]);
     if(existsSync(src)&&readFileSync(src,'utf8').indexOf(rel.split('/').pop())>=0){
      generato=true; dove=f+' · '+m[1];
+     srcGen=src;
     }
    }
    /* 2 · E STA NELLO STESSO «git add» DELL'ARCHIVIO. È la metà che chiude il difetto:
@@ -525,6 +528,25 @@ await (async function(){
  p('l\'immagine di og:image la RIGENERA il lavoro notturno'+(dove?' ('+dove+')':''), generato);
  p('e finisce nello stesso «git add» di dati/archivio.json, così l\'immagine e i numeri che '+
    'racconta non possono divergere di una notte', inScena&&conArchivio);
+ /* 3 · E IL SUO PUNTO D'INGRESSO FUNZIONA SUL RUNNER, NON SOLO SU CHI LO SCRIVE.
+    Il 28 agosto 2026 il passo e' andato VERDE stampando ZERO righe. La guardia «sono il
+    modulo principale» componeva l'indirizzo a mano concatenando «file:///» con argv[1]:
+    su Windows argv[1] e' «C:...» e il risultato e' esattamente import.meta.url, su Linux
+    il percorso comincia GIA' con una barra e ne veniva una di troppo. Quindi sul runner il
+    confronto era falso, il blocco non partiva, e lo script usciva 0 SENZA SCRIVERE NIENTE —
+    ogni notte, mentre i blocchi passavano da 53·55·12·0 a 48·55·12·5.
+    I punti 1 e 2 erano verdi tutti e due, ed e' questa la lezione: uno guarda che il job LO
+    INVOCHI, l'altro che il file sia messo in scena, e nessuno dei due guarda se
+    l'invocazione FACCIA qualcosa. Le due generazioni della sua vita erano a mano, da
+    Windows: la sola piattaforma su cui quella guardia funziona.
+    Si legge LA RIGA, non il sorgente intero: il commento qui sopra nomina «file:///», e una
+    prova che contasse le occorrenze nel sorgente crudo resterebbe verde per colpa del
+    commento che la spiega — trappola gia' pagata da questo progetto con ARCO_ORD. */
+ const rigaIng=(srcGen?readFileSync(srcGen,'utf8'):'').split(NL)
+   .find(function(l){return l.indexOf('if (import.meta.url')===0;})||'';
+ p('e riconosce il proprio punto d' + String.fromCharCode(39) + 'ingresso con pathToFileURL, '+
+   'invece di comporre «file:///» a mano, che vale solo su Windows',
+   !!srcGen && rigaIng.indexOf('pathToFileURL(process.argv[1])')>=0);
 })();
 
 /* ══ LA REGIONE CHE IL LAVORO NOTTURNO PUÒ RISCRIVERE ══
