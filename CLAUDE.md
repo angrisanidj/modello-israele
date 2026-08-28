@@ -5155,6 +5155,121 @@ Poi, in quest'ordine:
    prove lo verificano; nessuno l'ha ancora **guardato**. La mappatura di Amcha è costata
    venticinque minuti e ha trovato due posti che il contratto non aveva: qui il contratto è
    `docs/aggiungere-un-apparentamento.md`, e non è mai stato percorso.
+5-bis. **LO SCENARIO DELLA SOGLIA, e non è più ipotetico.** Misurato il 28 agosto 2026
+   sull'archivio di quella mattina, 163 rilevazioni valide. È il complemento di
+   `riparto.js`: quella prova **il meccanismo**, questo lo **mostra al lettore**. Va prima
+   della verifica a scenari perché la configurazione che Channel 12 descriveva — una che
+   cade mentre un'altra entra — fino al 27 agosto era un caso di prova e dal 28 è la
+   proiezione pubblicata.
+
+   **PRIMA CORREZIONE, E CAMBIA LO SCENARIO: le due liste NON stanno nello stesso blocco.**
+   Verrebbe da dire «due liste del blocco Netanyahu vicine alla soglia», ed è falso da
+   quando `PAR.inbilico` nasce **spenta**: con il conteggio della fonte, Popolo d'Israele è
+   **ago della bilancia**, non coalizione. Lo diventa solo se il lettore accende la leva.
+   Ed è la ragione per cui lo scenario è interessante invece che aritmetico.
+
+   | lista | quota | distanza dal 3,25% | seggi oggi | blocco (leva spenta) |
+   |---|---|---|---|---|
+   | **Sionismo Religioso** | 3,568 | **+0,318** | 4 | coalizione |
+   | **Popolo d'Israele** | 3,782 | **+0,532** | 5 | **ago della bilancia** |
+   | *Casa Sionista, per confronto* | 2,413 | −0,837 | 0 | ago della bilancia |
+
+   Sono le due più vicine alla soglia **da sopra**, e mezzo punto è meno dell'errore che il
+   modello dichiara. Casa Sionista sta nella riga per la ragione opposta: è la prima che
+   potrebbe **entrare**, e uno scenario che guarda solo chi esce ne racconta metà.
+
+   ### I quattro casi, con la leva SPENTA (il difetto)
+
+   | | coal. | oppos. | arabi | ago | maggioranza |
+   |---|---|---|---|---|---|
+   | entrambe dentro *(oggi)* | 48 | 55 | 12 | 5 | opposizione + arabi |
+   | solo Popolo d'Israele | 46 | 57 | 12 | 5 | opposizione + arabi |
+   | solo Sionismo Religioso | **51** | 57 | 12 | 0 | opposizione + arabi |
+   | nessuna delle due | 48 | **60** | 12 | 0 | opposizione + arabi |
+
+   **In tutti e quattro i casi la maggioranza è la stessa, e questa è la prima cosa che il
+   riquadro deve dire.** Nessuno arriva a 61 da solo: la coalizione tocca al massimo 51, e
+   l'opposizione ha bisogno degli arabi in tutte e quattro. Lo scenario **non cambia chi può
+   governare, cambia il margine** — e scriverlo come se ribaltasse il risultato sarebbe la
+   cosa disonesta più facile da fare con questi numeri.
+
+   ### Dove vanno i seggi che si liberano — è qui la notizia
+
+   | chi cade | seggi | restano nel campo | **attraversano** |
+   |---|---|---|---|
+   | Sionismo Religioso (4) | Shas +1, UTJ +1 | **2** | B'Yachad +1, Yashar +1 → **2** |
+   | Popolo d'Israele (5) | — *(non è in un campo)* | **0** | Likud +1, Shas +1, UTJ +1, B'Yachad +1, Yashar +1 → **5** |
+   | tutte e due (9) | | | Likud +2, Shas +1, UTJ +1 → coal. **+4**; B'Yachad +1, Beitenu +1, Yashar +3 → oppos. **+5** |
+
+   **E LA PAGINA OGGI AFFERMA IL CONTRARIO.** `#k-soglianota` scrive già, in prosa: *«Ogni
+   lista che non supera la soglia disperde i propri voti e li consegna di fatto ai partiti
+   più grandi dello stesso campo»*. Misurato, è falso in tutti e due i casi: **metà** dei
+   seggi del Sionismo Religioso finisce all'opposizione, e **tutti e cinque** quelli di
+   Popolo d'Israele entrano in un campo da fuori. La frase è vera del 2022, che infatti cita,
+   e non della proiezione di oggi. **Va riscritta nello stesso intervento**, o il riquadro
+   nuovo contraddice il paragrafo che gli sta accanto.
+
+   ### E LA DIREZIONE SI ROVESCIA CON LA LEVA, che è il fatto più difficile da raccontare
+
+   | | coal. | oppos. | arabi | ago |
+   |---|---|---|---|---|
+   | entrambe dentro *(oggi)* | **53** | 55 | 12 | 0 |
+   | solo Popolo d'Israele | 51 | 57 | 12 | 0 |
+   | solo Sionismo Religioso | 51 | 57 | 12 | 0 |
+   | nessuna delle due | 48 | 60 | 12 | 0 |
+
+   Con la leva **spenta**, se Popolo d'Israele cade la coalizione va **48 → 51: guadagna
+   tre seggi**. Con la leva **accesa**, la stessa caduta la porta **53 → 51: ne perde due**.
+   *Lo stesso evento muove la coalizione nelle due direzioni opposte a seconda della lettura*,
+   e non è un difetto: a leva spenta quei cinque seggi non erano suoi e ne recupera tre
+   dalla dispersione, a leva accesa li contava già e ne perde due. **Il riquadro deve dire
+   quale delle due letture sta mostrando**, o pubblica un numero con il segno sbagliato per
+   metà dei lettori. È la stessa regola di «Quello che esce dalla pagina deve portare
+   l'ipotesi con sé», applicata a un riquadro invece che a una condivisione.
+
+   ### Il mediano del quarto blocco: costa il 5,5%, ed è già mezzo calcolato
+
+   Oggi si può scrivere «sta fra X e Y in 8 simulazioni su 10» per **due blocchi su
+   quattro**: `montecarlo()` conserva `res.coal` e `res.oppz` e basta — misurato, coal **49
+   [42–55]**, oppz **56 [50–62]**.
+
+   **Il totale arabo è GIÀ calcolato a ogni simulazione**: `ba` esiste e serve alla riga
+   `if(bo+ba>=61)res.vA++`, semplicemente non viene conservato. E il quarto blocco non va
+   calcolato affatto — è `120 − bc − bo − ba`, cioè **zero lavoro nel ciclo caldo**, perché
+   l'invariante 1 garantisce la somma.
+
+   | | misurato il 28 agosto 2026 |
+   |---|---|
+   | `montecarlo()` così com'è | **110 ms** (SIM = 20.000, 15 liste) |
+   | due copie e due ordinamenti in più | **+6 ms, il +5,5%** |
+   | memoria transitoria | 2 × `Int32Array(20000)` = **156 KB** |
+
+   Serve **anche quella degli arabi**, e non è un di più: senza, la frase «opposizione +
+   arabi» — che è la maggioranza in tutti e quattro i casi — resta l'unica affermazione della
+   pagina di cui non si può dare la forbice. Due blocchi su quattro con la banda e due senza
+   è esattamente l'asimmetria che l'emiciclo ha appena finito di chiudere.
+
+   ### Dove va: NON una dodicesima sezione
+
+   **`#k-soglianota`, in coda a `rProj()`, sezione 2 «Proiezione per lista».** È già il posto
+   dove la pagina parla della soglia, e ci arriva con **la metà del lavoro già fatta**:
+   `MC.sotto[i]/MC.n` è pubblicato lì — «Sul filo del 3,25% ci sono … (N% di probabilità di
+   restare fuori)» — cioè la pagina dice già **quanto è probabile** e non dice **che cosa
+   succede se capita**. Il riquadro è la seconda metà di una frase che c'è già.
+
+   Le tre alternative, scartate con la ragione:
+
+   - **il simulatore** compone coalizioni a partire dai seggi **dati**: risponde a «chi
+     governa con chi», non a «e se i seggi fossero altri». Sono due controfattuali di
+     natura diversa, e metterli nello stesso comando li farebbe leggere come uno solo;
+   - **la nota metodologica** spiega il **meccanismo** della soglia, sta in fondo dentro un
+     `<details>` chiuso, ed è prosa generata: un numero vivo lì dentro è la strada doppia che
+     diverge al primo ritocco;
+   - **le pastiglie** danno le probabilità dei quattro esiti di governo, non quelle di lista.
+
+   E soprattutto **non una sezione nuova**: sarebbe la dodicesima, con un indice che sotto i
+   660 è già largo 1891px in una finestra da 358.
+
 6. **La verifica a scenari**, le sei tabelle in fondo a questo file. Ha due righe nuove
    dalla prova di regia: la lista mappata che non ha ancora seggi, e la caduta sotto soglia
    mentre un'altra entra.
