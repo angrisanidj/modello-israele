@@ -557,7 +557,7 @@ servizio. Due giorni consecutivi lo hanno mostrato: il **27 agosto è slittata d
 ore** (cron 03:30 UTC, partita alle 14:28), il **28 non è mai nata**. Storicamente il tick
 cade fra le 04:06 e le 04:21 UTC, cioè già con mezz'ora abbondante di ritardo strutturale.
 
-### 1 · Più tentativi in una finestra invece di uno solo — NON APPLICATA
+### 1 · Più tentativi in una finestra invece di uno solo — APPLICATA il 28 agosto 2026
 
 Ogni tick è best-effort **in modo indipendente**: se se ne pianificano parecchi, la
 probabilità che *nessuno* parta crolla. Il cron smette di essere un istante e diventa una
@@ -565,34 +565,80 @@ finestra, che per un archivio notturno è la garanzia che serve davvero — «en
 invece di «alle 3:30, forse».
 
 ```yaml
-on:
-  schedule:
-    - cron: '23,53 3-6 * * *'   # otto tentativi fra le 03:23 e le 06:53 UTC
-  workflow_dispatch:
+schedule:
+  - cron: '23,53 3-6 * * *'   # otto tentativi fra le 03:23 e le 06:53 UTC
 ```
 
 **I minuti sono dispari apposta, e costa zero.** `:00` e `:30` sono gli orari che pianificano
-tutti, quindi sono quelli con la coda più lunga; un minuto dispari slitta mediamente meno.
-Da solo non risolve niente, ma è gratis e va preso.
+tutti, quindi quelli con la coda più lunga.
 
-**Serve la guardia in testa al job**, o sette notti su otto si rifà il lavoro già fatto:
-esce subito se `dati/stato-job.json` porta già la data di oggi. È il file giusto perché il
-job lo riscrive **a ogni notte riuscita, anche a mani vuote** — quindi «c'è la data di oggi»
-vuol dire «stanotte è già andata», non «stanotte ha trovato qualcosa».
+**Quello che questa via NON dà**: non dà l'orario esatto. Per quello servirebbe un innesco
+esterno che chiami `workflow_dispatch` — accodato subito, fuori dalla coda best-effort — ma
+sposta il punto di fallimento su una macchina che dev'essere accesa.
 
-Due cose che rendono la mossa sicura e che ci sono già, quindi non vanno aggiunte:
+#### Le tre cose di forma che la voce non conteneva, e che decidono se funziona
 
-- **`concurrency: aggiorna-archivio` è già dichiarato**, quindi due tick non si accavallano
-  mai: il secondo aspetta o viene sostituito. Senza, otto tick sarebbero otto parser in
-  parallelo sullo stesso archivio;
-- **le esecuzioni a vuoto durano pochi secondi** e il repository è pubblico, dove i minuti di
-  Actions non si pagano. Il costo reale è sette righe in più nell'elenco delle esecuzioni.
+**1 · LA GUARDIA STA IN UN JOB SUO, non in testa a quello che scrive.** La voce diceva «in
+testa al job», e messa lì sarebbe stata più fragile di quanto sembra: per uscire davvero
+prima di *qualunque* scrittura ogni passo successivo dovrebbe portarsi il proprio `if`, e il
+primo che qualcuno aggiunge dimenticandolo scrive. Con `guardia` come job separato e
+`needs: guardia`, **il job che scrive non parte affatto**.
 
-**Quello che questa via NON dà, e va saputo prima di sceglierla**: non dà l'orario esatto.
-Se un giorno servisse l'orario esatto, l'unica strada è un innesco esterno che chiami
-`workflow_dispatch` — un dispatch è accodato subito, come un push, e **non passa dalla coda
-best-effort**. Ma sposta il punto di fallimento su una macchina che dev'essere accesa, ed è
-il motivo per cui non è questa la via scelta.
+E c'è il vantaggio che rende inutile toccare il riepilogo: il suo `if: always()` **resta
+esattamente com'era**. Su un tick a vuoto il job che lo contiene è saltato, quindi non c'è
+nessuna notte da raccontare; quando invece il job gira, l'`always()` fa il suo mestiere di
+sempre. Un job saltato si legge **«skipped», non «failed»** — ed è per questo che la guardia
+non esce con un errore: un tick che esce subito non deve sembrare una notte fallita.
+
+**2 · LA GUARDIA NON VALE PER `workflow_dispatch`.** È la riga che non si deduce dalla voce, e
+senza di essa la mossa si morderebbe la coda: un dispatch è una **decisione deliberata** — «ho
+constatato che l'archivio è fermo da due giorni, quindi lo faccio partire» — cioè esattamente
+il gesto che «Il confine dell'agente» concede, e l'unico che rimedia a un tick mai nato. Una
+guardia che lo saltasse renderebbe impossibile la riparazione proprio nel giorno in cui
+serve. Il 28 agosto 2026 è servito **due volte in mezz'ora**.
+
+```yaml
+if: github.event_name != 'schedule' || needs.guardia.outputs.gia != '1'
+```
+
+**3 · LA GUARDIA FALLISCE IN APERTURA.** File assente, JSON guasto, campo mancante: la data
+letta resta vuota, non è uguale a oggi, **si procede**. Meglio una notte ridondante — pochi
+secondi e nessuna scrittura — di una notte saltata perché il file che doveva autorizzarla era
+illeggibile. Una guardia che fallisse in chiusura trasformerebbe un file corrotto in un
+archivio fermo, cioè in un difetto peggiore di quello che previene.
+
+E due dettagli piccoli: la data si confronta **in UTC**, perché in UTC la scrive
+`aggiorna.mjs` con `toISOString().slice(0,10)`; e il job della guardia **non installa niente**
+— niente `setup-node`, niente `npm install` — perché `node` c'è già sull'immagine del runner, e
+una guardia che installa le dipendenze per leggere una riga di JSON costerebbe più del lavoro
+che evita.
+
+#### Quello che c'era già e non è stato toccato
+
+- **`concurrency: aggiorna-archivio`** era già dichiarato, quindi due tick non si accavallano
+  mai. Senza, otto tick sarebbero otto parser in parallelo sullo stesso archivio;
+- le esecuzioni a vuoto durano pochi secondi e il repository è pubblico, dove i minuti di
+  Actions non si pagano. Il costo reale è sette righe in più nell'elenco delle esecuzioni;
+- **`dati/stato-job.json` è il file giusto** perché il job lo riscrive a ogni notte riuscita,
+  *anche a mani vuote* — quindi «c'è la data di oggi» vuol dire «stanotte è già andata», non
+  «stanotte ha trovato qualcosa».
+
+#### Le cinque asserzioni, e il mutante che ha trovato un difetto nella prova
+
+`test/struttura.mjs` legge lo YAML e pretende: che il cron sia **una finestra e non un
+istante** — contando i tick dal cron invece di scrivere «otto», che sarebbe la costante
+rimessa dentro una prova; che la guardia sia un **job a sé** e che il job che scrive **lo
+aspetti**; che decida su `stato-job.json` **e su nessun altro file di dati**; che **non valga
+per il dispatch**; e che il riepilogo **conservi il suo `always()`**.
+
+**Sei mutazioni, e la terza è quella che vale.** Il mutante che fa leggere alla guardia
+`da-fare.json` invece di `stato-job.json` **è sopravvissuto al primo giro**: l'asserzione
+cercava la stringa «stato-job.json» dentro il job, e le righe di `echo` la nominano per
+spiegare al lettore del log che cosa sta succedendo — quindi restava verde mentre il codice
+leggeva un altro file. **È la trappola di `ARCO_ORD`**, dove il commento che nomina la
+costante teneva verdi due prove: qui a tenerla verde era il messaggio che la spiega. Adesso
+si guarda **l'insieme dei file di dati nominati**, che dev'essere esattamente uno — e cadono
+tutti e due i versi, il file sbagliato e nessun file.
 
 ### 2 · Il problema che resta aperto: un run mai nato non ha nessun canale interno
 
@@ -5273,14 +5319,14 @@ le meta. Le altre tre non offrono niente di equivalente a chiunque.
 
 ### Nell'ordine, quando si riprende
 
-**PRIMA DI TUTTO, E SONO TRE VOCI PRONTE: «Il lavoro notturno non è puntuale, e chi se ne
-accorge non può stare dentro il job».** Scritte il 28 agosto 2026, la mattina in cui il job
-non è partito affatto — dopo lo slittamento di undici ore del 27. Nessuna delle tre è
-applicata, e tutte e tre hanno già dentro quello che serve per eseguirle senza rifare il
-ragionamento: il cron a più tentativi in una finestra con la guardia su `stato-job.json`; il
-motivo per cui un workflow separato NON è la via; e la Cloud Routine usata come guardia e
-mai come scheduler. Vanno prima perché riguardano la sola cosa che pubblica da sola tutti i
-giorni, e perché stamattina il difetto è stato trovato da una persona che si è accorta del
+**PRIMA DI TUTTO, E ORA SONO DUE: «Il lavoro notturno non è puntuale, e chi se ne accorge non
+può stare dentro il job».** Scritte il 28 agosto 2026, la mattina in cui il job non è partito
+affatto, dopo lo slittamento di undici ore del 27. **La prima — il cron a finestra con la
+guardia su `stato-job.json` — è applicata lo stesso giorno**; restano la seconda, che spiega
+perché un workflow separato NON è la via, e la terza, la Cloud Routine usata come guardia e
+mai come scheduler. Hanno già dentro quello che serve per eseguirle senza rifare il
+ragionamento. Vanno prima perché riguardano la sola cosa che pubblica da sola tutti i giorni,
+e perché quella mattina il difetto è stato trovato da una persona che si è accorta del
 silenzio — che è esattamente il controllo che non si può programmare.
 
 

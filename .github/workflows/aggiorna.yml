@@ -25,15 +25,74 @@
 # di stanotte.
 name: Aggiorna archivio
 on:
+  # OTTO TENTATIVI INVECE DI UNO, e la ragione e' il contratto del servizio, non una
+  # preferenza. Le esecuzioni programmate di GitHub sono dichiaratamente BEST-EFFORT:
+  # vengono accodate e sotto carico slittano o saltano, e non esiste nessun parametro che le
+  # renda puntuali. Misurato su due giorni consecutivi: il 27 agosto 2026 il tick delle 03:30
+  # e' partito alle 14:28 — undici ore — e il 28 non e' mai nato. Storicamente cade fra le
+  # 04:06 e le 04:21, cioe' con mezz'ora abbondante di ritardo strutturale anche quando va
+  # bene.
+  # Ogni tick pero' e' best-effort IN MODO INDIPENDENTE, quindi pianificandone parecchi la
+  # probabilita' che NESSUNO parta crolla. Il cron smette di essere un istante e diventa una
+  # finestra, che per un archivio notturno e' la garanzia che serve davvero: «entro le sette»
+  # invece di «alle 3:30, forse». Quello che NON da' e' l'orario esatto — per quello
+  # servirebbe un innesco esterno, che sposta il fallimento su una macchina accesa.
+  # I MINUTI SONO DISPARI APPOSTA e costano zero: :00 e :30 sono gli orari che pianificano
+  # tutti, quindi quelli con la coda piu' lunga.
   schedule:
-    - cron: '30 3 * * *'    # 03:30 UTC, 05:30/06:30 in Israele: i sondaggi della sera sono in tabella
+    - cron: '23,53 3-6 * * *'   # otto tentativi fra le 03:23 e le 06:53 UTC
   workflow_dispatch:
 permissions:
   contents: write
   issues: write
 concurrency: aggiorna-archivio
 jobs:
+  # LA GUARDIA STA IN UN JOB SUO, E NON E' UN VEZZO. Con otto tick sette notti su otto si
+  # rifarebbe il lavoro gia' fatto, quindi serve uscire subito quando stanotte e' gia' andata.
+  # Un passo dentro «aggiorna» non basterebbe: per uscire davvero prima di QUALUNQUE
+  # scrittura ogni passo successivo dovrebbe portarsi un «if», e il primo che qualcuno
+  # aggiunge dimenticandolo scrive. Con un job separato il job che scrive NON PARTE AFFATTO.
+  # E il riepilogo resta intatto: il suo «if: always()» non va toccato, perche' su un tick a
+  # vuoto il job che lo contiene e' saltato e non c'e' nessuna notte da raccontare. Un job
+  # saltato si legge «skipped», non «failed»: un tick che esce subito non deve sembrare una
+  # notte fallita, ed e' precisamente per questo che la guardia non esce con un errore.
+  guardia:
+    runs-on: ubuntu-latest
+    outputs:
+      gia: ${{ steps.leggi.outputs.gia }}
+    steps:
+      - uses: actions/checkout@v4
+      # dati/stato-job.json E' IL FILE GIUSTO perche' il job lo riscrive a OGNI notte
+      # riuscita, anche a mani vuote: «c'e' la data di oggi» vuol dire «stanotte e' gia'
+      # andata», non «stanotte ha trovato qualcosa». La data si confronta in UTC perche' in
+      # UTC la scrive aggiorna.mjs, con toISOString().slice(0,10).
+      # NIENTE setup-node E NIENTE npm install: node c'e' gia' sull'immagine del runner, e
+      # una guardia che installa le dipendenze per leggere una riga di JSON costerebbe piu'
+      # del lavoro che evita.
+      - name: Stanotte e' gia' andata?
+        id: leggi
+        run: |
+          OGGI=$(date -u +%F)
+          # LA GUARDIA FALLISCE IN APERTURA: file assente, JSON guasto, campo mancante danno
+          # stringa vuota, che non e' uguale a oggi, quindi SI PROCEDE. Meglio una notte
+          # ridondante — che costa pochi secondi e non scrive niente — di una notte saltata
+          # perche' il file che doveva autorizzarla era illeggibile.
+          DATA=$(node -p "require('./dati/stato-job.json').data" 2>/dev/null || echo '')
+          if [ "$DATA" = "$OGGI" ]; then
+            echo "gia=1" >> "$GITHUB_OUTPUT"
+            echo "stato-job.json porta gia' $OGGI: stanotte e' andata, non c'e' niente da fare"
+          else
+            echo "gia=0" >> "$GITHUB_OUTPUT"
+            echo "stato-job.json porta '$DATA' e oggi e' $OGGI: si procede"
+          fi
   aggiorna:
+    needs: guardia
+    # LA GUARDIA VALE SOLO PER LO SCHEDULE, ed e' la riga che non si deduce dalla voce.
+    # Un workflow_dispatch e' una DECISIONE deliberata — «ho constatato che l'archivio e'
+    # fermo, quindi lo faccio partire» — e una guardia che lo saltasse renderebbe impossibile
+    # proprio il gesto per cui il dispatch esiste, compreso quello che il confine dell'agente
+    # gli concede. Il 28 agosto 2026 e' servito due volte in mezz'ora.
+    if: github.event_name != 'schedule' || needs.guardia.outputs.gia != '1'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4

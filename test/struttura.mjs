@@ -341,6 +341,76 @@ try{
 p('i workflow di GitHub sono YAML valido'+(yamlKO.length?' ('+yamlKO.join(' | ')+')':''),
   !yamlKO.length);
 
+/* ══ IL CRON A FINESTRA E LA GUARDIA CHE LO RENDE SOSTENIBILE ══
+   Applicato il 28 agosto 2026, la mattina in cui il job NON E' PARTITO AFFATTO dopo che il
+   giorno prima era slittato di undici ore. Le esecuzioni programmate di GitHub sono
+   dichiaratamente best-effort e nessun parametro le rende puntuali: l'unica leva e'
+   pianificare PIU' TENTATIVI, perche' ciascuno e' best-effort in modo indipendente.
+   Le quattro proprieta' qui sotto vanno insieme e da sole non valgono:
+   piu' di un tick senza guardia rifarebbe il lavoro sette notti su otto; la guardia senza
+   i tick non serve a niente; la guardia estesa al dispatch renderebbe impossibile il gesto
+   deliberato per cui il dispatch esiste; e la guardia dentro «aggiorna» invece che davanti
+   lascerebbe scrivere il primo passo che qualcuno aggiunge dimenticandosi l'if. */
+await (async function(){
+ let load;
+ try{ load=(await import('js-yaml')).load; }
+ catch(e){ p('cron a finestra: js-yaml non installato',false); return; }
+ const d=load(readFileSync(join(qui,'..','.github','workflows','aggiorna.yml'),'utf8'));
+ const sched=((d&&d.on&&d.on.schedule)||[]).map(x=>x.cron);
+ /* 1 · PIU' DI UN TENTATIVO. Non si conta a quanti: si conta che non sia UNO, che e' la
+    proprieta' per cui la finestra esiste. Scrivere «otto» qui rimetterebbe in una prova la
+    costante che il commento accanto al cron gia' spiega, e cadrebbe il giorno in cui la
+    finestra si allarga per una ragione buona. */
+ const tick=sched.reduce((n,c)=>{
+   const min=String(c).split(' ')[0], ore=String(c).split(' ')[1];
+   const q=t=>t.split(',').reduce((k,pz)=>k+(pz.indexOf('-')>0
+     ? (Number(pz.split('-')[1])-Number(pz.split('-')[0])+1) : 1),0);
+   return n+q(min)*q(ore);
+ },0);
+ p('il cron del lavoro notturno e una FINESTRA e non un istante: '+tick+' tentativi ('+
+   sched.join(' | ')+'), perche un tick solo e best-effort e puo saltare', tick>1);
+ /* 2 · LA GUARDIA STA DAVANTI, in un job suo, e il job che scrive DIPENDE da lei. */
+ const g=(d&&d.jobs&&d.jobs.guardia)||null, a=(d&&d.jobs&&d.jobs.aggiorna)||null;
+ const needs=a?[].concat(a.needs||[]):[];
+ p('la guardia e un job a se e il job che scrive lo aspetta, cosi un tick a vuoto non '+
+   'esegue NESSUN passo che scrive',
+   !!g && !!a && needs.indexOf('guardia')>=0);
+ /* 3 · E LEGGE stato-job.json, E SOLO QUELLO. Il file e' quello giusto perche' il job lo
+    riscrive a OGNI notte riuscita, anche a mani vuote: «c'e' la data di oggi» vuol dire
+    «stanotte e' gia' andata», non «stanotte ha trovato qualcosa».
+    SI GUARDA L'INSIEME DEI FILE NOMINATI, non la presenza di uno. La prima stesura cercava
+    la stringa «stato-job.json» dentro il job e restava VERDE con un mutante che faceva
+    leggere da-fare.json: le righe di echo nominano il file per spiegarlo al lettore del log,
+    quindi la stringa c'era comunque. E' la trappola gia' pagata con ARCO_ORD, dove il
+    commento che nomina la costante teneva verdi due prove — qui a tenerla verde era il
+    messaggio che la spiega. Un insieme non si lascia ingannare: se il job nomina un secondo
+    file di dati, o non nomina questo, cade. */
+ const OKNOME='abcdefghijklmnopqrstuvwxyz0123456789-_.';
+ const testoG=JSON.stringify(g||''), fileG=[];
+ for(let k=testoG.indexOf('dati/'); k>=0; ){
+  let z=k+5, nome='';
+  while(z<testoG.length && OKNOME.indexOf(testoG[z].toLowerCase())>=0){ nome+=testoG[z]; z++; }
+  if(nome && fileG.indexOf('dati/'+nome)<0) fileG.push('dati/'+nome);
+  k=testoG.indexOf('dati/', z);
+ }
+ p('e decide su dati/stato-job.json e su NESSUN altro file di dati'+
+   (fileG.length?' ('+fileG.join(', ')+')':''),
+   fileG.length===1 && fileG[0]==='dati/stato-job.json');
+
+ /* 4 · MA NON PER IL DISPATCH. E' la riga che protegge il gesto deliberato: «ho constatato
+    che l'archivio e' fermo, quindi lo faccio partire». Una guardia che saltasse anche
+    quello renderebbe impossibile la sola cosa che rimedia a un tick mai nato. */
+ const cond=String((a&&a.if)||'');
+ p('e NON vale per workflow_dispatch: un dispatch e una decisione, non un tick',
+   cond.indexOf('schedule')>=0 && cond.indexOf('guardia')>=0);
+ /* 5 · E IL RIEPILOGO RESTA «always()». Un tick che esce subito non deve sembrare una notte
+    fallita: il job saltato non lo esegue affatto, e quando il job gira l'always() deve
+    esserci ancora, o una notte caduta a meta' tacerebbe. */
+ const ri=((a&&a.steps)||[]).filter(x=>x&&x.name&&/riepilogo/i.test(x.name))[0];
+ p('e il passo del riepilogo conserva il suo «if: always()»',
+   !!ri && String(ri.if||'').indexOf('always()')>=0);
+})();
+
 /* ══ I COMANDI DEI WORKFLOW, NON SOLO LA LORO SINTASSI ══
    Il controllo qui sopra carica lo YAML e coglie un file invalido — è nato il 23 agosto
    2026, quando due frammenti di JavaScript multiriga dentro «run: |» avevano reso
