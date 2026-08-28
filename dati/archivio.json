@@ -4955,5 +4955,79 @@
    "yashar": 18.117261883734628
   },
   "_qk": 92
+ },
+ {
+  "data": "2026-08-27",
+  "istituto": "Yossi Taktika",
+  "testata": "Zman Israel",
+  "campione": 500,
+  "casa": 0,
+  "seggi": {
+   "likud": 22,
+   "byachad": 14,
+   "otzma": 6,
+   "shas": 9,
+   "utj": 8,
+   "beitenu": 10,
+   "raam": 5,
+   "lista_araba": 6,
+   "democratici": 8,
+   "yashar": 26,
+   "amcha": 6
+  },
+  "sotto": {
+   "sionismo_rel": 2.8,
+   "blue_white": 2.4,
+   "casa_sionista": 2.4,
+   "unity_erdan": 0.8
+  },
+  "_q": {
+   "likud": 16.597545080966942,
+   "byachad": 10.618572117648636,
+   "otzma": 4.645627204282426,
+   "shas": 6.879072245836848,
+   "utj": 6.134020640385301,
+   "beitenu": 7.624447085763238,
+   "raam": 4.095414245425651,
+   "lista_araba": 4.645627204282426,
+   "democratici": 6.134020640385301,
+   "yashar": 19.580026330740807,
+   "amcha": 4.645627204282426
+  },
+  "_qk": 91.6
+ },
+ {
+  "data": "2026-08-26",
+  "istituto": "Maagar Mochot",
+  "testata": "Canale 16",
+  "campione": 552,
+  "casa": 0,
+  "seggi": {
+   "likud": 21,
+   "byachad": 16,
+   "otzma": 9,
+   "shas": 9,
+   "utj": 7,
+   "beitenu": 8,
+   "raam": 4,
+   "lista_araba": 7,
+   "democratici": 11,
+   "yashar": 21,
+   "amcha": 7
+  },
+  "_q": {
+   "likud": 15.633094107961659,
+   "byachad": 11.91876285877525,
+   "otzma": 7.016730570587774,
+   "shas": 7.016730570587774,
+   "utj": 5.5374273090622195,
+   "beitenu": 6.276507442180656,
+   "raam": 3.6842641159700795,
+   "lista_araba": 5.5374273090622195,
+   "democratici": 8.20853429878849,
+   "yashar": 15.633094107961659,
+   "amcha": 5.5374273090622195
+  },
+  "_qk": 92
  }
 ]
