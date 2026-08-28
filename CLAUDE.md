@@ -522,6 +522,124 @@ regola vale lo stesso, perché la prossima volta la tentazione arriverà da un'a
 quel messaggio. Vale già per me, vale per l'agente, e vale doppio perché il file è pubblico
 e collegato a un giornale.
 
+## Il lavoro notturno non è puntuale, e chi se ne accorge non può stare dentro il job
+
+Scritto il 28 agosto 2026, la mattina in cui il job **non è partito affatto**. Sono quattro
+voci pronte da eseguire: le prime tre non sono state applicate, la quarta è una regola che
+vale da subito. Stanno insieme perché rispondono alla stessa domanda in due metà — *quando
+gira* e *chi lo dice se non gira* — e la seconda metà è quella che non si risolve dove
+verrebbe da cercarla.
+
+**Il fatto da cui discende tutto: le esecuzioni programmate di GitHub sono dichiaratamente
+*best-effort*.** Vengono accodate e, sotto carico, slittano o saltano, e **non esiste nessun
+parametro che le renda puntuali** — non è una configurazione da trovare, è il contratto del
+servizio. Due giorni consecutivi lo hanno mostrato: il **27 agosto è slittata di undici
+ore** (cron 03:30 UTC, partita alle 14:28), il **28 non è mai nata**. Storicamente il tick
+cade fra le 04:06 e le 04:21 UTC, cioè già con mezz'ora abbondante di ritardo strutturale.
+
+### 1 · Più tentativi in una finestra invece di uno solo — NON APPLICATA
+
+Ogni tick è best-effort **in modo indipendente**: se se ne pianificano parecchi, la
+probabilità che *nessuno* parta crolla. Il cron smette di essere un istante e diventa una
+finestra, che per un archivio notturno è la garanzia che serve davvero — «entro le sette»
+invece di «alle 3:30, forse».
+
+```yaml
+on:
+  schedule:
+    - cron: '23,53 3-6 * * *'   # otto tentativi fra le 03:23 e le 06:53 UTC
+  workflow_dispatch:
+```
+
+**I minuti sono dispari apposta, e costa zero.** `:00` e `:30` sono gli orari che pianificano
+tutti, quindi sono quelli con la coda più lunga; un minuto dispari slitta mediamente meno.
+Da solo non risolve niente, ma è gratis e va preso.
+
+**Serve la guardia in testa al job**, o sette notti su otto si rifà il lavoro già fatto:
+esce subito se `dati/stato-job.json` porta già la data di oggi. È il file giusto perché il
+job lo riscrive **a ogni notte riuscita, anche a mani vuote** — quindi «c'è la data di oggi»
+vuol dire «stanotte è già andata», non «stanotte ha trovato qualcosa».
+
+Due cose che rendono la mossa sicura e che ci sono già, quindi non vanno aggiunte:
+
+- **`concurrency: aggiorna-archivio` è già dichiarato**, quindi due tick non si accavallano
+  mai: il secondo aspetta o viene sostituito. Senza, otto tick sarebbero otto parser in
+  parallelo sullo stesso archivio;
+- **le esecuzioni a vuoto durano pochi secondi** e il repository è pubblico, dove i minuti di
+  Actions non si pagano. Il costo reale è sette righe in più nell'elenco delle esecuzioni.
+
+**Quello che questa via NON dà, e va saputo prima di sceglierla**: non dà l'orario esatto.
+Se un giorno servisse l'orario esatto, l'unica strada è un innesco esterno che chiami
+`workflow_dispatch` — un dispatch è accodato subito, come un push, e **non passa dalla coda
+best-effort**. Ma sposta il punto di fallimento su una macchina che dev'essere accesa, ed è
+il motivo per cui non è questa la via scelta.
+
+### 2 · Il problema che resta aperto: un run mai nato non ha nessun canale interno
+
+**È la quarta volta in questo progetto che l'allarme muore insieme alla cosa di cui deve
+avvisare, e la prima in cui non c'è nessun difetto da riparare.** Le tre volte precedenti
+c'era: il workflow reso invalido dal JavaScript dentro il `run: |`, che falliva in zero
+secondi portandosi via anche il riepilogo; la suite che moriva a metà e veniva contata
+verde; il `git pull --rebase` nudo il cui errore era ingoiato dal ramo di ripiego. Qui no:
+basta che GitHub salti il tick.
+
+**La issue del riepilogo vive DENTRO il job.** Se il job non nasce, tace — e tace **in modo
+indistinguibile da una notte andata bene**, perché il silenzio è anche il segnale voluto
+quando non c'è niente da fare (`niente da fare e nessuna issue aperta: silenzio`). Non c'è
+nessuna riga da aggiungere al workflow che chiuda questo: un passo può parlare solo se il
+job che lo contiene esiste.
+
+**E un workflow SEPARATO con uno `schedule` suo avrebbe esattamente lo stesso difetto,
+quindi non è la via.** Sarebbe un secondo best-effort messo a sorvegliare il primo, cioè lo
+stesso meccanismo che può saltare, sorvegliato da sé stesso. Il giorno in cui GitHub è sotto
+carico i due tick saltano insieme — e il guardiano tace nello stesso momento in cui il
+guardato tace, che è il caso peggiore possibile. **Chi controlla deve stare fuori
+dall'infrastruttura che controlla**, o non sta controllando niente.
+
+### 3 · La via che regge: una Cloud Routine di Claude Code — NON APPLICATA
+
+Girano sull'infrastruttura di Anthropic, quindi **anche a macchina chiusa**, e si innescano
+in tre modi: programmato, HTTP, o **webhook di GitHub**. È la sola cosa a disposizione che
+soddisfi il requisito del punto 2, cioè stare fuori da GitHub.
+
+**Limiti, come noti il 28 agosto 2026** — vanno riverificati prima di scrivere la routine,
+perché sono una misura con una data e non un fatto: **cinque esecuzioni al giorno su Pro,
+quindici su Max**. Da cui la conseguenza pratica: **una guardia giornaliera ci sta
+comodamente, una oraria no.**
+
+**IL CONFINE, CHE È LA PARTE CHE CONTA: la routine NON va usata come scheduler.** Farle
+lanciare il job all'ora giusta sostituirebbe un servizio best-effort con un altro fornitore
+— cioè **la stessa classe di rischio**, spostata, con in più un limite giornaliero stretto e
+una seconda infrastruttura da tenere allineata. Sarebbe la strada doppia di sempre applicata
+all'orologio.
+
+Va usata come **la guardia che GitHub non può dare**, ed è un compito diverso:
+
+- legge `dati/stato-job.json` — che è servito da Pages, quindi non serve nemmeno il
+  repository;
+- **se la data non è di oggi**, lancia il `workflow_dispatch` e lo **segnala**. Il dispatch è
+  la conseguenza di una constatazione, non un timer;
+- **se il job è partito ed è fallito**, legge il log e dice **a quale passo e perché** —
+  che è la cosa che stamattina è costata il tempo di leggerlo a mano.
+
+La differenza fra le due letture è tutta qui: uno scheduler afferma «adesso», una guardia
+constata «non è successo». La seconda è vera anche quando la routine stessa slitta di
+un'ora, la prima no.
+
+### 4 · E il confine sull'agente, che non si confonde con questo
+
+La regola dell'agente resta **quella scritta in «Il confine dell'agente»** e non è
+scalfita da niente di quanto sopra: **prepara il lavoro che richiede giudizio** — mappature
+di lista, accordi di eccedenza, traduzioni delle voci-evento — e per quelle si ferma al
+diff.
+
+Quello che si aggiunge è una sola riga, e serve perché il punto 3 non la faccia sembrare
+un'altra cosa: **l'agente può lanciare un `workflow_dispatch` come CONSEGUENZA DI UNA
+DECISIONE, non come sostituto di un timer.** «Ho constatato che l'archivio è fermo da due
+giorni, quindi lo faccio partire» è dentro il confine; «lo faccio partire ogni mattina alle
+sette» è fuori, ed è fuori per la stessa ragione del punto 3 — un agente che gira a
+orologio è uno scheduler, con tutti i difetti di uno scheduler e nessuna delle sue garanzie.
+
 ## Pubblicazione
 
 `index.html` è la pagina servita da GitHub Pages. Un commit su `main` la aggiorna.
@@ -4971,6 +5089,17 @@ l'anteprima è in cache, il **titolo** lo è con lei — quindi non è solo un'i
   che gli aggregatori fanno per pagina.
 
 ### Nell'ordine, quando si riprende
+
+**PRIMA DI TUTTO, E SONO TRE VOCI PRONTE: «Il lavoro notturno non è puntuale, e chi se ne
+accorge non può stare dentro il job».** Scritte il 28 agosto 2026, la mattina in cui il job
+non è partito affatto — dopo lo slittamento di undici ore del 27. Nessuna delle tre è
+applicata, e tutte e tre hanno già dentro quello che serve per eseguirle senza rifare il
+ragionamento: il cron a più tentativi in una finestra con la guardia su `stato-job.json`; il
+motivo per cui un workflow separato NON è la via; e la Cloud Routine usata come guardia e
+mai come scheduler. Vanno prima perché riguardano la sola cosa che pubblica da sola tutti i
+giorni, e perché stamattina il difetto è stato trovato da una persona che si è accorta del
+silenzio — che è esattamente il controllo che non si può programmare.
+
 
 **Prima di tutto la voce già scritta in coda a questo file: «Winter party» è mappata, ma
 va guardato se la fonte usa anche `'winter'` nudo come intestazione di colonna di una
