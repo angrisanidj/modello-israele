@@ -652,6 +652,26 @@ await (async function(){
    !!srcGen && rigaIng.indexOf('pathToFileURL(process.argv[1])')>=0);
 })();
 
+/* ══ I QUALIFICATORI DI og:image VENGONO DOPO L'IMMAGINE CHE DESCRIVONO ══
+   Nel protocollo Open Graph una proprietà strutturata — og:image:width, :height, :alt — si
+   lega all'og:image che la PRECEDE. Il 29 agosto 2026, spostando og:image dentro la regione
+   del lavoro notturno, i tre qualificatori sono rimasti sopra e sono diventati orfani:
+   dichiaravano larghezza, altezza e testo alternativo di nessuna immagine.
+   NESSUNA PROVA CADEVA e la pagina si leggeva benissimo — e i due che si perdevano sono
+   proprio quelli con cui WhatsApp decide la scheda grande, cioè il difetto stava DENTRO la
+   riparazione del difetto che si era lì a chiudere. Trovato guardando l'ordine delle meta
+   nella pagina servita, non dal banco.
+   Si prova l'ordine e non la posizione: qualunque qualificatore, anche uno aggiunto domani,
+   deve stare dopo la sua immagine. */
+{
+  const iImg = html.indexOf('<meta property="og:image" ');
+  const orfani = [...html.matchAll(/<meta property="(og:image:[\w-]+)"/g)]
+    .filter(m => iImg < 0 || m.index < iImg).map(m => m[1]);
+  p('i qualificatori di og:image vengono DOPO og:image, o si legano a nessuna immagine' +
+    (orfani.length ? ' (orfani: ' + orfani.join(', ') + ')' : ''),
+    iImg >= 0 && orfani.length === 0);
+}
+
 /* ══ LA REGIONE CHE IL LAVORO NOTTURNO PUÒ RISCRIVERE ══
    Prima la regola era «il job tocca solo dati/», ed era anche il segnale d'allarme: un
    commit notturno su index.html era per definizione un'anomalia. og:title deve dire lo

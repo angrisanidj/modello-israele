@@ -68,12 +68,9 @@
      non rilegge — e siccome la data è DENTRO l'immagine, si vedrebbe. Se un giorno pesa,
      il rimedio è un indirizzo con la data, che però riporterebbe questa riga dentro la
      regione del job: è la ragione per cui non si fa adesso. -->
-<meta property="og:image:width" content="1200">
-<meta property="og:image:height" content="630">
 <!-- «i blocchi» e non «i tre blocchi»: i blocchi sono quattro e quanti ne hanno seggi lo
      decide la proiezione, non questo testo. Un conto scritto a mano in una meta è peggio che
      altrove, perché questa stringa ESCE dalla pagina e la legge chi non vede l'immagine. -->
-<meta property="og:image:alt" content="L'emiciclo della Knesset con i seggi proiettati per blocco e la linea della maggioranza a 61.">
 
 
 <!-- ══ META DELLO STATO · INIZIO — LE SCRIVE IL LAVORO NOTTURNO, NON UNA PERSONA ══
@@ -124,6 +121,19 @@
 <meta property="og:title" content="I partiti arabi potrebbero essere decisivi · Knesset 2026">
 <meta property="og:image" content="https://angrisanidj.github.io/modello-israele/dati/anteprima.png?v=a5ffeba4715e">
 <!-- ══ META DELLO STATO · FINE ══ -->
+<!-- I TRE QUALIFICATORI STANNO QUI, DOPO og:image E NON PRIMA, e non e' cosmesi: nel
+     protocollo Open Graph una proprieta' strutturata si lega all'og:image che la PRECEDE.
+     Il 29 agosto 2026, spostando og:image dentro la regione del job, questi tre sono
+     rimasti sopra e sono diventati ORFANI: dichiaravano larghezza, altezza e testo
+     alternativo di nessuna immagine. Nessuna prova cadeva e la pagina si leggeva benissimo,
+     ed erano proprio i due che servono a WhatsApp per scegliere la scheda grande — cioe' il
+     difetto stava dentro la riparazione del difetto che eravamo li' a chiudere.
+     Restano FUORI dalla regione perche' sono costanti: 1200x630 non cambia con l'archivio,
+     e allargare l'eccezione a cinque meta per tre valori fissi sarebbe il contrario di
+     tenerla stretta. -->
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="L'emiciclo della Knesset con i seggi proiettati per blocco e la linea della maggioranza a 61.">
 </head>
 <!-- Il fondo è il --paper del tema CHIARO, ed è solo un ripiego: applicaTema() lo riscrive
      dalla tavolozza al primo giro, perché in tema scuro dev'essere #070D18. Prima qui c'era
