@@ -1167,30 +1167,34 @@ leva alla volta, quella lista le esercita insieme.
     differenza in millisecondi porta un'ora in più, e siccome `gg()` arrotonda invece di
     troncare, il giorno in cui il conto scatta dipende dall'ora in cui si apre la pagina.
     Chi lo ripara lo verifichi **a cavallo del 25 ottobre**, non solo a una data qualsiasi.
-13. **Sei suite usano un DOM ridotto invece di jsdom.** `aff`, `emi`, `final`, `tema`,
-    `testint` e `verifica` sostituiscono `document` con oggetti finti in cui `innerHTML` è
-    una semplice proprietà di testo: nessun albero viene mai analizzato, quindi
-    `querySelector` non esiste. Sono state scritte così perché leggono la stringa HTML che
-    il modello scrive, non il risultato reso — costa meno di un'analisi per suite. Ma è
-    esattamente lo stub permissivo contro cui mette in guardia la sezione delle trappole,
-    e ha già presentato il conto: l'aggancio interattivo degli istogrammi ha dovuto
-    aggiungere una guardia d'uscita per non farle cadere, e quella guardia rendeva 108
-    righe non esercitate da nessuna prova. Oggi le copre `interazione.js`, che costruisce
-    un DOM vero. Vanno convertite: finché restano così, ogni codice che tocchi elementi
-    resi va provato altrove o non è provato affatto.
+13. ~~Sei suite usano un DOM ridotto invece di jsdom~~ — **CONVERTITE: `aff`, `emi`,
+    `final`, `tema`, `testint` e `verifica` costruiscono un DOM jsdom vero.** La voce resta
+    perché il conto che avevano presentato è la ragione per cui la regola esiste, e perché
+    **lo stub non è sparito del tutto**.
 
-    **Il conto è arrivato una seconda volta il 23 agosto 2026**, e questa volta senza
-    guardie. Lo stub non aveva `setAttribute` **affatto**: la prima riga di pagina che ha
-    scritto un attributo su un elemento reso — l'`aria-label` del comando degli accordi di
-    eccedenza — ha fatto morire **tutte e sei** le suite alla prima chiamata, con zero
-    asserzioni ciascuna. Rimedio scelto: **l'attrito è stato messo nello stub, non nella
-    pagina**. Niente guardia d'uscita in `rApp()` — sarebbe stata la stessa riparazione
-    sbagliata di allora — e invece un `attr:{}` vero con `setAttribute` / `getAttribute` /
-    `removeAttribute` e `hidden` nelle sei copie. Lo stub deve poter *fare finta* di essere
-    un elemento; non deve mentire su **che cosa un elemento sa fare**.
+    **Quello che resta, ed è dichiarato invece che taciuto**: `El()` compare ancora in otto
+    file di prova — le sei più `archivio.js` e `eventireg.js` — accanto al jsdom vero. Non
+    ho verificato quale delle due strade prenda ciascuna asserzione, quindi **non so dire se
+    lo stub sia ancora esercitato o sia soltanto codice morto**. È manutenzione, non un
+    difetto: le due volte in cui ha presentato il conto erano su suite che oggi hanno un DOM
+    vero. Chi ci passa accanto lo tolga, o dichiari perché resta.
 
-    E la copia dello stub è essa stessa una strada sestupla: sei `El()` quasi identici, e
-    la modifica di oggi è stata applicata a mano sei volte.
+    **Il conto, per memoria, perché è la lezione.** Lo stub sostituiva `document` con oggetti
+    finti in cui `innerHTML` era una proprietà di testo: nessun albero veniva analizzato,
+    quindi `querySelector` non esisteva. Ha presentato il conto **due volte**. La prima:
+    l'aggancio interattivo degli istogrammi dovette aggiungere una guardia d'uscita per non
+    farle cadere, e quella guardia rese 108 righe non esercitate da nessuna prova. La
+    seconda, il 23 agosto 2026 e senza guardie: lo stub non aveva `setAttribute` **affatto**,
+    e la prima riga di pagina che scrisse un attributo su un elemento reso — l'`aria-label`
+    del comando degli accordi — fece morire **tutte e sei** le suite alla prima chiamata, con
+    zero asserzioni ciascuna.
+
+    **E il rimedio scelto allora vale ancora come regola**: l'attrito fu messo nello stub e
+    non nella pagina. Niente guardia d'uscita in `rApp()` — sarebbe stata la stessa
+    riparazione sbagliata della prima volta — ma un `attr:{}` vero con `setAttribute` /
+    `getAttribute` / `removeAttribute`. *Uno stub deve poter far finta di essere un elemento;
+    non deve mentire su che cosa un elemento sa fare.*
+
 14. **La tabella che sfora è quella dell'*house effect*, non quella dell'archivio.**
     Questo punto ha indirizzato sulla tabella sbagliata per tre commit: la misura era
     giusta — 942px dentro un `div` con `overflow-x:visible` — ma quei numeri sono di
@@ -5078,7 +5082,18 @@ l'anagrafica — `applicaSwing()`, `puntiPer()`, `dir[]` del Monte Carlo, l'affl
 quelle che CONTANO SEGGI leggono la leva.** E la leva non deve raggiungere la guardia «Gov.»
 del parser notturno, o ogni notte respingerebbe righe valide dove nessuno guarda.
 
-### Il parser e le due convenzioni: diagnosticato il 27 agosto, NON applicato
+### Il parser e le due convenzioni — APPLICATO, e tutte e tre le forme sono lette
+
+**APPLICATO. Le tre sedi sono chiuse tutte e tre**, e il commento accanto al parser porta la
+semantica letta dalla riga vera: `(N)` in una colonna di lista vuol dire «sotto soglia, zero
+seggi», e **N non si usa** — metterlo in `sotto` sarebbe un errore di unità, convertirlo una
+stima. `(46)` in «Gov.» e `(552)` nel campione si leggono come interi, perché lì la parentesi
+non cambia il significato: quarantasei seggi di blocco sono quarantasei.
+
+Quello che segue è la diagnosi da cui si è partiti, e resta perché i suoi numeri dicono
+quanto costava — e perché **due delle tre sedi fallivano in silenzio**, che è la ragione per
+cui una riga scartata è meno grave di una colonna muta.
+
 
 Wikipedia usa due notazioni per le liste sotto soglia, **nella stessa schermata**. Il
 sospetto di partenza era che il parser leggesse `(1,8%)` come 1,8 seggi; misurato, è
@@ -5356,63 +5371,78 @@ le meta. Le altre tre non offrono niente di equivalente a chiunque.
 
 ### Nell'ordine, quando si riprende
 
-**PRIMA DI TUTTO, E ORA SONO DUE: «Il lavoro notturno non è puntuale, e chi se ne accorge non
-può stare dentro il job».** Scritte il 28 agosto 2026, la mattina in cui il job non è partito
-affatto, dopo lo slittamento di undici ore del 27. **La prima — il cron a finestra con la
-guardia su `stato-job.json` — è applicata lo stesso giorno**; restano la seconda, che spiega
-perché un workflow separato NON è la via, e la terza, la Cloud Routine usata come guardia e
-mai come scheduler. Hanno già dentro quello che serve per eseguirle senza rifare il
-ragionamento. Vanno prima perché riguardano la sola cosa che pubblica da sola tutti i giorni,
-e perché quella mattina il difetto è stato trovato da una persona che si è accorta del
-silenzio — che è esattamente il controllo che non si può programmare.
+**PRIMA DI TUTTO, QUELLO CHE ASPETTA L'AUTORE — sta in cima perché non si cerchi.** Sono
+cinque cose piccole, nessuna bloccante, tutte ferme perché richiedono una decisione o una
+frase che non è mia da scrivere:
 
+1. **Quattro testi su quarantotto non li ha mai dettati lui**: `f5o4` e `f5e` nelle due ere.
+   Erano sei — `f4` è stata riscritta il 29 agosto 2026 — e sono le uniche celle nate da una
+   correzione di partizione invece che dalla sua penna.
+2. **I quattro blocchi senza prosa**: verdetto, pastiglie, istogrammi, simulatore. La
+   struttura — condizione, grandezze disponibili, che cosa la frase deve dire — è in
+   [docs/testi-quattro-blocchi.md](docs/testi-quattro-blocchi.md); i testi no.
+3. **Il caso V4 è vivo ADESSO**, e non è un'ipotesi: il riquadro della direzione mostra
+   **seggi fermi** e l'opposizione che passa dal **16% al 21%**. Il ramo che lo riconosce
+   c'è — classe `psmossa`, con blocco e numeri negli attributi — la frase no.
+4. **Le due domande su `MC.primo`**: se il primo partito sia una forma del titolo a sé o una
+   frase dentro le esistenti, e se `k-verdetto` e `k-analisi` possano contraddirsi sullo
+   stesso schermo. Il dato per decidere è misurato e sta in «Le quattro cose decise oggi».
+5. **Se la fonte usi anche `winter` NUDO** come intestazione di colonna in una tabella di
+   seggi. `'winter party'` è mappata; questa domanda è rimasta senza risposta, ed è la
+   ragione per cui la mappatura precedente era stata sbagliata — si guarda la colonna in cui
+   la grafia compare, non le occorrenze della parola nella pagina.
 
-**Prima di tutto la voce già scritta in coda a questo file: «Winter party» è mappata, ma
-va guardato se la fonte usa anche `'winter'` nudo come intestazione di colonna di una
-tabella di seggi.** È la domanda a cui non avevo risposto.
+---
 
-**E una revisione visiva in sospeso, dal 27 agosto 2026, che è dell'autore.** Due cose
-sono cambiate a schermo e nessun occhio le ha ancora viste — i numeri tornano, ma è
-layout, e in questo progetto il layout lo dice solo un browser:
+Poi, in quest'ordine — che **non** è l'ordine in cui le voci sono scritte più sotto:
 
-- **i totali dell'emiciclo sono scesi di 24 unità**, da y 180/197 a **y 204/221**, il corpo
-  è **28 in tutte le configurazioni** — costante, non più 29 o 31 a seconda di dove capitano
-  i seggi — e la sigla è scesa da 8,5 a **7,5**, che a 380 rende **5,69px** contro un
-  pavimento di 5: è il testo più piccolo della pagina, con 0,69px di margine. Da guardare nei
-  due temi e alle due larghezze, e la sigla è la cosa da guardare per prima;
-- **il vuoto fra i gruppi** è passato da tre posti a uno: con tre blocchi non cambia un
-  pixel, con quattro i salti passano da 1/2/2 a 1/1/1;
-- **i glifi**: nove marchi vengono ora dai file di Simple Icons. Guardati rasterizzati a
-  20px dentro il cerchio da 44 e affiancati agli altri, ma non ancora **in pagina**;
-- **la colonna di condivisione sopra i 1380** ha sette cerchi e il gruppo gemello in fondo
-  non c'è più. Misurato: a 1440 colonna `flex` e gruppo `none`, a 1265 il contrario,
-  sforamento orizzontale zero.
+1. **GUARDARE LA PAGINA RESA, ed è la sola cosa viva.** L'ago della bilancia ha **cinque
+   seggi**: il quarto blocco è in aula *adesso*, in produzione, e nessun occhio ha mai visto
+   la pagina in quello stato. L'arco a quattro gruppi, la riga dei totali a corpo 28, il
+   comando della leva visibile, e la **sigla dell'emiciclo a 5,69px contro un pavimento di
+   5** — 0,69px di margine, il testo più piccolo della pagina. Sono tutti numeri misurati e
+   nessuno è stato confermato da un occhio.
+   Con essa, le altre cose cambiate dopo la passata del 23 agosto e mai guardate: il vuoto
+   fra i gruppi passato da tre posti a uno, i nove glifi di Simple Icons **in pagina** (visti
+   rasterizzati, mai nel loro contesto), la colonna di condivisione sopra i 1380, e **le
+   anteprime social**, che si guardano solo mandandosi il link in una chat nuova.
+   Viene prima di tutto perché è l'unica famiglia di difetti che nessuna delle 2426 prove
+   vede, e perché lo stato che nessuno ha guardato è quello pubblicato oggi.
 
-Poi, in quest'ordine:
+2. **LA PROVA DI REGIA DELL'8 SETTEMBRE, che è l'unica cosa con un orologio.** Il deposito
+   delle liste chiude l'anagrafica, ed è il giorno in cui quasi tutto quello che è annotato
+   in questo file viene esercitato **insieme**: liste nuove, fusioni e scissioni, il parser
+   che apre una issue con le colonne da mappare, `COLORE.capienza()` e la scala di ripiego
+   per l'ago della bilancia — che in tema chiaro ha **zero slot liberi** — la soglia delle
+   schede dell'house effect che sale a ~1190 con quindici colonne, i veti, `PRESET.netanyahu`
+   che si aggiorna da sé, `dentro` per le componenti nuove, e le 24 righe di gennaio-aprile
+   che aspettano una mappatura a mano.
+   **Non si simula, si esegue.** La prova gemella — la mappatura di Amcha — è costata
+   venticinque minuti e ha trovato **due posti che il contratto non aveva**. Quella dell'8
+   settembre non è mai stata percorsa, e il contratto è
+   [docs/mappare-una-lista-nuova.md](docs/mappare-una-lista-nuova.md).
 
-1. **L'anteprima e la card che dicono numeri diversi**, segnalata a fine giornata e **non
-   ancora diagnosticata**: vedi la sezione qui sopra. Va per prima perché è l'unica cosa
-   che il lettore vede SBAGLIATA — due immagini della stessa pagina con numeri diversi
-   nella stessa conversazione — e perché il primo controllo che separa le due cause costa
-   dieci secondi.
-2. **Il parser e le due convenzioni**, che è la sola voce con un difetto VIVO nel codice: una riga
-   valida può finire fra le scartate, e due colonne falliscono in silenzio. La diagnosi è
-   chiusa e sta qui sopra — «Il parser e le due convenzioni» — con la misura, la semantica di
-   `(N)` letta dalla riga vera, e la ragione per cui N **non** va usato. Resta da scrivere:
-   leggere `(N)` come «sotto soglia, zero seggi», e decidere che cosa fare delle due colonne
-   mute. Va prima delle card, perché è l'unica voce della coda che perde dati.
-3. **Le card social.** La proposta è chiusa e misurata — quattro formati, la regola sola
-   («si riempie lo spazio che avanza con i pezzi che esistono già»), `targaPNG()` che
-   prende l'altezza come parametro, il quinto consumatore di `fraseCorta()` — e il codice
-   non è scritto. Vedi «Le card e la condivisione: una targa sola, e il comando che non
-   c'è», che porta le tele e gli inchiostri resi.
-4. **I 44px dei bersagli, con `scroll-margin-top` RICALCOLATO NELLO STESSO COMMIT.** Oggi i
-   bersagli sotto i 44 sono 76 su 99 e il pezzo grosso è l'house effect, 20px di altezza,
-   il 37% del costo. L'accoppiamento non si riscopre rompendolo: alzare le sole voci
-   dell'indice porta `.idx.on` da 97,4 a 113,4, cioè **oltre i 112** dello
-   `scroll-margin-top` sotto i 660, e la fascia coprirebbe la sezione appena raggiunta da
-   un'ancora. I due numeri sono di sotto i 660 e vanno rimisurati lì: a desktop sono 78,5 e
-   92, e confrontarli è l'errore che ho già fatto il 25 agosto.
+3. **LE DUE INCOERENZE CHE IL LETTORE PUÒ VEDERE OGGI.** Sono l'unico difetto vivo in
+   produzione, e sono di lettura e non di calcolo:
+   - **la colonna mediana non risponde a nessun comando** — ignora `ESCL`, `SW` e `AFF`.
+     Misurato: escludendo Direct Polls la proiezione muove Likud 23→22, Yashar 23→24, Lista
+     Unita 8→7, e «L'analisi» resta immobile pur avendo due rilevazioni di quell'istituto
+     dentro la sua finestra. Chi preme un pulsante vede muoversi una tabella sola;
+   - **`k-direz` e `k-analisi` si contraddicono a tre righe di distanza**: il riquadro dice
+     «Blocco Netanyahu 51 −1», la frase sotto dice «guadagna 1 seggio». Sono due grandezze
+     diverse — due esecuzioni del modello contro la differenza fra mediane di blocco — e il
+     riquadro lo dichiara, la frase no. E **nel punto in cui la differenza si vede**, le due
+     colonne «Seggi» affiancate, la pagina non spiega niente: nessuna delle tre note nomina
+     la finestra a 7 giorni contro quella a 60, che è la ragione principale.
+
+4. **LA VOCE 3: la guardia esterna, la Cloud Routine.** Resta l'unica cosa che chiude il caso
+   del 29 agosto — un run mai nato non ha nessun canale interno per dirlo, e quella mattina
+   l'abbiamo saputo solo perché l'autore l'ha chiesto. Il cron a finestra alza la
+   probabilità che qualcosa parta; **non** dice niente quando non parte niente.
+   Il confine è già scritto e non si riapre: guardia che constata, mai scheduler che afferma.
+
+Poi, e nessuna delle sei ha un orologio addosso — ma le prime tre non sono rifinitura:
+
 5. **La prova di regia del 16 ottobre**, sul modello di quella appena fatta per le liste —
    che è il punto: **non si simula, si esegue.** Quel giorno il comando degli accordi
    sparisce, la riga di esito cambia ramo e gli annunciati mai depositati smettono di
@@ -5421,7 +5451,7 @@ Poi, in quest'ordine:
    prove lo verificano; nessuno l'ha ancora **guardato**. La mappatura di Amcha è costata
    venticinque minuti e ha trovato due posti che il contratto non aveva: qui il contratto è
    `docs/aggiungere-un-apparentamento.md`, e non è mai stato percorso.
-5-bis. **LO SCENARIO DELLA SOGLIA, e non è più ipotetico.** Misurato il 28 agosto 2026
+6. **LO SCENARIO DELLA SOGLIA, e non è più ipotetico.** Misurato il 28 agosto 2026
    sull'archivio di quella mattina, 163 rilevazioni valide. È il complemento di
    `riparto.js`: quella prova **il meccanismo**, questo lo **mostra al lettore**. Va prima
    della verifica a scenari perché la configurazione che Channel 12 descriveva — una che
@@ -5536,10 +5566,22 @@ Poi, in quest'ordine:
    E soprattutto **non una sezione nuova**: sarebbe la dodicesima, con un indice che sotto i
    660 è già largo 1891px in una finestra da 358.
 
-6. **La verifica a scenari**, le sei tabelle in fondo a questo file. Ha due righe nuove
+7. **La verifica a scenari**, le sei tabelle in fondo a questo file. Ha due righe nuove
    dalla prova di regia: la lista mappata che non ha ancora seggi, e la caduta sotto soglia
    mentre un'altra entra.
-7. **L'agente del mattino.** Viene ultimo perché ogni cosa sopra è una procedura che gli si
+8. **Le card social.** La proposta è chiusa e misurata — quattro formati, la regola sola
+   («si riempie lo spazio che avanza con i pezzi che esistono già»), `targaPNG()` che
+   prende l'altezza come parametro, il quinto consumatore di `fraseCorta()` — e il codice
+   non è scritto. Vedi «Le card e la condivisione: una targa sola, e il comando che non
+   c'è», che porta le tele e gli inchiostri resi.
+9. **I 44px dei bersagli, con `scroll-margin-top` RICALCOLATO NELLO STESSO COMMIT.** Oggi i
+   bersagli sotto i 44 sono 76 su 99 e il pezzo grosso è l'house effect, 20px di altezza,
+   il 37% del costo. L'accoppiamento non si riscopre rompendolo: alzare le sole voci
+   dell'indice porta `.idx.on` da 97,4 a 113,4, cioè **oltre i 112** dello
+   `scroll-margin-top` sotto i 660, e la fascia coprirebbe la sezione appena raggiunta da
+   un'ancora. I due numeri sono di sotto i 660 e vanno rimisurati lì: a desktop sono 78,5 e
+   92, e confrontarli è l'errore che ho già fatto il 25 agosto.
+10. **L'agente del mattino.** Viene ultimo perché ogni cosa sopra è una procedura che gli si
    può delegare o un difetto che gli farebbe sbagliare più in fretta. Il terreno è pronto —
    `dati/da-fare.json` con il conto in testa, i tre contratti in `docs/` coi passi di
    giudizio marcati, le convalide, e il confine scritto in questo file — e adesso c'è anche
@@ -5824,7 +5866,7 @@ il 37% del costo totale. Oggi i bersagli sotto i 44 sono **76 su 99**.
 
 ### La coda del 23 agosto, superata — la traccia di che cosa era già stato chiuso
 
-**L'ordine di marcia vero è quello del 26 agosto, più in alto.** Questa sezione resta
+**L'ordine di marcia vero è quello in cima a «Nell'ordine, quando si riprende», riscritto il 29 agosto 2026.** Questa sezione resta
 perché dice che cosa è stato fatto e in che ordine, con le ragioni: le prime quattro voci
 sono chiuse e portano ciascuna la misura che le ha decise. Chi riprende legge quella
 sopra; chi vuole sapere perché una cosa è come è, legge questa.
@@ -5946,30 +5988,26 @@ da fare.
   sei formulazioni scartate restano nella sezione, perché il numero che ha deciso — il
   plurale più corto del singolare — non si ritrova ragionandoci.
 
-**DA FARE PER PRIMA COSA — «Winter party» va mappato come `amcha`.** Deciso dall'autore
-il 26 agosto 2026 guardando il messaggio dell'aggiornamento, che dice: «in una tabella di
-SEGGI compaiono colonne non riconosciute (Winter party)».
+**«Winter party» è mappata dal 26 agosto 2026** — `'winter party':'amcha'` in `W_LISTA` —
+e resta scritto qui perché la correzione ha una lezione dentro, e perché **una domanda è
+rimasta senza risposta**.
 
-**Ed è la correzione di una mia decisione sbagliata, quindi va letta insieme al perché.**
-Mappando Amcha Israel lo stesso giorno avevo mappato cinque grafie — `amcha israel`,
-`amcha yisrael`, `amcha`, `party of ofer winter`, `people of israel` — e avevo escluso
-«Winter» con questa ragione scritta nel commento: nella tabella degli scenari è
-l'etichetta di un aggregato, «Winter parties and Reservists-B&W», e una grafia mappata
-male conta voti per la lista sbagliata in silenzio mentre una che manca ferma il job
-rumorosamente.
+**LA DOMANDA APERTA, ed è di due minuti**: se la fonte usi anche `'winter'` **nudo** come
+intestazione di colonna in una tabella di SEGGI. Finché non è verificata, ogni notte in cui
+quella grafia comparisse la guardia si chiuderebbe e l'archivio resterebbe fermo.
 
-Il ragionamento sul rischio asimmetrico resta buono; **il fatto su cui poggiava era
-falso**. «Winter party» — al singolare, con «party» attaccato — non è l'aggregato: compare
-come colonna in una tabella di **seggi**, cioè è quella lista lì. Avevo guardato le
-occorrenze della parola «Winter» nel markup e visto l'aggregato al plurale, e ho concluso
-sull'insieme invece che sulla stringa esatta. **La cosa da non ripetere è quella**:
-davanti a una grafia si guarda la colonna in cui compare, non le occorrenze della parola
-nella pagina.
+**E la lezione, che è il motivo per cui il paragrafo non si cancella.** Mappando Amcha avevo
+ESCLUSO «Winter» con una ragione scritta: nella tabella degli scenari è l'etichetta di un
+aggregato, «Winter parties and Reservists-B&W», e una grafia mappata male conta voti per la
+lista sbagliata in silenzio mentre una che manca ferma il job rumorosamente. Il ragionamento
+sul rischio asimmetrico regge; **il fatto su cui poggiava era falso**: «Winter party», al
+singolare, compare come colonna in una tabella di **seggi**. Avevo cercato la parola
+«Winter» nel markup, visto il plurale, e concluso sull'insieme invece che sulla stringa
+esatta.
 
-Quindi in `W_LISTA` va aggiunto `'winter party':'amcha'`, e prima di scriverlo si guarda
-se la fonte usa anche `'winter'` nudo come **intestazione di colonna di una tabella di
-seggi** — che è la domanda a cui non avevo risposto. Finché non è mappata, ogni notte in
-cui quella colonna compare la guardia si chiude e l'archivio resta fermo.
+**La cosa da non ripetere è quella**: davanti a una grafia si guarda **la colonna in cui
+compare**, non le occorrenze della parola nella pagina. È la stessa forma degli altri errori
+di copertura annotati in questo file — un ragionamento valido applicato al caso sbagliato.
 
 **E le cose minori, quando capitano sotto mano:**
 
