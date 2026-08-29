@@ -40,7 +40,28 @@ on:
   # I MINUTI SONO DISPARI APPOSTA e costano zero: :00 e :30 sono gli orari che pianificano
   # tutti, quindi quelli con la coda piu' lunga.
   schedule:
-    - cron: '23,53 3-6 * * *'   # otto tentativi fra le 03:23 e le 06:53 UTC
+  # E L'ORA CONTA PIU' DEI MINUTI, misurato il 29 agosto 2026 sui tre modelli dello stesso
+  # account. Su 44 tick attesi in 57 ore ne sono partiti 10: il servizio consegna circa un
+  # QUARTO di quello che promette, e vale per tutti e tre — Germania al 10-40%, UK al 16-33%.
+  # Da cui la lezione che ha deciso questo cron: la frequenza compensa l'inaffidabilita', e
+  # l'affidabilita' non si compra. Un job una volta al giorno al 23% salta tre giorni su
+  # quattro; il «Review UK polling» gira ogni tre ore e allo stesso 16% fa comunque 1,3
+  # esecuzioni al giorno, quindi SEMBRA sano. E' la stessa infrastruttura per tutti: cambia
+  # quante volte ci provi.
+  # La prima stesura di questa finestra metteva otto tick fra le 03:23 e le 06:53, cioe'
+  # TUTTI dentro la stessa fascia — e nella notte del 29 agosto ne sono partiti ZERO. Otto
+  # tentativi nella stessa buca valgono meno di due in due buche diverse: adesso sono sparsi
+  # su diciotto ore, cosi' i tentativi sono indipendenti fra loro invece che esposti alla
+  # stessa congestione.
+  # NON PARTE PRIMA DELLE 03:23 per la ragione editoriale di sempre — i sondaggi della sera
+  # devono essere in tabella — e piu' tardi non costa niente, anzi: significa PIU'
+  # rilevazioni, non meno. E i dieci tick sono gratuiti perche' c'e' la guardia: il primo che
+  # passa scrive, gli altri nove escono in pochi secondi.
+  # L'indizio piu' debole, dichiarato come tale: fra i tick partiti il ritardo mediano e' 11
+  # ore per quelli notturni e 66 minuti per quelli dalle 08:00 in poi, e i tre puntuali sul
+  # serio erano tutti alle 17:xx. Sono cinque osservazioni per parte: coerente, non
+  # dimostrato. Va rimisurato, non creduto.
+    - cron: '23 3-21/2 * * *'   # dieci tentativi, dalle 03:23 alle 21:23, uno ogni due ore
   workflow_dispatch:
 permissions:
   contents: write

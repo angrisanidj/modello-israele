@@ -48,6 +48,8 @@ import {dirname, join} from 'node:path';
 import {fileURLToPath, pathToFileURL} from 'node:url';
 import {JSDOM} from 'jsdom';
 import {Resvg} from '@resvg/resvg-js';
+import {createHash} from 'node:crypto';
+import {scriviMeta} from './aggiorna.mjs';
 
 const QUI = dirname(fileURLToPath(import.meta.url));
 const RADICE = join(QUI, '..', '..');
@@ -252,6 +254,30 @@ export async function genera(){
    Né png.js né meta.js potevano coglierlo: provano componi() e genera(), cioè la
    COMPOSIZIONE, e struttura.mjs legge il sorgente del workflow. L'unica cosa rotta era il
    punto d'ingresso, che nessuna delle due esercita. */
+/* L'IMPRONTA VA NELL'INDIRIZZO, E SI CALCOLA SUL CONTENUTO.
+   Un aggregatore puo' fallire in due modi e ne avevamo guardato uno solo: se non rilegge
+   la pagina, l'impronta non serve; ma se rilegge la pagina e serve l'IMMAGINE dalla
+   propria cache, l'impronta e' l'unica cosa che lo chiude. Il 29 agosto 2026 i due modelli
+   gemelli dello stesso account usavano tutti e due l'indirizzo versionato e le loro
+   anteprime funzionavano; questo non lo usava e non funzionava. E su WhatsApp, che non ha
+   nessuno strumento pubblico di rilettura, e' la SOLA leva che esista.
+   DEL CONTENUTO E NON DELLA DATA: una notte senza rilevazioni nuove lascia il PNG identico,
+   quindi l'impronta identica, quindi scriviMeta() non cambia un byte e non si committa
+   niente. Con la data, ogni notte butterebbe la cache di tutti per non dire niente di nuovo.
+   Si chiama anche quando il PNG NON e' stato riscritto, perche' la prima volta l'indirizzo
+   in pagina e' quello nudo e l'impronta va aggiunta comunque. */
+function impronta(png){
+ const v = createHash('sha256').update(png).digest('hex').slice(0, 12);
+ const p = join(RADICE, 'index.html');
+ const prima = readFileSync(p, 'utf8');
+ const dopo = scriviMeta(prima, null, v);
+ /* scriviMeta() restituisce null quando la regione non c'e' piu': il job si ferma invece di
+    indovinare dove mettere la meta, ed e' il modo di fallire di tutto il resto. */
+ if (dopo === null) { console.error('og:image NON aggiornata: la regione delle meta non esiste'); process.exit(1); }
+ if (dopo === prima) { console.log('og:image: impronta invariata, ' + v); return; }
+ writeFileSync(p, dopo);
+ console.log('og:image: impronta ' + v);
+}
 if (import.meta.url === pathToFileURL(process.argv[1]).href) {
  genera().then(png => {
   /* SI CONFRONTANO I BYTE PRIMA DI SCRIVERE. Senza, il job committerebbe un'immagine anche
@@ -260,10 +286,13 @@ if (import.meta.url === pathToFileURL(process.argv[1]).href) {
      idempotente. */
   if (existsSync(USCITA) && Buffer.compare(readFileSync(USCITA), png) === 0) {
    console.log('anteprima: identica, non riscritta');
+   impronta(png);
    return;
   }
   writeFileSync(USCITA, png);
   console.log('anteprima: scritta, ' + (png.length / 1024).toFixed(1) + ' KB');
+  impronta(png);
+  return;
  }).catch(e => {
   /* SE UNA GUARDIA SCATTA NON SI SCRIVE NIENTE. Un og:image vecchio è meglio di un
      og:image vuoto: il file resta quello di ieri e la pagina continua a dire una cosa vera. */

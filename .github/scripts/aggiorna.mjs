@@ -113,26 +113,47 @@ export function aggiornaRegistro(registro, eventi, chiaveDi, oggi){
 export const MARCA_INIZIO = '<!-- ══ META DELLO STATO · INIZIO';
 export const MARCA_FINE   = '<!-- ══ META DELLO STATO · FINE ══ -->';
 
-export function scriviMeta(html, titolo){
+/* L'INDIRIZZO DELL'IMMAGINE, senza impronta. E' anche il ripiego scritto in pagina: chi
+   apre il file da disco o arriva prima della prima notte vede l'immagine che c'e', e
+   nessuna impronta puo' essere vera per lui. */
+export const IMMAGINE = 'https://angrisanidj.github.io/modello-israele/dati/anteprima.png';
+
+/* SCRIVE LE DUE META DELLA REGIONE, e conserva quella che non le viene data.
+ * I due valori nascono in due momenti diversi dello stesso job e non si possono scrivere
+ * insieme: og:title lo sa il parser (passo 7), l'impronta dell'immagine la sa il
+ * generatore dell'anteprima (passo 8), che gira DOPO perche' disegna l'archivio appena
+ * aggiornato. Quindi ciascuno passa quello che sa e l'altro valore si rilegge dalla
+ * regione — che e' l'unica strada che non richiede a nessuno dei due di conoscere il
+ * lavoro dell'altro. Il commit avviene dopo tutti e due, quindi lo stato committato e'
+ * sempre coerente.
+ * Funzione PURA: prende il file e restituisce il file. */
+export function scriviMeta(html, titolo, impronta){
   const i = html.indexOf(MARCA_INIZIO);
   const j = html.indexOf(MARCA_FINE);
-  /* Un marcatore mancante o invertito NON è un caso da riparare indovinando: vuol dire che
-     qualcuno ha riscritto il <head>, e allora il job non sa più dove sia la sua regione.
-     Si ferma, e la pagina resta quella di ieri — è il modo di fallire di tutto il resto. */
+  /* Un marcatore mancante o invertito NON e' un caso da riparare indovinando: vuol dire che
+     qualcuno ha riscritto il <head>, e allora il job non sa piu' dove sia la sua regione.
+     Si ferma, e la pagina resta quella di ieri — e' il modo di fallire di tutto il resto. */
   if (i < 0 || j < 0 || j <= i) return null;
-  /* la coda del marcatore d'apertura è il commento che spiega la regola a chi legge il
-     file: si conserva. Si riscrive solo quello che sta fra la fine del commento e la fine
-     della regione. */
   const fineCommento = html.indexOf('-->', i);
   if (fineCommento < 0 || fineCommento > j) return null;
   const testa = html.slice(0, fineCommento + 3);
+  const dentro = html.slice(fineCommento + 3, j);
   const coda  = html.slice(j);
-  /* Il titolo entra in un attributo HTML: virgolette, & e angolari vanno protetti, o una
-     virgoletta dritta spezza l'attributo. I testi di TIT_CORTO_* non ne hanno oggi, e
-     «oggi» non è una garanzia — l'8 settembre una lista nuova può portarne uno nel nome. */
   const esc = t => String(t).replace(/&/g, '&amp;').replace(/"/g, '&quot;')
                             .replace(/</g, '&lt;').replace(/>/g, '&gt;');
-  const meta = '\n<meta property="og:title" content="' + esc(titolo) + '">\n';
+  const leggi = prop => {
+    const m = dentro.match(new RegExp('<meta property="' + prop + '" content="([^"]*)">'));
+    return m ? m[1] : null;
+  };
+  /* CIASCUN VALORE: quello passato, o quello che c'e' gia'. */
+  const tit = titolo != null ? esc(titolo) : leggi('og:title');
+  const img = impronta != null ? esc(IMMAGINE + '?v=' + impronta) : leggi('og:image');
+  /* SENZA TITOLO NON SI SCRIVE. E' la meta per cui la regione esiste: se non c'e' ne'
+     quello passato ne' quello in pagina, qualcuno ha svuotato la regione e il job non deve
+     ricostruirla indovinando. */
+  if (tit == null) return null;
+  let meta = '\n<meta property="og:title" content="' + tit + '">\n';
+  if (img != null) meta += '<meta property="og:image" content="' + img + '">\n';
   return testa + meta + coda;
 }
 

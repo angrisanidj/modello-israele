@@ -90,7 +90,10 @@ const HTML = fs.readFileSync(path.join(RADICE, 'index.html'), 'utf8');
       'e il file che dichiara esiste davvero nel repository', percorso);
     /* e l'indirizzo dichiarato è quello del file, non un altro: si compone dal canonical */
     const can = meta('og:url') || '';
-    esito(meta('og:image').indexOf(can) === 0 && /dati\/anteprima\.png$/.test(meta('og:image')),
+    /* si confronta l'indirizzo SENZA impronta: «?v=<hash>» e' una chiave di cache, non
+       parte del percorso, e dal 29 agosto 2026 c'e' sempre in pagina. */
+    const imgNuda = meta('og:image').split('?')[0];
+    esito(imgNuda.indexOf(can) === 0 && /dati\/anteprima\.png$/.test(imgNuda),
       'e l\'indirizzo si compone sul canonical, invece di essere un secondo indirizzo',
       meta('og:image'));
   }
@@ -302,6 +305,55 @@ esito(A.titoloCortoOra().slice(-A.TIT_CODA.length) === A.TIT_CODA,
     const e = new JSDOM(velenoso).window.document.querySelector('meta[property="og:title"]');
     esito(!!e && e.getAttribute('content') === grezzo,
       'e un browser rilegge esattamente il titolo di partenza');
+  /* ── 4 · LE DUE META, e l'impronta che sta nell'indirizzo ──────────────────────────
+     Dal 29 agosto 2026 la regione ne ammette due. og:image porta «?v=<hash>» perché un
+     aggregatore può fallire in DUE modi e ne era stato guardato uno solo: se non rilegge la
+     pagina l'impronta non serve, ma se rilegge la pagina e serve l'IMMAGINE dalla propria
+     cache l'impronta è l'unica cosa che lo chiude. Su WhatsApp, che non ha nessuno
+     strumento pubblico di rilettura, è la sola leva che esista.
+     I DUE VALORI NASCONO IN DUE MOMENTI DIVERSI dello stesso job — il titolo al passo del
+     parser, l'impronta al passo dell'anteprima, che gira dopo perché disegna l'archivio
+     appena aggiornato — quindi ciascuno passa quello che sa e l'altro si conserva. Sono
+     queste due conservazioni la proprietà da provare: senza, il secondo a scrivere
+     cancellerebbe il lavoro del primo e il commit uscirebbe con una meta sola. */
+  const conV = scriviMeta(HTML, TIT, 'abc123def456');
+  esito(!!conV && conV.indexOf('dati/anteprima.png?v=abc123def456') > 0,
+    'og:image porta l\'impronta passata, appesa all\'indirizzo');
+  esito(!!conV && conV.indexOf('content="' + TIT + '"') > 0,
+    'e nello stesso passaggio og:title resta quello passato');
+
+  const soloTit = scriviMeta(HTML, TIT);
+  const imgOra = (HTML.match(/<meta property="og:image" content="([^"]*)">/) || [])[1];
+  esito(!!soloTit && !!imgOra && soloTit.indexOf(imgOra) > 0,
+    'senza impronta og:image resta quella già in pagina: il parser non cancella il lavoro ' +
+    'del generatore dell\'anteprima');
+
+  const soloImg = scriviMeta(HTML, null, 'ffffff000000');
+  const titOra = (HTML.match(/<meta property="og:title" content="([^"]*)">/) || [])[1];
+  esito(!!soloImg && !!titOra && soloImg.indexOf('content="' + titOra + '"') > 0,
+    'e senza titolo og:title resta quello già in pagina: il generatore dell\'anteprima non ' +
+    'cancella il lavoro del parser');
+  esito(!!soloImg && soloImg.indexOf('?v=ffffff000000') > 0,
+    'e intanto l\'impronta nuova entra davvero');
+
+  esito(!!conV && scriviMeta(conV, TIT, 'abc123def456') === conV,
+    'riscrivere la stessa impronta non cambia un byte: una notte senza rilevazioni nuove ' +
+    'non butta la cache di nessuno');
+
+  const senzaTit = HTML.replace(/<meta property="og:title"[^>]*>/, '');
+  esito(scriviMeta(senzaTit, null, 'abc123def456') === null,
+    'e senza titolo né passato né in pagina rifiuta, invece di scrivere una regione monca');
+
+  /* L'IMPRONTA È DEL CONTENUTO E NON DELLA DATA, e si prova sul sorgente perché il
+     generatore non è esercitabile qui. È la differenza fra «una notte a vuoto non butta la
+     cache di nessuno» e «ogni notte la butta per non dire niente di nuovo». */
+  const srcAnt = fs.readFileSync(path.join(RADICE, '.github', 'scripts', 'anteprima.mjs'), 'utf8');
+  const daImp = srcAnt.indexOf('function impronta(');
+  const fnImp = daImp < 0 ? '' : srcAnt.slice(daImp, daImp + 400);
+  esito(fnImp.indexOf('update(png)') > 0 && !/new Date|toISOString|Date\.now/.test(fnImp),
+    'l\'impronta si calcola sui BYTE del png e non sulla data: una notte senza rilevazioni ' +
+    'nuove lascia l\'indirizzo identico');
+
   }
 })().then(function(){
   console.log('\n' + ok + '/' + (ok + ko));

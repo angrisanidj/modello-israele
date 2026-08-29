@@ -68,7 +68,6 @@
      non rilegge — e siccome la data è DENTRO l'immagine, si vedrebbe. Se un giorno pesa,
      il rimedio è un indirizzo con la data, che però riporterebbe questa riga dentro la
      regione del job: è la ragione per cui non si fa adesso. -->
-<meta property="og:image" content="https://angrisanidj.github.io/modello-israele/dati/anteprima.png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <!-- «i blocchi» e non «i tre blocchi»: i blocchi sono quattro e quanti ne hanno seggi lo
@@ -101,8 +100,29 @@
      chi arriva prima della prima notte e chiunque lo trovi con il job fermo, e a nessuno
      dei tre può essere diventato falso. Il <title> statico resta questo per sempre, ed è
      voluto: un ripiego che raccontasse lo stato scadrebbe in una data che nessuno ha
-     segnato in calendario. -->
+     segnato in calendario.
+
+     E DAL 29 AGOSTO 2026 LE META SONO DUE, non una. og:image sta qui dentro perche' il job
+     deve poterle appendere l'IMPRONTA DEL CONTENUTO — «?v=<hash>» — e senza quella non
+     c'e' nessuna leva sulle cache degli aggregatori. Il costo e' dichiarato: l'eccezione
+     passa da una meta a due, resta la piu' stretta che si possa dare, e struttura.mjs
+     continua a verificare che qui dentro non finisca altro.
+
+     PERCHE' SERVE, e non e' l'argomento che avevo scritto il 28 agosto. Un aggregatore
+     puo' fallire in DUE modi, e ne avevo guardato uno solo: se non rilegge la pagina,
+     l'impronta non serve — vero, ed e' il caso che avevo misurato su Telegram; ma se
+     rilegge la pagina e serve l'IMMAGINE dalla propria cache, l'impronta e' l'unica cosa
+     che lo chiude. Avevo chiamato quel secondo caso «di secondo ordine»: i due modelli
+     gemelli dello stesso account usano tutti e due l'indirizzo versionato e le loro
+     anteprime funzionano, questo non lo usava e non funziona. Su WhatsApp, che non ha
+     nessuno strumento pubblico di rilettura, l'impronta e' la SOLA leva che esista.
+
+     L'IMPRONTA E' DEL CONTENUTO E NON DELLA DATA: una notte senza rilevazioni nuove non
+     deve buttare la cache di tutti. Il ripiego qui sotto e' l'indirizzo NUDO, senza «?v=»,
+     ed e' giusto cosi': chi apre il file da disco o arriva prima della prima notte vede
+     l'immagine che c'e', e nessuna impronta puo' essere vera per lui. -->
 <meta property="og:title" content="I partiti arabi potrebbero essere decisivi · Knesset 2026">
+<meta property="og:image" content="https://angrisanidj.github.io/modello-israele/dati/anteprima.png?v=a5ffeba4715e">
 <!-- ══ META DELLO STATO · FINE ══ -->
 </head>
 <!-- Il fondo è il --paper del tema CHIARO, ed è solo un ripiego: applicaTema() lo riscrive

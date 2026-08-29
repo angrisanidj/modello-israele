@@ -361,12 +361,39 @@ await (async function(){
     proprieta' per cui la finestra esiste. Scrivere «otto» qui rimetterebbe in una prova la
     costante che il commento accanto al cron gia' spiega, e cadrebbe il giorno in cui la
     finestra si allarga per una ragione buona. */
- const tick=sched.reduce((n,c)=>{
-   const min=String(c).split(' ')[0], ore=String(c).split(' ')[1];
-   const q=t=>t.split(',').reduce((k,pz)=>k+(pz.indexOf('-')>0
-     ? (Number(pz.split('-')[1])-Number(pz.split('-')[0])+1) : 1),0);
-   return n+q(min)*q(ore);
+ /* IL CAMPO DI UN CRON HA QUATTRO FORME e vanno gestite tutte, o il conteggio esce NaN su
+    una scritta legittima. Successo il 29 agosto 2026 passando da 23,53 3-6 a 23 3-21/2: il
+    rosso non era del cron, era di questo contatore, che conosceva solo le liste e gli
+    intervalli. Le quattro forme sono l asterisco, un numero solo, una lista a virgole, un
+    intervallo a-b, e l intervallo con passo, scritto con una barra e un numero in coda.
+    L attesa non e' cambiata — i tentativi devono essere piu' di uno — e' cambiato cio' che
+    la sa calcolare. */
+ function quanti(campo, tetto){
+  let n=0;
+  for(const pezzo of String(campo).split(',')){
+   const parti=pezzo.split('/');
+   const gamma=parti[0], passo=parti[1]?Number(parti[1]):1;
+   let da, a;
+   if(gamma==='*'){ da=0; a=tetto; }
+   else if(gamma.indexOf('-')>0){ da=Number(gamma.split('-')[0]); a=Number(gamma.split('-')[1]); }
+   else { da=Number(gamma); a=da; }
+   if(!isFinite(da)||!isFinite(a)||!isFinite(passo)||passo<1) return NaN;
+   n+=Math.floor((a-da)/passo)+1;
+  }
+  return n;
+ }
+ const tick=sched.reduce(function(n,c){
+  const campi=String(c).trim().split(/\s+/);
+  return n+quanti(campi[0],59)*quanti(campi[1],23);
  },0);
+ /* E IL CONTATORE SI PROVA SU CASI COSTRUITI, perche' uno che SOTTOSTIMA fallisce rumoroso
+    — NaN non e' maggiore di 1 — ma uno che SOVRASTIMA passerebbe in silenzio, dichiarando
+    una finestra dove c'e' un istante. I quattro casi coprono le quattro forme. */
+ const casiCron=[['5',1],['5,35',2],['0-5',6],['0-23/2',12]];
+ const contoKO=casiCron.filter(function(c){ return quanti(c[0],59)!==c[1]; })
+   .map(function(c){ return c[0]+' -> '+quanti(c[0],59)+' invece di '+c[1]; });
+ p('e il contatore dei tick sa contare tutte e quattro le forme di un campo cron'+
+   (contoKO.length?' ('+contoKO.join(' · ')+')':''), contoKO.length===0);
  p('il cron del lavoro notturno e una FINESTRA e non un istante: '+tick+' tentativi ('+
    sched.join(' | ')+'), perche un tick solo e best-effort e puo saltare', tick>1);
  /* 2 · LA GUARDIA STA DAVANTI, in un job suo, e il job che scrive DIPENDE da lei. */
@@ -565,7 +592,13 @@ await (async function(){
  const ogimg=contenuto('og:image');
  if(!ogimg){ na('og:image non è dichiarata: non c\'è nessuna immagine da tenere allineata'); return; }
  /* il percorso nel repository si ricava dall'indirizzo, non si riscrive qui */
- const rel=CANON&&ogimg.indexOf(CANON)===0?ogimg.slice(CANON.length).replace(/^\//,''):null;
+ /* L'IMPRONTA VA TOLTA PRIMA DI CERCARE IL FILE. Dal 29 agosto 2026 og:image porta
+    «?v=<hash>», che e' una chiave di cache e non fa parte del percorso: il file su disco si
+    chiama sempre dati/anteprima.png. Senza questa riga i tre controlli qui sotto cadevano
+    tutti e tre — e cadevano dicendo «il file non esiste», che e' vero della stringa e falso
+    del repository. L'attesa non e' cambiata, e' cambiato l'indirizzo da cui si ricava. */
+ const senzaV = ogimg.split('?')[0];
+ const rel=CANON&&senzaV.indexOf(CANON)===0?senzaV.slice(CANON.length).replace(/^\//,''):null;
  if(!rel){ p('og:image sta sotto il canonical, quindi è un file di questo repository ('+ogimg+')',false); return; }
  p('il file dichiarato in og:image esiste nel repository ('+rel+')', existsSync(join(qui,'..',rel)));
  let load; try{ load=(await import('js-yaml')).load; }
@@ -635,7 +668,13 @@ p('i marcatori delle meta dello stato ci sono, una volta sola e nell\'ordine giu
   iIni>=0 && iFin>iIni && html.split(M_INI).length===2 && html.split(M_FIN).length===2);
 /* Dentro la regione può stare SOLO l'elenco dichiarato: se un giorno ci finisse dell'altro,
    l'eccezione smetterebbe di essere stretta senza che nessuno l'abbia riaperta. */
-const AMMESSE=['og:title'];
+/* DUE, dal 29 agosto 2026, e il numero e' il punto: l'eccezione e' passata da una meta a
+   due perche' og:image deve poter portare l'impronta del contenuto, e senza quella su
+   WhatsApp non esiste NESSUNA leva — non ha nessuno strumento pubblico di rilettura, e
+   l'anteprima e' il punto in cui piu' persone incontrano il modello. Resta la piu' stretta
+   che si possa dare, e questo controllo continua a pretendere che dentro non finisca altro:
+   e' l'elenco a essere cresciuto di una riga, non il permesso a essere diventato vago. */
+const AMMESSE=['og:title','og:image'];
 if(iIni>=0&&iFin>iIni){
   const dentro=html.slice(html.indexOf('-->',iIni)+3,iFin);
   const tag=[...dentro.matchAll(/<(\w+)[^>]*?(?:name|property)="([^"]+)"/g)];

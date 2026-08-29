@@ -5253,56 +5253,93 @@ su cui poggiava era falso: **«Winter party», al singolare, compare come colonn
 tabella di SEGGI**. Avevo cercato la parola nel markup, visto il plurale, e concluso
 sull'insieme invece che sulla stringa esatta.
 
-### DUE IMMAGINI DELLA STESSA PAGINA CON NUMERI DIVERSI — CHIUSA il 28 agosto 2026
+### DUE IMMAGINI DELLA STESSA PAGINA CON NUMERI DIVERSI — CHIUSA il 29 agosto 2026
 
-**Era la cosa peggiore che un modello previsionale possa fare**, ed era **due difetti
-diversi con lo stesso sintomo**, scoperti a ventiquattr'ore di distanza. Vale la pena
-tenerli distinti, perché il primo era nel nostro codice e il secondo non lo è — e la
-conclusione del secondo è **l'opposto** di quella che questo file dava per scontata.
+**Era la cosa peggiore che un modello previsionale possa fare**, ed erano **tre difetti con
+lo stesso sintomo**, trovati in due giorni. Vale la pena tenerli distinti, perché i primi due
+erano nel nostro codice e il terzo no — e il terzo ha smentito una conclusione che questo
+file aveva già scritto.
 
 **Primo: l'immagine era vecchia davvero, e nessuno la generava.** `og:image` era dichiarata
 dal 24 agosto e il passo che la produce **non esisteva**: `anteprima.mjs` era scritto,
-provato, con le sue guardie, e non lo chiamava nessuno. Poi il passo è stato aggiunto e
-**andava verde senza fare niente**, perché la guardia del punto d'ingresso componeva
-`'file:///'` a mano e funzionava solo su Windows. Chiuso con `pathToFileURL` — vedi «Far
-riconoscere all'anteprima il proprio punto d'ingresso anche fuori da Windows». Questa metà
-era la **causa 1** delle due che il testo di ieri elencava.
+provato, con le sue guardie, e non lo chiamava nessuno.
 
-**Secondo, ed è la metà che decide: quando il file era finalmente giusto, WhatsApp mostrava
-i numeri del 28 e Telegram quelli del 24.** Stesso indirizzo, stesso file, due piattaforme
-che dicono cose diverse — quindi il PNG pubblicato è corretto e **il rimedio non è nel
-codice**.
+**Secondo: il passo è stato aggiunto e andava VERDE senza fare niente**, perché la guardia
+del punto d'ingresso componeva `'file:///'` a mano e funzionava solo su Windows. Chiuso con
+`pathToFileURL` — vedi «Far riconoscere all'anteprima il proprio punto d'ingresso anche fuori
+da Windows».
 
-#### L'IMPRONTA NELL'INDIRIZZO NON SERVE, e la ragione è quella misura
+**Terzo: col file finalmente giusto, l'anteprima continuava a non comparire.** WhatsApp non
+la mostrava affatto e Telegram mostrava quella del 24. Il PNG pubblicato era corretto — e
+questo aveva portato alla conclusione, sbagliata, che il rimedio non fosse nel codice. Lo
+era: mancava l'impronta nell'indirizzo, cioè l'unica leva sulla cache di chi legge.
 
-Il testo di ieri diceva: *«se è la 2, la via è un'impronta nell'indirizzo»*. **È sbagliato**,
-e si vede proprio dal caso che avrebbe dovuto confermarlo.
+#### L'IMPRONTA NELL'INDIRIZZO SERVE — e il 28 agosto avevo concluso il contrario
 
-Telegram aveva in cache **la scheda intera** — titolo, descrizione e immagine — e WhatsApp
-no. Il file era **lo stesso per tutti e due**. Quindi il problema non è *quale indirizzo ha
-l'immagine*: è **quando l'aggregatore rilegge la pagina**. E un aggregatore che non rilegge
-la pagina **non vede nemmeno un `og:image` nuovo**, perché quell'indirizzo sta dentro la
-pagina che non ha riletto. L'impronta risolverebbe un problema di secondo ordine — la pagina
-riletta e l'immagine no — al prezzo di **riaprire l'eccezione più stretta del progetto**, la
-regione fra i marcatori «META DELLO STATO», che oggi ammette solo `og:title`.
+**Questa sezione ha detto per un giorno che l'impronta non serviva. Era sbagliato, e il modo
+in cui era sbagliato vale più della conclusione.**
 
-**E `og:title` lo conferma**: se la scheda è in cache, il titolo lo è con lei. Una scheda
-vecchia non è un'immagine vecchia sotto una frase fresca — è **tutto vecchio insieme**, che
-è esattamente ciò che ci si aspetta da una cache di scheda e non da una cache di immagine.
+L'argomento del 28 agosto era: *un aggregatore che non rilegge la pagina non vede nemmeno un
+`og:image` nuovo, perché quell'indirizzo sta dentro la pagina che non ha riletto.* È vero. Ma
+copre **un solo modo di fallire su due**, e quello che copre non è quello che conta.
 
-#### La condizione per riaprirla, riscritta perché quella di prima si è verificata e dice il contrario
+| | l'aggregatore | l'impronta |
+|---|---|---|
+| **caso 1** | non rilegge la pagina | **non serve** — ed è quello misurato su Telegram il 28 |
+| **caso 2** | **rilegge la pagina e serve l'IMMAGINE dalla propria cache** | **è la sola cosa che lo chiude** |
 
-Nel commit del 27 agosto era scritto: *«se ne riparla se si vede una scheda vecchia dopo
-qualche notte di job che rigenera davvero»*. **Quella condizione si è verificata il giorno
-dopo, la scheda vecchia c'era — e la causa non era quella che l'impronta risolve.** Lasciata
-com'era, porterebbe a riaprire la regione dei marcatori per niente, che è il costo più alto
-del progetto pagato per il problema sbagliato.
+Il caso 2 era stato liquidato come «di secondo ordine» — e la ragione per cui sembrava di
+secondo ordine è che non l'avevo misurato.
 
-**La condizione giusta è un'altra, ed è più stretta**: si riapre **solo** se si osserva un
-aggregatore che ha **riletto la pagina** — titolo o descrizione nuovi — **e continua a
-servire l'immagine vecchia**. Quello è il solo caso che un'impronta chiude. Finché titolo e
-immagine invecchiano *insieme*, la cache è della scheda e l'indirizzo dell'immagine non
-c'entra.
+#### La prova che ha deciso: i due modelli gemelli
+
+Il 29 agosto 2026, sugli altri due modelli dello stesso account:
+
+| modello | `og:image` | anteprima |
+|---|---|---|
+| **israele** | `dati/anteprima.png` — **nudo** | **non funziona** |
+| germania | `…-v2.png?v=20260828-cd853620-3266909307` | funziona |
+| uk | `…-v2.png?v=20260826-13083cd0` | funziona |
+
+Non è un ragionamento: è un confronto controllato, tre pagine sullo stesso host, servite dalla
+stessa infrastruttura, con lo stesso autore. **I due che usano l'indirizzo versionato
+funzionano; quello che non lo usa non funziona.**
+
+E dalla nostra parte era già stato verificato che non ci fosse niente di rotto: la pagina
+risponde **200 a WhatsApp, TelegramBot e facebookexternalhit**, l'immagine è `image/png` da
+81 KB, `og:image:width/height` sono dichiarati, e il `<head>` chiude a **8,5 KB** con tutte le
+meta entro 6,2 — quindi nemmeno la troncatura dei crawler. Il difetto non era nel file: era
+nel non avere **nessuna leva** sulla cache di chi lo legge.
+
+**E su WhatsApp la leva non esiste in nessun'altra forma**: Telegram ha `@WebpageBot`, WhatsApp
+non ha niente di pubblico. L'anteprima è il punto in cui più persone incontrano il modello, e
+lì non c'era modo di correggere un errore. Da qui la decisione di allargare la regione dei
+marcatori da una meta a due.
+
+#### L'errore, per come si è manifestato — ed è la seconda volta in un giorno
+
+**Un ragionamento coerente, verificabile riga per riga, che aveva guardato un caso solo.**
+Non era un errore di logica: l'implicazione era valida. Era un errore di **copertura** — la
+conclusione «non serve» seguiva dal caso 1 e veniva applicata a tutti e due.
+
+È **esattamente la forma di «da sola»** della stessa mattina: là avevo motivato il confronto
+per parole intere dicendo che serviva a non accendere «da sola», e «solo» non è sottostringa
+di «sola» — la difesa era plausibile, coerente e falsa, e l'ha smentita una mutazione. Qui la
+difesa era plausibile, coerente e falsa, e l'ha smentita un confronto con due repository che
+avevo sotto mano dall'inizio.
+
+**Due volte nello stesso giorno, e la stessa cura per tutte e due**: non rileggere
+l'argomento, ma cercare il caso che lo distingue. Un ragionamento che copre un caso solo si
+legge identico a uno che li copre tutti — è precisamente per questo che «misurare convince di
+aver guardato» vale anche per il ragionare.
+
+#### Quello che l'impronta NON chiude, che resta vero
+
+Il caso 1 non si chiude con niente che stia dentro la pagina: se un aggregatore non la
+rilegge, non vede né il titolo nuovo né l'immagine nuova. Lì l'unica leva è esterna —
+`@WebpageBot` per Telegram, niente per gli altri tre — e **un messaggio già inviato tiene la
+sua anteprima per sempre**, quindi la conversazione in cui il difetto è comparso resta com'è
+qualunque cosa si faccia.
 
 #### La riga che vale per tutte e quattro le piattaforme
 
