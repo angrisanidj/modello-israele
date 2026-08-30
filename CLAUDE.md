@@ -5084,7 +5084,7 @@ cascato chi conosceva il difetto dimostra che una riga nel contratto non sarebbe
 non se ne ricopiano le tre righe, o sarebbe la strada doppia di sempre. Verificato rifacendo
 la trappola esatta: ora la stessa sequenza stampa `GUARDIA: righe valide in crollo`.
 
-### 1 · Una lista nuova con seggi non arriva alla guardia che la nomina — DIFF PRONTA
+### 1 · Una lista nuova con seggi non arrivava alla guardia che la nomina — CHIUSO
 
 **È il difetto che riguarda il giorno stesso.** Misurato sul markup vero di Wikipedia,
 ribattezzando una colonna che porta seggi:
@@ -5097,34 +5097,74 @@ ribattezzando una colonna che porta seggi:
 
 Il meccanismo è aritmetico: una lista nuova ha seggi, quindi **nessuna riga somma più 120**;
 sotto il 50% di righe valide `parseWiki` scarta la tabella **intera**; e `valuta()` legge
-`p.ignote`, che nessuno ha riempito. Il nome della colonna il codice ce l'ha — sta in
-`out.ignorate[].ignote` — e non arriva a nessuna guardia.
+`p.ignote`, che nessuno ha riempito. Il nome della colonna il codice ce l'aveva — in
+`out.ignorate[].ignote` — e non arrivava a nessuna guardia.
 
-**Il job si ferma lo stesso** (la guardia `valide` lo prende), quindi non si pubblica niente
-di sbagliato: si ferma dicendo «righe valide in crollo» invece di «colonne non riconosciute»,
-e **senza aprire la issue che elenca che cosa mappare**. Cioè il passo 1 del contratto —
-«guarda `da-fare.json`, voce `colonne-ignote`» — mostrerebbe **niente**.
+Il job si fermava lo stesso (la guardia `valide` lo prendeva), quindi non si è mai pubblicato
+niente di sbagliato: si fermava dicendo «righe valide in crollo» invece di «colonne non
+riconosciute», e **senza aprire la issue che elenca che cosa mappare**. Cioè il passo 1 del
+contratto — «guarda `da-fare.json`, voce `colonne-ignote`» — avrebbe mostrato **niente**.
 
-La riparazione è una **congiunzione**, e non si può sbagliare: crollo delle righe valide *e*
-tabelle scartate che nominano colonne sconosciute. Separate non valgono — colonne ignote da
-sole ce ne sono anche stasera (la tabella degli scenari ne ha tre) e la guardia scatterebbe
-ogni notte; il crollo da solo può essere Wikipedia che riorganizza.
+**LA CONGIUNZIONE È LA GUARDIA, e le due metà da sole non valgono.** Colonne ignote da sole
+ce ne sono **ogni notte** — la tabella degli scenari ne ha tre, «Winter», «Other», «Don't
+know» — e farebbero scattare la guardia tutte le notti; un crollo da solo può essere
+Wikipedia che riorganizza, ed è il caso che la guardia di prima **continua a coprire con le
+parole di prima**. È l'**incrocio** dei due a dire «è arrivata una lista nuova», e nient'altro
+lo produce.
 
-### 2 · Il primo slot oltre la saturazione è `--mute` esatto
+I quattro casi, esercitati:
+
+| caso | esito |
+|---|---|
+| notte normale, tabella degli scenari scartata | **OK, si procede** |
+| **lista nuova con seggi** | **STOP** che nomina `Zionist Future` **+ la issue** |
+| crollo senza colonne nuove | «righe valide in crollo: 0 contro le 165» — *identico a prima* |
+| colonna ignota in una tabella accettata | guardia preesistente, *intatta* |
+
+**E il cablaggio si prova nel sorgente**, perché `job.js` chiama `valuta()` diretta e le passa
+`ignorate` a mano: resterebbe tutto verde il giorno in cui `aggiorna.mjs` smettesse di
+passarglielo, e la guardia diventerebbe irraggiungibile senza che niente cadesse. È l'idioma
+di `og:title` col job e di `colonneBlocco()` con le due tabelle.
+
+Nove mutazioni, nove morte: la congiunzione che diventa disgiunzione, le due metà da sole, i
+nomi mai raccolti, `ignorate` non più passata, la guardia messa **dopo** quella del crollo, il
+messaggio che non nomina la colonna, il dedup tolto, la issue spenta. E una decima, scritta
+male, è **esplosa invece di morire** — il runner distingue le due cose apposta, e una suite
+che muore non è un mutante ucciso.
+
+### 2 · Il primo slot oltre la saturazione era `--mute` esatto — CHIUSO
 
 `capienza()` conferma il contratto: **ago della bilancia, tema chiaro, zero slot liberi.**
-Esercitata la scala che «non l'ha ancora vista resa nessuno»:
+Esercitata la scala che «non l'ha ancora vista resa nessuno»: la 7ª e l'8ª lista falliscono
+con l'errore esplicito ✓, la **6ª restituiva `#626D7E` in chiaro e `#7D8A9B` in scuro**, cioè
+`--mute` esatto in tutti e due i temi — mentre il commento sopra diceva che la riparazione dà
+«**un colore distinto** E avvisa». Era stata fatta la metà del silenzio e non quella del
+colore, e il testo affermava quello che il codice non fa.
 
-| | esito |
-|---|---|
-| 6ª lista (1 oltre) | **`#626D7E` chiaro, `#7D8A9B` scuro** — `--mute` esatto in tutti e due i temi |
-| 7ª e 8ª | errore esplicito che nomina il blocco e rimanda al §9 ✓ |
+**Deciso dall'autore e applicato: `--ink2`**, `#33435A` chiaro e `#A3B3C8` scuro.
 
-Il commento sopra diceva che la riparazione dà «**un colore distinto** E avvisa». **È stata
-fatta la metà del silenzio e non quella del colore**, e il testo affermava quello che il
-codice non fa — la classe contro cui questo file mette in guardia. Il commento è corretto e
-`regola.js` adesso **dichiara il valore vero** invece di descriverne uno migliore: il giorno
-in cui cambia, è la prova a chiedere di aggiornare il commento.
+**La ragione non è il contrasto**, che `--mute` ce l'aveva (5,24 e 5,10): è che `--mute` è il
+colore del **testo secondario attenuato**, e la pagina lo usa altrove per dire «esclusa». Una
+lista dipinta così non si legge come «senza colore assegnato»: si legge come **spenta**, cioè
+disattivata, che è uno stato che quella lista non ha.
+
+`--ink2` sta sulla stessa tinta — 257,5° contro 259,1° — ma **più scuro e più presente**,
+L 0,379 contro 0,532, ed è l'inchiostro secondario **normale**, quello dei nomi di lista nelle
+schede dell'house effect. Una pastiglia slate dice «la regola ha finito i colori».
+
+Misurato contro **tutte e ventuno** le liste dell'anagrafica, non solo quelle del suo blocco:
+
+| candidato | contrasto su `--card` | lista più vicina (ΔOKLab ×100) | |
+|---|---|---|---|
+| **`--ink2`** | **10,04 · 8,39** | **10,3** · **10,7** | **applicato** |
+| `--mute` | 5,24 · 5,10 | 8,5 · 11,6 | dice «spenta» |
+| `--ink` | 17,82 · 15,25 | 16,4 · **9,9** | è il testo primario e la linea del 61 |
+| token `--inc` | 3,78 · 9,82 | **0 dai token di blocco**, 4,4 da amcha | direbbe «questa lista è il blocco» |
+| `--acc` | 9,30 · 5,66 | **6,0 da `--coal`** | si leggerebbe come coalizione |
+
+**E la dicromazia non lo tocca**: `--ink2` è quasi acromatico — croma 0,045 e 0,035 contro
+0,073–0,116 delle cinque liste dell'ago — quindi la separazione la portano **croma e
+chiarezza**, non una coppia di tinte che può collassare.
 
 ### 3 · L'avviso c'era e non lo leggeva nessuno — CHIUSO
 

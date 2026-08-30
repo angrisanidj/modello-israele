@@ -65,7 +65,45 @@ export function valuta(p){
                            'in anagrafica sono passate da ' + p.ambigueIeri + ' a ' + p.ambigue + '. ' +
                            'Una configurazione nuova va dichiarata in `P{}` col campo `dentro`, oppure ' +
                            'lasciata fuori a ragion veduta aggiornando `dati/stato-job.json`.'}};
-  if (p.valide < p.valideIeri - SOGLIE.CALO_VALIDE)
+  /* IL CROLLO DELLE RIGHE VALIDE PUO' ESSERE UNA LISTA NUOVA, e fino al 30 agosto 2026 il
+     job lo diceva col nome sbagliato. Misurato nella prova di regia dell'8 settembre, sul
+     markup vero di Wikipedia con una colonna di lista ribattezzata: le righe valide passano
+     da 165 a ZERO, «ignote» resta VUOTO, e tutte e sei le tabelle finiscono in «ignorate»
+     nominando la colonna nuova. Il perche' e' meccanico: una lista nuova ha dei seggi,
+     quindi nessuna riga somma piu' 120, quindi meno della meta' passa la validazione,
+     quindi parseWiki scarta la tabella INTERA — e le sue colonne ignote finiscono in
+     «ignorate», che nessuna guardia leggeva.
+     Il job si fermava lo stesso, quindi non si e' mai pubblicato niente di sbagliato: si
+     fermava dicendo «righe valide in crollo» invece di «colonne non riconosciute», e SENZA
+     aprire la issue che elenca che cosa mappare — cioe' esattamente il segnale che l'8
+     settembre serve, e che docs/mappare-una-lista-nuova.md dice di andare a leggere in
+     da-fare.json.
+     LA CONGIUNZIONE E' LA GUARDIA, e non si puo' sbagliare: righe valide in crollo E
+     tabelle scartate che nominano colonne sconosciute. Separate non valgono — le colonne
+     ignote da sole ci sono anche stasera (la tabella degli scenari ne ha tre: Winter,
+     Other, Don't know) e farebbero scattare la guardia ogni notte; il crollo da solo puo'
+     essere Wikipedia che riorganizza, ed e' il caso che la riga qui sotto continua a
+     coprire. Insieme sono la firma del deposito delle liste, e nient'altro le produce. */
+  const crollo = p.valide < p.valideIeri - SOGLIE.CALO_VALIDE;
+  const nomiScartati = [];
+  (p.ignorate || []).forEach(t => (t.ignote || []).forEach(c => {
+    if (nomiScartati.indexOf(c) < 0) nomiScartati.push(c);
+  }));
+  if (crollo && nomiScartati.length)
+    return {stop: 'righe valide in crollo (' + p.valide + ' contro ' + p.valideIeri +
+                  ') e colonne non riconosciute nelle tabelle scartate: ' + nomiScartati.join(', '),
+            issue: {titolo: 'Il parser ha trovato colonne di lista non riconosciute',
+                    corpo: "L'aggiornamento notturno si e' fermato: le tabelle di Wikipedia " +
+                           "contengono colonne che l'anagrafica non conosce, e con quelle " +
+                           "colonne nessuna riga somma 120 — quindi le tabelle sono state " +
+                           "scartate INTERE e le righe valide sono crollate da " + p.valideIeri +
+                           " a " + p.valide + ".\n\n" +
+                           nomiScartati.map(c => "- `" + c + "`").join("\n") +
+                           "\n\nProbabilmente liste nuove (deposito dell'8 settembre?). Vanno " +
+                           "mappate a mano in `W_LISTA` e in `P{}` — con `dentro` per le fusioni " +
+                           "— dentro index.html, seguendo docs/mappare-una-lista-nuova.md.\n" +
+                           "L'archivio pubblicato resta fermo all'ultimo giorno buono."}};
+  if (crollo)
     return {stop: 'righe valide in crollo: ' + p.valide + ' contro le ' + p.valideIeri + ' di ieri'};
   if (p.nuove > SOGLIE.MASSIMO_NUOVE)
     return {stop: 'troppe rilevazioni nuove in una notte: ' + p.nuove};
@@ -241,7 +279,7 @@ async function main(){
   const esito = valuta({
     httpOk, byte: testo.length,
     valide: out.sondaggi.length, valideIeri: stato.valide,
-    nuove, ignote: out.ignote || [],
+    nuove, ignote: out.ignote || [], ignorate: out.ignorate || [],
     ambigue, ambigueIeri: stato.ambigue,
     blocchi, blocchiIeri: stato.blocchi
   });

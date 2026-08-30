@@ -220,13 +220,13 @@ for (const id of ATTESE) {
  * La consegna 6 restituiva il grigio in silenzio. Il primo slot oltre la saturazione può
  * ancora dare qualcosa, ma deve dirlo; dal secondo in poi non c'è niente da dare, e
  * fallire è l'unica risposta onesta.
- * ATTENZIONE AL COMMENTO CHE C'ERA QUI, e diceva «colore distinto e avviso»: MISURATO il
- * 30 agosto 2026, il primo slot supplementare restituisce «#626D7E» in chiaro e «#7D8A9B»
- * in scuro, che sono --mute ESATTO in tutti e due i temi — cioè precisamente il valore che
- * il commento di colore-liste.js nomina come il difetto da riparare. È stata fatta la metà
- * del silenzio e non quella del colore, e il testo affermava quello che il codice non fa.
- * La decisione su che cosa mettere al suo posto è dell'autore ed è in corso; questa prova
- * intanto dichiara lo stato vero invece di descriverne uno migliore. */
+ * IL VALORE DEL SUPPLEMENTARE È DICHIARATO QUI, non sperato: fino al 30 agosto 2026
+ * era --mute esatto in tutti e due i temi — cioè il valore che il commento di
+ * colore-liste.js nomina come il difetto — mentre quel commento diceva «un colore
+ * distinto». Era stata fatta la metà del silenzio e non quella del colore.
+ * Adesso è --ink2, e le asserzioni qui sotto scrivono il valore nero su bianco: il
+ * giorno in cui cambia è la prova a chiedere di aggiornare il commento, invece del
+ * commento a mentire sulla prova. */
 {
   COLORE.azzeraAvvisi();
   const sat = COLORE.capienza().chiaro.incerto.saturazione;
@@ -236,13 +236,57 @@ for (const id of ATTESE) {
     'slot supplementare ' + supp + ', avvisi ' + COLORE.avvisi().length);
   esito(/§9/.test(COLORE.avvisi()[0] || ''),
     'e l\'avviso dice dove sta la scala di ripiego', COLORE.avvisi()[0]);
-  /* IL VALORE SI DICHIARA, non si spera. Finché il supplementare è --mute questa
-     asserzione lo scrive nero su bianco, così il giorno in cui cambia è la prova a
-     chiedere di aggiornare il commento, invece del commento a mentire sulla prova. */
-  const MUTE_CHIARO = '#626D7E';
-  esito(String(supp).toUpperCase() === MUTE_CHIARO,
-    'e oggi quel colore è ancora --mute esatto: la meta del colore non e stata fatta',
-    'supplementare ' + supp + ', --mute ' + MUTE_CHIARO);
+  /* IL SUPPLEMENTARE È --ink2, E NON --mute. Deciso dall'autore il 30 agosto 2026, dopo che
+     la prova di regia dell'8 settembre aveva misurato che era --mute esatto in tutti e due
+     i temi — cioè il valore che il commento di colore-liste.js nomina come il difetto.
+     LA RAGIONE NON È IL CONTRASTO, che --mute ce l'aveva (5,24 e 5,10): è che --mute è il
+     colore del TESTO SECONDARIO ATTENUATO, e la pagina lo usa altrove per dire «esclusa».
+     Una lista dipinta così non si legge come «senza colore assegnato»: si legge come
+     SPENTA, cioè disattivata, che è uno stato che quella lista non ha.
+     --ink2 sta sulla stessa tinta (257,5° contro 259,1°) ma più scuro e più presente —
+     L 0,379 contro 0,532 — ed è l'inchiostro secondario NORMALE, quello dei nomi di lista
+     nelle schede dell'house effect. Una pastiglia slate dice «la regola ha finito i
+     colori», che è il messaggio onesto.
+     I numeri, misurati contro tutte e ventuno le liste dell'anagrafica e non solo contro
+     quelle del suo blocco: contrasto su --card 10,04 e 8,39; distanza minima da una lista
+     qualunque 10,3 in chiaro (hadash_taal, che è araba, quindi in legenda non le sta
+     accanto) e 10,7 in scuro (likud). Scartati con la loro ragione: il token --inc, che
+     sta a ZERO dai token di blocco e a 4,4 da amcha in scuro; --acc, che sta a 6,0 da
+     --coal e si leggerebbe come coalizione; --ink, che è l'inchiostro primario e la linea
+     del 61, cioè la cosa più pesante del disegno.
+     E LA DICROMAZIA NON LO TOCCA: --ink2 è quasi acromatico — croma 0,045 e 0,035 contro
+     0,073-0,116 delle cinque liste dell'ago — quindi la separazione la portano croma e
+     chiarezza, non una coppia di tinte che può collassare. */
+  const INK2 = {chiaro: '#33435A', scuro: '#A3B3C8'};
+  const MUTE = {chiaro: '#626D7E', scuro: '#7D8A9B'};
+  esito(String(supp).toUpperCase() === INK2.chiaro,
+    'e quel colore è --ink2, non --mute: dice «senza colore assegnato», non «disattivata»',
+    'supplementare ' + supp + ', atteso ' + INK2.chiaro);
+  {
+    COLORE.azzeraAvvisi();
+    const suppScuro = COLORE.di('incerto', sat, 'scuro');
+    esito(String(suppScuro).toUpperCase() === INK2.scuro,
+      'e vale nei due temi, o in uno dei due resterebbe il grigio di prima',
+      'supplementare scuro ' + suppScuro + ', atteso ' + INK2.scuro);
+    esito(String(supp).toUpperCase() !== MUTE.chiaro &&
+          String(suppScuro).toUpperCase() !== MUTE.scuro,
+      'e in nessuno dei due è --mute: è la proprietà per cui il valore è cambiato',
+      supp + ' / ' + suppScuro);
+    /* il vincolo dichiarato quando la decisione è stata presa: 3:1 su --card nei due temi.
+       Si misura, non si dà per buono perché il valore è di un token che esiste già. */
+    const CARD = {chiaro: '#FFFFFF', scuro: '#0F1727'};
+    const rgb = h => h.replace('#','').match(/../g).map(x => parseInt(x,16));
+    const lum = c => { const v = c.map(x => x/255)
+        .map(x => x <= 0.03928 ? x/12.92 : Math.pow((x+0.055)/1.055, 2.4));
+      return 0.2126*v[0] + 0.7152*v[1] + 0.0722*v[2]; };
+    const cr = (a,b) => { const A = lum(rgb(a)), B = lum(rgb(b));
+      return (Math.max(A,B)+0.05) / (Math.min(A,B)+0.05); };
+    const cc = cr(INK2.chiaro, CARD.chiaro), cs = cr(INK2.scuro, CARD.scuro);
+    esito(cc >= 3 && cs >= 3,
+      'e il supplementare regge 3:1 su --card nei due temi',
+      'chiaro ' + cc.toFixed(2) + ' · scuro ' + cs.toFixed(2));
+    COLORE.azzeraAvvisi();
+  }
   let esploso = false, messaggio = '';
   try { COLORE.di('incerto', sat + 1, 'chiaro'); } catch (e) { esploso = true; messaggio = e.message; }
   esito(esploso, 'oltre il primo supplementare la regola fallisce con un errore esplicito',

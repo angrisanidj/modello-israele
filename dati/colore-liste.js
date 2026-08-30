@@ -359,28 +359,40 @@ var COLORE = (function () {
   }
 
   /* ── 9 · interfaccia pubblica ────────────────────────────── */
-  /* ── oltre la saturazione la regola non tace, MA IL COLORE È ANCORA --mute ──
+  /* ── oltre la saturazione la regola non tace, E IL COLORE NON È PIÙ --mute ──
      La versione consegnata restituiva il grigio di ripiego — #626D7E, che è --mute —
      senza avviso e senza errore. Cioè: la sera dell'8 settembre una lista in più
      nell'ago della bilancia avrebbe preso un grigio identico al testo attenuato, e
      nessuno se ne sarebbe accorto fino a guardare la pagina.
-     DI QUELLA RIPARAZIONE È STATA FATTA UNA METÀ SOLA, e per giorni questo commento ha
-     detto il contrario. Diceva «il primo slot oltre la saturazione dà un colore distinto
-     E avvisa»: misurato il 30 agosto 2026 nella prova di regia dell'8 settembre, il primo
-     slot supplementare restituisce #626D7E in chiaro e #7D8A9B in scuro, che sono --mute
-     ESATTO in tutti e due i temi — cioè precisamente il valore che questo commento nomina
-     come il difetto. Il silenzio è stato riparato, il colore no, e il testo affermava
-     quello che il codice non fa.
-     Quello che il codice fa DAVVERO, oggi: il primo slot oltre la saturazione restituisce
-     --mute e registra un avviso in _avvisi, leggibile con COLORE.avvisi(); dal secondo in
-     poi fallisce con un errore esplicito che nomina il blocco e rimanda al §9.
-     PERCHÉ --mute NON VA BENE, ed è la decisione presa dall'autore il 30 agosto: --mute è
-     il colore del testo secondario, quindi una lista dipinta così non si legge come una
-     lista senza colore — si legge come una lista SPENTA, che è lo stato che la pagina usa
-     altrove per dire «esclusa». Il lettore vedrebbe una lista disattivata che non lo è.
-     La sostituzione è in corso di decisione; finché non è applicata, test/suite/regola.js
-     DICHIARA il valore vero invece di descriverne uno migliore, così il giorno in cui
-     cambia è la prova a chiedere di aggiornare questo commento. */
+     DI QUELLA RIPARAZIONE PER GIORNI È STATA FATTA UNA METÀ SOLA, e questo commento
+     affermava il contrario: diceva «il primo slot oltre la saturazione dà un colore
+     distinto E avvisa», mentre il colore restituito era --mute ESATTO in tutti e due i
+     temi. Il silenzio era riparato, il colore no. Misurato il 30 agosto 2026 nella prova
+     di regia dell'8 settembre, e chiuso lo stesso giorno.
+     ADESSO IL SUPPLEMENTARE È --ink2: #33435A in chiaro, #A3B3C8 in scuro.
+     LA RAGIONE NON È IL CONTRASTO, che --mute ce l'aveva (5,24 e 5,10): è che --mute è il
+     colore del TESTO SECONDARIO ATTENUATO, e la pagina lo usa altrove per dire «esclusa».
+     Una lista dipinta così non si legge come «senza colore assegnato»: si legge come
+     SPENTA, cioè disattivata, che è uno stato che quella lista non ha. --ink2 sta sulla
+     stessa tinta — 257,5° contro 259,1° — ma più scuro e più presente, L 0,379 contro
+     0,532, ed è l'inchiostro secondario NORMALE, quello dei nomi di lista nelle schede
+     dell'house effect. Una pastiglia slate dice «la regola ha finito i colori», che è il
+     messaggio onesto.
+     I NUMERI, misurati contro tutte e ventuno le liste dell'anagrafica e non solo contro
+     quelle del suo blocco: contrasto su --card 10,04 e 8,39 (contro un pavimento di 3);
+     distanza minima da una lista qualunque 10,3 in chiaro — hadash_taal, che è araba,
+     quindi in legenda non le sta accanto — e 10,7 in scuro (likud).
+     SCARTATI CON LA LORO RAGIONE: il token --inc, che sta a ZERO dai token di blocco e a
+     4,4 da amcha in scuro, e direbbe «questa lista è il blocco»; --acc, che sta a 6,0 da
+     --coal e si leggerebbe come coalizione; --ink, che è l'inchiostro primario e la linea
+     del 61, cioè la cosa più pesante del disegno.
+     E LA DICROMAZIA NON LO TOCCA: --ink2 è quasi acromatico — croma 0,045 e 0,035 contro
+     0,073-0,116 delle cinque liste dell'ago — quindi la separazione la portano croma e
+     chiarezza, non una coppia di tinte che può collassare.
+     Quello che il codice fa, per intero: il primo slot oltre la saturazione restituisce
+     --ink2 e registra un avviso in _avvisi, leggibile con COLORE.avvisi() e preteso vuoto
+     da test/suite/regola.js sull'anagrafica vera; dal secondo in poi fallisce con un
+     errore esplicito che nomina il blocco e rimanda al §9. */
   var _avvisi=[];
   function avvisi(){ return _avvisi.slice(); }
   function azzeraAvvisi(){ _avvisi=[]; }
@@ -392,7 +404,7 @@ var COLORE = (function () {
     if(slot===sat){
       _avvisi.push('blocco '+blocco+' saturo a '+sat+' in tema '+tema+
         ': lo slot '+slot+' esce dal dominio. Vedi docs/regola-colore.md §9.');
-      return tema==='scuro'?'#7D8A9B':'#626D7E';
+      return tema==='scuro'?'#A3B3C8':'#33435A';   /* --ink2, non --mute: vedi sopra */
     }
     throw new Error('colore-liste: '+blocco+' è saturo a '+sat+' slot in tema '+tema+
       ', chiesto lo slot '+slot+'. Oltre il primo supplementare non c\'è un colore da dare: '+

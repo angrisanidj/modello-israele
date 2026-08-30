@@ -64,6 +64,63 @@ function esito(cond, desc, dettaglio){
   p = buono(); p.valide = 154 - SOGLIE.CALO_VALIDE;
   esito(valuta(p).ok === true, 'un calo entro la tolleranza passa: Wikipedia ogni tanto riorganizza');
 
+  /* ── L'INCROCIO CHE DICE «È ARRIVATA UNA LISTA NUOVA» ──
+   *
+   * Trovato il 30 agosto 2026 eseguendo la prova di regia dell'8 settembre sul markup vero
+   * di Wikipedia, con una colonna di lista ribattezzata. Una lista nuova HA dei seggi,
+   * quindi nessuna riga somma più 120, quindi meno della metà passa la validazione, quindi
+   * parseWiki scarta la tabella INTERA — e le sue colonne sconosciute finiscono in
+   * «ignorate» invece che in «ignote». Misurato: valide 165 → 0, ignote VUOTO, e tutte e
+   * sei le tabelle in ignorate a nominare la colonna nuova.
+   * Il job si fermava lo stesso (la guardia del crollo lo prendeva) ma diceva «righe valide
+   * in crollo» e NON apriva la issue che elenca che cosa mappare — cioè il solo segnale che
+   * l'8 settembre serve, e quello che il contratto dice di andare a leggere.
+   *
+   * LA CONGIUNZIONE È LA GUARDIA, e le due metà da sole non valgono:
+   * · colonne ignote da sole ce ne sono OGNI NOTTE — la tabella degli scenari ne ha tre,
+   *   «Winter», «Other», «Don't know» — e farebbero scattare la guardia tutte le notti;
+   * · un crollo da solo può essere Wikipedia che riorganizza, ed è il caso che la guardia
+   *   di sopra continua a coprire con le parole di prima.
+   * È l'INCROCIO dei due a dire «è arrivata una lista nuova», e nient'altro lo produce.
+   * Per questo le quattro asserzioni qui sotto sono quattro e non una: due sui casi in cui
+   * la guardia NON deve scattare, una sul caso in cui deve, e una sul fatto che nomini la
+   * colonna — una guardia che ferma senza dire quale colonna sarebbe muta come prima. */
+  const ignorateCon = n => [{righe: 22, ignote: n}, {righe: 65, ignote: n}];
+
+  p = buono(); p.ignorate = ignorateCon(['Winter', 'Other']);
+  esito(valuta(p).ok === true,
+    'colonne sconosciute in tabelle scartate, da sole, NON fermano il job: ce ne sono ogni notte',
+    JSON.stringify(valuta(p)));
+
+  p = buono(); p.valide = 0; p.ignorate = [];
+  esito(/crollo/.test(valuta(p).stop || '') && !valuta(p).issue,
+    'un crollo senza colonne sconosciute resta quello di prima, e non apre nessuna issue',
+    valuta(p).stop);
+
+  p = buono(); p.valide = 0; p.ignorate = ignorateCon(['Zionist Future']);
+  const nuova = valuta(p);
+  esito(!nuova.ok && !!nuova.issue,
+    'ma l INCROCIO dei due ferma il job E apre la issue: e la firma del deposito delle liste',
+    nuova.stop || 'non ha fermato niente');
+  esito(/Zionist Future/.test(nuova.stop || '') && /Zionist Future/.test((nuova.issue || {}).corpo || ''),
+    'e nomina la colonna, nel messaggio e nella issue: fermarsi senza dire quale sarebbe muto come prima',
+    (nuova.stop || '').slice(0, 90));
+  esito((nuova.stop.match(/Zionist Future/g) || []).length === 1,
+    'e la nomina UNA VOLTA SOLA anche se sei tabelle la ripetono',
+    nuova.stop);
+
+  /* E IL CABLAGGIO SI PROVA NEL SORGENTE, perché qui non passa.
+   * Queste asserzioni chiamano valuta() direttamente e le passano «ignorate» a mano:
+   * resterebbero tutte verdi il giorno in cui aggiorna.mjs smettesse di passarglielo, e la
+   * guardia diventerebbe irraggiungibile senza che niente cadesse. È lo stesso idioma di
+   * og:title col job e di colonneBlocco() con le due tabelle: il legame si prova DOVE STA. */
+  const sorgente = require('fs').readFileSync(__dirname + '/../../.github/scripts/aggiorna.mjs', 'utf8');
+  const chiamata = sorgente.slice(sorgente.indexOf('const esito = valuta({'),
+                                  sorgente.indexOf('const esito = valuta({') + 400);
+  esito(/ignorate:\s*out\.ignorate/.test(chiamata),
+    'e il job passa DAVVERO out.ignorate a valuta(): senza, la guardia sarebbe irraggiungibile',
+    chiamata.split('\n').slice(0, 7).join(' ').replace(/\s+/g, ' ').slice(0, 120));
+
   p = buono(); p.nuove = SOGLIE.MASSIMO_NUOVE + 1;
   esito(/troppe/.test(valuta(p).stop || ''), 'troppe rilevazioni in una notte fermano il job');
   p = buono(); p.nuove = SOGLIE.MASSIMO_NUOVE;
