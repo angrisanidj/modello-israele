@@ -5058,6 +5058,114 @@ una censura dell'avvertimento, ed è scritto accanto alla funzione che taglia.
 
 ---
 
+## La nota della soglia diceva il falso, e la seconda metà si genera
+
+Chiusa il 30 agosto 2026. `#k-soglianota` affermava che una lista sotto soglia «disperde i
+propri voti e li **consegna di fatto ai partiti più grandi dello stesso campo**: nel 2022 fu
+questo meccanismo a garantire la maggioranza a Netanyahu».
+
+**La metà sui «più grandi» regge** — i divisori successivi sono quasi sempre di liste
+maggiori. **Quella sul campo no**, ed era falsa dei numeri che le stavano due centimetri
+sopra.
+
+### Il primo periodo è vero in generale, e la misura lo dice
+
+La domanda era se «si ridistribuiscono fra tutte le liste rimaste, non solo fra quelle del
+suo campo» valga sempre o solo oggi. **Vale sempre, ed è la meccanica del d'Hondt**:
+`dhondt()` filtra su `SOGLIA` e poi assegna per divisori, quindi i seggi liberati vanno a chi
+ha i divisori successivi — che può essere chiunque, di qualunque blocco. Niente nella
+procedura li tiene dentro un campo.
+
+Misurato sull'archivio pubblicato, facendo cadere sotto soglia **ciascuna** delle dodici
+liste che oggi la superano:
+
+| | |
+|---|---|
+| casi in cui **tutti** i seggi restano nel campo | **0 su 12** |
+| quota che resta nel campo, massimo | **35%** — Yashar, 8 su 23 |
+| quota che resta nel campo, minimo | **0** — Ra'am, Lista Unita araba, Popolo d'Israele |
+
+E il fatto che regge la frase: **nessuna lista perde seggi quando un concorrente scende sotto
+soglia.** Sotto d'Hondt togliere una lista può solo far salire le altre, quindi i seggi che
+la caduta libera sono *esattamente* quelli che gli altri guadagnano — `dentro + fuori =
+persi`, che è la forma matematica di «si ridistribuiscono fra tutte le liste rimaste». Le due
+cose sono asserzioni separate apposta: senza la seconda, la conservazione potrebbe reggere
+per compensazione fra chi sale e chi scende.
+
+### Il secondo periodo si genera, e costa 0,445 ms
+
+Scritto a mano diventerebbe falso alla prossima rilevazione — **la classe chiusa tre volte lo
+stesso giorno**. Il controfattuale su tutte e dodici le liste costa **0,445 ms** contro i
+110 del Monte Carlo: non c'è nessun conto da fare, si genera.
+
+`seSotto(id)` rifà il riparto con quella lista sotto soglia; `clausolaSoglia(id)` compone.
+E **la clausola nomina solo le liste che il periodo prima ha già dichiarato sul filo**: è la
+conseguenza di quel rischio, non un elenco a sé.
+
+**La meccanica è uscita dal ramo condizionale.** Prima stava dentro il ramo delle liste a
+rischio, quindi il lettore la incontrava solo quando c'era qualcuno da nominare — e
+nell'altro caso la nota diceva che nessuno rischia senza dire che cosa succederebbe se
+qualcuno rischiasse.
+
+### E la stessa frase falsa era scritta DUE volte
+
+Trovata solo dopo aver riparato la nota: `rAnalisi()` diceva, in un altro riquadro, «*se non
+la supera, i suoi voti si disperdono e i seggi finiscono alle liste più grandi dello stesso
+campo*». **La stessa affermazione, lo stesso errore, un id diverso** — e una prova puntata su
+`#k-soglianota` avrebbe dichiarato chiusa una cosa chiusa a metà.
+
+È la strada doppia di sempre, con una variante che vale la pena scrivere: **due copie
+corrette oggi divergono domani, due copie sbagliate si riparano a metà.** La seconda è più
+insidiosa, perché chi ripara ha la sensazione di aver finito, e il difetto resta dove nessuno
+lo cerca più.
+
+Adesso la frase nasce una volta sola — `FRASE_SOGLIA` — e la leggono in due. E l'asserzione
+guarda **tutto il testo di `#kn26`**, non un id: se domani un terzo punto la riscrive a mano,
+cade. Più una che pretende che nel sorgente la frase compaia **una volta sola**, perché la
+prima da sola passerebbe anche con due copie identiche.
+
+### Due difetti trovati scrivendo, e sono due classi già registrate
+
+**1 · Il verbo concordava col nome della lista.** La prima stesura diceva «i seggi che X
+perderebbe», e su «i Democratici» usciva **«i Democratici perderebbe»**: il soggetto della
+relativa è il **nome**, e il suo numero grammaticale non è ricavabile da niente che il codice
+conosca. Non si ripara indovinando: si sceglie una forma in cui non ci sia niente da
+indovinare — «i seggi **di** X», dove il soggetto sono i seggi e la lista passa da
+`nmA(id,'di')`. È la regola di `acc()` applicata a un accordo nuovo.
+
+E la frazione porta il proprio numero **nella tabella accanto alla parola**: «metà
+uscirebbe» e «due terzi uscirebbero» sono tutti e due corretti, e non c'è regola che li
+distingua da fuori.
+
+**2 · IL SEME NON ESERCITAVA IL RAMO DELLA FRAZIONE, e il mutante restava vivo.** In jsdom il
+fetch non parte, quindi il banco gira su `BASE` — e sul seme **nessun rapporto è una frazione
+con un nome**: 7/23, 5/13, 2/5, 3/8, 2/7, 4/10, 1/8 danno tutti `null`. Il ramo era
+**irraggiungibile nelle prove**, e il mutante che ci rimetteva la relativa sbagliata passava
+verde.
+
+È la classe già scritta — *un mutante invisibile perché i dati non lo esercitano mai* — e si
+chiude **separando la composizione dal conto**: `fraseSoglia(id, s)` è pura, quindi la prova
+la esercita su casi costruiti, uno per ramo, invece che su quello che il seme produce.
+
+**E la stessa forma è ricomparsa una seconda volta nello stesso file**: l'asserzione che la
+clausola compaia *nella nota* confrontava con `aRischio()`, che sul seme può essere vuoto —
+quindi non aveva niente da confrontare e restava verde mentre il mutante toglieva la
+concatenazione. Lì non c'è una funzione da separare, perché quello che manca è una
+concatenazione: **il legame si prova nel sorgente**, come per `og:title` col job.
+
+### Dieci mutazioni, otto morte, una equivalente e una mal posta
+
+**L'equivalente va dichiarata**: portare la guardia `d<=0` a `d===0` non cambia niente,
+perché — come prova l'asserzione 10 — **nessuna lista perde mai seggi** quando un concorrente
+cade, quindi non esistono differenze negative da filtrare. La guardia è difensiva e resta;
+il mutante è vivo per costruzione, non per un buco.
+
+**La mal posta è mia**: rinominare `fraseSoglia` fa esplodere la suite invece di farla
+cadere, perché il nome sta nell'elenco degli export. Un mutante che rompe il caricamento non
+è un mutante ucciso, ed è per questo che il runner distingue *esplosa* da *morta*. La
+proprietà che avrebbe dovuto provare è già coperta da `typeof A.fraseSoglia === 'function'`
+e dalle cinque forme costruite.
+
 ## La prova di regia dell'8 settembre: quattro buchi, e il primo l'ha preso l'agente
 
 Eseguita il 30 agosto 2026 su un ramo usa-e-getta, senza committare nessuna mappatura. Il

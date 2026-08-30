@@ -5823,10 +5823,22 @@ function rProj(){
  });
  $('k-proj').innerHTML=h;
  var risk=aRischio();
+ /* IL PRIMO PERIODO STA FUORI DAL RAMO, perché è la meccanica e vale sempre: che ci siano
+    liste sul filo o no, una lista sotto soglia si comporta così. Prima la spiegazione stava
+    DENTRO il ramo delle liste a rischio, quindi il lettore la incontrava solo quando c'era
+    qualcuno da nominare — e nell'altro caso la nota diceva che nessuno rischia senza dire
+    che cosa succederebbe se qualcuno rischiasse.
+    IL SECONDO PERIODO SI GENERA da clausolaSoglia(), che rifà il riparto senza quella lista:
+    scritto a mano diventerebbe falso alla prossima rilevazione. Nomina le liste che il
+    periodo prima ha già dichiarato sul filo — non altre — perché è la conseguenza di quel
+    rischio, non un elenco a sé. */
+ var cl=risk.map(clausolaSoglia).filter(Boolean);
  $('k-soglianota').innerHTML='<b>Il superamento della soglia di sbarramento resta una delle variabili decisive.</b> '+
-  (risk.length?'Sul filo del 3,25% ci sono '+risk.map(function(i){return nm(i)+' ('+pc(MC.sotto[i]/MC.n)+' di probabilità di restare fuori)';}).join(', ')+
-  '. Ogni lista che non supera la soglia disperde i propri voti e li consegna di fatto ai partiti più grandi dello stesso campo: nel 2022 fu questo meccanismo a garantire la maggioranza a Netanyahu.'
-  :'Fra le liste oggi proiettate in Knesset nessuna presenta un rischio elevato di esclusione.')+
+  (risk.length?'Sul filo del 3,25% ci sono '+risk.map(function(i){return nm(i)+' ('+pc(MC.sotto[i]/MC.n)+' di probabilità di restare fuori)';}).join(', ')+'.'
+   :'Fra le liste oggi proiettate in Knesset nessuna presenta un rischio elevato di esclusione.')+
+  ' Una lista che resta sotto il 3,25% non elegge nessuno e i suoi voti escono dal riparto: '+
+  FRASE_SOGLIA+'.'+
+  (cl.length?' Oggi '+cl.join(', e ')+'.':'')+
   ' La colonna “Rispetto al 2022” riporta i seggi conquistati dalla lista corrispondente nella 25ª Knesset.';
 }
 /* Mediana dei seggi nelle rilevazioni comprese in una finestra di giorni.
@@ -5924,6 +5936,87 @@ function inCorsa(id){
  var w=finestra(0,13); if(!w.length) return !!SEG[id];
  var n=w.filter(function(s){return (s.seggi[id]||0)>0;}).length;
  return n>=w.length/2;
+}
+/* UNA FRASE, DUE CONSUMATORI, e non e un vezzo: la stessa affermazione era scritta due
+   volte — in #k-soglianota e in rAnalisi() — e tutte e due dicevano il falso nello stesso
+   modo. Riparandone una sola sarebbe rimasta l altra, in un riquadro diverso, a dire che i
+   seggi finiscono alle liste piu grandi DELLO STESSO CAMPO. E la strada doppia di sempre:
+   due copie corrette oggi divergono domani, due copie sbagliate si riparano a meta.
+   La frase nasce qui e la leggono in due. */
+var FRASE_SOGLIA='i seggi che avrebbe preso si ridistribuiscono fra tutte le liste '+
+  'rimaste, non solo fra quelle del suo campo';
+/* DOVE FINISCONO I SEGGI DI UNA LISTA CHE CADE SOTTO SOGLIA.
+   Controfattuale puro: la quota della lista esce dal riparto, le altre restano come sono, e
+   i 120 seggi si ridistribuiscono fra chi resta. È la meccanica del d'Hondt — dhondt()
+   filtra su SOGLIA e poi assegna per divisori — quindi i seggi liberati vanno a chi ha i
+   divisori successivi, che può essere chiunque, di qualunque blocco.
+   SERVE PERCHÉ LA NOTA DICEVA IL FALSO. Fino al 30 agosto 2026 #k-soglianota affermava che
+   una lista sotto soglia «disperde i propri voti e li consegna di fatto ai partiti più
+   grandi dello stesso campo». La metà sui «più grandi» regge — i divisori successivi sono
+   quasi sempre di liste maggiori — quella sul campo no. Misurato sull'archivio pubblicato,
+   facendo cadere sotto soglia ciascuna delle dodici liste che oggi la superano: in ZERO casi
+   su dodici i seggi restano tutti nel campo, e la quota che ci resta va dal 35% (Yashar, 8
+   su 23) allo ZERO di Ra'am, Lista Unita araba e Popolo d'Israele. La frase era vera del
+   2022, che infatti citava, e falsa della proiezione che le stava sopra.
+   E SI GENERA, non si scrive a mano: costa 0,445 ms per tutte e dodici le liste contro i
+   110 ms del Monte Carlo. Scritta a mano diventerebbe falsa alla prossima rilevazione, che
+   è la classe di difetto chiusa tre volte il 30 agosto 2026. */
+function seSotto(id){
+ var q={},k; for(k in QUO) q[k]=QUO[k];
+ q[id]=SOGLIA-0.01;                                  /* sotto soglia: dhondt la esclude */
+ var dopo=dhondt(q), mio=bloccoDi(id), dentro=0, fuori=0;
+ for(k in SEG){
+  if(k===id) continue;
+  var d=(dopo[k]||0)-(SEG[k]||0);
+  if(d<=0) continue;
+  if(bloccoDi(k)===mio) dentro+=d; else fuori+=d;
+ }
+ return {persi:SEG[id]||0, dentro:dentro, fuori:fuori};
+}
+/* La frazione a parole solo quando è esatta e ha un nome: «metà» si legge meglio di «2 su
+   4», ma «5 su 12» un nome non ce l'ha e va detto in cifre. Fuori da questi casi si scrive
+   il rapporto, che è sempre vero e non chiede di indovinare una parola. */
+/* La frazione a parole solo quando è esatta e ha un nome: «metà» si legge meglio di «2 su
+   4», ma «5 su 12» un nome non ce l'ha e va detto in cifre. E il numero grammaticale sta
+   nella tabella accanto alla parola, non dedotto: «meta uscirebbe» e «due terzi
+   uscirebbero» sono tutti e due corretti e non c'è regola che li distingua da fuori.
+   'tutti' non c'è perché quel caso lo prende il ramo di sopra, e un ramo che nessuna
+   chiamata raggiunge è codice che nessuna prova esercita. */
+var FRAZ={'metà':0,'un terzo':0,'un quarto':0,'due terzi':1,'tre quarti':1};
+function frazione(n,m){
+ if(!m||n<=0||n>=m) return null;
+ if(n*2===m)   return 'metà';
+ if(n*3===m)   return 'un terzo';
+ if(n*3===m*2) return 'due terzi';
+ if(n*4===m)   return 'un quarto';
+ if(n*4===m*3) return 'tre quarti';
+ return null;
+}
+/* La clausola su una lista sola. NON SI NOMINA IL CAMPO DI DESTINAZIONE, ed è una scelta:
+   nominarlo vorrebbe dire una preposizione articolata per ciascuno dei quattro blocchi —
+   «all'opposizione sionista», «al blocco Netanyahu», «ai partiti arabi» — cioè una seconda
+   anagrafica di lingua accanto ad ART e CONTR, che l'8 settembre resterebbe indietro.
+   Quello che la frase deve dire è che i seggi ESCONO dal campo, e quello si dice senza. */
+/* LA COMPOSIZIONE E SEPARATA DAL CONTO, e non e un vezzo: e la sola forma in cui le prove
+   possono esercitarla. In jsdom il fetch non parte, quindi il banco gira sul seme BASE — e
+   sul seme NESSUN rapporto e una frazione con un nome: 7/23, 5/13, 2/5, 3/8, 2/7, 4/10, 1/8
+   danno tutti null. Il ramo della frazione era percio IRRAGGIUNGIBILE nelle prove, e un
+   mutante che ci rimetteva la relativa sbagliata — «i Democratici perderebbe» — restava
+   VIVO. E la classe gia registrata: un mutante invisibile perche i dati non lo esercitano
+   mai. Con fraseSoglia(id, s) puro il conto resta dove sta e la frase si prova su casi
+   costruiti, uno per ramo. */
+function fraseSoglia(id,s){
+ var quanti=f(s.persi)+' '+acc(s.persi,'seggio','seggi');
+ if(!s.fuori)  return 'i '+quanti+' '+nmA(id,'di')+' resterebbero nel suo campo';
+ if(!s.dentro) return 'i '+quanti+' '+nmA(id,'di')+' uscirebbero tutti dal suo campo';
+ var fr=frazione(s.fuori,s.persi);
+ if(fr) return fr+' dei seggi '+nmA(id,'di')+' '+
+   (FRAZ[fr]?'uscirebbero':'uscirebbe')+' dal suo campo';
+ return f(s.fuori)+' dei '+f(s.persi)+' seggi '+nmA(id,'di')+
+        ' uscirebbero dal suo campo';
+}
+function clausolaSoglia(id){
+ var s=seSotto(id); return s.persi?fraseSoglia(id,s):null;
 }
 function aRischio(){
  return IDS.filter(function(i){
@@ -6114,7 +6207,7 @@ function rAnalisi(){
  var risk=aRischio();
  if(risk.length) testo+='Sul filo dello sbarramento c\'è '+risk.map(function(i){
    return '<b>'+nm(i)+'</b>, fuori nel '+pc(MC.sotto[i]/MC.n)+' delle simulazioni';}).join(', e ')+
-   ': se non la supera, i suoi voti si disperdono e i seggi finiscono alle liste più grandi dello stesso campo. ';
+   ': se non la supera, i suoi voti escono dal riparto e '+FRASE_SOGLIA+'. ';
  var ev=EVENTI.filter(function(e){return e.data<=(M.a||'9999');}).slice(-1)[0];
  /* La voce di cronologia entra in pagina come è scritta, iniziale compresa. Abbassarla
     produceva «hadash, Ta'al e Balad firmano l'accordo»: dopo i due punti l'italiano non
