@@ -359,15 +359,28 @@ var COLORE = (function () {
   }
 
   /* ── 9 · interfaccia pubblica ────────────────────────────── */
-  /* ── oltre la saturazione la regola non tace ──
+  /* ── oltre la saturazione la regola non tace, MA IL COLORE È ANCORA --mute ──
      La versione consegnata restituiva il grigio di ripiego — #626D7E, che è --mute —
      senza avviso e senza errore. Cioè: la sera dell'8 settembre una lista in più
      nell'ago della bilancia avrebbe preso un grigio identico al testo attenuato, e
      nessuno se ne sarebbe accorto fino a guardare la pagina.
-     È la proprietà che test/suite/regola.js provava già sulla regola vecchia, e che
-     andava rimessa: il primo slot oltre la saturazione dà un colore distinto E avvisa,
-     dal secondo in poi la regola fallisce con un errore esplicito. Un ripiego silenzioso
-     è peggio di un errore, perché sembra funzionare. */
+     DI QUELLA RIPARAZIONE È STATA FATTA UNA METÀ SOLA, e per giorni questo commento ha
+     detto il contrario. Diceva «il primo slot oltre la saturazione dà un colore distinto
+     E avvisa»: misurato il 30 agosto 2026 nella prova di regia dell'8 settembre, il primo
+     slot supplementare restituisce #626D7E in chiaro e #7D8A9B in scuro, che sono --mute
+     ESATTO in tutti e due i temi — cioè precisamente il valore che questo commento nomina
+     come il difetto. Il silenzio è stato riparato, il colore no, e il testo affermava
+     quello che il codice non fa.
+     Quello che il codice fa DAVVERO, oggi: il primo slot oltre la saturazione restituisce
+     --mute e registra un avviso in _avvisi, leggibile con COLORE.avvisi(); dal secondo in
+     poi fallisce con un errore esplicito che nomina il blocco e rimanda al §9.
+     PERCHÉ --mute NON VA BENE, ed è la decisione presa dall'autore il 30 agosto: --mute è
+     il colore del testo secondario, quindi una lista dipinta così non si legge come una
+     lista senza colore — si legge come una lista SPENTA, che è lo stato che la pagina usa
+     altrove per dire «esclusa». Il lettore vedrebbe una lista disattivata che non lo è.
+     La sostituzione è in corso di decisione; finché non è applicata, test/suite/regola.js
+     DICHIARA il valore vero invece di descriverne uno migliore, così il giorno in cui
+     cambia è la prova a chiedere di aggiornare questo commento. */
   var _avvisi=[];
   function avvisi(){ return _avvisi.slice(); }
   function azzeraAvvisi(){ _avvisi=[]; }

@@ -5058,6 +5058,107 @@ una censura dell'avvertimento, ed è scritto accanto alla funzione che taglia.
 
 ---
 
+## La prova di regia dell'8 settembre: quattro buchi, e il primo l'ha preso l'agente
+
+Eseguita il 30 agosto 2026 su un ramo usa-e-getta, senza committare nessuna mappatura. Il
+contratto è [docs/mappare-una-lista-nuova.md](docs/mappare-una-lista-nuova.md), e non era mai
+stato percorso: la prova gemella su Amcha aveva trovato l'ottavo posto, questa ne ha trovati
+altri quattro. **Non si simula, si esegue** — e i primi due li ho trovati cascandoci dentro.
+
+### 0 · Il comando del passo 1 interrogava il parser di ieri — CHIUSO
+
+`aggiorna.mjs` legge il **markup** da `index.html` e il **codice** da `test/app.js`, che è un
+prodotto rigenerato da `npm test`. In CI non è un problema, perché il workflow fa
+`node test/estrai.mjs` prima. Ma `--prova` lo lancia una persona a mano, ed è **il primo
+comando del contratto**, cioè quello che si esegue subito dopo aver aggiunto una grafia a
+`W_LISTA`.
+
+Tolta una grafia nota e lanciato `--prova`, la risposta è stata **«Niente da fare»**. Venti
+minuti a cercare un difetto nella guardia, che non c'era: la guardia non aveva mai visto la
+modifica. **È il caso peggiore della famiglia — non fallisce, risponde, e risponde la cosa
+che ci si aspetta di leggere quando si crede che qualcosa non funzioni.**
+
+Chiuso **nel meccanismo e non nella documentazione**, che è la lezione: il fatto che ci sia
+cascato chi conosceva il difetto dimostra che una riga nel contratto non sarebbe bastata.
+`aggiorna.mjs` importa `test/estrai.mjs` prima di leggere `test/app.js` — si importa il vero,
+non se ne ricopiano le tre righe, o sarebbe la strada doppia di sempre. Verificato rifacendo
+la trappola esatta: ora la stessa sequenza stampa `GUARDIA: righe valide in crollo`.
+
+### 1 · Una lista nuova con seggi non arriva alla guardia che la nomina — DIFF PRONTA
+
+**È il difetto che riguarda il giorno stesso.** Misurato sul markup vero di Wikipedia,
+ribattezzando una colonna che porta seggi:
+
+| | anagrafica completa | **una colonna nuova con seggi** |
+|---|---|---|
+| righe valide | 165 | **0** |
+| `ignote` — *apre la issue con l'elenco da mappare* | `[]` | **`[]`** |
+| tabelle `ignorate` — *non la apre* | 1 | **6**, tutte con `"Zionist Future"` |
+
+Il meccanismo è aritmetico: una lista nuova ha seggi, quindi **nessuna riga somma più 120**;
+sotto il 50% di righe valide `parseWiki` scarta la tabella **intera**; e `valuta()` legge
+`p.ignote`, che nessuno ha riempito. Il nome della colonna il codice ce l'ha — sta in
+`out.ignorate[].ignote` — e non arriva a nessuna guardia.
+
+**Il job si ferma lo stesso** (la guardia `valide` lo prende), quindi non si pubblica niente
+di sbagliato: si ferma dicendo «righe valide in crollo» invece di «colonne non riconosciute»,
+e **senza aprire la issue che elenca che cosa mappare**. Cioè il passo 1 del contratto —
+«guarda `da-fare.json`, voce `colonne-ignote`» — mostrerebbe **niente**.
+
+La riparazione è una **congiunzione**, e non si può sbagliare: crollo delle righe valide *e*
+tabelle scartate che nominano colonne sconosciute. Separate non valgono — colonne ignote da
+sole ce ne sono anche stasera (la tabella degli scenari ne ha tre) e la guardia scatterebbe
+ogni notte; il crollo da solo può essere Wikipedia che riorganizza.
+
+### 2 · Il primo slot oltre la saturazione è `--mute` esatto
+
+`capienza()` conferma il contratto: **ago della bilancia, tema chiaro, zero slot liberi.**
+Esercitata la scala che «non l'ha ancora vista resa nessuno»:
+
+| | esito |
+|---|---|
+| 6ª lista (1 oltre) | **`#626D7E` chiaro, `#7D8A9B` scuro** — `--mute` esatto in tutti e due i temi |
+| 7ª e 8ª | errore esplicito che nomina il blocco e rimanda al §9 ✓ |
+
+Il commento sopra diceva che la riparazione dà «**un colore distinto** E avvisa». **È stata
+fatta la metà del silenzio e non quella del colore**, e il testo affermava quello che il
+codice non fa — la classe contro cui questo file mette in guardia. Il commento è corretto e
+`regola.js` adesso **dichiara il valore vero** invece di descriverne uno migliore: il giorno
+in cui cambia, è la prova a chiedere di aggiornare il commento.
+
+### 3 · L'avviso c'era e non lo leggeva nessuno — CHIUSO
+
+`COLORE.avvisi()` dice la cosa giusta e nomina il §9. Era letto **in un posto solo in tutto
+il repository**: la prova che dimostra che l'avviso esiste, su uno slot **sintetico**, che poi
+lo azzera. Nessuno chiedeva mai la domanda che conta la sera del deposito: **«l'anagrafica
+com'è adesso ne produce?»**
+
+*(Da non confondere con un difetto più largo: `dati/colore-liste.js` non è importato né dalla
+pagina né dal job — la pagina porta gli esadecimali e `regola.js` verifica che non divergano.
+Che il modulo sia letto solo dal banco è di progetto. Il buco era il momento, non il modulo.)*
+
+Chiuso con il consumatore che mancava: `regola.js` calcola il colore di **ogni lista vera nei
+due temi** e pretende zero avvisi. Verificato che morda — con una sesta lista nell'ago,
+`npm run verifica` cade dicendo *«blocco incerto saturo a 5 in tema chiaro: lo slot 5 esce dal
+dominio. Vedi docs/regola-colore.md §9»*. E il comando del contratto stampa gli avvisi insieme
+al colore, su **una riga sola**: la stesura intermedia aveva una continuazione scritta come
+`\n` letterale, cioè il difetto che a questo progetto è già costato tre notti.
+
+### La forma comune ai quattro
+
+**Qualcuno si è preso la briga di raccogliere il dettaglio, e nessuna strada lo porta a una
+persona nel momento in cui serve.** I nomi delle colonne sconosciute sono raccolti con uno
+`slice(0,4)` e letti da nessuno; gli avvisi del colore sono accumulati e letti solo da una
+prova sintetica. In tutti e due i casi il dato esiste, è giusto, ed è muto.
+
+E una cosa sul metodo, perché è la seconda volta in un giorno: **la cartella corrente ha
+rotto due ripristini**. Il banco delle mutazioni ha lasciato `index.html` guasto perché
+chiamava `test/estrai.mjs` da `test/suite`, e più tardi un `cp` di ripristino ha fallito per
+la stessa ragione, lasciando `dati/colore-liste.js` mutato. Tutte e due colte controllando le
+sedi una per una, che è la regola già scritta. **Un percorso relativo in uno script di banco
+è una trappola a orologeria: la prima volta che qualcuno lo lancia da un'altra cartella, il
+ripristino non ripristina.**
+
 ## La passata del 30 agosto: due difetti che il quarto blocco ha reso visibili
 
 Guardata la pagina resa il 30 agosto 2026, il primo giorno in cui l'**ago della bilancia ha

@@ -21,7 +21,7 @@
  *       --prova esegue tutto ma non scrive niente (mostra cosa scriverebbe)
  */
 import {readFileSync, writeFileSync, existsSync} from 'node:fs';
-import {fileURLToPath} from 'node:url';
+import {fileURLToPath, pathToFileURL} from 'node:url';
 import {dirname, join} from 'node:path';
 import {JSDOM} from 'jsdom';
 import {componi} from './dafare.mjs';
@@ -192,6 +192,25 @@ async function main(){
   global.getComputedStyle = () => ({getPropertyValue: () => ''});
   global.Blob = function(){}; global.URL = {createObjectURL(){ return ''; }};
   global.FileReader = function(){}; global.fetch = () => Promise.reject(0);
+
+  /* SI RIGENERA test/app.js PRIMA DI LEGGERLO, e la ragione e' che ci sono cascato io.
+     Questo script legge il MARKUP da index.html e il CODICE da test/app.js, che e' un
+     prodotto: se qualcuno tocca index.html e non riestrae, il job gira col parser di ieri
+     sul markup di oggi. In CI non succede — il workflow fa «node test/estrai.mjs» prima —
+     ma «--prova» lo lancia una persona a mano, ed e' il PRIMO comando del contratto di
+     docs/mappare-una-lista-nuova.md, cioe' quello che si esegue subito dopo aver aggiunto
+     una grafia a W_LISTA.
+     Successo il 30 agosto 2026 durante la prova di regia dell'8 settembre: tolta una grafia
+     nota, «--prova» ha risposto «Niente da fare» — perche' stava interrogando il parser di
+     prima della modifica. Venti minuti a cercare un difetto nella guardia, che non c'era.
+     E' il caso peggiore della famiglia: non fallisce, RISPONDE, e risponde la cosa che ci si
+     aspetta di leggere quando si crede che qualcosa non funzioni.
+     Si importa il vero estrai.mjs invece di ricopiarne le tre righe: una seconda strada per
+     l'estrazione sarebbe la strada doppia di sempre. Costa un secondo, e in CI e' una
+     riesecuzione a vuoto che riscrive lo stesso file.
+     pathToFileURL e non 'file:///'+percorso: quella composizione a mano vale solo su
+     Windows, ed e' la lezione gia' pagata dall'anteprima og:image. */
+  await import(pathToFileURL(join(RADICE, 'test', 'estrai.mjs')).href);
 
   let src = readFileSync(join(RADICE, 'test', 'app.js'), 'utf8');
   src = src.replace('carica().then(render,render)',

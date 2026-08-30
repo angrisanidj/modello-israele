@@ -55,9 +55,7 @@ ciò che questa regola esiste per non far scegliere.**
 
 ```bash
 # il colore si CHIEDE, nei due temi, e si ricopia in P{} e in PAL_SCURO
-node -e "const C=require('./dati/colore-liste.js');const CO=C.COLORE||C;\
-['chiaro','scuro'].forEach(t=>console.log(t, CO.diLista('nuovo_id', t)))"
-```
+node -e "const C=require('./dati/colore-liste.js');const CO=C.COLORE||C;CO.azzeraAvvisi();console.log('chiaro',CO.diLista('id_nuovo','chiaro'),'scuro',CO.diLista('id_nuovo','scuro'),'| avvisi:',CO.avvisi().length?CO.avvisi():'nessuno')"
 
 Il primo va nel campo `c` di `P{}`; il secondo è il valore della coppia in `PAL_SCURO`, con
 il primo per chiave. Fatti i due, `regola.js` torna verde da sola: se non torna verde, uno
@@ -142,8 +140,15 @@ npm run verifica
 e poi, per il colore:
 
 ```bash
-node -e "const C=require('./dati/colore-liste.js');console.log(C.diLista('id_nuovo','chiaro'), C.diLista('id_nuovo','scuro'))"
+node -e "const C=require('./dati/colore-liste.js');const CO=C.COLORE||C;CO.azzeraAvvisi();console.log('chiaro',CO.diLista('id_nuovo','chiaro'),'scuro',CO.diLista('id_nuovo','scuro'),'| avvisi:',CO.avvisi().length?CO.avvisi():'nessuno')"
 ```
+
+**E STAMPA GLI AVVISI, non solo il colore.** Fino al 30 agosto 2026 questo comando
+stampava i due esadecimali e basta, e `COLORE.avvisi()` era letto **in un posto solo in
+tutto il repository**: la prova che dimostra che l'avviso esiste, su uno slot sintetico.
+Chi seguiva il contratto vedeva due colori plausibili e proseguiva — anche quando uno dei
+due era `--mute`, cioè il grigio del testo attenuato. Da oggi `npm run verifica` cade da
+sé se l'anagrafica manda un blocco oltre la saturazione, e questo comando lo dice prima.
 
 **I numeri da guardare**, in quest'ordine:
 

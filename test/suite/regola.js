@@ -189,11 +189,44 @@ for (const id of ATTESE) {
     'e capienza() dice dove andare quando un blocco è pieno', cap.ripiego);
 }
 
-/* ── oltre la saturazione: colore distinto e avviso, poi errore esplicito ──
+/* ── L'ANAGRAFICA VERA NON PRODUCE AVVISI, ed è il consumatore che non esisteva ──
+ *
+ * Trovato il 30 agosto 2026 nella prova di regia dell'8 settembre. L'avviso di saturazione
+ * c'è, dice la cosa giusta e nomina il §9 — ed era letto in un posto solo in tutto il
+ * repository: la prova qui sotto, che lo esercita su uno slot SINTETICO e poi lo azzera.
+ * Nessuno chiedeva mai la domanda che conta la sera del deposito: «l'anagrafica com'è
+ * adesso ne produce?». Il comando di verifica del contratto stampa diLista() e basta, cioè
+ * un esadecimale plausibile, e chi lo esegue prosegue.
+ * È la forma del canale scritto e mai letto: qualcuno si è preso la briga di raccogliere il
+ * dettaglio, e nessuna strada lo porta a una persona nel momento in cui serve.
+ * Questa asserzione è quella strada: se una lista in più satura un blocco, «npm run
+ * verifica» cade e dice quale. */
+{
+  COLORE.azzeraAvvisi();
+  const BLOCCHI_VERI = Object.keys(COLORE.ORDINE);
+  BLOCCHI_VERI.forEach(b => COLORE.ORDINE[b].forEach(id => {
+    ['chiaro','scuro'].forEach(t => { try { COLORE.diLista(id, t); } catch(e){ /* lo dice l'asserzione */ } });
+  }));
+  const veri = COLORE.avvisi();
+  esito(veri.length === 0,
+    'l\'anagrafica com\'è adesso non manda nessun blocco oltre la saturazione',
+    veri.length ? veri.join(' | ') : 'zero avvisi su ' +
+      BLOCCHI_VERI.reduce((n,b) => n + COLORE.ORDINE[b].length, 0) + ' liste × 2 temi');
+  COLORE.azzeraAvvisi();
+}
+
+/* ── oltre la saturazione: che cosa fa DAVVERO il primo slot supplementare ──
  *
  * La consegna 6 restituiva il grigio in silenzio. Il primo slot oltre la saturazione può
  * ancora dare qualcosa, ma deve dirlo; dal secondo in poi non c'è niente da dare, e
- * fallire è l'unica risposta onesta. */
+ * fallire è l'unica risposta onesta.
+ * ATTENZIONE AL COMMENTO CHE C'ERA QUI, e diceva «colore distinto e avviso»: MISURATO il
+ * 30 agosto 2026, il primo slot supplementare restituisce «#626D7E» in chiaro e «#7D8A9B»
+ * in scuro, che sono --mute ESATTO in tutti e due i temi — cioè precisamente il valore che
+ * il commento di colore-liste.js nomina come il difetto da riparare. È stata fatta la metà
+ * del silenzio e non quella del colore, e il testo affermava quello che il codice non fa.
+ * La decisione su che cosa mettere al suo posto è dell'autore ed è in corso; questa prova
+ * intanto dichiara lo stato vero invece di descriverne uno migliore. */
 {
   COLORE.azzeraAvvisi();
   const sat = COLORE.capienza().chiaro.incerto.saturazione;
@@ -203,6 +236,13 @@ for (const id of ATTESE) {
     'slot supplementare ' + supp + ', avvisi ' + COLORE.avvisi().length);
   esito(/§9/.test(COLORE.avvisi()[0] || ''),
     'e l\'avviso dice dove sta la scala di ripiego', COLORE.avvisi()[0]);
+  /* IL VALORE SI DICHIARA, non si spera. Finché il supplementare è --mute questa
+     asserzione lo scrive nero su bianco, così il giorno in cui cambia è la prova a
+     chiedere di aggiornare il commento, invece del commento a mentire sulla prova. */
+  const MUTE_CHIARO = '#626D7E';
+  esito(String(supp).toUpperCase() === MUTE_CHIARO,
+    'e oggi quel colore è ancora --mute esatto: la meta del colore non e stata fatta',
+    'supplementare ' + supp + ', --mute ' + MUTE_CHIARO);
   let esploso = false, messaggio = '';
   try { COLORE.di('incerto', sat + 1, 'chiaro'); } catch (e) { esploso = true; messaggio = e.message; }
   esito(esploso, 'oltre il primo supplementare la regola fallisce con un errore esplicito',
