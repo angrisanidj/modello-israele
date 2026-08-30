@@ -36,6 +36,51 @@ const dom = new JSDOM('<!doctype html><html><body><div id="kn26"></div></body></
 const W = dom.window, D = W.document;
 global.DOMParser = W.DOMParser;
 const html = fs.readFileSync('../../index.html','utf8');
+/* ── LA NOTA DELLE DUE FINESTRE, applicata il 30 agosto 2026 ──
+ *
+ * Le due colonne si chiamano tutt'e due «Seggi» e sono due grandezze diverse: qui la
+ * mediana grezza dei seggi che gli istituti hanno gia assegnato negli ultimi SETTE giorni,
+ * nella sezione sotto la proiezione del modello su SESSANTA, pesata per recenza, campione e
+ * istituto e ripartita da capo. Divergono in pagina: al 30 agosto Yashar 24 contro 23,
+ * B Yachad 14-15 contro 13, I Democratici 10 contro 9, Yisrael Beitenu 8-9 contro 9 — cioe
+ * anche nel verso opposto.
+ * META DELLA SPIEGAZIONE ESISTEVA GIA, e non l avevo vista: #k-direz chiude dicendo che
+ * isola il movimento della proiezione «da quello dei singoli sondaggi, che la tabella qui
+ * sotto mostra invece grezzo». Quello che mancava e l altro lato — il legame con la
+ * PROIEZIONE, e la parola «finestra» — quindi la nota si aggancia li invece di ricominciare.
+ * E dichiara che i comandi muovono solo la proiezione: e un difetto aperto, non una
+ * riparazione, ma il caso in cui il lettore se ne accorge e quello in cui ha premuto
+ * qualcosa, cioe quando sta prestando attenzione.
+ * La nota e STATICA e non nomina nessun numero: i numeri cambiano a ogni rilevazione, il
+ * meccanismo no. */
+{
+  const nota = html.replace(/\s+/g, ' ');
+  esito(/Questa colonna non è la proiezione della sezione qui sotto/.test(nota),
+    'la nota dice che le due colonne «Seggi» non sono la stessa cosa');
+  esito(/sessanta giorni/.test(nota) && /ultimi sette giorni/.test(nota),
+    'e nomina TUTTE E DUE le finestre: sette giorni contro sessanta',
+    'sessanta ' + /sessanta giorni/.test(nota) + ' · sette ' + /ultimi sette giorni/.test(nota));
+  esito(/comandi in alto muovono soltanto la proiezione/.test(nota),
+    'e dichiara che i comandi muovono solo la proiezione: il difetto e dichiarato, non taciuto');
+  /* E NON RIPETE QUELLO CHE #k-direz GIA DICE. Il riquadro dice che la tabella mostra i
+     sondaggi «grezzo»; la nota non deve dirlo una seconda volta con altre parole, o sono
+     due copie che divergono alla prima riscrittura. Si guarda che la parola stia in un
+     posto solo. */
+  esito((nota.match(/mostra invece grezzo/g) || []).length === 1,
+    'e la meta che #k-direz gia dice sta in un posto solo',
+    (nota.match(/mostra invece grezzo/g) || []).length + ' occorrenze');
+  /* E LE DUE COLONNE VENGONO DAVVERO DA DUE STRADE: la tabella dell analisi da movimenti()
+     che chiama med(), la proiezione da SEG che esce da dhondt(). Se un giorno una delle due
+     cominciasse a leggere l altra, la nota direbbe il falso e nessuna misura se ne
+     accorgerebbe: il legame si prova nel sorgente. */
+  const src = fs.readFileSync('../app.js', 'utf8');
+  const iMov = src.indexOf('function movimenti()');
+  const corpoMov = src.slice(iMov, src.indexOf('function ', iMov + 10));
+  esito(iMov > 0 && /med\(w0/.test(corpoMov) && corpoMov.indexOf('SEG[') < 0,
+    'la tabella dell analisi passa da med() e NON legge SEG: sono due strade davvero',
+    corpoMov.slice(0, 80).replace(/\s+/g, ' '));
+}
+
 D.body.innerHTML = html.replace(/<script>[\s\S]*?<\/script>/g,'')
   .match(/<body[^>]*>([\s\S]*)<\/body>/)[1];
 global.document = D; global.window = W;

@@ -1870,7 +1870,7 @@
   <div class="prh mv"><span>Lista</span><span>Seggi</span><span>Ultimi 7 giorni</span><span>7 gg</span><span>30 gg</span></div>
   <div id="k-movers"></div>
  </div>
- <p class="fn">I dati indicano la mediana dei seggi assegnati a ciascuna lista dai sondaggi compresi nelle diverse finestre temporali: in questo modo una singola rilevazione anomala non altera il risultato. Con un numero pari di rilevazioni la mediana cade fra i due valori centrali, e la colonna «Seggi» mostra l'intervallo: «22–23» significa che metà dei sondaggi dà 22 o meno, metà 23 o più. Le variazioni inferiori a un seggio vanno considerate rumore statistico.<span id="k-movscio"></span></p>
+ <p class="fn">I dati indicano la mediana dei seggi assegnati a ciascuna lista dai sondaggi compresi nelle diverse finestre temporali: in questo modo una singola rilevazione anomala non altera il risultato. Con un numero pari di rilevazioni la mediana cade fra i due valori centrali, e la colonna «Seggi» mostra l'intervallo: «22–23» significa che metà dei sondaggi dà 22 o meno, metà 23 o più. Le variazioni inferiori a un seggio vanno considerate rumore statistico. Questa colonna non è la proiezione della sezione qui sotto: là il modello pesa sessanta giorni di rilevazioni per recenza, numerosità del campione e istituto, e riparte i seggi da capo; qui c'è la mediana grezza dei seggi che gli istituti hanno già assegnato negli ultimi sette giorni. Le due possono differire di un seggio o due sulla stessa lista, e quando succede non è un errore di nessuna delle due: è la distanza fra una settimana di sondaggi e due mesi. E i comandi in alto muovono soltanto la proiezione: swing, affluenza ed esclusioni non toccano questa colonna, che resta quella che gli istituti hanno pubblicato.<span id="k-movscio"></span></p>
 </section>
 
 <section>
@@ -2334,7 +2334,16 @@ var EVENTI=[
  {data:"2026-08-17",testo:"Primarie del Likud"},
  {data:"2026-08-19",testo:"Hadash, Ta'al e Balad firmano l'accordo per la Lista Unita; Ra'am corre da sola"},
  {data:"2026-08-22",testo:"Ra'am sceglie i propri candidati per le elezioni"},
- {data:"2026-08-25",testo:"Ofer Winter forma un nuovo partito, chiamato Amcha Israel"}
+ {data:"2026-08-25",testo:"Ofer Winter forma un nuovo partito, chiamato Amcha Israel"},
+ /* La dichiarazione del 27 agosto 2026, verificata dall autore su Times of Israel,
+    Jerusalem Post, Haaretz, i24 e Jewish Chronicle: «Siamo parte del campo della destra,
+    Netanyahu ne è il leader, ed è l'unica persona che raccomanderemo». Arriva dopo due
+    giorni in cui il Likud avvertiva che Amcha avrebbe raccomandato Lieberman o Eisenkot.
+    LA DATA E DELL AUTORE, non dedotta: colloca il marcatore sull asse della tendenza e
+    decide la terna dei trenta giorni del riquadro dell evento isolato — tre numeri
+    pubblicati che si spostano se la data si sposta. E la riga che il confine dell agente
+    riserva a una persona. */
+ {data:"2026-08-27",testo:"Winter dichiara che raccomanderà solo Netanyahu come premier"}
 ];
 /* LE DUE SOGLIE DELLA DIVERGENZA FRA LE DATE.
    Non sono ricavabili dai dati: dipendono da come è impostato il lavoro notturno, che
@@ -3356,7 +3365,15 @@ var TIT_CORTO_PRIMA={
  f4:function(){return 'Decidono le liste dell’ago della bilancia';},
  f5c:function(X){return 'Netanyahu a '+X+', uno dalla maggioranza';},
  f5o3:function(X){return 'Opposizione a '+X+': servono i partiti arabi';},
- f5o4:function(X){return 'Opposizione a '+X+', stallo pieno';},
+/* f5o4 CORTA · «lista araba» E NON «arabo», ed e' una correzione di FATTO e non di
+    registro. «Nessun arabo in aula» dice una cosa che il modello non sa: conosce le liste,
+    non l'origine degli eletti, e deputati arabi eletti su liste non arabe ci sono sempre
+    stati. La condizione della cella e' che nessuna LISTA araba superi la soglia, che e'
+    un'altra affermazione. E vale anche la regola gia' scritta per f3: «gli arabi» e'
+    etnico dove «i partiti arabi» e' politico.
+    59 CARATTERI CON LA CODA, cioe' il massimo ammesso: margine ZERO. E' legale e va
+    saputo — non c'e' spazio per una parola in piu' ne' per una coda piu' lunga. */
+ f5o4:function(X){return 'Opposizione a '+X+', nessuna lista araba eletta';},
  f5e:function(X){return 'Due blocchi a '+X+', nessun altro in aula';},
  f6c:function(X){return 'Maggioranza minima al blocco Netanyahu: '+X;},
 /* L'ECCEZIONE DELLE FORME PRIMA: qui il numero E' la notizia, e infatti f2 e f7o lo tengono
@@ -3394,7 +3411,17 @@ var TIT_CORTO_DOPO={
  f4:function(){return 'Vigilia: decidevano le liste dell’ago';},
  f5c:function(X){return 'Vigilia: Netanyahu a '+X+', stallo pieno';},
  f5o3:function(X){return 'Vigilia: opposizione a '+X+', non bastava';},
- f5o4:function(X){return 'Vigilia: opposizione a '+X+', stallo pieno';},
+/* f5o4 CORTA, ERA DOPO · [X] CEDUTO, ed e' il precedente gia' scritto due volte qui
+    sopra. Nelle forme DOPO il numero conta meno: si leggono a elezioni avvenute, dove chi
+    le incontra vuole sapere cosa diceva il modello e non quanti seggi esatti assegnava —
+    e' la ragione per cui f2 DOPO non porta [X] affatto. Togliere «Vigilia:» invece no:
+    romperebbe il parallelo con le altre undici forme dell'era, ed e' scartato per la
+    stessa ragione della f3.
+    Con «Vigilia:» e il qualificatore politico non entrava nient'altro: la frase con
+    l'opposizione e il numero misura 61 caratteri contro un tetto di 59. Quello che resta
+    e' il DISCRIMINANTE della cella — nessuna lista araba in aula — che e' precisamente
+    cio' che separa f5o4 da f5o3, dove l'appoggio arabo invece serve. 50 caratteri. */
+ f5o4:function(){return 'Vigilia: nessuna lista araba eletta';},
  f5e:function(X){return 'Vigilia: due blocchi a '+X+', nessun altro';},
  f6c:function(){return 'Vigilia: maggioranza minima a Netanyahu';},
 /* Come la f2 di sopra: [X] non c’era gia' prima, e adesso entra «da sola» al posto suo.
