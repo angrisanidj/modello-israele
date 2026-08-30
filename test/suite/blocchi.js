@@ -65,6 +65,7 @@ src = src.slice(0, src.indexOf('carica().then(render,render)')) +
   'get SOND(){return SOND;},set SOND(v){SOND=v;},get SEG(){return SEG;},' +
   'get PAR(){return PAR;},PAR_DEF:PAR_DEF,statoLeve:statoLeve,' +
   'ipotesiNeiNumeri:ipotesiNeiNumeri,set SIM(v){SIM=v;},'+
+  'setPAR:function(k,v){PAR[k]=v;},'+
   'get EMIMODE(){return EMIMODE;},set EMIMODE(v){EMIMODE=v;}};})();';
 eval(src);
 
@@ -550,9 +551,15 @@ function seggiOra(){ return A.IDS.filter(i => A.SEG[i]).map(i => i + ':' + A.SEG
  * PAR_DEF spostava dodici asserzioni sotto un altro stato senza che nessuna riga lo dicesse:
  * è successo, e le dodici sono cadute tutte insieme. */
 {
-  esito(A.PAR_DEF.inbilico === 0,
-    'PAR_DEF porta la leva SPENTA: il conteggio predefinito e quello della FONTE, e ' +
-    '«Azzera» — che ripristina PAR_DEF — ci riporta',
+  /* IL PREDEFINITO E' ACCESO dal 30 agosto 2026, ed e' la terza volta che questa riga
+     cambia: accesa la mattina del 27, spenta la sera, accesa di nuovo il 30 sulla
+     dichiarazione di Ofer Winter. Non e' un ripensamento — e' che la ragione e' diversa:
+     il 27 l'ipotesi era «e se governasse con Netanyahu?», adesso e' un fatto che il partito
+     ha dichiarato con una data e una fonte, e che la fonte dei sondaggi non ha ancora
+     recepito. L'ANAGRAFICA resta quella di Wikipedia, e l'asserzione qui sotto lo tiene. */
+  esito(A.PAR_DEF.inbilico === 1,
+    'PAR_DEF porta la leva ACCESA: il conteggio predefinito porta la dichiarazione di Winter, ' +
+    'e «Azzera» — che ripristina PAR_DEF — ci riporta',
     String(A.PAR_DEF.inbilico));
 
   /* IL COMANDO COMPARE QUANDO COMINCIA A SPOSTARE QUALCOSA, E NON PRIMA.
@@ -593,7 +600,16 @@ function seggiOra(){ return A.IDS.filter(i => A.SEG[i]).map(i => i + ':' + A.SEG
   /* ── LO STATO IN CUI IL LETTORE ARRIVA: leva spenta, cioè il conto della fonte ── */
   conBilico(4, 0);
   const b = $('k-bilico');
-  const spento = b.textContent, eti = b.getAttribute('aria-label');
+  /* UN ASSERZIONE DEVE CADERE, NON ESPLODERE — quinta volta in questo progetto, e questa
+     l ha trovata la mutazione. Con il verso riportato a «incerto», o con l anagrafica
+     spostata in coalizione, la leva muove ZERO: il comando non viene reso e aria-label non
+     c e. Le due righe qui sotto leggevano quel null e facevano MORIRE la suite alla
+     riga 607 — 58 asserzioni buone, poi il vuoto. Il banco dichiarava morti i due mutanti
+     perche il processo usciva diverso da zero, ma una suite che non arriva in fondo non ha
+     giudicato niente: e la distinzione fra «cade» ed «esplode» che questo progetto ha gia
+     pagato quattro volte. Col ripiego a stringa vuota le asserzioni cadono, dicono quale
+     proprieta e violata, e le trenta che seguono vengono comunque valutate. */
+  const spento = b ? b.textContent : '', eti = (b && b.getAttribute('aria-label')) || '';
   esito(/^Conta /.test(spento),
     'nello stato in cui il lettore arriva il verbo e «Conta», cioe l azione che AGGIUNGE ' +
     'l ipotesi a un conteggio che senza di lei e quello della fonte', spento);
@@ -628,10 +644,15 @@ function seggiOra(){ return A.IDS.filter(i => A.SEG[i]).map(i => i + ':' + A.SEG
     'dicendo quanti seggi si spostano e fra quali blocchi', rigaAc.slice(0, 240));
   esito(/pulsante/.test(rigaAc),
     'e dove sta la via d uscita: «ipotesi» senza il comando per toglierla e una parola sola');
-  /* la leva si dichiara nel prompt quando e ACCESA, perche spenta e il difetto: statoLeve
-     risponde a «che cosa ha cambiato il lettore», e il confronto e con PAR_DEF */
-  esito(/contate nel blocco/.test(A.promptAI()),
-    'e il prompt che va al servizio terzo dichiara la leva ACCESA, perche spenta e il difetto');
+  /* LA LEVA SI DICHIARA NEL PROMPT QUANDO DIFFERISCE DAL PREDEFINITO, e dal 30 agosto 2026
+     il predefinito e' ACCESO: quindi si dichiara da SPENTA. statoLeve() risponde a «che cosa
+     ha cambiato il lettore» e il confronto e' con PAR_DEF — e la frase segue lo STATO, non
+     una stringa fissa: era una sola, descriveva l'acceso, e col predefinito rovesciato
+     diceva l'esatto contrario a un servizio terzo che non ha modo di verificarlo. */
+  A.PAR.inbilico = 0; A.render();
+  esito(/contate a parte/.test(A.promptAI()),
+    'e il prompt che va al servizio terzo dichiara la leva SPENTA, perche dal 30 agosto ' +
+    'e accesa il difetto', A.promptAI().slice(0, 200));
   A.PAR.inbilico = A.PAR_DEF.inbilico; A.render();
   esito(!/contate nel blocco/.test(A.promptAI()) && !/contate a parte/.test(A.promptAI()),
     'e non la dichiara quando e al valore predefinito: statoLeve confronta con PAR_DEF');
@@ -694,10 +715,18 @@ function seggiOra(){ return A.IDS.filter(i => A.SEG[i]).map(i => i + ':' + A.SEG
      Il caso in cui divergono e' quello in cui il predefinito E' l'ipotesi, e si esercita
      spostando PAR_DEF invece di aspettare il giorno in cui qualcuno lo sposta davvero — che
      e' anche il giorno in cui una prova assente non lo direbbe a nessuno. */
-  esito(A.statoLeve().indexOf('fuori dai due campi') >= 0,
-    'e statoLeve la dichiara, perche il lettore ha cambiato qualcosa rispetto al predefinito',
-    '«' + A.statoLeve() + '»');
+  /* E ADESSO SI ESERCITANO TUTTI E DUE I VERSI, invece di uno. E' la terza stesura di
+     questa asserzione e le prime due sono cadute per la stessa ragione: seguivano il
+     predefinito vero, quindi ogni volta che qualcuno lo girava dicevano il falso senza che
+     la regola fosse cambiata. Adesso il predefinito lo impone la prova, in un verso e
+     nell'altro, e il verso vero non conta piu. */
   const DIFETTO = A.PAR_DEF.inbilico;
+  A.PAR_DEF.inbilico = 0;                    /* il predefinito NON e l ipotesi */
+  esito(A.statoLeve().indexOf('fuori dai due campi') >= 0,
+    'col predefinito lontano dall ipotesi statoLeve la dichiara: il lettore ha cambiato qualcosa',
+    '«' + A.statoLeve() + '»');
+  esito(A.ipotesiNeiNumeri() === ip,
+    'e ipotesiNeiNumeri dice la stessa cosa di prima: la sua domanda non dipende dal predefinito');
   A.PAR_DEF.inbilico = 1;                    /* il giorno in cui il predefinito E l ipotesi */
   esito(A.ipotesiNeiNumeri() === ip,
     'col predefinito spostato sull ipotesi, ipotesiNeiNumeri dice la STESSA cosa: non ' +
@@ -1229,6 +1258,116 @@ function confini(f){
     t2.viste + ' file, ' + t2.male + ' dal lato sbagliato');
   A.ARCO_ORD.length = 0; vero.forEach(k => A.ARCO_ORD.push(k));
   A.EMIMODE = 'blocchi'; conAgo(4);
+}
+
+
+/* ── LA LEVA NASCE ACCESA, E LE PAROLE SEGUONO LO STATO ──
+ *
+ * Rovesciata il 30 agosto 2026 sulla dichiarazione di Ofer Winter del 27: un fatto con una
+ * data e una fonte, come i veti e gli apparentamenti. L ANAGRAFICA NON SI TOCCA — in P{}
+ * Amcha resta dove la mette Wikipedia — e da li discendono tre cose che spostarla avrebbe
+ * rotto: la guardia del parser continua a validare, il piede dell archivio resta vero, e il
+ * colore resta quello del settore dell ago.
+ * Quello che si prova qui e che il rovesciamento non abbia lasciato indietro delle parole:
+ * una frase cablata sul verso vecchio direbbe il contrario, e a un servizio terzo che non
+ * ha modo di verificarlo. */
+{
+  /* SI RIPARTE DALLO STATO DI APERTURA, o non si misura la pagina: le fixture di sopra
+     lasciano PAR e SOND come servivano a loro, e la prima asserzione che confronta con
+     PAR_DEF verificherebbe quello che una fixture ha appena scritto. E la trappola gia
+     registrata in questo stesso file, tre righe piu su. */
+  /* E LA FIXTURE DEVE DARE SEGGI AD AMCHA, o niente di quello che segue si accende: sul
+     seme la lista non ne ha, quindi la leva muove ZERO — il pulsante non compare,
+     ipotesiNeiNumeri() tace per progetto, e la riga prende il ramo del nulla. Le prime
+     asserzioni scritte cosi cadevano tutte e tre, e non per un difetto: per un seme che
+     non esercita il caso. E la stessa classe della frazione in soglianota.js.
+     Si usa lo stesso idioma di conAgo(): si spostano seggi dal Likud alla lista che deve
+     entrare, cosi ogni riga chiude ancora a 120. */
+  A.SOND = SEME.map(x => {
+    const o = JSON.parse(JSON.stringify(x));
+    delete o._q; delete o._qk;
+    if (o.seggi && o.seggi.likud >= 8) { o.seggi.likud -= 5; o.seggi.amcha = (o.seggi.amcha || 0) + 5; }
+    return o;
+  });
+  A.PAR.inbilico = A.PAR_DEF.inbilico;
+  A.render();
+  const leggi = () => {
+    const r = D.getElementById('k-bilriga');
+    return {
+      riga: r ? r.textContent.replace(/\s+/g,' ').trim() : '',
+      pulsante: (D.getElementById('k-bilico')||{textContent:''}).textContent.trim(),
+      leve: String(A.statoLeve() || ''),
+      ipotesi: A.ipotesiNeiNumeri() || '',
+      /* LA TINTA SI LEGGE DAL DISEGNO RESO, non da P[id].c. Leggere il campo
+         dell'anagrafica sarebbe asserire che una costante e costante: il mutante che fa
+         seguire la leva al colore tocca il RENDER, e su P[id].c non lascia traccia. Ci
+         sono cascato al primo giro, ed e la forma gia registrata in questo progetto —
+         una prova corretta rispetto a se stessa che guarda dalla parte sbagliata. */
+      fill: fill('amcha'),
+      fillLikud: fill('likud')
+    };
+  };
+  /* LA TINTA SI LEGGE NELLA VISTA PER LISTA, e la vista predefinita non e quella.
+     Nell arco per BLOCCO i seggi portano gia il token del blocco in cui sono CONTATI —
+     con la leva accesa quelli di Amcha sono blu, ed e giusto: quella vista dice il
+     conteggio, non chi e chi. Cercare li «il colore non segue la leva» significherebbe
+     asserire il falso su una vista e non provare niente sull altra. La domanda vive nella
+     vista per lista, che e la sola in cui una tinta di lista esiste. */
+  function fill(id){
+    const c = D.getElementById('k-emi').querySelector('circle[data-g="' + id + '"]');
+    return c ? c.getAttribute('fill') : '';
+  }
+  esito(A.PAR_DEF.inbilico === 1,
+    'la leva nasce ACCESA: il conteggio predefinito porta la dichiarazione di Winter',
+    'PAR_DEF.inbilico = ' + A.PAR_DEF.inbilico);
+  esito(A.P.amcha.b === 'incerto',
+    'e l anagrafica NON si tocca: in P{} Amcha resta dove la mette la fonte',
+    'P.amcha.b = ' + A.P.amcha.b);
+  esito(A.bloccoDi('amcha') === 'coalizione',
+    'ma il conteggio la mette in coalizione: la leva muove bloccoDi(), non l anagrafica');
+
+  /* IL COLORE NON SEGUE LA LEVA, e se lo seguisse sarebbe la stessa strada doppia da
+     un altra porta: la tinta esce da P[id].c, che la leva non tocca. */
+  A.EMIMODE = 'liste'; A.render();
+  const apert = leggi();
+  A.PAR.inbilico = 0; A.render();
+  const prem = leggi();
+  esito(apert.fill !== '' && apert.fill === prem.fill,
+    'e il COLORE non segue la leva: il seggio reso porta la stessa tinta nei due stati',
+    'acceso ' + apert.fill + ' · spento ' + prem.fill);
+  esito(apert.fill !== apert.fillLikud,
+    'e non prende quella di una lista del blocco che la ospita: la tinta esce ' +
+    'dall anagrafica, dove Amcha e ancora ago della bilancia',
+    'Amcha ' + apert.fill + ' · Likud ' + apert.fillLikud);
+  esito(A.bloccoDi('amcha') === 'incerto',
+    'e spegnendo, il conteggio torna dove lo mette la fonte');
+
+  /* LE PAROLE SEGUONO LO STATO. E il difetto che il rovesciamento ha scoperto: statoLeve()
+     emetteva UNA stringa fissa, che descriveva lo stato acceso, quando lo stato DIFFERISCE
+     dal predefinito. Finche il predefinito era spento «differisce» voleva dire «acceso» e
+     la frase era giusta per coincidenza; rovesciato il predefinito diceva il contrario. */
+  esito(/Togli/.test(apert.pulsante) && /Conta/.test(prem.pulsante),
+    'il pulsante dice l azione giusta nei due stati: «Togli» a leva accesa, «Conta» a spenta',
+    apert.pulsante + ' | ' + prem.pulsante);
+  esito(apert.leve === '' && prem.leve !== '',
+    'statoLeve() tace a chi non ha toccato niente e parla a chi ha premuto',
+    'apertura «' + apert.leve + '» · premuto «' + prem.leve + '»');
+  esito(/a parte/.test(prem.leve) && !/invece che a parte/.test(prem.leve),
+    'e la frase di statoLeve() descrive lo STATO, non una stringa fissa del verso vecchio',
+    prem.leve);
+  esito(apert.ipotesi !== '' && prem.ipotesi === '',
+    'ipotesiNeiNumeri() fa il contrario: parla quando l ipotesi e nei numeri, e tace quando non c e',
+    'apertura «' + apert.ipotesi.slice(0,40) + '» · premuto «' + prem.ipotesi + '»');
+
+  /* E LA RAGIONE SI LEGGE NEI DUE RAMI. Il campo «fonte» lo stampava solo il ramo spento,
+     che dal rovesciamento legge soltanto chi preme: chi apre vedeva l ipotesi dichiarata e
+     non da dove viene. */
+  esito(/Winter/.test(apert.riga) && /Winter/.test(prem.riga),
+    'e la ragione con la data si legge in tutti e due i rami, non solo in quello che si preme',
+    'apertura ' + /Winter/.test(apert.riga) + ' · premuto ' + /Winter/.test(prem.riga));
+  esito(/ipotesi/.test(apert.riga) && /riporta/.test(apert.riga),
+    'e chi non ha toccato niente legge che e un ipotesi E come toglierla');
+  A.PAR.inbilico = A.PAR_DEF.inbilico; A.EMIMODE = 'blocchi'; A.render();
 }
 
 console.log('\nblocchi: ' + ok + '/' + (ok + ko));

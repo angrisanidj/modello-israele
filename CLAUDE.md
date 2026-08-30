@@ -4899,87 +4899,128 @@ numero** — `graf.js`, `mob2.js`, `isola.js` e il ruolino di `PAR_DEF` in `appa
 Un «3» in quelle prove avrebbe detto «difetto» dove c'era una riparazione, ed è esattamente
 l'attesa che si fa tornare verde senza guardare.
 
-### La leva nasce SPENTA, e per tre giorni questo file ha detto il contrario
+### La leva nasce ACCESA dal 30 agosto, e in tre giorni ha cambiato verso tre volte
 
-**CORRETTO IL 30 AGOSTO 2026.** Le due sezioni che dicevano «nasce ACCESA» descrivevano uno
-stato durato **mezza giornata**: la leva è stata accesa il 27 agosto e rimessa spenta lo
-stesso giorno, e il commento accanto a `PAR_DEF` lo scrive con la data. Il codice diceva
-`inbilico:0` e questo file diceva il contrario — **documentazione che afferma quello che il
-codice non fa**, cioè la classe di difetto contro cui il file mette in guardia da quando la
-sigla dell'emiciclo dichiarava «incerti» su una voce irraggiungibile.
+Accesa la mattina del 27 agosto 2026, spenta la sera, **accesa di nuovo il 30**. Non è un
+ripensamento: è che **la ragione è cambiata**. Il 27 l'ipotesi era «e se governasse con
+Netanyahu?», cioè una domanda del modello. Il 30 è **un fatto che il partito ha dichiarato**,
+con una data e una fonte, come i veti e gli apparentamenti:
 
-L'ha trovata la passata di misura sulla pagina resa, non una prova: nessuna prova legge
-questo file.
+> Il **27 agosto 2026** Ofer Winter: «Siamo parte del campo della destra, Netanyahu ne è il
+> leader, ed è l'unica persona che raccomanderemo». Verificato su Times of Israel, Jerusalem
+> Post, Haaretz, i24 e Jewish Chronicle, dopo due giorni in cui il Likud avvertiva che Amcha
+> avrebbe raccomandato Lieberman o Eisenkot.
 
-**Perché spenta, ed è la ragione che decide.** Il conteggio predefinito dev'essere quello
-della **fonte**. Wikipedia non conta «Popolo d'Israele» dentro il totale «Gov.», e una
-pagina che di suo ce la mette pubblica un numero che non esiste da nessun'altra parte: chi
-confronta il nostro 53 col 49 della fonte non trova la spiegazione nel numero, la trova in
-una riga di prosa sotto un pulsante. Un modello può fare un'ipotesi — deve poterla fare — ma
-la fa **a partire dal fatto, non al posto suo**, ed è la stessa regola per cui gli
-apparentamenti annunciati e i soli ultimi sette giorni partono spenti.
+### L'anagrafica NON si tocca, ed è la metà che decide
 
-E non è un caso di scuola: misurato il 27 agosto, con la leva accesa il blocco Netanyahu
-esce **53** e con la leva spenta **49** — quattro seggi, cioè più dell'errore che il banco
-dichiara nell'ultima settimana di campagna.
+La strada ovvia sarebbe spostare Amcha in `coalizione` dentro `P{}`. **Misurato il 30 agosto,
+avrebbe fermato il lavoro notturno ogni notte.**
 
-**La ragione per cui era stata accesa resta vera a metà**, e va lasciata scritta perché è
-l'obiezione: un conteggio che tiene una lista fuori dai due campi non risponde alla domanda
-«e se governasse con Netanyahu?», che è quella che un lettore si fa comunque. **La risposta
-non è accendere la leva per lui: è che la domanda si veda.** Ci pensano il pulsante — che
-c'è appena la leva sposta qualcosa — e la riga di esito, che nello stato spento dice quanto
-peserebbe l'ipotesi **senza applicarla**.
+`PRESET.netanyahu` legge l'anagrafica, e la guardia del parser confronta la nostra somma di
+blocco con il totale «Gov.» pubblicato. Delle rilevazioni che danno seggi ad Amcha e
+pubblicano «Gov.», **sei su sei** contano il totale **senza** di lei — la fonte non ha
+recepito la dichiarazione. Con Amcha nell'anagrafica del blocco:
 
-**Il verbo, e quale dei due il lettore incontra per primo:**
-
-| stato | etichetta |
+| | |
 |---|---|
-| **spento — il difetto** | **Conta 1 lista nel blocco** |
-| acceso | Togli 1 lista dal blocco |
+| quelle sei righe | respinte come «blocco discordante» |
+| righe valide | **165 → 159**, cioè un calo di **6** |
+| `CALO_VALIDE` | **5** → scatta «righe valide in crollo» |
+| esito | **il job si ferma ogni notte** |
 
-È la grammatica di «Escludi / Includi» dell'house effect: il nome dice l'azione, il cambio
-di nome **è** il riscontro, quindi niente `aria-pressed`. E «Riporta 1 lista in bilico», che
-era l'etichetta del giorno prima, diceva dove va e **non da dove viene**.
+E con esso: **il piede dell'archivio** promette di riprodurre il totale di blocco pubblicato,
+e quelle colonne leggono l'anagrafica — la promessa si romperebbe. **Il colore** dovrebbe
+uscire dal settore dell'ago e finire in quello della coalizione, a `#8602D7` in chiaro e
+`#95BFFF` in scuro, con **7,1 dal Likud in scuro**, sotto la distanza che il blocco tiene.
 
-#### «Le due etichette hanno la stessa lunghezza» era falso, e il numero che lo salva non è quello
+Tenendo l'anagrafica dove la mette Wikipedia, **nessuna delle tre cose succede**: la guardia
+valida, il piede resta vero, e il colore resta `#955A00` / `#EEBA00` con `TINTA_ASSEGNATA` a
+66° nel suo settore.
 
-Questo file diceva: *«ed è cercato: "Togli" e "Conta" hanno cinque lettere, "dal" e "nel"
-tre, "lista" e "liste" cinque»*. **Misurato il 30 agosto sulla pagina resa a 380: 151,3 →
-146,0px, cioè −5,3px.** Stesse lettere, larghezze diverse, perché `l` e `i` sono strette.
+**IL COLORE NON SEGUE LA LEVA, ed è stato verificato invece che dedotto**: l'unico punto in
+cui un seggio prende il proprio riempimento è `col=cp(P[id].c)`, cioè l'anagrafica.
+`bloccoDi()` muove il **conteggio**, la pastiglia del blocco e il **nome** del blocco — non
+la tinta della lista. Se il colore seguisse la leva sarebbe la stessa strada doppia da
+un'altra porta.
 
-**È letteralmente la trappola già pagata tre sezioni più su**, con l'etichetta degli
-accordi: *«Il plurale è più CORTO del singolare: 188,0 contro 195,4, perché "accordi
-annunciati" scambia due o per due i e la i è più stretta»*. Contare le lettere non è
-misurare, e il file lo sapeva già quando ha scritto che era «cercato».
+### Che cosa vede chi apre e che cosa vede chi preme
 
-**Ma la conseguenza che quel controllo doveva impedire non si verifica**, ed è la misura che
-va tenuta perché è quella che scade:
-
-| | spento | acceso |
+| | apertura (leva accesa) | premuto (leva spenta) |
 |---|---|---|
-| larghezza dell'etichetta | 151,3px | 146,0px |
-| **altezza del nastro** | **101px** | **101px** |
-| **righe del nastro** | **3** | **3** |
+| blocchi | **54 · 54 · 12 · 0** | 49 · 54 · 12 · **5** |
+| l'arco | **tre gruppi** | **quattro** |
+| il pulsante | «Togli 1 lista dal blocco» | «Conta 1 lista nel blocco» |
+| `P.amcha.b` | `incerto` | `incerto` |
+| `bloccoDi('amcha')` | **`coalizione`** | `incerto` |
+| il colore | `#955A00` | `#955A00` |
+| `ipotesiNeiNumeri()` | **parla** | tace |
+| `statoLeve()` | tace | **parla** |
 
-**Il difetto è latente, non attivo, e il margine che lo tiene tale è che a 380 il pulsante
-sta da solo sulla terza riga.** Quel margine sparisce il giorno in cui si aggiunge una
-quinta leva e la terza riga si riempie: allora i 5,3px decidono se il nastro va a capo, e il
-pannello si accorcia sotto il dito come è già successo una volta. **Lasciata scritta e non
-riparata**, con il numero accanto, perché il numero è la cosa che cambia.
+**Il quarto blocco non sparisce dall'anagrafica: sparisce dal conteggio, e torna premendo.**
 
-**E `statoLeve()` la dichiara quando è ACCESA**, perché il confronto è con `PAR_DEF` e non
-con lo zero — così il prompt che va al servizio terzo segue il difetto anche se un giorno
-cambia. `ipotesiNeiNumeri()` non cambia di una virgola: parla quando la leva è accesa, che
-il predefinito sia acceso o spento, ed è precisamente la distinzione per cui le due funzioni
-sono due.
+### Il difetto che il rovesciamento ha scoperto
 
-**Il comando compare quando comincia a spostare qualcosa, e non prima.** Il 27 agosto
-«Popolo d'Israele» non aveva seggi in nessuna rilevazione, quindi la leva muoveva zero e il
-pulsante non c'era. **Dal 28 agosto ne ha cinque**, e il pulsante c'è: verificato sulla
-pagina resa il 30 agosto, insieme alla riga di esito che dice «*Il pulsante prova l'ipotesi
-opposta — Popolo d'Israele con Blocco Netanyahu — e dice quanto peserebbe: oggi 5 seggi*».
-La prova non indovina il punto in cui compare, lo **cerca**: «al primo seggio» sarebbe
-falso, perché un seggio per rilevazione vale una quota dello 0,8% contro una soglia di 3,25.
+`statoLeve()` emetteva **una stringa fissa**, che descriveva lo stato **acceso**, quando lo
+stato *differisce* dal predefinito. Finché il predefinito era spento, «differisce» voleva
+dire «acceso» e la frase era giusta **per coincidenza**. Rovesciato il predefinito,
+«differisce» vuol dire «spento» — e la stessa stringa diceva **l'esatto contrario** di quello
+che il lettore aveva fatto, **a un servizio terzo che non ha modo di verificarlo**.
+
+*Una frase che descrive uno stato non può essere emessa da una condizione che parla di una
+differenza.* Adesso la frase segue lo stato.
+
+**E la ragione si legge nei due rami.** Il campo `fonte` lo stampava solo il ramo spento, che
+dal rovesciamento legge soltanto chi preme: chi apre la pagina vedeva l'ipotesi dichiarata e
+**non da dove viene**. Un'ipotesi senza la sua fonte è un'opinione.
+
+### Tre attese aggiornate, e la ragione per cui non cadranno una quarta volta
+
+Erano corrette e sono diventate obsolete **di proposito**: la decisione l'ha presa l'autore.
+Ma due delle tre erano cadute **anche il 27**, e per la stessa ragione — **seguivano il
+predefinito vero**. Adesso il predefinito lo **impone la prova**, in un verso e nell'altro, e
+il verso vero non conta più: `statoLeve()` si esercita con `PAR_DEF` forzato a zero *e* a uno,
+e in tutti e due i casi si guarda che `ipotesiNeiNumeri()` dica la stessa cosa.
+
+### Le sei mutazioni, e i due difetti che hanno trovato erano tutti e due NELLE PROVE
+
+Sei mutanti, sei morti — ma non al primo giro, e nessuno dei due buchi riguardava il
+rovesciamento della leva. **Sono le due forme che questo file elenca da mesi, incontrate
+nella stessa mezz'ora.**
+
+**1 · L'ASSERZIONE SUL COLORE NON POTEVA CADERE, e leggeva dalla parte sbagliata.** Diceva
+`A.P.amcha.c === colAcceso` prima e dopo aver premuto, cioè **asseriva che una costante è
+costante**: `P[id].c` è il campo dell'anagrafica, e il mutante che fa seguire la leva al
+colore tocca il **render**, dove su quel campo non lascia nessuna traccia. Restava vivo, e
+diceva «manca una prova» proprio sulla proprietà che l'autore aveva chiesto di confermare.
+La misura sta nel disegno reso — il `fill` del cerchio con `data-g="amcha"` — e la proprietà
+è doppia: **la stessa tinta nei due stati**, e **diversa da quella di una lista del blocco
+che la ospita**. La prima uccide qualunque colore che segua la leva, la seconda questo
+mutante in particolare.
+
+**E la vista predefinita non è quella giusta per la domanda.** `EMIMODE` nasce `'blocchi'`,
+e lì i cerchi portano `data-g` del **blocco** e il token del blocco come riempimento: con la
+leva accesa i seggi di Amcha sono blu, **ed è corretto** — quella vista dice il conteggio,
+non chi è chi, ed è scritto tre sezioni più su. Cercare «il colore non segue la leva» lì
+significherebbe asserire il falso su una vista e non provare niente sull'altra. La domanda
+vive nella vista **per lista**, che è la sola in cui una tinta di lista esista. La prova ci
+passa e poi rimette `'blocchi'`.
+
+**2 · DUE MUTANTI MORIVANO ESPLODENDO, che non è morire — quinta volta.** Con il verso
+riportato a `incerto`, o con l'anagrafica spostata in coalizione, la leva muove **zero**: il
+comando non viene reso, `aria-label` non c'è, e `eti.indexOf(spento)` faceva morire la suite
+su un `null` — **58 asserzioni buone, poi il vuoto**. Il banco li dichiarava morti perché il
+processo usciva diverso da zero: è la distinzione fra **una suite che cade** e **una che
+esplode**, e qui il verdetto era giusto per la ragione sbagliata — le trenta asserzioni che
+dovevano giudicarli non erano mai state eseguite.
+
+Col ripiego a stringa vuota cadono e dicono quale proprietà è violata: **24 KO** il verso e
+**25** l'anagrafica, invece di uno stack trace. *Il numero di KO è la misura di quanto un
+mutante è coperto; una suite che esplode quel numero non ce l'ha.*
+
+**E il conteggio del banco delle mutazioni è stato riparato con loro**: distingue `ESPLOSA`
+da `morto` cercando nell'uscita la riga finale del conteggio, invece di guardare solo il
+codice d'uscita. Senza, «tutti morti: 6 su 6» era un verde comprato con due suite mai
+arrivate in fondo.
 
 ### Quello che esce dalla pagina deve portare l'ipotesi con sé
 
@@ -5702,16 +5743,20 @@ marchio.** Nove vengono da Simple Icons; tre sono nostri e dichiarati uno per un
 `embed.js` con la ragione, ChatGPT compreso — che è nostro perché Simple Icons non ha
 l'icona di OpenAI, e l'assenza è del repository, non della ricerca.
 
-**4 · `PAR.inbilico` nasce SPENTA e l'anagrafica non si tocca.** *(Questa riga diceva
-«ACCESA» ed è stata corretta il 30 agosto 2026: la leva è stata accesa il 27 e rimessa
-spenta lo stesso giorno, e per tre giorni questo file ha affermato quello che il codice non
-faceva. Vedi «La leva nasce SPENTA».)* Il conteggio predefinito dev'essere quello della
-fonte, e in `P{}` «Popolo d'Israele» resta ago della bilancia perché è lì che la mette
-Wikipedia. La regola che ne discende, e che vale per chi aggiunge un consumatore domani:
+**4 · `PAR.inbilico` nasce ACCESA e l'anagrafica non si tocca.** *(Questa riga ha detto
+«ACCESA», poi «SPENTA», e dal 30 agosto 2026 di nuovo «ACCESA» — tre volte in tre giorni, e
+non per un ripensamento: è cambiata la ragione. Vedi «La leva nasce ACCESA dal 30 agosto».)*
+Il predefinito porta **la dichiarazione di Ofer Winter del 27 agosto**, che è un fatto con
+una data e una fonte come i veti e gli apparentamenti; ma in `P{}` «Popolo d'Israele» resta
+ago della bilancia, **perché è lì che la mette Wikipedia**, e spostarla fermerebbe il job
+ogni notte — sei rilevazioni respinte, valide da 165 a 159, tolleranza 5.
+La regola che ne discende, e che vale per chi aggiunge un consumatore domani:
 **le funzioni che calcolano QUOTE leggono l'anagrafica — `applicaSwing()`, `puntiPer()`,
 `dir[]` del Monte Carlo, l'affluenza araba — quelle che CONTANO SEGGI leggono la leva.** E
 la leva non deve raggiungere la guardia «Gov.» del parser notturno, o ogni notte
 respingerebbe righe valide dove nessuno guarda.
+**E il COLORE sta con l'anagrafica, non con la leva**: la tinta esce da `P[id].c`, e se
+seguisse `bloccoDi()` sarebbe la stessa strada doppia da un'altra porta.
 
 ### Il parser e le due convenzioni — APPLICATO, e tutte e tre le forme sono lette
 

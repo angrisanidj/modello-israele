@@ -2163,8 +2163,26 @@ var IDS=Object.keys(P).sort(function(a,b){return P[a].o-P[b].o;});
    questa ne governa TUTTE le righe insieme, come PAR.apparentamenti governa tutti gli
    accordi annunciati, e la riga di esito dice quali ha applicato, quali no e perché. */
 var IN_BILICO=[
- {id:'amcha', verso:'coalizione', data:'2026-08-26',
-  fonte:'il totale «Gov.» pubblicato da Wikipedia non la conta nel blocco'}
+ /* LA RAGIONE E' UN FATTO DICHIARATO DAL PARTITO, con una data e una fonte, come i veti e
+    gli apparentamenti — non un'inferenza nostra. Il 27 agosto 2026 Ofer Winter ha detto:
+    «Siamo parte del campo della destra, Netanyahu ne e' il leader, ed e' l'unica persona che
+    raccomanderemo». Verificato su Times of Israel, Jerusalem Post, Haaretz, i24 e Jewish
+    Chronicle, ed e' arrivato dopo due giorni in cui il Likud avvertiva che Amcha avrebbe
+    raccomandato Lieberman o Eisenkot.
+    L'ANAGRAFICA PERO' NON SI TOCCA, ed e' la meta' che decide. In P{} Amcha resta dove la
+    mette Wikipedia, cioe' fuori dai due campi, e da li' discendono tre cose che spostarla
+    avrebbe rotto: la guardia del parser continua a validare — PRESET.netanyahu legge
+    l'anagrafica, e con Amcha dentro le sei rilevazioni che le danno seggi verrebbero
+    respinte come «blocco discordante», portando le valide da 165 a 159, cioe' un calo di 6
+    contro una tolleranza di 5: IL JOB SI FERMEREBBE OGNI NOTTE; il piede dell'archivio resta
+    vero, perche' promette di riprodurre il totale di blocco pubblicato e quelle colonne
+    leggono l'anagrafica; e il colore resta quello del settore dell'ago, perche' la tinta
+    esce da P[id].c e la leva muove bloccoDi(), non il colore.
+    MISURATO IL 30 AGOSTO 2026: delle rilevazioni che danno seggi ad Amcha e pubblicano
+    «Gov.», SEI SU SEI contano il totale senza di lei. La fonte non ha recepito la
+    dichiarazione, e finche' non lo fa l'ipotesi vive qui e non nell'anagrafica. */
+ {id:'amcha', verso:'coalizione', data:'2026-08-27',
+  fonte:'Winter ha dichiarato il 27 agosto che raccomanderà solo Netanyahu, ma il totale «Gov.» pubblicato da Wikipedia non la conta ancora nel blocco'}
 ];
 /* Il blocco in cui un seggio viene CONTATO. Senza leva è quello dell'anagrafica, cioè
    quello che dice la fonte. Una riga che nomina una lista o un blocco che non esistono
@@ -2407,7 +2425,7 @@ var EMIMODE='blocchi', EMIFILT=null, TRENDPTS=[], TRENDGEO=null, FILTRI={ist:'',
    sarebbe ipotesiNeiNumeri() a doverlo sapere, non statoLeve().
    L'anagrafica non si tocca né in un verso né nell'altro: in P{} queste liste restano dove la
    fonte le mette, e la guardia «Gov.» del parser notturno continua a leggere quella. */
-var PAR_DEF={recenti:0,listaunita:1,apparentamenti:0,inbilico:0};
+var PAR_DEF={recenti:0,listaunita:1,apparentamenti:0,inbilico:1};
 var SOND=BASE.slice(), PAR=Object.assign({},PAR_DEF), DISP=8, SW=0, SIG=1, SIM=20000, COAL={};
 
 /* ══════════ 2b · DIAGNOSTICA DI AVVIO ══════════ */
@@ -4742,7 +4760,17 @@ function statoLeve(){
     confronto è con PAR_DEF e non con lo zero, quindi il RAMO segue il difetto da sé; la
     FRASE no, perché nomina lo stato, e va riscritta insieme al valore. È l'unico punto in cui
     girare quella cifra non basta, ed è per questo che questa riga porta un commento. */
- if(PAR.inbilico!==PAR_DEF.inbilico) v.push('con le liste fuori dai due campi contate nel blocco con cui governerebbero invece che a parte');
+ /* LA FRASE SEGUE LO STATO, non il fatto che differisca dal predefinito, ed e' il difetto
+    che il rovesciamento del 30 agosto 2026 ha scoperto. La stringa era UNA, e descriveva lo
+    stato ACCESO: finche' il predefinito era spento «differisce» voleva dire «acceso» e la
+    frase era giusta per coincidenza. Rovesciato il predefinito, «differisce» vuol dire
+    «spento» — e la stessa stringa diceva l'esatto contrario di quello che il lettore aveva
+    fatto, a un servizio terzo che non ha modo di verificarlo.
+    E' la forma gia' pagata da statoLeve() contro ipotesiNeiNumeri(): una frase che descrive
+    uno stato non puo' essere emessa da una condizione che parla di una differenza. */
+ if(PAR.inbilico!==PAR_DEF.inbilico) v.push(PAR.inbilico
+  ? 'con le liste fuori dai due campi contate nel blocco con cui governerebbero invece che a parte'
+  : 'con le liste fuori dai due campi contate a parte come fa la fonte, invece che nel blocco con cui governerebbero');
  return v.length?v.join(', '):'';
 }
 /* IL TESTO DELLA CONDIVISIONE: UNA COSTANTE, DUE FORME. Dove l'indirizzo è un parametro la
@@ -6682,15 +6710,24 @@ function rigaBilico(c){
  var n=c.ok.length, t;
  var quali=c.ok.map(function(x){return '<b>'+E(versoBil(x))+'</b>';}).join('; ');
  if(PAR.inbilico){
-  /* QUESTO RAMO NON È PIÙ QUELLO PREDEFINITO — lo è stato per mezza giornata, il 27 agosto
-     2026 — ma la frase resta scritta com'era, e non per inerzia: chi ha premuto il pulsante ha
-     appena messo un'ipotesi dentro i numeri, e va dichiarata PRIMA di dire quanto vale
-     esattamente come andava dichiarata a chi non aveva toccato niente. Un'ipotesi applicata è
-     un'ipotesi applicata, che l'abbia scelta il lettore o il predefinito. La frase dice anche
-     che cosa fa il pulsante, perché senza, «ipotesi» resterebbe una parola senza via d'uscita. */
+  /* QUESTO RAMO È QUELLO PREDEFINITO dal 30 agosto 2026, e la frase non è cambiata di una
+     parola: era già scritta per dichiarare l'ipotesi PRIMA di dire quanto vale, e quella
+     regola non dipende da chi l'ipotesi ce l'ha messa. Un'ipotesi applicata è un'ipotesi
+     applicata, che l'abbia scelta il lettore o il predefinito — ed è precisamente per questo
+     che il ramo ha retto il rovesciamento senza riscritture.
+     Quello che cambia è CHI la legge: adesso la legge chi non ha toccato niente, cioè quasi
+     tutti. La frase dice anche che cosa fa il pulsante, perché senza, «ipotesi» resterebbe
+     una parola senza via d'uscita — e con il predefinito acceso quella via d'uscita è
+     l'unica cosa che distingue una dichiarazione dal modello dal modello stesso. */
   t='<b>Il conteggio parte da un’ipotesi</b>, non da un fatto: '+quali+', '+
     acc(n,'contata','contate')+' nel blocco con cui governerebbe'+(n>1?'ro':'')+
     ' mentre la fonte '+acc(n,'la tiene','le tiene')+' fuori dai due campi. '+
+    /* LA RAGIONE SI NOMINA ANCHE QUI, dal 30 agosto 2026. Il campo «fonte» lo stampava solo
+       il ramo spento, cioe' quello che dal rovesciamento del predefinito legge soltanto chi
+       preme: chi apre la pagina vedeva dichiarata l'ipotesi e non da dove viene. Un'ipotesi
+       senza la sua fonte e' un'opinione, ed e' precisamente la differenza che questa riga
+       esiste per tenere. Stessa stringa, secondo consumatore. */
+    c.ok.map(function(x){return Maiu(x.fonte);}).join('; ')+'. '+
     (c.dett.length
       ? '<b>'+Maiu(seg(c.mossi))+'</b> '+acc(c.mossi,'si sposta','si spostano')+
         ' fra i blocchi: '+c.dett.join(' · ')+'. '
