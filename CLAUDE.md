@@ -4693,27 +4693,113 @@ chiaro e **1,33** in scuro sul pieno ocra, cioè non si stacca. A due tinte regg
 pieno 5,61 e 9,95) ma vuole 2,5 unità di raggio, e a 380 lascerebbe la pastiglia a **4,4px** o
 i seggi a **1,06px** l'uno dall'altro.
 
-**Quello che il disegno dice adesso**: la lista spostata va **in coda al suo blocco** e un
-vuoto **più stretto** di quello fra i blocchi la separa — dentro il conteggio del blocco, non
-dentro il blocco. Due vuoti uguali direbbero «un quarto blocco» mentre la riga sotto ne conta
-tre, che è la stessa forma dell'arco che ne contava tre su quattro.
+**Quello che il disegno diceva dal 27 al 30 agosto**: la lista spostata andava **in coda al
+suo blocco** e un vuoto **più stretto** di quello fra i blocchi la separava — dentro il
+conteggio del blocco, non dentro il blocco.
 
-**La coda è forzata, non ereditata.** Oggi «Popolo d'Israele» sarebbe ultima comunque, perché
-l'ordinamento dentro il blocco è per seggi decrescenti e ne ha meno di tutte: **è la quarta
-volta in questo progetto che una proprietà regge per coincidenza** — l'house effect in ordine
-di blocco, l'ordine del pannello dell'archivio, la targa dove tela e disegno coincidevano — e
-la prova la esercita dando alla lista spostata più seggi di qualcuna del blocco che la ospita.
+### Il vuoto interno è stato tolto il 30 agosto 2026, e la coda è rimasta
 
-**Il prezzo, misurato a 380 dove morde**: il confine fra blocchi passa a due posti *solo* se
-esiste un vuoto interno da cui distinguerlo, quindi il passo minimo scende da 17,25 a
-**15,53** unità e l'aria fra due pastiglie da **4,89 a 3,59px**, il 27% in meno — su un
-diametro di 8,19px restano il 44% di stacco. Il confine a **tre** posti è stato misurato e
-scartato: l'aria scenderebbe a 2,52px. **E lo paga solo chi preme**: a leva spenta non c'è
-nessun segmento interno, quindi nessun confine si allarga e il disegno è quello di prima —
-verificato, i passi restano identici a tre e a quattro blocchi.
+**L'ha visto l'autore, e la sua diagnosi era sbagliata su un punto e giusta sulla
+conclusione.** Diceva: «per blocco Popolo d'Israele è dentro Netanyahu, per lista i suoi
+cinque seggi stanno staccati con l'ocra dell'ago della bilancia; la posizione dev'essere una
+terza cosa». **La posizione seguiva già il conteggio** — `IDS.filter(i => SEG[i] &&
+bloccoDi(i)===b)`, cioè la leva — e i cinque seggi erano *dentro* la corsa di Netanyahu, in
+coda. Le due viste non si contraddicevano.
+
+**Ma quello che il lettore vedeva era un quarto gruppo**, e questo era vero. Misurato a 380,
+con l'archivio pubblicato:
+
+| | unità | aria a 380 | aria a 1265 |
+|---|---|---|---|
+| fra due seggi adiacenti | 14,79 | **3,02px** | 5,57px |
+| **vuoto interno** | 31,70 | **15,85px** | 29,17px |
+| confine fra blocchi | 47,42 | **27,76px** | 51,10px |
+| rapporto fra i due vuoti | | **1,50×** | |
+
+Il vuoto che doveva dire «dentro il conteggio, non dentro il blocco» era **5,2 volte** l'aria
+fra due seggi dello stesso blocco e solo **1,5 volte** più piccolo di un confine vero. Per
+leggerlo come «più stretto» bisogna confrontare due vuoti a mezzo arco di distanza; per
+leggerlo come separazione basta guardarlo. **Tre vuoti sull'arco, quattro gruppi visibili, tre
+numeri nella riga sotto** — cioè lo specchio esatto del difetto per cui il giro dei quattro
+blocchi è nato.
+
+**Era il terzo canale per la stessa informazione, e l'unico che si legge male.** Che quei
+seggi siano contati lì per ipotesi lo dicono già l'**ocra dentro una corsa di blu** — il
+canale dell'anagrafica, che resta — e la **riga di esito**, a parole.
+
+**E toglierlo non costa, rende.** Sparito il segmento interno spariscono i confini allargati
+che serviva a distinguere: gli slot vuoti passano da 5 a 2, il passo minimo risale da 14,79 a
+**17,25** unità e l'aria fra due seggi a 380 da 3,02 a **4,89px**. Il prezzo del 27% che il
+commento di prima registrava come «lo paga solo chi preme» è restituito con gli interessi:
+adesso premere non costa niente, e la prova lo misura invece di scriverlo.
+
+**La coda resta, ed è la parte vera.** Il vuoto la *dichiarava*, l'ordine la *colloca*: la
+lista spostata è l'ultima del suo blocco, per costruzione. **La coda è forzata, non
+ereditata**: oggi «Popolo d'Israele» sarebbe ultima comunque, perché l'ordinamento dentro il
+blocco è per seggi decrescenti e ne ha meno di tutte — **è la quarta volta in questo progetto
+che una proprietà regge per coincidenza** (l'house effect in ordine di blocco, l'ordine del
+pannello dell'archivio, la targa dove tela e disegno coincidevano) — e la prova la esercita
+dando alla lista spostata più seggi di qualcuna del blocco che la ospita.
+
+### La proprietà nuova lega il disegno alla riga sotto invece di provare un idioma
+
+Undici asserzioni misuravano il vuoto: che ci fosse, che fosse più stretto, che si fondesse
+col successivo dove un blocco non arriva a una fila. Erano corrette e provavano bene una cosa
+che non c'è più. Al loro posto:
+
+> **il numero di gruppi visibili sull'arco è il numero di totali disegnati.**
+
+È più forte per tre ragioni. Non nomina nessun numero di posti, quindi sopravvive a un
+ritocco della geometria. Vale **in ogni fila** e non solo dove capita un confine — ed è
+necessario, perché con un blocco piccolo le file non hanno tutte gli stessi blocchi. E le due
+letture vengono da **due posti diversi del disegno**: i gruppi dai vuoti fra i cerchi, i
+totali dai `<text data-g>` in mezzo all'arco — non da `blocchi()`, che sarebbe rifare il
+conto con la stessa funzione da cui il disegno lo prende.
+
+`blocchi.js` passa da 156 a **168** asserzioni. Sei mutazioni, cinque morte e una equivalente
+dichiarata.
+
+### E tre mutanti vivi hanno trovato codice morto, non buchi della prova
+
+Al primo giro ne restavano tre, e **nessuno era un buco**: tutti e tre indicavano righe che
+non fanno niente.
+
+- **il campo `fine` non lo leggeva nessuno.** `ripartiFile()` guarda solo `n`. Il commento che
+  avevo appena scritto diceva che lo legge — **documentazione che afferma quello che il codice
+  non fa, scritta un'ora prima**, cioè la classe che questo file inseguiva quella stessa
+  mattina con la sigla «incerti». Tolto;
+- **`segm[ultimo].v=0` non serviva**: il vuoto lo emette il ciclo *prima* di un gruppo, quindi
+  il `v` dell'ultimo segmento non viene mai consumato. Misurato togliendola: le cinque file
+  escono identiche al centesimo di grado. Tolta;
+- **un blocco vuoto ammesso** si fonde da sé nel ciclo dei vuoti. Dichiarato equivalente.
+
+**E ne resta uno vivo per costruzione, dichiarato accanto al codice**: `v` portato a 0 non
+cambia niente, perché il ciclo scrive `Math.max(pend,1)` — un pavimento di un posto a ogni
+vuoto. Con l'allargamento tolto **`v` è un campo che non può variare**, come `fine` un gradino
+più in là, e con lui il ramo che fonde i vuoti «prendendo il più largo dei due» non ha più due
+larghezze fra cui scegliere. Non si toglie di passaggio: tocca il ciclo che la sezione 12
+della suite tiene sul caso di un blocco che non arriva a una fila, ed è una semplificazione da
+fare con la sua prova.
+
+### Il rovescio: l'argomento scartava il vuoto UGUALE, non l'assenza di vuoto
+
+**Quarta volta in tre giorni che un argomento valido copre un caso solo**, e stavolta il caso
+mancante era quello che non aggiungeva niente. Il commento diceva: «con una coda separata e
+tutti i vuoti a 1 il disegno mostrerebbe QUATTRO gruppi mentre la riga sotto ne conta tre» —
+**vero**, e serviva a scartare il vuoto interno *largo quanto* un confine. Da lì si è
+concluso che il vuoto interno dovesse esistere, più stretto. **La terza via — nessun vuoto —
+non è mai stata nominata**, ed è quella che soddisfa la proprietà che l'argomento invocava:
+tre gruppi, tre totali.
+
+Le altre tre della serie: «da sola» non è sottostringa di «sola», l'impronta dell'`og:image`
+giudicata su un modo di fallire su due, e il secondo workflow scartato con un argomento
+sull'osservabilità quando la domanda era di consegna. **La cura è la stessa tutte e quattro le
+volte, e non è rileggere l'argomento: è cercare il caso che lo distingue** — che qui era
+un'opzione in meno, non una in più. *Un ragionamento che elenca due vie e ne scarta una non ha
+guardato se ce n'è una terza.*
 
 **La vista PER BLOCCO resta com'è**, ed è giusto: lì i seggi sono già del colore del blocco in
-cui sono **contati** — con la leva accesa sono 53 pastiglie blu, nessuna ocra. È la vista che
+cui sono **contati** — con la leva accesa sono 54 pastiglie blu, nessuna ocra (misurato il 30 agosto 2026: era 53 il 27, ed e un numero con una data). È la vista che
 dice il conteggio, non quella che dice chi è chi.
 
 ## Difetti noti, di codice e non di tavolozza
@@ -6061,26 +6147,25 @@ le meta. Le altre tre non offrono niente di equivalente a chiunque.
 ### Nell'ordine, quando si riprende
 
 **PRIMA DI TUTTO, QUELLO CHE ASPETTA L'AUTORE — sta in cima perché non si cerchi.** Sono
-cinque cose piccole, nessuna bloccante, tutte ferme perché richiedono una decisione o una
+quattro cose piccole, nessuna bloccante, tutte ferme perché richiedono una decisione o una
 frase che non è mia da scrivere:
 
-1. **Due forme corte che sforano il tetto**, e sono l'unico resto dei quattro testi mai
-   dettati. `f5o4` e `f5e` nelle due ere sono state dettate e applicate il 30 agosto 2026 —
-   erano le uniche celle nate da una correzione di partizione invece che dalla sua penna, e
-   la ragione che le regge sta accanto alle celle: **in tutte e due la notizia non è il
-   seggio che manca, è chi non c'è.** Le quattro lunghe e le due corte di `f5e` sono dentro;
-   le due corte di `f5o4` **no**, perché sforano:
+1. ~~Due forme corte di `f5o4` che sforano il tetto~~ — **CHIUSE il 30 agosto 2026 in
+   `bb298eb`**, e la voce resta perché la parola che le ha fatte entrare è una decisione
+   dell'autore che non si ritrova ragionandoci. Il parallelo diretto — «nessun partito arabo
+   eletto» — sforava di 1, e «nessun arabo eletto» diceva **«gli arabi»**, che è una
+   designazione etnica dove «i partiti arabi» è politica. **«Nessuna lista araba eletta»**
+   dice la stessa cosa in termini politici e ci sta:
 
-   | | resa a `[X]`=60 | tetto |
+   | | resa a `[X]` di tre cifre | tetto |
    |---|---|---|
-   | «Opposizione a 60, nessun partito arabo eletto» | **60** | max 59 — **sfora di 1** |
-   | «Vigilia: opposizione a 60, nessun arabo eletto» | **61** | **sfora di 2** |
+   | «Opposizione a 120, nessuna lista araba eletta · Knesset 2026» | **60** | 60 — **entra esatta** |
+   | «Vigilia: nessuna lista araba eletta · Knesset 2026» | **50** | 60 |
 
-   Restano quelle di prima, che dicono «stallo pieno» — cioè la parola scartata per `f4`
-   perché nega quello che la lunga afferma. **Il difetto non si vede**: `f5o4` esce in 60
-   configurazioni su 302.621 e tutte e sessanta vogliono gli arabi a zero, quindi con un
-   archivio in cui il blocco arabo esiste quel titolo non compare a nessun valore del
-   cursore. Serve una forma corta più stretta di 45 caratteri, coda esclusa.
+   La `DOPO` ha ceduto `[X]`, come le altre tre forme dell'era: lì il numero conta meno —
+   si legge a elezioni avvenute, dove chi la incontra vuole sapere *cosa diceva il modello*.
+   **La `PRIMA` entra al carattere**, e va saputo: qualunque ritocco a quella cella va
+   rimisurato con `[X]` a tre cifre prima di essere scritto.
 2. **I quattro blocchi senza prosa**: verdetto, pastiglie, istogrammi, simulatore. La
    struttura — condizione, grandezze disponibili, che cosa la frase deve dire — è in
    [docs/testi-quattro-blocchi.md](docs/testi-quattro-blocchi.md); i testi no.

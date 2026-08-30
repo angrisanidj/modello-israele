@@ -977,19 +977,34 @@ function confini(f){
 }
 
 
-/* ══ 13 · LA CODA SEPARATA: DENTRO IL BLOCCO MA NON IL BLOCCO ══════════════════════
- * Scritta il 27 agosto 2026. Con la leva accesa «Popolo d'Israele» conta nel blocco
- * Netanyahu e resta ocra: quattro pastiglie di un'altra tinta dentro un gruppo di blu, e
- * che siano contate lo diceva solo il totale.
- * IL COLORE NON SEGUE LA LEVA, ED È UNA DECISIONE, non una cosa non fatta: la leva è
- * un'IPOTESI, e ridipingere la lista la farebbe sembrare un fatto — il pulsante è l'unica
- * cosa che dichiara il condizionale. In più il colore porta già il blocco attraverso il
- * SETTORE DI TINTA, e i quattro settori sono disgiunti per regola. La ragione per esteso
- * sta accanto a rEmi.
- * QUELLO CHE IL DISEGNO DICE ADESSO è che quei seggi stanno dentro il conteggio del blocco
- * e non dentro il blocco: vanno in coda, e un vuoto PIÙ STRETTO di quello fra i blocchi li
- * separa. Due vuoti uguali direbbero «un quarto blocco» mentre la riga sotto ne conta tre —
- * la stessa forma dell'arco che ne contava tre su quattro. */
+/* ══ 13 · IL DISEGNO MOSTRA TANTI GRUPPI QUANTI SONO I TOTALI ══════════════════════
+ * Riscritta il 30 agosto 2026, e la proprietà è cambiata perché il disegno è cambiato.
+ *
+ * FINO A OGGI QUI SI PROVAVA UN IDIOMA: la lista che la leva sposta andava in coda al suo
+ * blocco e un vuoto PIÙ STRETTO di quello fra i blocchi la separava, per dire «dentro il
+ * conteggio, non dentro il blocco». Undici asserzioni misuravano quel vuoto: che ci fosse,
+ * che fosse più stretto, che si fondesse col successivo dove un blocco non arriva a una
+ * fila. Erano corrette e provavano bene una cosa che non c'è più.
+ *
+ * IL VUOTO È STATO TOLTO PERCHÉ ERA IL TERZO CANALE, E L'UNICO CHE SI LEGGE MALE. Che quei
+ * seggi siano dentro il conteggio ma non dentro il blocco lo dicono già l'ocra in mezzo a
+ * una corsa di blu — il canale dell'anagrafica, che resta — e la riga di esito, a parole.
+ * Misurato a 380: il vuoto interno stava a 15,85px contro i 27,76 di un confine vero, cioè
+ * 1,5 volte. Per leggerlo come «più stretto» bisogna confrontare due vuoti a mezzo arco di
+ * distanza; per leggerlo come separazione basta guardarlo — e chi guardava vedeva QUATTRO
+ * gruppi dove i totali ne contano TRE. È lo specchio del difetto per cui questa suite è
+ * nata: allora l'arco ne contava tre su quattro.
+ *
+ * QUINDI LA PROPRIETÀ NUOVA NON PROVA UN IDIOMA, LEGA IL DISEGNO ALLA RIGA SOTTO:
+ * IL NUMERO DI GRUPPI VISIBILI SULL'ARCO È IL NUMERO DI TOTALI DISEGNATI. È più forte di
+ * quella che sostituisce per tre ragioni: non nomina nessun numero di posti, quindi
+ * sopravvive a un ritocco della geometria; vale in ogni fila e non solo in quelle dove
+ * capita un confine; e cade anche il giorno in cui qualcuno aggiunge un vuoto per un'altra
+ * ragione, che è precisamente il modo in cui questo difetto è nato.
+ *
+ * E QUELLO CHE RESTA DELLA CODA È L'ORDINE, che è la parte vera: la lista spostata è
+ * l'ULTIMA del suo blocco, per costruzione e non perché ha meno seggi. Il vuoto la
+ * dichiarava; l'ordine la colloca, e l'ordine si osserva senza bisogno di un vuoto. */
 {
   /* la coda va esercitata dove esiste: vista per lista, leva accesa, e una lista spostata
      che abbia dei seggi. conBilico() li dà alla lista che IN_BILICO nomina. */
@@ -999,13 +1014,66 @@ function confini(f){
   esito(mosse.length > 0 && A.EMIMODE === 'liste',
     'premessa: nella vista per lista c e almeno una lista che la leva ha spostato e che ha seggi',
     mosse.join(' '));
-  const f1 = fileArco();
-  esito(f1.reduce((a, x) => a + x.g.length, 0) === 120,
-    'con la coda separata l arco disegna ancora 120 pastiglie',
-    String(f1.reduce((a, x) => a + x.g.length, 0)));
-  /* 1 · LA LISTA SPOSTATA È IN CODA AL SUO BLOCCO, IN OGNI FILA IN CUI COMPARE. */
+
+  /* ── LE DUE LETTURE CHE LA PROPRIETÀ LEGA ─────────────────────────────────────────
+     «Gruppi visibili» si conta dai VUOTI, non dai blocchi: è quello che vede un lettore.
+     «Totali disegnati» si conta dai <text data-g> della riga in mezzo all'arco, cioè
+     dall'altra metà del disegno — non da blocchi(), che sarebbe rifare il conto con la
+     stessa funzione da cui il disegno lo prende. Le due letture devono venire da due posti
+     diversi, o la prova gira a vuoto. */
+  const vuoti = f => confini(f).filter(v => v >= 1.5);
+  const gruppiFila = f => 1 + vuoti(f).length;
+  const blocchiFila = f => new Set(f.map(p => A.bloccoDi(p.g))).size;
+  const totaliDisegnati = () => new Set(
+    [...D.querySelectorAll('#k-emi svg text[data-g]')].map(t => t.getAttribute('data-g'))
+  ).size;
+  const passoFila = f => {
+    const d = [];
+    for (let i = 1; i < f.length; i++) d.push(Math.hypot(f[i].x - f[i-1].x, f[i].y - f[i-1].y));
+    return Math.min.apply(null, d);
+  };
+
+  /* LA PROPRIETÀ, misurata su ogni fila. Sta in una funzione sola perché riscriverla per
+     ognuna delle cinque configurazioni sarebbe la strada doppia dentro la prova che ne
+     cerca una — è la stessa ragione per cui fileArco() e confini() stanno in cima. */
+  function gruppiUgualiAiTotali(eti){
+    const f = fileArco(), tot = totaliDisegnati();
+    const male = [], larghi = [], dentro = [];
+    f.forEach(x => {
+      if (gruppiFila(x.g) !== blocchiFila(x.g))
+        male.push('r' + x.r + ' ' + gruppiFila(x.g) + ' gruppi / ' + blocchiFila(x.g) + ' blocchi');
+      vuoti(x.g).forEach(v => { if (v > 2.5) larghi.push('r' + x.r + ' ' + v.toFixed(2) + 'x'); });
+      const c = confini(x.g), ids = x.g.map(p => p.g), cambi = [];
+      for (let i = 1; i < ids.length; i++) if (ids[i] !== ids[i-1]) cambi.push([ids[i-1], ids[i]]);
+      cambi.forEach(([a, b], i) => {
+        if (c[i] >= 1.5 && A.bloccoDi(a) === A.bloccoDi(b))
+          dentro.push('r' + x.r + ' ' + a + '|' + b + ' ' + c[i].toFixed(2) + 'x');
+      });
+    });
+    const max = Math.max.apply(null, f.map(x => gruppiFila(x.g)));
+    esito(f.reduce((a, x) => a + x.g.length, 0) === 120,
+      eti + ': l arco disegna 120 pastiglie');
+    esito(male.length === 0 && tot > 0 && max === tot,
+      eti + ': i gruppi visibili sono tanti quanti i TOTALI disegnati (' + tot + '), ' +
+      'e il legame e col disegno invece che con blocchi()',
+      male.join(' · ') || 'max gruppi ' + max + ' contro ' + tot + ' totali');
+    esito(dentro.length === 0,
+      eti + ': nessun vuoto cade DENTRO un blocco — un gruppo in piu di quanti la riga ' +
+      'sotto ne conta e il difetto per cui questa sezione esiste',
+      dentro.slice(0, 4).join(' · '));
+    esito(larghi.length === 0,
+      eti + ': e tutti i vuoti sono uguali, perche separano tutti la stessa cosa',
+      larghi.slice(0, 4).join(' · '));
+    return f;
+  }
+
+  gruppiUgualiAiTotali('leva accesa, tre blocchi');
+
+  /* 1 · LA LISTA SPOSTATA È IN CODA AL SUO BLOCCO, IN OGNI FILA IN CUI COMPARE.
+     È quello che resta della coda, ed è la parte vera: il vuoto la DICHIARAVA, l'ordine la
+     COLLOCA — e l'ordine si osserva senza bisogno di un vuoto. */
   let fuoriPosto = 0, file = 0;
-  f1.forEach(x => {
+  fileArco().forEach(x => {
     const ids = x.g.map(p => p.g);
     mosse.forEach(id => {
       const ult = ids.lastIndexOf(id);
@@ -1020,37 +1088,17 @@ function confini(f){
   esito(file > 0 && fuoriPosto === 0,
     'la lista che la leva ha spostato sta IN CODA al blocco in ogni fila in cui compare',
     file + ' file, ' + fuoriPosto + ' liste del blocco dopo di lei');
-  /* 2 · IL VUOTO INTERNO È PIÙ STRETTO DI QUELLO FRA I BLOCCHI, o direbbe «un quarto
-     blocco» mentre i totali ne contano tre. */
-  let coppie = 0, indistinti = 0;
-  f1.forEach(x => {
-    const c = confini(x.g), ids = x.g.map(p => p.g), d = [];
-    for (let i = 1; i < ids.length; i++) if (ids[i] !== ids[i-1]) d.push([ids[i-1], ids[i]]);
-    /* i confini misurati sono quelli fra LISTE; interessano solo quelli che cambiano
-       blocco (largo) e quello che entra nella coda (stretto) */
-    const larghi = [], stretti = [];
-    d.forEach(([a, b], i) => {
-      if (c[i] < 1.5) return;                        /* cambio di lista dentro un segmento */
-      if (mosse.indexOf(b) >= 0 && A.bloccoDi(a) === A.bloccoDi(b)) stretti.push(c[i]);
-      else larghi.push(c[i]);
-    });
-    stretti.forEach(s => larghi.forEach(l => { coppie++; if (!(l > s + 0.4)) indistinti++; }));
-  });
-  esito(coppie > 0,
-    'e la fila porta tutti e due i vuoti, cosi la prova puo confrontarli',
-    coppie + ' coppie confine-di-blocco / vuoto-interno');
-  esito(indistinti === 0,
-    'il vuoto interno e piu STRETTO di ogni confine fra blocchi della stessa fila: due ' +
-    'vuoti uguali direbbero un quarto blocco mentre i totali ne contano tre',
-    indistinti + ' coppie indistinguibili su ' + coppie);
-  /* 3 · E LA CODA È PER COSTRUZIONE, NON PER FORTUNA — è la prova che l autore ha chiesto.
+
+  /* 2 · E LA CODA È PER COSTRUZIONE, NON PER FORTUNA — è la prova che l autore ha chiesto.
      Oggi «Popolo d Israele» è ultima anche perché l ordinamento dentro il blocco è per
      seggi decrescenti e ne ha meno di tutte: la proprietà reggerebbe lo stesso, e non
      saprebbe nessuno che regge per un altra ragione. È la quarta volta in questo file —
      l house effect in ordine di blocco, l ordine del pannello dell archivio, la targa dove
      tela e disegno coincidevano — e le prime tre sono state chiuse rendendo la cosa vera
      per costruzione. Qui si esercita: si danno alla lista spostata PIÙ seggi di qualche
-     lista del blocco che la ospita, e si pretende che resti comunque in coda. */
+     lista del blocco che la ospita, e si pretende che resti comunque in coda.
+     E DAL 30 AGOSTO QUESTA PROVA CONTA DI PIÙ, non di meno: senza il vuoto, l ordine e il
+     colore sono le due sole cose che distinguono la lista spostata dalle altre. */
   let grossa = 0;
   for (let n = 5; n <= 14 && !grossa; n++) {
     conBilico(n, 1); A.EMIMODE = 'liste'; A.render();
@@ -1079,14 +1127,15 @@ function confini(f){
     esito(viste > 0 && fuori === 0,
       'e resta in coda lo stesso: l ordine lo decide da dove viene la lista, non quanto e grande',
       viste + ' file, ' + fuori + ' liste del blocco dopo di lei');
+    gruppiUgualiAiTotali('con la coda piu grande di qualche lista del blocco');
   }
-  /* 5 · IL CASO CHE FA VIVERE UN MUTANTE SE NON LO SI COSTRUISCE: un blocco troppo piccolo
-     per arrivare a una fila, MENTRE esiste un vuoto interno. Lì i due vuoti si fondono, e
-     quello che sopravvive dev essere il PIÙ LARGO: un confine di blocco disegnato stretto
-     direbbe «dentro il blocco» dove i blocchi sono due.
-     Non si ottiene con nessuna delle due fixture da sole — serve una lista dell ago della
-     bilancia CON seggi (che resta un blocco) e insieme una lista spostata dalla leva. E la
-     configurazione si cerca, perché quanti seggi prenda una lista dipende dall archivio. */
+
+  /* 3 · IL CASO PIÙ DURO, ed è quello che fa vivere un mutante se non lo si costruisce: un
+     blocco troppo piccolo per arrivare a tutte le file, MENTRE una lista è stata spostata.
+     Lì le file non hanno tutte gli stessi blocchi, quindi «tanti gruppi quanti i totali»
+     non può essere un conto fatto una volta sola: va risolto fila per fila, ed è per questo
+     che gruppiFila() si confronta con blocchiFila() e non con il totale globale.
+     La configurazione si cerca, perché quanti seggi prenda una lista dipende dall archivio. */
   let insieme = null;
   for (let qc = 3; qc <= 6 && !insieme; qc++)
     for (let nc = 4; nc <= 6 && !insieme; nc++)
@@ -1104,46 +1153,23 @@ function confini(f){
         const b = A.blocchi(A.SEG);
         const senza = fileArco().filter(x => !x.g.some(p => A.bloccoDi(p.g) === 'incerto')).length;
         if (b.incerto > 0 && A.SEG[A.IN_BILICO[0].id] > 0 && senza > 0)
-          insieme = 'ago ' + nc + '/' + qc + ', spostata ' + na + '/3 → incerto ' + b.incerto;
+          insieme = 'ago ' + nc + '/' + qc + ', spostata ' + na + '/3 -> incerto ' + b.incerto;
       }
   if (!insieme) {
-    esito(false, 'non si trova una configurazione con un blocco piccolo E un vuoto interno: ' +
-      'la regola del vuoto piu largo resta senza prova');
+    esito(false, 'non si trova una configurazione con un blocco piccolo E una lista spostata: ' +
+      'la proprieta resta provata solo dove tutte le file hanno tutti i blocchi');
   } else {
-    const f = fileArco();
-    esito(f.reduce((a, x) => a + x.g.length, 0) === 120,
-      'col blocco piccolo E la coda separata l arco disegna ancora 120 pastiglie (' + insieme + ')');
+    const f = gruppiUgualiAiTotali('blocco piccolo E lista spostata (' + insieme + ')');
     esito(f.some(x => !x.g.some(p => A.bloccoDi(p.g) === 'incerto')),
-      'e almeno una fila non ha il blocco piccolo: e li che i due vuoti si fondono');
-    /* LA PROPRIETÀ, e vale per tutte le file: un confine è stretto SE E SOLO SE separa due
-       segmenti dello STESSO blocco. Copre il vuoto interno e la fusione insieme, e non
-       nomina nessun numero di posti. */
-    let sbagliati = 0, contati = 0, dett = [];
-    f.forEach(x => {
-      const c = confini(x.g), ids = x.g.map(p => p.g), cambi = [];
-      for (let i = 1; i < ids.length; i++) if (ids[i] !== ids[i-1]) cambi.push([ids[i-1], ids[i]]);
-      cambi.forEach(([a, b], i) => {
-        if (c[i] < 1.5) return;                       /* cambio di lista dentro un segmento */
-        contati++;
-        const stesso = A.bloccoDi(a) === A.bloccoDi(b);
-        const stretto = c[i] < 2.5;
-        if (stesso !== stretto) { sbagliati++; dett.push('r' + x.r + ' ' + a + '|' + b + ' ' + c[i].toFixed(2) + '×'); }
-      });
-    });
-    esito(contati >= 6, 'e i confini da giudicare sono abbastanza', String(contati));
-    esito(sbagliati === 0,
-      'un vuoto e STRETTO se e solo se separa due segmenti dello stesso blocco: dove il ' +
-      'blocco piccolo manca i due vuoti si fondono nel PIU LARGO, o un confine di blocco ' +
-      'verrebbe disegnato come se fosse interno', dett.slice(0, 4).join(' · '));
+      'e almeno una fila NON ha il blocco piccolo: e li che la proprieta va risolta fila ' +
+      'per fila invece che su un conto solo', insieme);
   }
-  /* 6 · E IL CASO CHE NESSUNA CONFIGURAZIONE DI OGGI RAGGIUNGE, perché IN_BILICO ha una
-     riga sola e sposta verso la COALIZIONE, che è l ultimo blocco dell arco.
-     La regola del vuoto più largo morde quando il segmento saltato viene DOPO un segmento
-     interno: succede solo se a spezzarsi è un blocco che NON è l ultimo. Il mutante che
-     toglie quella riga è rimasto vivo due giri proprio per questo — non perché la prova
-     fosse debole, ma perché il caso non esiste nell archivio né nell anagrafica.
-     Si costruisce cambiando il VERSO della riga: la stessa lista, spostata verso
-     l opposizione invece che verso la coalizione. Non è una fixture arbitraria — è
+
+  /* 4 · E IL CASO CHE NESSUNA CONFIGURAZIONE DI OGGI RAGGIUNGE, perché IN_BILICO ha una
+     riga sola e sposta verso la COALIZIONE, che è l ultimo blocco dell arco. Una coda in
+     fondo all arco è il caso facile: dopo di lei non c è niente, quindi «in coda» è vero
+     comunque. Il caso vero è una coda in MEZZO, e si costruisce cambiando il VERSO della
+     riga — la stessa lista, spostata verso l opposizione. Non è una fixture arbitraria: è
      esattamente la forma che IN_BILICO avrà il giorno in cui qualcuno ci aggiunge una
      seconda riga, ed è il giorno in cui nessuno rifarebbe questo ragionamento. */
   {
@@ -1151,46 +1177,46 @@ function confini(f){
     riga.verso = 'opposizione';
     conBilico(4, 1); A.EMIMODE = 'liste'; A.render();
     const id = riga.id;
-    const spezzato = A.bloccoDi(id);
-    const f = fileArco();
+    esito(A.bloccoDi(id) === 'opposizione' && A.SEG[id] > 0,
+      'con la riga girata verso l opposizione la coda finisce in un blocco che NON e l ultimo',
+      id + ' -> ' + A.bloccoDi(id) + ', ' + A.SEG[id] + ' seggi');
+    const f = gruppiUgualiAiTotali('coda in un blocco che non e l ultimo');
     const senza = f.filter(x => !x.g.some(p => p.g === id)).length;
-    esito(spezzato === 'opposizione' && A.SEG[id] > 0,
-      'con la riga girata verso l opposizione, a spezzarsi e un blocco che NON e l ultimo',
-      id + ' → ' + spezzato + ', ' + A.SEG[id] + ' seggi');
     esito(senza > 0,
-      'e la coda non arriva a tutte le file: e li che il vuoto saltato deve fondersi col ' +
-      'successivo', senza + ' file su ' + f.length + ' senza la coda');
-    esito(f.reduce((a, x) => a + x.g.length, 0) === 120,
-      'l arco disegna ancora 120 pastiglie');
-    let sbagliati = 0, contati = 0, dett = [];
+      'e la coda non arriva a tutte le file: la proprieta regge anche dove lei manca',
+      senza + ' file su ' + f.length + ' senza la coda');
+    let fuori = 0, viste = 0;
     f.forEach(x => {
-      const c = confini(x.g), ids = x.g.map(p => p.g), cambi = [];
-      for (let i = 1; i < ids.length; i++) if (ids[i] !== ids[i-1]) cambi.push([ids[i-1], ids[i]]);
-      cambi.forEach(([a, b], i) => {
-        if (c[i] < 1.5) return;
-        contati++;
-        const stesso = A.bloccoDi(a) === A.bloccoDi(b);
-        if (stesso !== (c[i] < 2.5)) { sbagliati++; dett.push('r' + x.r + ' ' + a + '|' + b + ' ' + c[i].toFixed(2) + '×'); }
-      });
+      const ids = x.g.map(p => p.g), ult = ids.lastIndexOf(id);
+      if (ult < 0) return;
+      viste++;
+      for (let k = ult + 1; k < ids.length; k++) if (A.bloccoDi(ids[k]) === 'opposizione') fuori++;
     });
-    esito(contati >= 6, 'e i confini da giudicare sono abbastanza', String(contati));
-    esito(sbagliati === 0,
-      'anche qui un vuoto e stretto se e solo se separa due segmenti dello stesso blocco: ' +
-      'dove la coda manca, il confine col blocco dopo resta LARGO', dett.slice(0, 4).join(' · '));
+    esito(viste > 0 && fuori === 0,
+      'e sta in coda anche li: la regola e del blocco che la ospita, non dell ultimo blocco',
+      viste + ' file, ' + fuori + ' liste dopo di lei');
     riga.verso = versoVero;
   }
-  /* 4 · A LEVA SPENTA NON CAMBIA UN PIXEL, ed è la riga che tiene il prezzo dove deve
-     stare: il confine fra blocchi si allarga solo se c è un vuoto interno da cui
-     distinguerlo, quindi chi non preme vede il disegno di prima. */
+
+  /* 5 · ACCENDERE LA LEVA NON STRINGE IL DISEGNO, ed è il rovescio esatto del prezzo che il
+     vuoto costava. Il commento di prima diceva «il prezzo lo paga solo chi preme»: il vuoto
+     interno obbligava ad allargare i confini di blocco per distinguerli da lui, e il passo
+     minimo scendeva da 17,25 a 14,79 unità, cioè l aria fra due pastiglie da 4,89 a 3,02px
+     a 380. Senza il vuoto quel prezzo non esiste. La proprietà da provare non è più «a leva
+     spenta non cambia niente» — quella era la consolazione — ma che PREMERE NON COSTI ARIA,
+     e si misura invece di scriverla. */
+  conBilico(4, 1); A.EMIMODE = 'liste'; A.render();
+  const passoAcceso = Math.min.apply(null, fileArco().map(x => passoFila(x.g)));
   conBilico(4, 0); A.EMIMODE = 'liste'; A.render();
-  const spente = fileArco().map(x => confini(x.g));
-  esito(spente.every(c => c.every(v => v < 2.5)),
-    'a leva spenta nessun confine si allarga: chi non preme vede il disegno di prima',
-    spente.map(c => c.map(v => v.toFixed(2)).join(' ')).join(' · '));
+  const passoSpento = Math.min.apply(null, fileArco().map(x => passoFila(x.g)));
+  gruppiUgualiAiTotali('leva spenta, quattro blocchi');
+  esito(passoAcceso >= passoSpento - 0.01,
+    'e accendere la leva non stringe il disegno: senza il vuoto interno non c e nessun ' +
+    'confine da allargare, quindi chi preme non paga aria',
+    'acceso ' + passoAcceso.toFixed(2) + ' · spento ' + passoSpento.toFixed(2) + ' unita');
   A.EMIMODE = 'blocchi';
   conAgo(4);
 }
-
 
 /* ══ 14 · CHI STA VICINO A CHI DENTRO UN BLOCCO ════════════════════════════════════
  * ARCO_ORD dice l'ordine dei BLOCCHI; dentro un blocco l'arco ordinava per seggi

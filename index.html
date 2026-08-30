@@ -7176,10 +7176,28 @@ function ordinaDentro(liste,b,giu){
 }
 function rEmi(){
  /* ══ I SEGMENTI DELL'ARCO, E PERCHÉ NON SONO SEMPRE I BLOCCHI ═════════════════════
-    Da sinistra a destra i seggi sono raggruppati per blocco. Nella vista PER LISTA un
-    blocco può però spezzarsi in due: le liste che ci stanno per anagrafica, e in coda
-    quelle che ci sta la LEVA. Sono due cose diverse, e il disegno lo dice con un vuoto
-    più stretto di quello fra i blocchi.
+    Da sinistra a destra i seggi sono raggruppati per blocco, e UN BLOCCO È UN SEGMENTO
+    SOLO. Nella vista PER LISTA le liste che ci stanno per anagrafica vengono prima e in
+    coda quelle che ci mette la LEVA — l'ordine lo dice, il disegno no.
+
+    ══ IL VUOTO INTERNO C'È STATO DAL 27 AL 30 AGOSTO 2026, ED È STATO TOLTO ══
+    Separava la coda dal resto del blocco per dire «dentro il conteggio, non dentro il
+    blocco». Quella cosa la dicono già DUE altri canali: l'ocra dentro una corsa di blu,
+    che è il canale dell'anagrafica e resta, e la riga di esito, che la dice a parole. Tre
+    canali per la stessa informazione, e il geometrico era l'unico che si legge male —
+    misurato a 380: vuoto interno 15,85px contro i 27,76 di un confine vero, cioè 1,5
+    volte. Per leggerlo come «più stretto» bisogna confrontare due vuoti a mezzo arco di
+    distanza; per leggerlo come separazione basta guardarlo, e chi guardava vedeva QUATTRO
+    gruppi dove i totali ne contano TRE.
+    È lo specchio esatto del difetto per cui il giro dei quattro blocchi è nato: allora
+    l'arco ne contava tre su quattro, poi ne mostrava quattro dove il conteggio dice tre.
+    L'INVARIANTE CHE RESTA, e lega il disegno alla riga sotto invece di provare un idioma:
+    IL NUMERO DI GRUPPI VISIBILI SULL'ARCO È IL NUMERO DI TOTALI. Vale con tre blocchi,
+    con quattro, con la leva accesa e spenta.
+    E togliere il vuoto NON COSTA, RENDE: sparito il segmento interno spariscono anche i
+    confini allargati che serviva a distinguere, gli slot vuoti passano da 5 a 2, e l'aria
+    fra due seggi a 380 risale da 3,02px a 4,89 — il prezzo del 27% che il commento di
+    prima registrava come «lo paga solo chi preme», restituito con gli interessi.
 
     ══ PERCHÉ IL VUOTO E NON IL COLORE, che è la cosa che qualcuno riproporrà ══
     Con la leva accesa «Popolo d'Israele» conta nel blocco Netanyahu e resta ocra: quattro
@@ -7214,7 +7232,7 @@ function rEmi(){
  if(EMIMODE==='blocchi'){
   ARCO_ORD.forEach(function(k){
    var n=bb[k]||0; if(!n) return;
-   segm.push({n:n,v:1,fine:true});
+   segm.push({n:n,v:1});
    for(var j=0;j<n;j++) seq.push('§'+k);
   });
  } else {
@@ -7225,40 +7243,52 @@ function rEmi(){
    /* LE LISTE CHE LA LEVA HA SPOSTATO VANNO IN CODA AL BLOCCO, E NON PER FORTUNA.
       Oggi «Popolo d'Israele» è già ultima, ma perché l'ordinamento è per seggi decrescenti
       e ne ha meno di tutte: il giorno in cui ne prendesse più di Sionismo Religioso
-      finirebbe in mezzo al gruppo, e il vuoto lo spaccherebbe. È la quarta volta che in
-      questo file una proprietà regge per coincidenza — l'house effect in ordine di blocco,
-      l'ordine del pannello dell'archivio, la targa dove tela e disegno coincidevano — e le
-      prime tre sono state chiuse così: rendendola vera per costruzione. */
+      finirebbe in mezzo al gruppo. Dal 30 agosto 2026 quella coda NON HA PIÙ UN VUOTO che
+      la dichiari, quindi l'ordine e il colore sono le due sole cose che la distinguono
+      dalle altre liste del blocco: questa riga conta più di prima, non meno. È la quarta
+      volta che in questo file una proprietà regge per coincidenza — l'house effect in
+      ordine di blocco, l'ordine del pannello dell'archivio, la targa dove tela e disegno
+      coincidevano — e le prime tre sono state chiuse così: rendendola vera per costruzione. */
    var qui=ordinaDentro(liste.filter(function(i){return P[i].b===b;}),b,giu);
    var ipo=liste.filter(function(i){return P[i].b!==b;}).sort(giu);
-   [qui,ipo].forEach(function(gruppo,k){
-    if(!gruppo.length) return;
-    var n=0;
-    gruppo.forEach(function(id){for(var j=0;j<SEG[id];j++){seq.push(id);n++;}});
-    /* «fine» vuol dire «qui finisce un blocco»: il vuoto dopo un segmento interno è
-       più stretto, ed è l'unica cosa che distingue «dentro il blocco per ipotesi» da
-       «un altro blocco». */
-    segm.push({n:n, v:1, fine:!(k===0&&ipo.length)});
-   });
+   /* UN BLOCCO, UN SEGMENTO. La coda resta nella SEQUENZA — «Popolo d'Israele» è l'ultima
+      lista del gruppo di Netanyahu, e lo è per costruzione — ma non ha più un vuoto suo:
+      il disegno mostra tanti gruppi quanti sono i totali. Vedi il commento in testa a
+      rEmi() per i numeri che l'hanno deciso. */
+   var n=0;
+   qui.concat(ipo).forEach(function(id){for(var j=0;j<SEG[id];j++){seq.push(id);n++;}});
+   segm.push({n:n, v:1});
   });
  }
- /* IL CONFINE FRA BLOCCHI SI ALLARGA SOLO SE C'È UN VUOTO INTERNO DA CUI DISTINGUERLO,
-    e questa riga è la ragione per cui la pagina di sempre non cambia di un pixel.
-    Misurato: senza liste spostate i passi restano 17,25 · 18,05 · 17,90 · 17,79 · 18,26
-    unità a tre blocchi e 17,25 · 17,23 · 17,21 · 17,20 · 17,71 a quattro, cioè identici a
-    prima. Con una coda separata e tutti i vuoti a 1 il disegno mostrerebbe QUATTRO gruppi
-    mentre la riga sotto ne conta tre: un confine di blocco e uno interno indistinguibili
-    sono la stessa forma dell'arco che ne contava tre su quattro.
-    IL PREZZO, misurato a 380 dove morde: il passo minimo scende da 17,25 a 15,53 unità e
-    l'aria fra due pastiglie da 4,89 a 3,59px, il 27% in meno — su un diametro di 8,19px
-    restano il 44% di stacco. Il confine a TRE posti è stato misurato e scartato: l'aria
-    scenderebbe a 2,52px, il 48% in meno.
-    E il prezzo lo paga solo chi preme: a leva spenta non c'è nessun segmento interno,
-    quindi nessun confine si allarga. */
- var interni=0;
- segm.forEach(function(s){ if(!s.fine) interni++; });
- if(interni) segm.forEach(function(s){ if(s.fine) s.v=2; });
- if(segm.length) segm[segm.length-1].v=0;
+ /* QUI STAVANO TRE RIGHE, E LE HANNO TOLTE TRE MUTANTI EQUIVALENTI ─────────────────
+    Dal 30 agosto 2026 un blocco è un segmento solo, quindi ogni vuoto separa due blocchi e
+    nient'altro: l'allargamento condizionato dei confini serviva a distinguerli dal vuoto
+    interno, e senza quello era una guardia che nessuna mutazione poteva far cadere.
+    Togliendolo sono rimasti vivi altri due mutanti, e guardando PERCHÉ è venuto fuori che
+    non erano buchi della prova ma codice morto:
+    · il campo «fine» non lo leggeva NESSUNO. Il commento che stava qui diceva che lo legge
+      ripartiFile(), e non è vero — quella funzione guarda solo «n». Era documentazione che
+      afferma quello che il codice non fa, scritta da me un'ora prima, cioè la classe che
+      questo file insegue da stamattina con la sigla «incerti»;
+    · «segm[ultimo].v=0» non serviva: il vuoto lo emette il ciclo PRIMA di un gruppo
+      («if(slot.length) …»), quindi il v dell'ultimo segmento non viene mai consumato.
+      Misurato togliendola: le cinque file escono identiche al centesimo di grado.
+    RESTA «if(!liste.length) return;», ed è dichiarata equivalente invece che tolta: un
+    segmento con zero seggi si fonde da sé nel ciclo dei vuoti, quindi il mutante che lo
+    ammette non cambia il disegno di oggi. È una guardia contro un segmento degenere in
+    ripartiFile(), costa una riga, e chi la mutasse domani non deve chiamarla buco.
+
+    E «v» È DIVENTATO UN CAMPO CHE NON PUÒ VARIARE, che è la stessa cosa di «fine» un
+    gradino più in là. Il mutante che lo porta a 0 è VIVO ED EQUIVALENTE: il ciclo dei
+    vuoti scrive «Math.max(pend,1)», cioè mette un pavimento di un posto a ogni vuoto,
+    quindi 0 e 1 producono lo stesso disegno — misurato, cinque file identiche. Con
+    l'allargamento tolto, «v» vale 1 dappertutto e il ramo che fonde i vuoti («il suo vuoto
+    si fonde col successivo prendendo il PIÙ LARGO dei due») non ha più due larghezze fra
+    cui scegliere.
+    NON SI TOGLIE ADESSO, e la ragione è che toccherebbe il ciclo dei vuoti, cioè il codice
+    che la sezione 12 della suite tiene sul caso di un blocco che non arriva a una fila.
+    È una semplificazione da fare con la sua prova, non di passaggio insieme a un'altra
+    cosa — ma va scritta qui, o al prossimo giro di mutazioni sembrerà un buco. */
  /* ══ IL VUOTO FRA I GRUPPI È UN ANGOLO, NON UNA POSIZIONE NELLA SEQUENZA ══════════
     Riscritto il 27 agosto 2026, e quello che c'era prima non faceva quello che il suo
     commento diceva. I posti vuoti si inserivano nella sequenza LINEARE dei 120 seggi, che
