@@ -3279,8 +3279,25 @@ var TIT_PRIMA={
  f4:function(){return 'Nessun blocco ha la maggioranza, e non l’ha nemmeno l’opposizione con i partiti arabi: a decidere sono le liste dell’ago della bilancia.';},
  f5c:function(X,P){return 'Il blocco Netanyahu si ferma a '+X+' seggi, uno dalla maggioranza — e '+P+' delle simulazioni nessun campo ha i numeri per governare.';},
  f5o3:function(X,P){return 'L’opposizione si ferma a '+X+' seggi, uno dalla maggioranza autonoma: le serve l’appoggio dei partiti arabi, come '+P+' delle simulazioni.';},
- f5o4:function(X,P){return 'L’opposizione si ferma a '+X+' seggi, uno dalla maggioranza autonoma, e non ci arriva nemmeno con i partiti arabi — e '+P+' delle simulazioni nessun campo ha i numeri per governare.';},
- f5e:function(X,P){return 'Blocco Netanyahu e opposizione si fermano entrambi a '+X+' seggi, uno dalla maggioranza — e '+P+' delle simulazioni nessun campo ha i numeri per governare.';},
+/* f5o4 E f5e: LA NOTIZIA NON E' IL SEGGIO CHE MANCA, E' CHI NON C'E'.
+   Dettate dall'autore il 30 agosto 2026, ed erano gli ultimi quattro testi su quarantotto
+   nati da una correzione di partizione invece che dalla sua penna.
+   Le due celle descrivono la stessa situazione da due lati. f5o4: l'opposizione manca di un
+   seggio E NON HA NESSUNO A CUI CHIEDERLO, perche' la sua condizione impone che i partiti
+   arabi siano a zero. f5e: entrambi i blocchi a un seggio, e in aula non c'e' nessun altro.
+   I testi di prima dicevano «non ci arriva nemmeno con i partiti arabi», che e' vero e suona
+   come un'ALTERNATIVA PROVATA E FALLITA — mentre la condizione e' che quei seggi non
+   esistano. Chiedere a chi non e' stato eletto non e' un tentativo andato male: e' una cosa
+   che non si puo' fare.
+   LE CONDIZIONI, ESATTE, perche' non si deducono dal nome della cella. Enumerate tutte le
+   302.621 partizioni di 120 seggi in quattro blocchi: f5o4 esce in 60, f5e in UNA SOLA —
+   coalizione 60, opposizione 60, arabi 0, ago 0. In tutte e 61 gli arabi valgono ZERO, e
+   siccome lo swing non tocca le quote arabe, con un archivio in cui il blocco arabo esiste
+   questi quattro testi non compaiono a nessun valore del cursore.
+   E [P] VIENE DALLO STALLO, non dalla frequenza della configurazione: con quella direbbero
+   zero, cioe' un numero che smentisce la frase che ha accanto. */
+ f5o4:function(X,P){return 'L’opposizione si ferma a '+X+' seggi, uno dalla maggioranza: nessun partito arabo entra alla Knesset, quindi non c’è nessuno a cui chiedere quel seggio. '+P+' delle simulazioni finisce senza una maggioranza possibile.';},
+ f5e:function(X,P){return 'Blocco Netanyahu e opposizione si fermano entrambi a '+X+' seggi, uno dalla maggioranza, e in aula non c’è nessun altro: nessun partito arabo, nessuna lista fuori dai due campi. '+P+' delle simulazioni finisce così.';},
  f6c:function(X,P){return 'Il blocco Netanyahu conquista la maggioranza minima con '+X+' seggi: accade '+P+' delle simulazioni.';},
  f6o:function(X,P){return 'L’opposizione conquista la maggioranza minima senza i partiti arabi con '+X+' seggi: accade '+P+' delle simulazioni.';},
  f7c:function(X,P){return 'Il blocco Netanyahu supera di un seggio la soglia di maggioranza e arriva a '+X+': accade '+P+' delle simulazioni.';},
@@ -3293,8 +3310,8 @@ var TIT_DOPO={
  f4:function(){return 'Alla vigilia del voto, nessun blocco aveva la maggioranza, e non l’aveva nemmeno l’opposizione con i partiti arabi: a decidere restavano le liste dell’ago della bilancia.';},
  f5c:function(X,P){return 'Alla vigilia del voto, il blocco Netanyahu si fermava a '+X+' seggi, uno dalla maggioranza — e '+P+' delle simulazioni nessun campo aveva i numeri per governare.';},
  f5o3:function(X,P){return 'Alla vigilia del voto, l’opposizione si fermava a '+X+' seggi, uno dalla maggioranza autonoma: le serviva l’appoggio dei partiti arabi, come '+P+' delle simulazioni.';},
- f5o4:function(X,P){return 'Alla vigilia del voto, l’opposizione si fermava a '+X+' seggi, uno dalla maggioranza autonoma, e non ci arrivava nemmeno con i partiti arabi — e '+P+' delle simulazioni nessun campo aveva i numeri per governare.';},
- f5e:function(X,P){return 'Alla vigilia del voto, blocco Netanyahu e opposizione si fermavano entrambi a '+X+' seggi, uno dalla maggioranza — e '+P+' delle simulazioni nessun campo aveva i numeri per governare.';},
+ f5o4:function(X,P){return 'Alla vigilia del voto l’opposizione si fermava a '+X+' seggi, uno dalla maggioranza: nessun partito arabo entrava alla Knesset, quindi non c’era nessuno a cui chiedere quel seggio. '+P+' delle simulazioni finiva senza una maggioranza possibile.';},
+ f5e:function(X,P){return 'Alla vigilia del voto i due blocchi si fermavano entrambi a '+X+' seggi, uno dalla maggioranza, e in aula non c’era nessun altro: nessun partito arabo, nessuna lista fuori dai due campi. '+P+' delle simulazioni finiva così.';},
  f6c:function(X,P){return 'Alla vigilia del voto, il modello assegnava al blocco Netanyahu la maggioranza minima, con '+X+' seggi: questo scenario compariva '+P+' delle simulazioni.';},
  f6o:function(X,P){return 'Alla vigilia del voto, il modello assegnava all’opposizione la maggioranza minima senza i partiti arabi, con '+X+' seggi: questo scenario compariva '+P+' delle simulazioni.';},
  f7c:function(X,P){return 'Alla vigilia del voto, il modello portava il blocco Netanyahu a '+X+' seggi, uno oltre la soglia: questo scenario compariva '+P+' delle simulazioni.';},
@@ -3340,7 +3357,7 @@ var TIT_CORTO_PRIMA={
  f5c:function(X){return 'Netanyahu a '+X+', uno dalla maggioranza';},
  f5o3:function(X){return 'Opposizione a '+X+': servono i partiti arabi';},
  f5o4:function(X){return 'Opposizione a '+X+', stallo pieno';},
- f5e:function(X){return 'Netanyahu e opposizione a '+X+': stallo pieno';},
+ f5e:function(X){return 'Due blocchi a '+X+', nessun altro in aula';},
  f6c:function(X){return 'Maggioranza minima al blocco Netanyahu: '+X;},
 /* L'ECCEZIONE DELLE FORME PRIMA: qui il numero E' la notizia, e infatti f2 e f7o lo tengono
     barattando « seggi» con «da sola». f6o non ha « seggi» da barattare — «Maggioranza minima
@@ -3378,7 +3395,7 @@ var TIT_CORTO_DOPO={
  f5c:function(X){return 'Vigilia: Netanyahu a '+X+', stallo pieno';},
  f5o3:function(X){return 'Vigilia: opposizione a '+X+', non bastava';},
  f5o4:function(X){return 'Vigilia: opposizione a '+X+', stallo pieno';},
- f5e:function(X){return 'Vigilia: due blocchi a '+X+', stallo pieno';},
+ f5e:function(X){return 'Vigilia: due blocchi a '+X+', nessun altro';},
  f6c:function(){return 'Vigilia: maggioranza minima a Netanyahu';},
 /* Come la f2 di sopra: [X] non c’era gia' prima, e adesso entra «da sola» al posto suo.
     Qui «minima» puo' restare da sola perche' la forma PRIMA le sta accanto e disambigua,

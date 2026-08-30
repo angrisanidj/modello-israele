@@ -24,21 +24,21 @@ nessuna di queste chiede un giro in più sulle 20.000 simulazioni.
 
 | grandezza | che cos'è | il tranello |
 |---|---|---|
-| `SEG` · `blocchi(SEG)` | la proiezione, per lista e per blocco | somma **sempre** 120 su **quattro** blocchi: c'è l'ago della bilancia, e quando prende seggi «opposizione + arabi» può non arrivare a 61 |
+| `SEG` · `blocchi(SEG)` | la proiezione, per lista e per blocco | somma **sempre** 120 su **quattro** blocchi: c'è l'ago della bilancia, e quando prende seggi «opposizione + arabi» può non arrivare a 61. **Dal 28 agosto ne prende cinque**: non è più un caso di scuola |
 | `MC.vC` `MC.vO` `MC.vA` `MC.st` su `MC.n` | i quattro esiti delle simulazioni | sono una **partizione**: sommano `MC.n`. Le percentuali in pagina passano da `pctInteri()`, che le arrotonda a interi che fanno 100 |
 | `MC.coal` · `MC.oppz` | i seggi di blocco simulati, **già ordinati** | ordinati ciascuno per conto suo: `MC.coal[s]` e `MC.oppz[s]` **non sono la stessa simulazione**, e sommarli non ha senso |
 | `q(arr, p)` | il quantile | `q(...,.10)`/`q(...,.90)` è la banda dell'80% che la pagina già dichiara |
 | `freqEsatta(arr, x)` | quante simulazioni danno **esattamente** x seggi | doppia bisezione, **0,036 ms**: è quella che alimenta `[P]` nel titolo. Non aggiungere un istogramma nel ciclo, sarebbe una seconda strada |
-| `MC.primo` | per lista, in quante simulazioni è primo partito | oggi Yashar 55,8% contro Likud 44,1%: **è una gara, e la proiezione centrale la vince l'altro** |
+| `MC.primo` | per lista, in quante simulazioni è primo partito | al 30 agosto Yashar 56,2% contro Likud 43,8%: **è una gara, e la proiezione centrale la vince l'altro** |
 | `MC.d` · `MC.sotto` | distribuzione per lista, e quante volte sotto soglia | la sola sorgente per «rischia lo sbarramento» |
 | `PREC` | la proiezione di sette giorni fa: `{seg, n, taglio, data, mc}` | **`taglio` e `data` sono due campi distinti**, vedi §1 |
 | `SOGLIE.coalizione` · `SOGLIE.opposizione` | punti di swing che servono per toccare 61 | `null` vuol dire «più di 12 punti», cioè fuori scala: non è zero |
-| `ORIZZONTE` · `GIORNI` | distanza voto-ultima rilevazione · giorni al voto | oggi 68 e 65, e **divergono**: dal 28 ottobre `GIORNI` è 0 e `ORIZZONTE` resta fermo. Nessuna frase sull'incertezza deve usare `GIORNI` |
-| `L.length` · `SOND.length` | rilevazioni nel modello · in archivio | 45 su 173 oggi: la finestra è 60 giorni e 45 rilevazioni al massimo |
+| `ORIZZONTE` · `GIORNI` | distanza voto-ultima rilevazione · giorni al voto | al 30 agosto 61 e 58, e **divergono**: dal 28 ottobre `GIORNI` è 0 e `ORIZZONTE` resta fermo. Nessuna frase sull'incertezza deve usare `GIORNI` |
+| `L.length` · `SOND.length` | rilevazioni nel modello · in archivio | 45 su 182 al 30 agosto: la finestra è 60 giorni e 45 rilevazioni al massimo |
 | `JOB` → `#k-upd` · `#k-fresh` | ultima **verifica riuscita** · ultimo **sondaggio** | due date diverse, con due soglie: `GAP_VERIFICA` 2 giorni, `GAP_SONDAGGI` 7. Se il registro manca, la testata **dichiara di non sapere** invece di ripiegare |
 | `contoApp(sopraSoglia())` | `{dep, ann, oltre, termine, scarti}` | quanti accordi sono depositati, quanti solo annunciati, e se il termine del **16 ottobre** è passato |
 | `COALS` · `vietato()` | coalizioni possibili e veti | il simulatore ci legge i conflitti |
-| `acc()` `inPc()` `seg()` `ed()` `f()` `dl()` `pc()` | le regole di lingua | singolare/plurale, «nell'8,5%», «1 seggio», «ed è» — **si chiamano, non si riscrivono**: è la regola pagata tre volte |
+| `acc()` `inPc()` `seg()` `ed()` `f()` `dl()` `pc()` `frazione()`/`FRAZ` | le regole di lingua | singolare/plurale, «nell'8,5%», «1 seggio», «ed è» — **si chiamano, non si riscrivono**: è la regola pagata tre volte |
 
 **E una regola che vale per tutte e quattro le frasi**: niente tempo scritto a mano
 (invariante 10), e nessun valore che arrivi allo schermo per due strade senza una prova che
@@ -81,8 +81,29 @@ diverse **di proposito**.
 | V3 | un blocco attraversa 61 | i due `blocchi()`, `MC.vC`/`MC.vO` | che la settimana ha cambiato **il verdetto**, non i numeri: è l'unica volta in cui il movimento è la notizia |
 | V4 | le probabilità si muovono più dei seggi | `MC.vX/MC.n` contro `PREC.mc.vX/PREC.mc.n` | che i seggi possono stare fermi mentre la probabilità si sposta — succede quando la proiezione si avvicina alla soglia senza attraversarla |
 | V5 | `PREC` non esiste | — | che **non c'è niente da confrontare**, e perché: meno di sette giorni di archivio, o una settimana senza rilevazioni. Oggi il ramo esiste già e va bene |
-| V6 | leva degli apparentamenti accesa | `contoApp()` | vedi sopra: la causa del movimento va nominata |
+| V6 | **il movimento ha una causa che non sono i sondaggi** | `contoApp()`, `blocchi(PREC.seg)` | che cosa l'ha prodotto: la frase deve nominare la causa, o attribuisce a sette giorni di sondaggi una cosa che i sondaggi non hanno fatto |
 | V7 | dopo il voto | `GIORNI` = 0, `#k-postvoto` | la frase parla **al passato della propria stima** e non del risultato, che il modello non ha (punto 8-bis) |
+
+**V6 non è più solo la leva, e questa riga è stata riscritta il 30 agosto 2026.** Era «leva
+degli apparentamenti accesa», cioè un caso solo: il lettore preme e i numeri si muovono. Ma
+la classe è più larga — **il riquadro confronta due esecuzioni del modello, e fra le due può
+essere cambiato qualcosa che non è un sondaggio** — e il secondo caso è **vivo adesso**:
+
+> `#k-direz` oggi dice **Blocco Netanyahu 49 −2 · Opposizione sionista 54 −3 · Ago della
+> bilancia 5 +5**, e la causa non è una leva: è **Popolo d'Israele che ha attraversato la
+> soglia il 28 agosto**. Un blocco è passato da zero a esistere, e gli altri due hanno perso
+> i seggi che quella lista ha preso.
+
+**Sono due cause con la stessa firma e conseguenze diverse per la prosa.** La leva è
+reversibile e la governa il lettore: la frase può dire «se togli l'ipotesi torna com'era».
+L'attraversamento della soglia no — è un fatto dei dati, e la frase deve dirlo come una
+notizia, non come un'ipotesi. **Una frase scritta per la sola leva direbbe la cosa sbagliata
+proprio nel caso che oggi si vede in pagina.**
+
+E c'è un terzo caso della stessa classe, che oggi non si vede ma esiste: **una lista che cade
+sotto soglia** fra le due esecuzioni. Lì i seggi si ridistribuiscono fra tutte le liste
+rimaste — è la meccanica che `#k-soglianota` adesso spiega — e il riquadro mostrerebbe più
+blocchi che si muovono insieme senza che nessun istituto abbia pubblicato niente di nuovo.
 
 **Le due date di `PREC`, che è l'altra cosa da non sbagliare.** `PREC.taglio` è **il
 confine**: oggi meno sette giorni, sempre, e non dipende dai dati. `PREC.data` è **l'ultimo
@@ -109,7 +130,7 @@ dire **che cosa significherebbe**.
 
 Le quattro sono una **partizione** delle simulazioni, e questo vincola la prosa: non
 possono sovrapporsi, non possono lasciare buchi, e le quattro percentuali fanno 100 per
-costruzione (`pctInteri`). Oggi valgono **2 · 21 · 75 · 2**.
+costruzione (`pctInteri`). Al 30 agosto valgono **1 · 15 · 77 · 7**, ed erano 2 · 21 · 75 · 2 il giorno in cui questo file è stato scritto: **la quarta è più che triplicata**, perché l'ago della bilancia ha preso cinque seggi e quei cinque mancano a «opposizione + arabi».
 
 | # | pastiglia | condizione | che cosa la riga deve dire |
 |---|---|---|---|

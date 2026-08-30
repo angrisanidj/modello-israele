@@ -6019,9 +6019,23 @@ le meta. Le altre tre non offrono niente di equivalente a chiunque.
 cinque cose piccole, nessuna bloccante, tutte ferme perché richiedono una decisione o una
 frase che non è mia da scrivere:
 
-1. **Quattro testi su quarantotto non li ha mai dettati lui**: `f5o4` e `f5e` nelle due ere.
-   Erano sei — `f4` è stata riscritta il 29 agosto 2026 — e sono le uniche celle nate da una
-   correzione di partizione invece che dalla sua penna.
+1. **Due forme corte che sforano il tetto**, e sono l'unico resto dei quattro testi mai
+   dettati. `f5o4` e `f5e` nelle due ere sono state dettate e applicate il 30 agosto 2026 —
+   erano le uniche celle nate da una correzione di partizione invece che dalla sua penna, e
+   la ragione che le regge sta accanto alle celle: **in tutte e due la notizia non è il
+   seggio che manca, è chi non c'è.** Le quattro lunghe e le due corte di `f5e` sono dentro;
+   le due corte di `f5o4` **no**, perché sforano:
+
+   | | resa a `[X]`=60 | tetto |
+   |---|---|---|
+   | «Opposizione a 60, nessun partito arabo eletto» | **60** | max 59 — **sfora di 1** |
+   | «Vigilia: opposizione a 60, nessun arabo eletto» | **61** | **sfora di 2** |
+
+   Restano quelle di prima, che dicono «stallo pieno» — cioè la parola scartata per `f4`
+   perché nega quello che la lunga afferma. **Il difetto non si vede**: `f5o4` esce in 60
+   configurazioni su 302.621 e tutte e sessanta vogliono gli arabi a zero, quindi con un
+   archivio in cui il blocco arabo esiste quel titolo non compare a nessun valore del
+   cursore. Serve una forma corta più stretta di 45 caratteri, coda esclusa.
 2. **I quattro blocchi senza prosa**: verdetto, pastiglie, istogrammi, simulatore. La
    struttura — condizione, grandezze disponibili, che cosa la frase deve dire — è in
    [docs/testi-quattro-blocchi.md](docs/testi-quattro-blocchi.md); i testi no.
