@@ -44,7 +44,8 @@ src = src.slice(0, src.indexOf('carica().then(render,render)')) +
   'global.A={seSotto:seSotto,clausolaSoglia:clausolaSoglia,fraseSoglia:fraseSoglia,' +
   'frazione:frazione,FRAZ:FRAZ,' +
   'aRischio:aRischio,QUO:function(){return QUO;},SEG:function(){return SEG;},SOGLIA:SOGLIA,' +
-  'bloccoDi:bloccoDi,nmA:nmA,nm:nm,render:render,IDS:IDS,dhondt:dhondt};})();';
+  'bloccoDi:bloccoDi,nmA:nmA,nm:nm,render:render,IDS:IDS,dhondt:dhondt,' +
+  'listeClausola:listeClausola,CLAUSOLA_MIN:CLAUSOLA_MIN};})();';
 eval(src);
 const A = global.A;
 A.render();
@@ -111,7 +112,10 @@ const scordate = sopra.filter(id => {
   const s = A.seSotto(id), c = A.clausolaSoglia(id);
   if (!s.persi) return false;
   if (!c) return true;
-  if (!s.dentro) return !parola(c, String(s.persi)) || c.indexOf('tutti') < 0;
+  /* col ramo dei due campi la parola «tutti» non c e: quello che deve esserci sempre e il
+     NUMERO dei seggi, che e il dato. */
+  if (!s.dentro) return !parola(c, String(s.persi)) ||
+    (c.indexOf('tutti') < 0 && c.indexOf('in uno dei due campi') < 0);
   const fr = A.frazione(s.fuori, s.persi);
   if (fr) return c.indexOf(fr) < 0;
   return !parola(c, String(s.fuori)) || !parola(c, String(s.persi));
@@ -196,7 +200,7 @@ esito(relKO.length === 0, 'e nessuna forma rimette la relativa che concorda col 
 /* 9 · E LA CLAUSOLA FINISCE DAVVERO NELLA NOTA. Senza questa, togliere il pezzo che la
  *     concatena lascerebbe tutto verde: le asserzioni di sopra provano la funzione, non la
  *     pagina. */
-const atteseNota = rischio.map(A.clausolaSoglia).filter(Boolean);
+const atteseNota = A.listeClausola().map(A.clausolaSoglia).filter(Boolean);
 esito(atteseNota.length === 0 || atteseNota.every(c => testo.indexOf(c) >= 0),
   'e la clausola generata compare NELLA NOTA, non solo nella funzione',
   atteseNota.filter(c => testo.indexOf(c) < 0).join(' · ') || 'nessuna lista sul filo');
@@ -240,6 +244,65 @@ const fraDueA = sorgente.slice(iChiude, iMecc);
 esito(iChiude > 0 && iMecc > iChiude && fraDueA.indexOf('risk') < 0,
   'e fra la chiusura del ramo e la meccanica non c e nessun risk: la spiegazione non e condizionata',
   fraDueA.replace(/\s+/g, ' ').slice(0, 100));
+
+
+/* 12 · CHI ENTRA NELLA CLAUSOLA: le liste sul filo, piu' quelle fuori dai due campi che
+ *      hanno seggi. La seconda categoria e' il caso in cui la meccanica si vede meglio,
+ *      perche' i seggi attraversano TUTTI — una lista che non sta con nessuno dei due campi
+ *      non ha un campo in cui restare. La regola si RIDERIVA qui e si confronta: scrivere
+ *      l elenco atteso sarebbe ricopiare la selezione invece di provarla. */
+const attesa = A.aRischio().slice();
+A.IDS.forEach(id => {
+  if (A.bloccoDi(id) !== 'incerto') return;
+  if ((A.SEG()[id] || 0) < A.CLAUSOLA_MIN) return;
+  if (attesa.indexOf(id) < 0) attesa.push(id);
+});
+esito(A.listeClausola().slice().sort().join(',') === attesa.slice().sort().join(','),
+  'la clausola nomina le liste sul filo piu quelle fuori dai due campi con abbastanza seggi',
+  A.listeClausola().map(A.nm).join(', ') + ' invece di ' + attesa.map(A.nm).join(', '));
+
+/* e le due esclusioni che l autore ha chiesto di verificare, una per volta */
+const senzaSeggi = A.IDS.filter(id => A.bloccoDi(id) === 'incerto' && !(A.SEG()[id] || 0));
+esito(senzaSeggi.length === 0 || senzaSeggi.every(id => A.listeClausola().indexOf(id) < 0),
+  'e una lista fuori dai due campi SENZA seggi non compare mai',
+  senzaSeggi.map(A.nm).join(', ') + ' (' + senzaSeggi.length + ' liste a zero seggi)');
+esito(senzaSeggi.length > 0,
+  'e il caso a zero seggi esiste davvero nei dati, quindi l esclusione e esercitata',
+  senzaSeggi.length + ' liste fuori dai due campi senza seggi');
+/* IL PAVIMENTO E' UNA DECISIONE, e sta scritta: con un seggio solo la frase direbbe che un
+   seggio si sposta, che e' vero di qualunque lista e non illustra niente. Oggi nessuna lista
+   fuori dai due campi ne ha esattamente uno, quindi il pavimento non e' esercitato dai dati:
+   quello che si prova e' che ci sia e quanto valga. */
+esito(A.CLAUSOLA_MIN >= 2,
+  'e il pavimento della seconda categoria e almeno due seggi: con uno la frase sarebbe banale',
+  'CLAUSOLA_MIN = ' + A.CLAUSOLA_MIN);
+
+/* 13 · LA FRASE PER CHI UN CAMPO NON CE L HA. Una lista fuori dai due campi non ha un campo
+ *      da cui uscire, quindi la frase dice dove i seggi VANNO. Vale solo se ci vanno tutti:
+ *      se una parte finisse alle liste arabe sarebbe falsa, e si torna a quella generale. */
+const AGO = A.IDS.filter(id => A.bloccoDi(id) === 'incerto')[0];
+esito(!!AGO, 'c e una lista fuori dai due campi su cui provare la forma', AGO || 'nessuna');
+esito(/entrerebbero in uno dei due campi$/.test(A.fraseSoglia(AGO, {persi:5, dentro:0, fuori:5, campi:5})),
+  'i seggi di una lista fuori dai due campi entrano nei due campi, non escono dal suo',
+  A.fraseSoglia(AGO, {persi:5, dentro:0, fuori:5, campi:5}));
+esito(/uscirebbero tutti dal suo campo$/.test(A.fraseSoglia(AGO, {persi:5, dentro:0, fuori:5, campi:3})),
+  'e se NON ci vanno tutti si torna alla frase generale, che resta vera',
+  A.fraseSoglia(AGO, {persi:5, dentro:0, fuori:5, campi:3}));
+esito(!/entrerebbero in uno dei due campi/.test(A.fraseSoglia(UNO, {persi:5, dentro:0, fuori:5, campi:5})),
+  'e la forma non tocca le liste che un campo ce l hanno',
+  A.fraseSoglia(UNO, {persi:5, dentro:0, fuori:5, campi:5}));
+
+/* 14 · UN SEGGIO SOLO NON PRODUCE «i 1 seggio». La prima stesura componeva sempre al
+ *      plurale, e col pavimento a due il caso non si vede mai dalla nota — ma fraseSoglia()
+ *      e' pubblica e totale, e una funzione che sbaglia dove non la si guarda sbaglia
+ *      comunque. */
+const singolari = [{persi:1, dentro:0, fuori:1, campi:1}, {persi:1, dentro:1, fuori:0, campi:0}];
+const singKO = singolari.filter(s => {
+  const t = A.fraseSoglia(UNO, s) + ' ' + A.fraseSoglia(AGO, s);
+  return / 1 seggio/.test(t) || /seggio .*(uscirebbero|resterebbero|entrerebbero)/.test(t);
+});
+esito(singKO.length === 0, 'con un seggio solo la frase resta al singolare',
+  singolari.map(s => A.fraseSoglia(UNO, s)).join(' · '));
 
 console.log('\nsoglianota: ' + ok + '/' + (ok + ko));
 if (ko) process.exit(1);

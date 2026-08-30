@@ -5107,6 +5107,54 @@ rischio, quindi il lettore la incontrava solo quando c'era qualcuno da nominare 
 nell'altro caso la nota diceva che nessuno rischia senza dire che cosa succederebbe se
 qualcuno rischiasse.
 
+### Chi entra nella clausola: le liste sul filo, più quelle fuori dai due campi
+
+Allargata su decisione dell'autore. La prima categoria è la conseguenza del rischio appena
+dichiarato; la seconda è **il caso in cui la meccanica si vede meglio**, perché i seggi
+attraversano *tutti* — una lista che non sta con nessuno dei due campi non ha un campo in cui
+restare, ed è precisamente quello che la frase esiste per raccontare.
+
+**«Fuori dai due campi» non è una definizione nuova**: è la lingua che la pagina usa già nel
+piede dell'archivio e nel sommario, e corrisponde al blocco `incerto`. Una definizione, due
+usi — `listeClausola()` per scegliere e `fraseSoglia()` per comporre. La prima stesura della
+condizione diceva «non coalizione e non opposizione», che è **più largo**: ci finivano dentro
+anche le liste arabe, che un campo ce l'hanno e che la nota non nomina mai. L'ha trovata
+un'asserzione, non l'attenzione.
+
+**Le due esclusioni, verificate una per una** come chiesto:
+
+| | oggi |
+|---|---|
+| liste fuori dai due campi | **cinque** |
+| di cui **senza seggi**, quindi mai nominate | **quattro** — Casa Sionista, Partito Economico, Unità, Israel First |
+| che entrano nella clausola | **una**, Popolo d'Israele con 5 seggi |
+
+Il caso a zero seggi **è esercitato dai dati**, e la prova lo dichiara: quattro liste lo
+attraversano a ogni esecuzione.
+
+**Il pavimento è due seggi**, e vale solo per la seconda categoria: con uno la frase direbbe
+che un seggio si sposta, che è vero di qualunque lista e non illustra niente. Le liste sul
+filo non hanno pavimento, perché lì la clausola è la conseguenza di un rischio che il periodo
+prima ha appena annunciato — anche un seggio solo è quella conseguenza. Oggi **nessuna lista
+fuori dai due campi ne ha esattamente uno**, quindi il pavimento non è esercitato dai dati: la
+prova dichiara che c'è e quanto vale, invece di sperare che serva.
+
+**E un seggio solo non produce «i 1 seggio».** La composizione era sempre al plurale; col
+pavimento a due il caso non si vede mai dalla nota, ma `fraseSoglia()` è pubblica e totale, e
+*una funzione che sbaglia dove non la si guarda sbaglia comunque*. Adesso c'è il singolare, e
+una prova lo esercita su casi costruiti.
+
+La nota, oggi:
+
+> …Oggi **metà dei seggi del Sionismo Religioso uscirebbe dal suo campo**, e **i 5 seggi di
+> Popolo d'Israele entrerebbero in uno dei due campi**.
+
+**Il campo di destinazione non si nomina**, ed è una decisione: «all'opposizione sionista»,
+«al blocco Netanyahu», «ai partiti arabi» vorrebbe dire una preposizione articolata per
+ciascuno dei quattro blocchi, cioè **una seconda anagrafica di lingua accanto ad `ART` e
+`CONTR`**, che l'8 settembre resterebbe indietro. Quello che la frase deve dire è che i seggi
+escono dal campo, e quello si dice senza.
+
 ### E la stessa frase falsa era scritta DUE volte
 
 Trovata solo dopo aver riparato la nota: `rAnalisi()` diceva, in un altro riquadro, «*se non

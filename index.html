@@ -5832,7 +5832,7 @@ function rProj(){
     scritto a mano diventerebbe falso alla prossima rilevazione. Nomina le liste che il
     periodo prima ha già dichiarato sul filo — non altre — perché è la conseguenza di quel
     rischio, non un elenco a sé. */
- var cl=risk.map(clausolaSoglia).filter(Boolean);
+ var cl=listeClausola().map(clausolaSoglia).filter(Boolean);
  $('k-soglianota').innerHTML='<b>Il superamento della soglia di sbarramento resta una delle variabili decisive.</b> '+
   (risk.length?'Sul filo del 3,25% ci sono '+risk.map(function(i){return nm(i)+' ('+pc(MC.sotto[i]/MC.n)+' di probabilità di restare fuori)';}).join(', ')+'.'
    :'Fra le liste oggi proiettate in Knesset nessuna presenta un rischio elevato di esclusione.')+
@@ -5964,14 +5964,18 @@ var FRASE_SOGLIA='i seggi che avrebbe preso si ridistribuiscono fra tutte le lis
 function seSotto(id){
  var q={},k; for(k in QUO) q[k]=QUO[k];
  q[id]=SOGLIA-0.01;                                  /* sotto soglia: dhondt la esclude */
- var dopo=dhondt(q), mio=bloccoDi(id), dentro=0, fuori=0;
+ var dopo=dhondt(q), mio=bloccoDi(id), dentro=0, fuori=0, campi=0;
  for(k in SEG){
   if(k===id) continue;
   var d=(dopo[k]||0)-(SEG[k]||0);
   if(d<=0) continue;
-  if(bloccoDi(k)===mio) dentro+=d; else fuori+=d;
+  var b=bloccoDi(k);
+  if(b===mio) dentro+=d; else fuori+=d;
+  /* e quanti finiscono nei DUE CAMPI: serve alla frase per le liste che un campo non
+     ce l hanno, dove quello che conta e dove i seggi vanno e non da dove escono */
+  if(b==='coalizione'||b==='opposizione') campi+=d;
  }
- return {persi:SEG[id]||0, dentro:dentro, fuori:fuori};
+ return {persi:SEG[id]||0, dentro:dentro, fuori:fuori, campi:campi};
 }
 /* La frazione a parole solo quando è esatta e ha un nome: «metà» si legge meglio di «2 su
    4», ma «5 su 12» un nome non ce l'ha e va detto in cifre. Fuori da questi casi si scrive
@@ -5997,26 +6001,60 @@ function frazione(n,m){
    «all'opposizione sionista», «al blocco Netanyahu», «ai partiti arabi» — cioè una seconda
    anagrafica di lingua accanto ad ART e CONTR, che l'8 settembre resterebbe indietro.
    Quello che la frase deve dire è che i seggi ESCONO dal campo, e quello si dice senza. */
-/* LA COMPOSIZIONE E SEPARATA DAL CONTO, e non e un vezzo: e la sola forma in cui le prove
+/* LA COMPOSIZIONE E' SEPARATA DAL CONTO, e non e' un vezzo: e' la sola forma in cui le prove
    possono esercitarla. In jsdom il fetch non parte, quindi il banco gira sul seme BASE — e
-   sul seme NESSUN rapporto e una frazione con un nome: 7/23, 5/13, 2/5, 3/8, 2/7, 4/10, 1/8
-   danno tutti null. Il ramo della frazione era percio IRRAGGIUNGIBILE nelle prove, e un
+   sul seme NESSUN rapporto e' una frazione con un nome: 7/23, 5/13, 2/5, 3/8, 2/7, 4/10, 1/8
+   danno tutti null. Il ramo della frazione era percio' IRRAGGIUNGIBILE nelle prove, e un
    mutante che ci rimetteva la relativa sbagliata — «i Democratici perderebbe» — restava
-   VIVO. E la classe gia registrata: un mutante invisibile perche i dati non lo esercitano
+   VIVO. E' la classe gia' registrata: un mutante invisibile perche' i dati non lo esercitano
    mai. Con fraseSoglia(id, s) puro il conto resta dove sta e la frase si prova su casi
-   costruiti, uno per ramo. */
+   costruiti, uno per ramo.
+   E IL RAMO DEI DUE CAMPI dice quello che il lettore deve capire: una lista fuori dai due
+   campi non ha un campo da cui uscire, quindi la frase dice dove i seggi VANNO invece di
+   dire da dove escono. Vale solo se ci vanno tutti — se una parte finisse alle liste arabe
+   la frase sarebbe falsa, e allora si torna a quella generale. */
 function fraseSoglia(id,s){
- var quanti=f(s.persi)+' '+acc(s.persi,'seggio','seggi');
- if(!s.fuori)  return 'i '+quanti+' '+nmA(id,'di')+' resterebbero nel suo campo';
- if(!s.dentro) return 'i '+quanti+' '+nmA(id,'di')+' uscirebbero tutti dal suo campo';
+ var quanti=s.persi===1?'l\'unico seggio ':'i '+f(s.persi)+' seggi ';
+ var chi=nmA(id,'di');
+ /* «fuori dai due campi» e' il blocco incerto, ed e' la stessa definizione che usa
+    listeClausola() e che la pagina usa gia' nel piede dell'archivio e nel sommario. La
+    prima stesura diceva «non coalizione e non opposizione», che e' piu' largo: ci finivano
+    dentro anche le liste arabe, che un campo ce l'hanno e che la nota non nomina mai. Una
+    definizione, due usi. */
+ if(bloccoDi(id)==='incerto'&&s.campi===s.persi)
+  return quanti+chi+(s.persi===1?' entrerebbe':' entrerebbero')+' in uno dei due campi';
+ if(!s.fuori)  return quanti+chi+(s.persi===1?' resterebbe':' resterebbero')+' nel suo campo';
+ if(!s.dentro) return quanti+chi+(s.persi===1?' uscirebbe':' uscirebbero tutti')+' dal suo campo';
  var fr=frazione(s.fuori,s.persi);
- if(fr) return fr+' dei seggi '+nmA(id,'di')+' '+
+ if(fr) return fr+' dei seggi '+chi+' '+
    (FRAZ[fr]?'uscirebbero':'uscirebbe')+' dal suo campo';
- return f(s.fuori)+' dei '+f(s.persi)+' seggi '+nmA(id,'di')+
-        ' uscirebbero dal suo campo';
+ return f(s.fuori)+' dei '+f(s.persi)+' seggi '+chi+' uscirebbero dal suo campo';
 }
 function clausolaSoglia(id){
  var s=seSotto(id); return s.persi?fraseSoglia(id,s):null;
+}
+/* CHI ENTRA NELLA CLAUSOLA: le liste sul filo, PIU' quelle fuori dai due campi che hanno
+   seggi. La prima categoria e' la conseguenza del rischio appena dichiarato; la seconda e'
+   il caso in cui la meccanica si vede meglio, perche' i seggi attraversano TUTTI — una
+   lista che non sta con nessuno dei due campi non ha un campo in cui restare.
+   «Fuori dai due campi» non e' una definizione nuova: e' la lingua che la pagina usa gia'
+   nel piede dell'archivio e nel sommario, e corrisponde al blocco `incerto`.
+   IL PAVIMENTO E' DUE SEGGI, e serve alla seconda categoria: con uno la frase direbbe che
+   un seggio si sposta, che e' vero di qualunque lista e non illustra niente. Le liste sul
+   filo non hanno pavimento, perche' li' la clausola e' la conseguenza di un rischio che il
+   periodo prima ha appena annunciato — anche un seggio solo e' quella conseguenza.
+   Misurato il 30 agosto 2026: la seconda categoria porta dentro Popolo d'Israele con 5
+   seggi, e nessun'altra — le altre quattro liste dell'ago della bilancia non hanno seggi,
+   quindi non comparirebbero comunque. */
+var CLAUSOLA_MIN=2;
+function listeClausola(){
+ var v=aRischio().slice();
+ IDS.forEach(function(i){
+  if(bloccoDi(i)!=='incerto') return;
+  if((SEG[i]||0)<CLAUSOLA_MIN) return;
+  if(v.indexOf(i)<0) v.push(i);
+ });
+ return v;
 }
 function aRischio(){
  return IDS.filter(function(i){
