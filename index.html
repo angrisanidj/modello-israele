@@ -2195,6 +2195,40 @@ function filtraBilico(seg){
 var BL={coalizione:{n:"Blocco Netanyahu",c:"#143EDB"},opposizione:{n:"Opposizione sionista",c:"#78002D"},
         arabo:{n:"Partiti arabi",c:"#007B4C"},incerto:{n:"Ago della bilancia",c:"#B57600"}};
 
+/* LA SIGLA DELL'ARCO SI DERIVA DAL NOME, E NON STA IN UNA TABELLA.
+   Fino al 30 agosto 2026 c'era TOT_SIGLA: quattro voci scritte a mano accanto alle quattro
+   di BL, cioè una SECONDA ANAGRAFICA degli stessi nomi. Tre erano derivabili — «Partiti
+   arabi»→arabi, «Blocco Netanyahu»→Netanyahu, «Opposizione sionista»→opposizione — e la
+   quarta diceva «incerti», che NON È UNA PAROLA di «Ago della bilancia».
+   Non era una svista isolata, ed è per questo che qui non si correggeva una parola: era la
+   strada doppia di sempre, e quella voce è stata scritta quando il quarto blocco non aveva
+   mai seggi — cioè quando nessuno poteva vederla accanto alla legenda che dice «Ago della
+   bilancia» quaranta pixel più sotto. Trovata guardando la pagina resa il giorno in cui
+   l'ago della bilancia è arrivato a cinque seggi.
+   LA REGOLA. Un nome di blocco dice due cose: di che TIPO di raggruppamento si tratta, e
+   QUALE. In italiano il tipo sta in testa — «Blocco» Netanyahu, «Partiti» arabi, «Ago
+   della» bilancia — e la sigla è quello che resta tolto il tipo, preposizioni comprese.
+   «Opposizione sionista» non ha un tipo in testa, perché «Opposizione» è già il quale:
+   lì resta la prima parola.
+   E LA MAIUSCOLA SOPRAVVIVE SOLO SE LA PAROLA NON ERA IN TESTA, perché in testa la
+   maiuscola è della posizione e non del nome proprio. «Netanyahu» la tiene, «Opposizione»
+   diventa «opposizione»: senza questa riga la sigla direbbe «Opposizione» accanto a
+   «arabi» e a «bilancia», cioè una maiuscola che non significa niente.
+   Le due liste sono di LINGUA, non di blocchi: non crescono l'8 settembre, e crescono solo
+   il giorno in cui un nome di blocco usa un tipo nuovo — che è un giorno in cui la sigla
+   esce visibilmente strana invece di restare in silenzio quella di ieri. */
+var SIGLA_TIPO='blocco partiti ago lista liste fronte alleanza campo unione'.split(' ');
+var SIGLA_PREP='della delle dello degli dei del di da'.split(' ');
+function siglaBlocco(b){
+ var par=String((BL[b]||{}).n||'').trim().split(/\s+/), i=0;
+ if(par.length>1&&SIGLA_TIPO.indexOf(par[0].toLowerCase())>=0){
+  i=1;
+  while(i<par.length-1&&SIGLA_PREP.indexOf(par[i].toLowerCase())>=0) i++;
+ }
+ var w=par[i]||par[0]||'';
+ return i?w:w.charAt(0).toLowerCase()+w.slice(1);
+}
+
 /* LE SCORCIATOIE DEL SIMULATORE, e sono l'UNICA sorgente di quelle composizioni.
    Prima erano scritte due volte: nel gestore del clic e, identiche, nella riga che
    inizializzava COAL alla partenza. Due strade per lo stesso valore, senza nessuna prova
@@ -6712,7 +6746,6 @@ function rCalendario(){
    card, il riquadro dell'evento isolato), il DISEGNO e tutto ciò che ne è la chiave
    seguono l'arco. */
 var ARCO_ORD=['opposizione','arabo','incerto','coalizione'];
-var TOT_SIGLA={arabo:'arabi',opposizione:'opposizione',incerto:'incerti',coalizione:'Netanyahu'};
 /* LA QUOTA E' LA LEVA, NON IL CORPO, ed e' il contrario di quello che si penserebbe.
    Il vuoto dell'arco e' un semicerchio: verso l'alto si stringe, verso la base si allarga.
    A y=180, dov'erano prima, quattro totali costringono il corpo a 17 — il 45% in meno,
@@ -6805,7 +6838,7 @@ function urtoSeggi(cerchi,a,c,t,bo,aria){
 function disponiTotali(cerchi,voci){
  /* una volta sola, non a ogni tentativo di corpo: e' O(n²) sui 120 seggi */
  var ARIA=varcoFraSeggi(cerchi);
- var base=voci.map(function(v){return largStim(TOT_SIGLA[v[0]],TOT_FSIG,TOT_LSIG);});
+ var base=voci.map(function(v){return largStim(siglaBlocco(v[0]),TOT_FSIG,TOT_LSIG);});
  function prova(F){
   var slot=base.map(function(w){return Math.max(w,TOT_EM*F*2);});
   var tot=slot.reduce(function(a,c){return a+c;},0)+(voci.length-1)*TOT_VARCO;
@@ -7141,7 +7174,29 @@ function rEmi(){
     '" x2="'+(215+(r1+13)*ca).toFixed(2)+'" y2="'+(212-(r1+13)*sa).toFixed(2)+
     '" stroke="'+C.ink+'" stroke-width="1.3" stroke-dasharray="4 3"/>';
  var xt=215+(r1+24)*ca, yt=212-(r1+24)*sa;
- s+='<text x="'+xt.toFixed(1)+'" y="'+Math.max(11,yt).toFixed(1)+'" text-anchor="middle" font-size="9.5" '+
+ /* IL CORPO SCALA SOTTO I 660, come gia' fanno gli istogrammi e la tendenza, ed e' la
+    STESSA REGOLA applicata al secondo posto in cui vive la stessa etichetta.
+    Il viewBox e' fisso e l'SVG scala al contenitore: a 380 il contenitore vale 326 su 430,
+    cioe' un fattore di 0,7581, quindi un corpo 9,5 rendeva 7,20px reali. L'invariante 8
+    chiede almeno 5 e passava; ma cinque e' un pavimento, non un obiettivo, ed e'
+    LETTERALMENTE la stessa etichetta che negli istogrammi stava a 7,09px — «dentro
+    l'invariante, e illeggibile» — e che il 22 agosto 2026 e' stata portata a 10,98 con
+    soglia.js che pretende almeno 9px reali. Qui quella regola non era mai arrivata.
+    Trovata guardando la pagina resa, non da una prova: nessuna la misurava.
+    IL FATTORE E' 1,3 E NON 1,55 COME NEGLI ISTOGRAMMI, e il tetto non e' estetico: qui
+    sopra l'etichetta c'e' il bordo del viewBox e sotto ci sono i seggi. Misurato sul
+    disegno reso, con la scatola d'inchiostro vera e l'urto calcolato contro tutti e 120 i
+    cerchi: a 1,30 restano 0,68 unita' sopra e 1,52 dai seggi, a 1,35 ne restano 0,92, e a
+    1,40 l'etichetta URTA DUE SEGGI. Sotto, 1,25 rende 9,01px, cioe' un centesimo sopra il
+    pavimento: 1,30 rende 9,36 ed e' il solo valore con margine dalle due parti.
+    E LA BASE SI ALZA COL CORPO. Il serraggio «Math.max(11, yt)» tiene l'etichetta dentro
+    il viewBox quando la linea e' quasi verticale — cioe' SEMPRE, perche' con 120 seggi la
+    soglia cade al centro dell'arco — quindi 11 e' la quota vera, non un caso limite.
+    Lasciandolo fisso il corpo piu' grande sarebbe cresciuto verso l'alto e il bordo lo
+    avrebbe tagliato: il serraggio scala col corpo, o ripara una cosa e ne rompe un'altra. */
+ var FSE=stretto()?1.3:1;
+ s+='<text x="'+xt.toFixed(1)+'" y="'+Math.max(11*FSE,yt).toFixed(1)+'" text-anchor="middle" font-size="'+
+    (9.5*FSE).toFixed(2)+'" '+
     'font-weight="700" letter-spacing="1.1" fill="'+C.ink+'">MAGGIORANZA 61</text>';
  /* I totali stanno nel vuoto dell'arco, con sotto la sigla del blocco. Nessuna didascalia
     qui dentro: alla quota della base i seggi delle estremità occupano già lo spazio — la
@@ -7161,7 +7216,7 @@ function rEmi(){
   s+='<text data-g="'+t[0]+'"'+acc+' x="'+xc+'" y="'+TOT_Y+'" text-anchor="middle" font-size="'+
      disp.corpo+'" font-family="Georgia,serif" fill="'+BC(t[0])+'">'+f(t[1])+'</text>'+
      '<text data-g="'+t[0]+'"'+acc+' x="'+xc+'" y="'+(TOT_Y+TOT_DY)+'" text-anchor="middle" font-size="'+
-     TOT_FSIG+'" letter-spacing="'+TOT_LSIG+'em" fill="'+C.mute+'">'+E(TOT_SIGLA[t[0]])+'</text>';
+     TOT_FSIG+'" letter-spacing="'+TOT_LSIG+'em" fill="'+C.mute+'">'+E(siglaBlocco(t[0]))+'</text>';
  });
  s+='</svg>';
  $('k-emi').innerHTML=s;

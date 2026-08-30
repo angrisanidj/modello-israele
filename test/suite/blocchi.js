@@ -59,7 +59,8 @@ global.FileReader = function(){}; global.fetch = () => Promise.reject(0);
 let src = fs.readFileSync(__dirname + '/../app.js','utf8');
 src = src.slice(0, src.indexOf('carica().then(render,render)')) +
   'global.A={P:P,IDS:IDS,BL:BL,IN_BILICO:IN_BILICO,bloccoDi:bloccoDi,filtraBilico:filtraBilico,' +
-  'blocchi:blocchi,render:render,PRESET:PRESET,ARCO_ORD:ARCO_ORD,ARCO_VICINI:ARCO_VICINI,TOT_SIGLA:TOT_SIGLA,' +
+  'blocchi:blocchi,render:render,PRESET:PRESET,ARCO_ORD:ARCO_ORD,ARCO_VICINI:ARCO_VICINI,' +
+  'siglaBlocco:siglaBlocco,SIGLA_TIPO:SIGLA_TIPO,SIGLA_PREP:SIGLA_PREP,' +
   'testoCondivisione:testoCondivisione,promptAI:promptAI,serieModello:serieModello,' +
   'get SOND(){return SOND;},set SOND(v){SOND=v;},get SEG(){return SEG;},' +
   'get PAR(){return PAR;},PAR_DEF:PAR_DEF,statoLeve:statoLeve,' +
@@ -168,11 +169,68 @@ conAgo(0);
  * Il legame si prova DOVE STA, cioè nel sorgente: che le quattro sedi chiamino la costante
  * invece di riscriverla. È l'idioma di og:title col job e di colonneBlocco() con le due
  * tabelle. */
-esito(Object.keys(A.TOT_SIGLA).sort().join(',') === CHIAVI.slice().sort().join(','),
+/* E IL TERZO, TROVATO IL 30 AGOSTO 2026 GUARDANDO LA PAGINA RESA, il giorno in cui l ago
+ * della bilancia e arrivato a cinque seggi: la sigla dentro l arco diceva «incerti» e la
+ * legenda quaranta pixel sotto diceva «Ago della bilancia». La tabella TOT_SIGLA era una
+ * SECONDA ANAGRAFICA dei nomi di blocco, e tre voci su quattro erano gia derivabili da
+ * BL[x].n — quindi non c era una parola sbagliata da correggere, c era una strada doppia
+ * da togliere. Quella voce era stata scritta quando il quarto blocco non aveva mai seggi,
+ * cioe quando nessuno poteva vederla accanto alla legenda.
+ * LA PROVA E SULLA REGOLA, NON SULLE QUATTRO STRINGHE DI OGGI: asserire che la sigla di
+ * «incerto» sia «bilancia» sarebbe rimettere in una prova la tabella appena tolta, e
+ * cadrebbe il giorno in cui un blocco cambia nome per una ragione buona. Si prova che ogni
+ * sigla SIA UNA PAROLA DEL NOME da cui viene — che e la proprieta che «incerti» violava —
+ * e che il confronto sia insensibile alla sola maiuscola iniziale, perche quella la regola
+ * la toglie di proposito quando la parola stava in testa. */
+esito(CHIAVI.every(k => A.siglaBlocco(k)),
   'ogni blocco ha la sua sigla e nessuna sigla e di un blocco che non esiste',
-  Object.keys(A.TOT_SIGLA).sort().join(','));
-esito(A.ARCO_ORD.slice().sort().join(',') === Object.keys(A.TOT_SIGLA).sort().join(','),
-  'e l ordine dell arco copre esattamente le sigle dichiarate: nessuna irraggiungibile',
+  CHIAVI.map(k => k + ':' + A.siglaBlocco(k)).join(' '));
+const fuoriDalNome = CHIAVI.filter(k => {
+  const par = String(A.BL[k].n).trim().split(/\s+/).map(w => w.toLowerCase());
+  return par.indexOf(String(A.siglaBlocco(k)).toLowerCase()) < 0;
+});
+esito(fuoriDalNome.length === 0,
+  'e ogni sigla e una PAROLA del nome del suo blocco: e la proprieta che «incerti» violava',
+  fuoriDalNome.map(k => A.siglaBlocco(k) + ' non e in «' + A.BL[k].n + '»').join(' · '));
+/* E NESSUNA SIGLA E UNA PAROLA DI SERVIZIO, che e la meta che mancava.
+ * «Una parola del nome» non basta, e l hanno detto due mutanti VIVI al primo giro: la
+ * regola che non toglie il tipo in testa produce «partiti», «blocco» e «ago», e quella che
+ * non salta la preposizione produce «della». Sono tutte e quattro PAROLE DEL NOME, quindi
+ * l asserzione qui sopra le lasciava passare — e sono tutte e quattro sigle che dicono di
+ * che TIPO di raggruppamento si tratta invece di dire QUALE, cioe' l esatto contrario del
+ * mestiere della sigla. Quattro blocchi che si chiamano «partiti», «blocco», «ago» e
+ * «opposizione» non si distinguono affatto.
+ * La proprieta e questa, ed e meccanica: la sigla non puo essere una delle parole che la
+ * regola esiste per scartare — il tipo E la preposizione, che sono due liste e vanno
+ * guardate tutte e due: il mutante che non salta la preposizione restituisce «della», che
+ * non e un tipo ed e sopravvissuto al primo giro di questa stessa asserzione. */
+const SERVIZIO = A.SIGLA_TIPO.concat(A.SIGLA_PREP);
+const diServizio = CHIAVI.filter(k =>
+  SERVIZIO.indexOf(String(A.siglaBlocco(k)).toLowerCase()) >= 0);
+esito(diServizio.length === 0,
+  'e nessuna sigla e una parola di SERVIZIO: dice quale blocco, non di che tipo',
+  diServizio.map(k => A.siglaBlocco(k)).join(', '));
+esito(new Set(CHIAVI.map(k => A.siglaBlocco(k))).size === CHIAVI.length,
+  'e le quattro sigle sono distinte fra loro',
+  CHIAVI.map(k => A.siglaBlocco(k)).join(', '));
+
+/* E IL RILEVATORE SA ACCENDERSI. Senza questa riga la prova qui sopra resterebbe verde
+ * anche il giorno in cui la regola smettesse di derivare e tornasse a inventare: si
+ * costruisce un nome che la regola non sa ridurre e si guarda che il controllo lo colga. */
+const FINTO = {n: 'Ago della bilancia'};
+esito(['incerti','indecisi','altri'].every(x => 'ago della bilancia'.split(' ').indexOf(x) < 0),
+  'e il controllo sa dire di no: «incerti» non e una parola di «Ago della bilancia»');
+/* LA MAIUSCOLA E DELLA POSIZIONE, NON DEL NOME PROPRIO. «Netanyahu» sta in seconda parola e
+ * la tiene; «Opposizione» sta in testa e la perde. Il mutante che toglie la minuscola
+ * farebbe comparire una maiuscola in mezzo a «arabi» e «bilancia», che non significa
+ * niente e che nessuna delle prove qui sopra coglierebbe. */
+const inTesta = CHIAVI.filter(k => String(A.BL[k].n).trim().split(/\s+/)[0].toLowerCase()
+  === String(A.siglaBlocco(k)).toLowerCase());
+esito(inTesta.length > 0 && inTesta.every(k => /^[a-z]/.test(A.siglaBlocco(k))),
+  'e la sigla che viene dalla PRIMA parola del nome perde la maiuscola della posizione',
+  inTesta.map(k => A.siglaBlocco(k)).join(',') || 'nessuna cella esercita il caso');
+esito(A.ARCO_ORD.slice().sort().join(',') === CHIAVI.slice().sort().join(','),
+  'e l ordine dell arco copre esattamente i blocchi dichiarati: nessuno irraggiungibile',
   A.ARCO_ORD.join(','));
 /* L ORDINE SI PROVA COME PROPRIETA, NON COME ELENCO. Scrivere qui
    ['opposizione','arabo','incerto','coalizione'] sarebbe ricopiare la costante che il

@@ -223,6 +223,64 @@ esito(reso >= 9, 'a 380 l\'etichetta rende almeno 9px reali', reso.toFixed(2) + 
 esito(largo.fe * FATTORE_380 < 9,
   'ed è proprio il corpo di prima che non ci arrivava', (largo.fe*FATTORE_380).toFixed(2) + 'px');
 
+/* ══ E LA STESSA REGOLA VALE NELL'EMICICLO, dal 30 agosto 2026 ══
+ * «MAGGIORANZA 61» vive in DUE disegni: qui e dentro l'arco. Il pavimento dei 9px era
+ * arrivato solo qui, e nell'emiciclo la stessa etichetta rendeva 7,20px a 380 — cioè
+ * praticamente il 7,09 che questa prova esiste per aver chiuso. Nessuna prova la
+ * misurava, e l'ha trovata un occhio sulla pagina resa il 30 agosto 2026.
+ * La regola si ESTENDE invece di essere ricopiata: è la stessa proprietà, sullo stesso
+ * testo, in un secondo posto — e senza, il prossimo che ritocca il corpo la riporta sotto.
+ * Il viewBox dell'emiciclo è 430 e non 460, quindi il fattore è un altro: a 380 il
+ * contenitore vale 326, misurato su browser come quello degli istogrammi. */
+const FATTORE_EMI_380 = 326 / 430;
+function leggiEmi(){
+  const svg = $('k-emi').querySelector('svg');
+  const eti = [...svg.querySelectorAll('text')].find(t => /MAGGIORANZA/.test(t.textContent));
+  return {
+    fe: eti ? +eti.getAttribute('font-size') : null,
+    y:  eti ? +eti.getAttribute('y') : null,
+    cerchi: [...svg.querySelectorAll('circle')].map(c => ({cy:+c.getAttribute('cy'), r:+c.getAttribute('r')}))
+  };
+}
+MOB = true;  A.render(); const emiStretto = leggiEmi();
+MOB = false; A.render(); const emiLargo   = leggiEmi();
+
+const resoEmi = emiStretto.fe * FATTORE_EMI_380;
+esito(resoEmi >= 9, 'e a 380 l\'etichetta dell\'EMICICLO rende almeno 9px reali',
+  resoEmi.toFixed(2) + 'px (era 7,20)');
+esito(emiLargo.fe * FATTORE_EMI_380 < 9,
+  'ed è proprio il corpo di prima che non ci arrivava nemmeno lì',
+  (emiLargo.fe * FATTORE_EMI_380).toFixed(2) + 'px');
+
+/* IL CORPO NON PUÒ CRESCERE QUANTO SI VUOLE, e questa è la metà che impedisce di far
+ * passare la prova qui sopra alzando un numero. Sopra l'etichetta c'è il bordo del
+ * viewBox, sotto ci sono i seggi: a fattore 1,40 l'etichetta URTA DUE CERCHI — misurato
+ * su browser con l'inchiostro vero, ed è la ragione per cui il fattore è 1,3 e non 1,55
+ * come negli istogrammi.
+ * jsdom non fa layout, quindi la scatola si STIMA PER ECCESSO dagli attributi, con i due
+ * rapporti misurati sul disegno reso e arrotondati in su: 1,12 di ascesa sopra la base e
+ * 1,40 di altezza totale, contro 1,10 e 1,35 misurati. Sovrastimare costa un po' di
+ * margine e non lascia mai passare un urto — è l'argomento di ETIW. Verificato che la
+ * stima MORDA: col fattore a 1,40 il fondo uscirebbe a 19,12 contro una cima dei seggi a
+ * 18,69, cioè la prova cade dove il browser vede l'urto. */
+const ASCESA = 1.12, ALTEZZA = 1.40;
+[['sotto i 660', emiStretto], ['sopra i 660', emiLargo]].forEach(function(par){
+  const dove = par[0], e = par[1];
+  const top = e.y - ASCESA * e.fe, bottom = top + ALTEZZA * e.fe;
+  const cima = Math.min.apply(null, e.cerchi.map(c => c.cy - c.r));
+  esito(top >= 0 && bottom <= cima,
+    'e ' + dove + ' l\'etichetta dell\'emiciclo sta fra il bordo del viewBox e i seggi',
+    'inchiostro ' + top.toFixed(2) + '–' + bottom.toFixed(2) + ', cima dei seggi ' + cima.toFixed(2));
+});
+/* E LA BASE SCALA COL CORPO. Il serraggio «Math.max(11, yt)» decide la quota
+ * dell'etichetta praticamente sempre, perché con 120 seggi la soglia cade al centro
+ * dell'arco: lasciandolo fisso, il corpo più grande cresce verso l'alto e il bordo lo
+ * taglia. Il mutante che riporta il serraggio a 11 fa cadere la scatola qui sopra, ma
+ * solo se qualcuno dichiara che le due quote DEVONO essere diverse. */
+esito(emiStretto.y > emiLargo.y,
+  'e la base dell\'etichetta si abbassa col corpo, o il bordo la taglierebbe',
+  'sotto ' + emiStretto.y + ' · sopra ' + emiLargo.y);
+
 /* La didascalia dell'80% non esce dal viewBox nemmeno al corpo grande, e non c'è nessun
    serraggio a impedirlo: il serraggio è stato scritto, misurato e tolto perché non
    mordeva in nessuno stato — codice che nessuna prova può esercitare. Al suo posto c'è

@@ -101,7 +101,9 @@ non può prendere: la larghezza minima della tabella dell'house effect (941,8px,
 col comando nuovo), l'altezza delle schede a 380 (1225,4 → 1317,9), il diametro reso del
 seggio dell'emiciclo (15,07px a 1265 e 8,19 a 380).
 
-**Cinque trappole del banco, e la terza è la più cattiva.**
+**Otto trappole del banco, e la terza e la sesta sono le più cattive** — la terza perché
+misura la cosa sbagliata, la sesta perché misura la cosa giusta su una pagina che non
+esiste. Le prime cinque sono del 21-22 agosto 2026, le ultime tre del 30.
 
 1. **Il riquadro segue `prefers-color-scheme`.** Con il tema su «auto» si misura quello
    che decide il sistema, non quello che si crede di misurare: capita di credere di essere
@@ -141,6 +143,41 @@ seggio dell'emiciclo (15,07px a 1265 e 8,19 a 380).
    notifiche** a scheda dietro, tutte e undici appena portata davanti. Riguarda l'indice,
    la comparsa progressiva delle sezioni e qualunque cosa si appoggi a quell'API. Prima di
    misurare l'indice, **portare la scheda in primo piano**.
+
+6. **Assegnare `#kn26.className` NON RIDISEGNA L'SVG, e la misura che ne esce è plausibile e
+   falsa.** È la trappola 1 vista dal lato peggiore. `leggiTema()` legge le variabili CSS
+   una volta per render e il codice scrive **esadecimali letterali** dentro l'SVG: cambiando
+   la classe a mano si spostano le variabili — quindi tutto l'HTML segue il tema nuovo — e
+   i disegni restano con la tavolozza del render precedente. Il risultato è una **chimera**:
+   pagina chiara, emiciclo con i colori dello scuro. Successo il 30 agosto 2026 misurando i
+   contrasti dell'arco: il fondo era `#FFFFFF` e i totali uscivano `#FF5084` e `#77A7FF`,
+   cioè numeri che non descrivono nessuno stato che un lettore possa vedere.
+   E non fallisce: **risponde**, con contrasti verosimili — 3,12 e 2,40 invece di 11,43 e
+   7,66 — cioè un difetto inventato dove non c'era.
+   Il tema si cambia **premendo il pulsante**, che ridisegna:
+   ```js
+   [...document.querySelectorAll('button')].find(x=>x.textContent.trim()==='Chiaro').click();
+   ```
+   E la conferma che la misura è buona non è più il valore di `--card`: è che il `fill`
+   **reso** di un totale coincida col token del blocco. `--card` risponde giusto anche
+   nella chimera, ed è precisamente per questo che non basta.
+
+7. **Il riquadro non cattura con un viewport emulato più largo di sé.** Con `resize_window`
+   a 1265 su un riquadro da ~800, `screenshot` restituisce un rettangolo **uniforme del
+   colore di fondo**, senza errori e senza niente in console: il DOM è a posto,
+   `elementFromPoint` trova gli elementi, e l'immagine è vuota. A 380 e alla larghezza
+   naturale del riquadro funziona. Le misure di layout restano valide anche a 1265 — sono
+   di layout, non di composizione — quindi **si misura ai numeri giusti e si fotografa alle
+   larghezze che il riquadro regge.**
+
+8. **`window.innerWidth` mente sotto emulazione.** A viewport emulato 380 riporta **748**,
+   mentre `document.documentElement.clientWidth` dice 380 e le media query rispondono
+   giuste. Conta perché la soglia delle schede dell'house effect è tarata proprio su
+   `innerWidth` — «la media query si confronta con `innerWidth`, cioè con la finestra
+   compresa la barra di scorrimento» — e perché la forma compatta dell'embed decide la
+   potatura su `window.innerHeight`. Sotto emulazione quelle due grandezze **non sono
+   misurabili in questo riquadro**: si usa `clientWidth`, oppure si misura su una finestra
+   vera.
 
 E una del DOM, non del banco: **`$('k-house').innerHTML` viene riscritto per intero a ogni
 `render()`**, quindi un riferimento preso prima di un `click()` è morto subito dopo. Due
@@ -4862,62 +4899,87 @@ numero** — `graf.js`, `mob2.js`, `isola.js` e il ruolino di `PAR_DEF` in `appa
 Un «3» in quelle prove avrebbe detto «difetto» dove c'era una riparazione, ed è esattamente
 l'attesa che si fa tornare verde senza guardare.
 
-### La leva nasce ACCESA, e questo cambia il verbo e la riga
+### La leva nasce SPENTA, e per tre giorni questo file ha detto il contrario
 
-Deciso dall'autore il 27 agosto 2026, poche ore dopo aver applicato la leva spenta. Il
-cambio è di una cifra in `PAR_DEF`, ma sposta due cose che vanno guardate insieme.
+**CORRETTO IL 30 AGOSTO 2026.** Le due sezioni che dicevano «nasce ACCESA» descrivevano uno
+stato durato **mezza giornata**: la leva è stata accesa il 27 agosto e rimessa spenta lo
+stesso giorno, e il commento accanto a `PAR_DEF` lo scrive con la data. Il codice diceva
+`inbilico:0` e questo file diceva il contrario — **documentazione che afferma quello che il
+codice non fa**, cioè la classe di difetto contro cui il file mette in guardia da quando la
+sigla dell'emiciclo dichiarava «incerti» su una voce irraggiungibile.
 
-**Perché accesa.** Le altre due leve di ipotesi partono spente perché aggiungono un'ipotesi
-a un conteggio che senza di loro è quello della fonte. Qui è il contrario: la domanda «e se
-governasse con Netanyahu?» è quella che un lettore si fa comunque davanti a una lista che
-non sta con nessuno dei due campi, e partire dallo stato in cui non è posta lo lascia
-davanti a un conteggio che **non dichiara la propria ipotesi**. È lo stato non dichiarato
-contro cui il simulatore accende «Blocco Netanyahu» all'apertura invece di partire da una
-selezione vuota.
+L'ha trovata la passata di misura sulla pagina resa, non una prova: nessuna prova legge
+questo file.
 
-**IL PREZZO VA SAPUTO, ed è scritto accanto alla costante: il conteggio predefinito non è
-quello della fonte.** Wikipedia non conta queste liste nel totale «Gov.», e la pagina sì.
-L'anagrafica resta invariata — in `P{}` restano dove la fonte le mette — e la guardia «Gov.»
-del parser notturno continua a leggere quella, che adesso conta doppio: con la leva accesa
-per difetto, una leva che la raggiungesse farebbe respingere righe valide **ogni notte**.
+**Perché spenta, ed è la ragione che decide.** Il conteggio predefinito dev'essere quello
+della **fonte**. Wikipedia non conta «Popolo d'Israele» dentro il totale «Gov.», e una
+pagina che di suo ce la mette pubblica un numero che non esiste da nessun'altra parte: chi
+confronta il nostro 53 col 49 della fonte non trova la spiegazione nel numero, la trova in
+una riga di prosa sotto un pulsante. Un modello può fare un'ipotesi — deve poterla fare — ma
+la fa **a partire dal fatto, non al posto suo**, ed è la stessa regola per cui gli
+apparentamenti annunciati e i soli ultimi sette giorni partono spenti.
 
-**Il verbo si rovescia.** Con la leva accesa il primo verbo che il lettore incontra è quello
-che **toglie**, non quello che aggiunge:
+E non è un caso di scuola: misurato il 27 agosto, con la leva accesa il blocco Netanyahu
+esce **53** e con la leva spenta **49** — quattro seggi, cioè più dell'errore che il banco
+dichiara nell'ultima settimana di campagna.
+
+**La ragione per cui era stata accesa resta vera a metà**, e va lasciata scritta perché è
+l'obiezione: un conteggio che tiene una lista fuori dai due campi non risponde alla domanda
+«e se governasse con Netanyahu?», che è quella che un lettore si fa comunque. **La risposta
+non è accendere la leva per lui: è che la domanda si veda.** Ci pensano il pulsante — che
+c'è appena la leva sposta qualcosa — e la riga di esito, che nello stato spento dice quanto
+peserebbe l'ipotesi **senza applicarla**.
+
+**Il verbo, e quale dei due il lettore incontra per primo:**
 
 | stato | etichetta |
 |---|---|
-| **acceso — il difetto** | **Togli 1 lista dal blocco** |
-| spento | Conta 1 lista nel blocco |
+| **spento — il difetto** | **Conta 1 lista nel blocco** |
+| acceso | Togli 1 lista dal blocco |
 
 È la grammatica di «Escludi / Includi» dell'house effect: il nome dice l'azione, il cambio
 di nome **è** il riscontro, quindi niente `aria-pressed`. E «Riporta 1 lista in bilico», che
 era l'etichetta del giorno prima, diceva dove va e **non da dove viene**.
-Le due etichette hanno la **stessa lunghezza**, ed è cercato: «Togli» e «Conta» hanno cinque
-lettere, «dal» e «nel» tre, «lista» e «liste» cinque. Non cambia larghezza né premendo né
-quando il numero passa da uno a due — è la cosa che al comando degli accordi è costata 36px
-di salto sotto il dito.
 
-**La riga di esito dichiara lo stato ACCESO, non solo quello spento**, e lo dichiara nel
-primo periodo: quella frase la legge chi non ha toccato niente.
+#### «Le due etichette hanno la stessa lunghezza» era falso, e il numero che lo salva non è quello
 
-> **Il conteggio parte da un'ipotesi**, non da un fatto: **Popolo d'Israele con Blocco
-> Netanyahu**, contata nel blocco con cui governerebbe mentre la fonte la tiene fuori dai
-> due campi. **4 seggi** si spostano fra i blocchi: Blocco Netanyahu 47 → 51 · Ago della
-> bilancia 4 → 0. Il pulsante la riporta dove la mette la fonte.
+Questo file diceva: *«ed è cercato: "Togli" e "Conta" hanno cinque lettere, "dal" e "nel"
+tre, "lista" e "liste" cinque»*. **Misurato il 30 agosto sulla pagina resa a 380: 151,3 →
+146,0px, cioè −5,3px.** Stesse lettere, larghezze diverse, perché `l` e `i` sono strette.
 
-L'ultima frase non è cortesia: «ipotesi» senza il comando per toglierla è una parola sola.
+**È letteralmente la trappola già pagata tre sezioni più su**, con l'etichetta degli
+accordi: *«Il plurale è più CORTO del singolare: 188,0 contro 195,4, perché "accordi
+annunciati" scambia due o per due i e la i è più stretta»*. Contare le lettere non è
+misurare, e il file lo sapeva già quando ha scritto che era «cercato».
 
-**E `statoLeve()` la dichiara quando è SPENTA**, perché il confronto è con `PAR_DEF` e non
+**Ma la conseguenza che quel controllo doveva impedire non si verifica**, ed è la misura che
+va tenuta perché è quella che scade:
+
+| | spento | acceso |
+|---|---|---|
+| larghezza dell'etichetta | 151,3px | 146,0px |
+| **altezza del nastro** | **101px** | **101px** |
+| **righe del nastro** | **3** | **3** |
+
+**Il difetto è latente, non attivo, e il margine che lo tiene tale è che a 380 il pulsante
+sta da solo sulla terza riga.** Quel margine sparisce il giorno in cui si aggiunge una
+quinta leva e la terza riga si riempie: allora i 5,3px decidono se il nastro va a capo, e il
+pannello si accorcia sotto il dito come è già successo una volta. **Lasciata scritta e non
+riparata**, con il numero accanto, perché il numero è la cosa che cambia.
+
+**E `statoLeve()` la dichiara quando è ACCESA**, perché il confronto è con `PAR_DEF` e non
 con lo zero — così il prompt che va al servizio terzo segue il difetto anche se un giorno
-cambia.
+cambia. `ipotesiNeiNumeri()` non cambia di una virgola: parla quando la leva è accesa, che
+il predefinito sia acceso o spento, ed è precisamente la distinzione per cui le due funzioni
+sono due.
 
-**Il comando compare quando comincia a spostare qualcosa, e non prima.** Oggi «Popolo
-d'Israele» non ha seggi in nessuna rilevazione, quindi la leva — benché accesa — muove zero
-e il pulsante non c'è. Dal primo sondaggio che la porta sopra soglia il conteggio cambia da
-solo, perché la leva è già accesa: il pulsante deve comparire **in quel render**, o il
-lettore si troverebbe davanti a un'ipotesi applicata senza il comando per toglierla. La
-prova non indovina il punto, lo **cerca**: «al primo seggio» sarebbe falso, perché un seggio
-per rilevazione vale una quota dello 0,8% contro una soglia di 3,25.
+**Il comando compare quando comincia a spostare qualcosa, e non prima.** Il 27 agosto
+«Popolo d'Israele» non aveva seggi in nessuna rilevazione, quindi la leva muoveva zero e il
+pulsante non c'era. **Dal 28 agosto ne ha cinque**, e il pulsante c'è: verificato sulla
+pagina resa il 30 agosto, insieme alla riga di esito che dice «*Il pulsante prova l'ipotesi
+opposta — Popolo d'Israele con Blocco Netanyahu — e dice quanto peserebbe: oggi 5 seggi*».
+La prova non indovina il punto in cui compare, lo **cerca**: «al primo seggio» sarebbe
+falso, perché un seggio per rilevazione vale una quota dello 0,8% contro una soglia di 3,25.
 
 ### Quello che esce dalla pagina deve portare l'ipotesi con sé
 
@@ -4995,6 +5057,138 @@ una censura dell'avvertimento, ed è scritto accanto alla funzione che taglia.
   nulla. Adesso l'ancora comprende `(true)` e la presenza del `<text>`.
 
 ---
+
+## La passata del 30 agosto: due difetti che il quarto blocco ha reso visibili
+
+Guardata la pagina resa il 30 agosto 2026, il primo giorno in cui l'**ago della bilancia ha
+cinque seggi in produzione**. Nessuno aveva mai visto quello stato: il quarto blocco è
+entrato in aula il 28 e fino ad allora ogni sua parte era codice che non si accendeva.
+
+**Le due cose trovate erano scritte da mesi e nessuna prova le vedeva**, per la stessa
+ragione: si accendono solo quando il quarto blocco ha seggi.
+
+### 1 · La sigla dell'arco era una seconda anagrafica dei nomi di blocco
+
+La sigla sotto i totali diceva **«incerti»** e la legenda quaranta pixel più sotto diceva
+**«Ago della bilancia»**. La tentazione è correggere una parola; il difetto era un altro.
+
+`TOT_SIGLA` era una tabella di quattro voci scritte a mano accanto alle quattro di `BL`, e
+**tre su quattro erano già derivabili dal nome**:
+
+| nome del blocco | sigla | derivabile? |
+|---|---|---|
+| Opposizione sionista | opposizione | sì — la prima parola, minuscola |
+| Partiti arabi | arabi | sì — tolto il tipo in testa |
+| Blocco Netanyahu | Netanyahu | sì — tolto il tipo in testa |
+| **Ago della bilancia** | **incerti** | **no: non è una parola del nome** |
+
+Quindi non c'era una parola sbagliata: c'era **la strada doppia di sempre**, con la
+particolarità che la voce divergente era stata scritta quando quel blocco non aveva mai
+seggi — cioè quando nessuno poteva vederla accanto alla legenda. È la stessa forma della
+sigla `incerto:'incerti'` dichiarata e irraggiungibile nel `trio` cablato a tre chiavi:
+**due volte lo stesso blocco assente ha nascosto due volte lo stesso genere di difetto.**
+
+**La regola che l'ha sostituita**: un nome di blocco dice di che **tipo** di raggruppamento
+si tratta e **quale**; in italiano il tipo sta in testa — «Blocco» Netanyahu, «Partiti»
+arabi, «Ago della» bilancia — e la sigla è quello che resta tolto il tipo, preposizioni
+comprese. «Opposizione sionista» non ha un tipo in testa, perché «Opposizione» è già il
+quale: lì resta la prima parola. E **la maiuscola sopravvive solo se la parola non era in
+testa**, perché in testa la maiuscola è della posizione e non del nome proprio.
+
+Le due liste di parole sono di **lingua, non di blocchi**: non crescono l'8 settembre, e
+crescono solo il giorno in cui un nome di blocco usa un tipo nuovo — che è un giorno in cui
+la sigla esce visibilmente strana invece di restare in silenzio quella di ieri.
+
+**La prova è sulla regola e non sulle quattro stringhe di oggi**: asserire che la sigla di
+`incerto` sia «bilancia» sarebbe rimettere in una prova la tabella appena tolta. Si prova
+che **ogni sigla sia una parola del nome da cui viene** — la proprietà che «incerti»
+violava — e che la sigla presa dalla prima parola perda la maiuscola. Costo in larghezza:
+«bilancia» misura 25,2 unità contro le 23,6 di «incerti», **+1,6**.
+
+### 2 · «MAGGIORANZA 61» rendeva 7,20px, e i 9px erano arrivati solo negli istogrammi
+
+La stessa etichetta vive in **due disegni**. Negli istogrammi stava a 7,09px — «dentro
+l'invariante, e illeggibile» — ed è stata portata a 10,98 il 22 agosto 2026, con `soglia.js`
+che da allora pretende **almeno 9px reali a 380**. Nell'emiciclo quella regola non era mai
+arrivata: viewBox 430, contenitore 326, fattore **0,7581**, corpo 9,5 → **7,20px**.
+
+L'invariante 8 chiede almeno 5 e passava. **Cinque è un pavimento, non un obiettivo**, ed è
+la terza volta che questa frase serve.
+
+**La regola si estende, non si ricopia**: è la stessa proprietà, sullo stesso testo, in un
+secondo posto — e senza, il prossimo che ritocca il corpo la riporta sotto.
+
+**Il fattore è 1,3 e non 1,55 come negli istogrammi, e il tetto non è estetico.** Sopra
+l'etichetta c'è il bordo del viewBox e sotto ci sono i seggi. Misurato sul disegno reso, con
+l'inchiostro vero e l'urto calcolato contro tutti e 120 i cerchi:
+
+| fattore | corpo | reso a 380 | sopra | dai seggi | urti |
+|---|---|---|---|---|---|
+| 1 *(prima)* | 9,50 | **7,20px** | 0,97 | 5,54 | 0 |
+| 1,25 | 11,88 | 9,01px | 0,90 | 2,02 | 0 |
+| **1,30** *(applicato)* | **12,35** | **9,36px** | **0,68** | **1,52** | **0** |
+| 1,35 | 12,83 | 9,73px | 1,28 | 0,92 | 0 |
+| 1,40 | 13,30 | 10,08px | 1,07 | −0,29 | **2** |
+
+1,25 rende 9,01px, cioè un centesimo sopra il pavimento; 1,40 urta due seggi. **1,30 è il
+solo valore con margine dalle due parti.**
+
+**E la base si alza col corpo.** Il serraggio `Math.max(11, yt)` decide la quota
+dell'etichetta **praticamente sempre**, perché con 120 seggi la soglia cade al centro
+dell'arco: 11 è la quota vera, non un caso limite. Lasciandolo fisso, il corpo più grande
+cresce verso l'alto e il bordo lo taglia — una riparazione che ne rompe un'altra.
+
+**La prova stima la scatola per eccesso**, perché jsdom non fa layout: 1,12 di ascesa sopra
+la base e 1,40 di altezza, contro 1,10 e 1,35 misurati sul reso. Sovrastimare costa un po'
+di margine e non lascia mai passare un urto — è l'argomento di `ETIW`. E la stima **morde**:
+col fattore a 1,40 il fondo esce a 19,12 contro una cima dei seggi a 18,69, cioè la prova
+cade dove il browser vede l'urto.
+
+### Otto mutazioni, sette morte, e la viva è viva per progetto
+
+**Due erano vive al primo giro, e dicevano la stessa cosa**: «ogni sigla è una parola del
+nome» non basta. La regola che non toglie il tipo in testa produce «partiti», «blocco» e
+«ago»; quella che non salta la preposizione produce «della». **Sono tutte e quattro parole
+del nome**, quindi passavano — e sono tutte e quattro sigle che dicono di che *tipo* di
+raggruppamento si tratta invece di dire *quale*, cioè l'esatto contrario del mestiere della
+sigla. Quattro blocchi che si chiamano «partiti», «blocco», «ago» e «opposizione» non si
+distinguono affatto.
+
+La metà che mancava è meccanica: **nessuna sigla può essere una delle parole che la regola
+esiste per scartare** — il tipo *e* la preposizione, che sono due liste e vanno guardate
+tutte e due. Il secondo mutante è sopravvissuto anche al primo giro di quell'asserzione,
+perché guardava solo la prima lista.
+
+**E la viva è viva per progetto, come la `f2` che riperde «da sola».** Il fattore a **1,25**
+rende **9,007px**, cioè soddisfa il pavimento dei 9 al terzo decimale: la prova dice ≥9 e
+1,25 è ≥9, quindi il mutante non è un buco. È annotato qui perché chi lo trova vivo domani
+non lo chiami buco — e perché la ragione per cui il codice sta a 1,30 e non a 1,25 non è la
+regola, è il **margine**, ed è scritta accanto alla costante: *una regola la cui
+soddisfazione dipende dal terzo decimale di una costante misurata non è una regola.* Il 326
+del contenitore è una misura con una data, e basta un ritocco all'imbottitura per farla
+scendere sotto.
+
+### Il banco delle mutazioni ha lasciato il file guasto, per la seconda volta
+
+Il runner è morto a metà del secondo mutante e `index.html` è rimasto con `if(false)` al
+posto della guardia sul tipo in testa. **La regola era già scritta** — *«quando lo si
+interrompe a metà, il file resta guasto, quindi prima di rimettersi a lavorare si
+controllano le sedi di mutazione una per una»* — ed è servita: le otto sedi sono state
+ricontrollate una a una, e una era sporca.
+
+La causa era banale e vale la pena dirla: il runner chiamava `node test/estrai.mjs` con un
+percorso relativo mentre la sessione aveva la cartella corrente dentro `test/suite`. **Un
+banco di mutazioni che muore per una cartella corrente lascia esattamente lo stesso danno di
+uno che muore per una ragione seria**, e il rimedio non è ricordarsi la cartella: è
+ricontrollare le sedi, sempre.
+
+### E una cosa che l'occhio ha sbagliato, e la misura ha corretto
+
+Nella schermata a 380 sembrava che i seggi verdi finissero **sopra** l'etichetta. Misurato:
+**zero sovrapposizioni**, 5,1 unità di margine. Era contrasto basso più scala, non
+collisione. *La regola «misurare convince di aver guardato» ha un rovescio che vale
+altrettanto: guardare convince di aver misurato.* La riparazione giusta era il corpo, e se
+avessi creduto all'occhio avrei spostato l'arco.
 
 ## La condivisione: lo stesso elenco due volte, e il glifo che non si leggeva
 
@@ -5211,12 +5405,16 @@ marchio.** Nove vengono da Simple Icons; tre sono nostri e dichiarati uno per un
 `embed.js` con la ragione, ChatGPT compreso — che è nostro perché Simple Icons non ha
 l'icona di OpenAI, e l'assenza è del repository, non della ricerca.
 
-**4 · `PAR.inbilico` nasce ACCESA e l'anagrafica non si tocca.** In `P{}` «Popolo d'Israele»
-resta ago della bilancia, perché è lì che la mette la fonte. La regola che ne discende, e
-che vale per chi aggiunge un consumatore domani: **le funzioni che calcolano QUOTE leggono
-l'anagrafica — `applicaSwing()`, `puntiPer()`, `dir[]` del Monte Carlo, l'affluenza araba —
-quelle che CONTANO SEGGI leggono la leva.** E la leva non deve raggiungere la guardia «Gov.»
-del parser notturno, o ogni notte respingerebbe righe valide dove nessuno guarda.
+**4 · `PAR.inbilico` nasce SPENTA e l'anagrafica non si tocca.** *(Questa riga diceva
+«ACCESA» ed è stata corretta il 30 agosto 2026: la leva è stata accesa il 27 e rimessa
+spenta lo stesso giorno, e per tre giorni questo file ha affermato quello che il codice non
+faceva. Vedi «La leva nasce SPENTA».)* Il conteggio predefinito dev'essere quello della
+fonte, e in `P{}` «Popolo d'Israele» resta ago della bilancia perché è lì che la mette
+Wikipedia. La regola che ne discende, e che vale per chi aggiunge un consumatore domani:
+**le funzioni che calcolano QUOTE leggono l'anagrafica — `applicaSwing()`, `puntiPer()`,
+`dir[]` del Monte Carlo, l'affluenza araba — quelle che CONTANO SEGGI leggono la leva.** E
+la leva non deve raggiungere la guardia «Gov.» del parser notturno, o ogni notte
+respingerebbe righe valide dove nessuno guarda.
 
 ### Il parser e le due convenzioni — APPLICATO, e tutte e tre le forme sono lette
 
@@ -5545,18 +5743,23 @@ frase che non è mia da scrivere:
 
 Poi, in quest'ordine — che **non** è l'ordine in cui le voci sono scritte più sotto:
 
-1. **GUARDARE LA PAGINA RESA, ed è la sola cosa viva.** L'ago della bilancia ha **cinque
-   seggi**: il quarto blocco è in aula *adesso*, in produzione, e nessun occhio ha mai visto
-   la pagina in quello stato. L'arco a quattro gruppi, la riga dei totali a corpo 28, il
-   comando della leva visibile, e la **sigla dell'emiciclo a 5,69px contro un pavimento di
-   5** — 0,69px di margine, il testo più piccolo della pagina. Sono tutti numeri misurati e
-   nessuno è stato confermato da un occhio.
-   Con essa, le altre cose cambiate dopo la passata del 23 agosto e mai guardate: il vuoto
-   fra i gruppi passato da tre posti a uno, i nove glifi di Simple Icons **in pagina** (visti
-   rasterizzati, mai nel loro contesto), la colonna di condivisione sopra i 1380, e **le
-   anteprime social**, che si guardano solo mandandosi il link in una chat nuova.
-   Viene prima di tutto perché è l'unica famiglia di difetti che nessuna delle 2426 prove
-   vede, e perché lo stato che nessuno ha guardato è quello pubblicato oggi.
+1. **GUARDARE LA PAGINA RESA — FATTA IN PARTE il 30 agosto 2026**, e quello che ha trovato
+   sta in «La passata del 30 agosto». **Guardato**: l'arco a quattro gruppi con l'ago della
+   bilancia a cinque seggi, nei due temi a 380; i totali 54·12·5·49 che chiudono a 120; il
+   comando della leva e la sua riga di esito; lo sforamento orizzontale a 380, che resta
+   **zero** col quarto blocco in aula. **Trovati e chiusi**: la sigla che diceva «incerti»
+   dove la legenda dice «Ago della bilancia», e «MAGGIORANZA 61» a 7,20px contro i 9 che la
+   stessa etichetta ha negli istogrammi. La sigla dell'emiciclo resta a **5,69px** — 0,69 di
+   margine sul pavimento di 5, il testo più piccolo della pagina — ed è **guardata e
+   accettata**, non più solo calcolata.
+   **Resta da guardare**, e sono le cose che questa passata non ha toccato: il vuoto fra i
+   gruppi passato da tre posti a uno, i nove glifi di Simple Icons **in pagina** (visti
+   rasterizzati, mai nel loro contesto), la colonna di condivisione sopra i 1380, la scala
+   divergente dell'house effect a 1265, e **le anteprime social**, che si guardano solo
+   mandandosi il link in una chat nuova.
+   Resta prima di tutto perché è l'unica famiglia di difetti che nessuna delle prove vede:
+   le due chiuse il 30 agosto erano scritte da mesi, verdi su tutto il banco, e le ha viste
+   un occhio il primo giorno in cui il quarto blocco ha avuto dei seggi.
 
 2. **LA PROVA DI REGIA DELL'8 SETTEMBRE, che è l'unica cosa con un orologio.** Il deposito
    delle liste chiude l'anagrafica, ed è il giorno in cui quasi tutto quello che è annotato
