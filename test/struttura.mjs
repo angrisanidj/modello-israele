@@ -330,7 +330,7 @@ let yamlKO=[];
 try{
   const {load}=await import('js-yaml');
   for(const f of readdirSync(join(qui,'..','.github','workflows'))){
-    if(!/.ya?ml$/.test(f)) continue;
+    if(!/\.ya?ml$/.test(f)) continue;
     const t=readFileSync(join(qui,'..','.github','workflows',f),'utf8');
     try{
       const d=load(t);
@@ -368,40 +368,78 @@ await (async function(){
     intervallo a-b, e l intervallo con passo, scritto con una barra e un numero in coda.
     L attesa non e' cambiata — i tentativi devono essere piu' di uno — e' cambiato cio' che
     la sa calcolare. */
- function quanti(campo, tetto){
-  let n=0;
-  for(const pezzo of String(campo).split(',')){
+ /* E DAL 30 AGOSTO 2026 SI ESPANDE INVECE DI CONTARE, perche' e' nata una seconda
+    proprieta' da provare che non e' un conteggio: che i tick della VEDETTA non cadano dove
+    cadono questi. Il numero e' la cardinalita' dell'insieme, quindi l'insieme li da' tutti
+    e due — una strada sola invece di due che direbbero cose diverse il giorno in cui una
+    delle due sbaglia una forma di campo. */
+ function campo(g, tetto){
+  const out=[];
+  for(const pezzo of String(g).split(',')){
    const parti=pezzo.split('/');
    const gamma=parti[0], passo=parti[1]?Number(parti[1]):1;
    let da, a;
    if(gamma==='*'){ da=0; a=tetto; }
    else if(gamma.indexOf('-')>0){ da=Number(gamma.split('-')[0]); a=Number(gamma.split('-')[1]); }
    else { da=Number(gamma); a=da; }
-   if(!isFinite(da)||!isFinite(a)||!isFinite(passo)||passo<1) return NaN;
-   n+=Math.floor((a-da)/passo)+1;
+   if(!isFinite(da)||!isFinite(a)||!isFinite(passo)||passo<1) return null;
+   for(let v=da; v<=a; v+=passo) out.push(v);
   }
-  return n;
+  return out;
  }
- const tick=sched.reduce(function(n,c){
-  const campi=String(c).trim().split(/\s+/);
-  return n+quanti(campi[0],59)*quanti(campi[1],23);
- },0);
- /* E IL CONTATORE SI PROVA SU CASI COSTRUITI, perche' uno che SOTTOSTIMA fallisce rumoroso
-    — NaN non e' maggiore di 1 — ma uno che SOVRASTIMA passerebbe in silenzio, dichiarando
-    una finestra dove c'e' un istante. I quattro casi coprono le quattro forme. */
- const casiCron=[['5',1],['5,35',2],['0-5',6],['0-23/2',12]];
- const contoKO=casiCron.filter(function(c){ return quanti(c[0],59)!==c[1]; })
-   .map(function(c){ return c[0]+' -> '+quanti(c[0],59)+' invece di '+c[1]; });
- p('e il contatore dei tick sa contare tutte e quattro le forme di un campo cron'+
+ function espandi(crons){
+  const s=new Set();
+  for(const c of [].concat(crons)){
+   const campi=String(c).trim().split(/\s+/);
+   const mm=campo(campi[0],59), hh=campo(campi[1],23);
+   if(!mm||!hh) return null;
+   for(const h of hh) for(const m of mm)
+    s.add(String(h).padStart(2,'0')+':'+String(m).padStart(2,'0'));
+  }
+  return s;
+ }
+ const slot=espandi(sched);
+ const tick=slot?slot.size:NaN;
+ /* E L'ESPANSORE SI PROVA SU CASI COSTRUITI, perche' uno che SOTTOSTIMA fallisce rumoroso
+    — un insieme vuoto non e' piu' grande di 1 — ma uno che SOVRASTIMA passerebbe in
+    silenzio, dichiarando una finestra dove c'e' un istante. I casi coprono le quattro forme
+    di un campo, piu' i due cron veri: quello del lavoro notturno e l'ora tonda, che e' la
+    forma in cui l'asterisco deve espandersi e non collassare. */
+ const casiCron=[['5 0 * * *',1],['5,35 0 * * *',2],['0-5 0 * * *',6],
+   ['0-23/2 0 * * *',12],['23 3-21/2 * * *',10],['0 * * * *',24]];
+ const contoKO=casiCron.filter(function(c){ const e=espandi(c[0]); return !e||e.size!==c[1]; })
+   .map(function(c){ const e=espandi(c[0]); return c[0]+' -> '+(e?e.size:'illeggibile')+
+     ' invece di '+c[1]; });
+ p('e l espansore dei tick sa leggere tutte e quattro le forme di un campo cron'+
    (contoKO.length?' ('+contoKO.join(' · ')+')':''), contoKO.length===0);
  p('il cron del lavoro notturno e una FINESTRA e non un istante: '+tick+' tentativi ('+
    sched.join(' | ')+'), perche un tick solo e best-effort e puo saltare', tick>1);
+ /* 1-bis · E UN INNESCO CHE NON E' UN OROLOGIO. Il cron a finestra e la vedetta alzano
+    tutti e due la probabilita' che QUALCOSA parta, e restano tutti e due dentro il
+    best-effort di GitHub: l'unico innesco che non ci sta dentro e' un fatto del mondo.
+    Qui e' il push su main — chi scrive spinge piu' volte al giorno — e il giro si chiude
+    perche' la guardia legge la data che il job stesso ha appena scritto.
+    Si guarda che ce ne sia UNO, non che sia il push: il giorno in cui ne arriva un altro
+    la proprieta' regge e la prova non va riscritta. */
+ const inneschi=Object.keys((d&&d.on)||{}).filter(k=>k!=='schedule'&&k!=='workflow_dispatch');
+ p('e accanto ai tick c e almeno un innesco che NON e un orologio'+
+   (inneschi.length?' ('+inneschi.join(', ')+')':''), inneschi.length>0);
  /* 2 · LA GUARDIA STA DAVANTI, in un job suo, e il job che scrive DIPENDE da lei. */
  const g=(d&&d.jobs&&d.jobs.guardia)||null, a=(d&&d.jobs&&d.jobs.aggiorna)||null;
  const needs=a?[].concat(a.needs||[]):[];
  p('la guardia e un job a se e il job che scrive lo aspetta, cosi un tick a vuoto non '+
    'esegue NESSUN passo che scrive',
    !!g && !!a && needs.indexOf('guardia')>=0);
+ /* 2-bis · E LEGGE LA PUNTA DEL RAMO, non il commit che l'ha innescata. Su un push il
+    checkout predefinito prende il commit dell'evento, che puo' essere anteriore allo
+    stato-job.json appena scritto da un'esecuzione in coda: la guardia risponde a una
+    domanda su ADESSO, e leggerla nel passato le fa dire «si procede» quando la notte e'
+    gia' andata. Per schedule e dispatch la riga non cambia niente — e' il caso in cui una
+    proprieta' regge per coincidenza finche' non arriva l'innesco che la rompe. */
+ const co=((g&&g.steps)||[]).filter(x=>x&&/actions.checkout/.test(String(x.uses||'')))[0];
+ p('e legge la PUNTA di main invece del commit che l ha innescata, o su un push '+
+   'risponderebbe sullo stato di ieri',
+   !!co && String((co.with||{}).ref||'')==='main');
  /* 3 · E LEGGE stato-job.json, E SOLO QUELLO. Il file e' quello giusto perche' il job lo
     riscrive a OGNI notte riuscita, anche a mani vuote: «c'e' la data di oggi» vuol dire
     «stanotte e' gia' andata», non «stanotte ha trovato qualcosa».
@@ -424,18 +462,111 @@ await (async function(){
    (fileG.length?' ('+fileG.join(', ')+')':''),
    fileG.length===1 && fileG[0]==='dati/stato-job.json');
 
- /* 4 · MA NON PER IL DISPATCH. E' la riga che protegge il gesto deliberato: «ho constatato
-    che l'archivio e' fermo, quindi lo faccio partire». Una guardia che saltasse anche
-    quello renderebbe impossibile la sola cosa che rimedia a un tick mai nato. */
+ /* 4 · MA NON PER IL DISPATCH — E LA PROPRIETA' SI RISOLVE, NON SI CERCA COME STRINGA.
+    Fino al 30 agosto 2026 qui si guardava che la condizione contenesse «schedule» e
+    «guardia». Reggeva finche' gli inneschi erano due, e sarebbe rimasta VERDE sul difetto
+    per cui esiste: col push aggiunto, «!= 'schedule'» contiene tutte e due le parole e
+    lascia passare un push senza guardia — cioe' l'anello che si richiude sul push che il
+    job fa da se'. Una prova che cerca le parole di una condizione non sta provando la
+    condizione: sta provando che qualcuno le ha scritte.
+    Adesso la condizione si RISOLVE per ogni evento, e la tabella e' l'attesa. Con la
+    guardia che dice «stanotte e' gia' andata» parte SOLO il dispatch; con la guardia che
+    dice «si procede» partono tutti. Sei celle, e nessuna nomina una stringa del codice. */
  const cond=String((a&&a.if)||'');
- p('e NON vale per workflow_dispatch: un dispatch e una decisione, non un tick',
-   cond.indexOf('schedule')>=0 && cond.indexOf('guardia')>=0);
+ /* SI RIFIUTA DI INDOVINARE: se nella condizione resta un identificatore che non e' stato
+    sostituito — un contains(), un altro contesto di GitHub — il risolutore risponde null e
+    la prova CADE, invece di dare un verdetto su una grammatica che non sa leggere. */
+ function risolvi(c, evento, gia){
+  const js=c.split('github.event_name').join(JSON.stringify(evento))
+            .split('needs.guardia.outputs.gia').join(JSON.stringify(gia));
+  const nudo=js.replace(/"[^"]*"/g,'').replace(/'[^']*'/g,'');
+  const parole=nudo.match(/[A-Za-z_][A-Za-z0-9_.]*/g)||[];
+  if(parole.some(w=>['true','false','null'].indexOf(w)<0)) return null;
+  try{ return !!(new Function('return ('+js+')'))(); }catch(e){ return null; }
+ }
+ /* E FRA GLI EVENTI CE N'E' UNO CHE NON ESISTE, ed e' quello che rende la tabella una
+    prova della PROPRIETA' invece che dei tre casi di oggi. La proprieta' e' «tutto tranne
+    il dispatch», non «questi tre»: una condizione scritta per esclusione — diverso da
+    schedule E diverso da push — produce le stesse tre righe e lascia passare il quarto
+    innesco, cioe' quello che qualcuno aggiunge domani senza guardare qui. Il mutante era
+    VIVO finche' la tabella conosceva solo gli eventi gia' dichiarati. */
+ const eventi=['schedule','push','workflow_dispatch','repository_dispatch','innesco_di_domani'];
+ const con1=eventi.map(e=>risolvi(cond,e,'1'));   /* la guardia dice: gia' andata */
+ const con0=eventi.map(e=>risolvi(cond,e,'0'));   /* la guardia dice: si procede */
+ const atteso1=[false,false,true,false,false], atteso0=[true,true,true,true,true];
+ const tabKO=eventi.map((e,i)=>[e,i]).filter(([e,i])=>con1[i]!==atteso1[i]||con0[i]!==atteso0[i])
+   .map(([e,i])=>e+': parte '+con1[i]+' a notte fatta e '+con0[i]+' a notte da fare');
+ p('con la notte gia fatta parte SOLO il workflow_dispatch — compreso un innesco che '+
+   'oggi non esiste — e con la notte da fare partono tutti'+
+   (tabKO.length?' ('+tabKO.join(' · ')+')':''), tabKO.length===0);
  /* 5 · E IL RIEPILOGO RESTA «always()». Un tick che esce subito non deve sembrare una notte
     fallita: il job saltato non lo esegue affatto, e quando il job gira l'always() deve
     esserci ancora, o una notte caduta a meta' tacerebbe. */
  const ri=((a&&a.steps)||[]).filter(x=>x&&x.name&&/riepilogo/i.test(x.name))[0];
  p('e il passo del riepilogo conserva il suo «if: always()»',
    !!ri && String(ri.if||'').indexOf('always()')>=0);
+
+ /* ── 6-9 · LA VEDETTA, e perche' esiste una prova per una cosa che CLAUDE.md aveva
+    scartato. La voce diceva: «un workflow SEPARATO con uno schedule suo avrebbe esattamente
+    lo stesso difetto… il giorno in cui GitHub e' sotto carico i due tick saltano insieme».
+    Il modo di fallire e' descritto giusto e la conclusione non segue: due estrazioni
+    indipendenti mancano insieme MENO SPESSO di una. E' un ragionamento valido applicato a
+    un caso solo — la terza volta in due giorni, dopo «da sola» e l'impronta dell'og:image.
+    Le quattro proprieta' vanno insieme: un secondo innesco che stia dentro lo stesso file
+    morirebbe con lui; uno che lanci senza constatare e' un secondo timer, cioe' la stessa
+    classe di rischio spostata; uno che scriva e' la seconda strada sull'archivio; e uno che
+    peschi nelle stesse fasce non e' una seconda estrazione, e' la stessa. */
+ let ved=null, vedF='';
+ for(const nf of readdirSync(join(qui,'..','.github','workflows'))){
+  if(!/\.ya?ml$/.test(nf) || nf==='aggiorna.yml') continue;
+  let doc; try{ doc=load(readFileSync(join(qui,'..','.github','workflows',nf),'utf8')); }
+  catch(e){ continue; }
+  if(JSON.stringify(doc||'').indexOf('gh workflow run aggiorna.yml')>=0){ ved=doc; vedF=nf; }
+ }
+ p('esiste un SECONDO innesco del lavoro notturno, e sta in un FILE SUO: dentro '+
+   'aggiorna.yml morirebbe insieme a quello che deve rimediare'+(vedF?' ('+vedF+')':''),
+   !!ved);
+
+ /* CONSTATA, NON AFFERMA, e sono due asserzioni perche' sono due meta'. La prima e'
+    l'idioma dell'insieme gia' pagato con ARCO_ORD: si guardano tutti i file di dati
+    nominati, non la presenza di uno, o le righe di echo che spiegano il file al lettore del
+    log terrebbero la prova verde mentre il codice ne legge un altro. */
+ const testoV=JSON.stringify(ved||''), fileV=[];
+ for(let k=testoV.indexOf('dati/'); k>=0; ){
+  let z=k+5, nome='';
+  while(z<testoV.length && OKNOME.indexOf(testoV[z].toLowerCase())>=0){ nome+=testoV[z]; z++; }
+  if(nome && fileV.indexOf('dati/'+nome)<0) fileV.push('dati/'+nome);
+  k=testoV.indexOf('dati/', z);
+ }
+ p('e constata su dati/stato-job.json e su NESSUN altro file di dati'+
+   (fileV.length?' ('+fileV.join(', ')+')':''),
+   fileV.length===1 && fileV[0]==='dati/stato-job.json');
+
+ const passiV=[].concat(...Object.values((ved&&ved.jobs)||{}).map(j=>(j&&j.steps)||[]));
+ const lancio=passiV.filter(s=>s&&typeof s.run==='string'&&s.run.indexOf('gh workflow run')>=0)[0];
+ p('e il passo che LANCIA e condizionato alla constatazione: un lancio incondizionato '+
+   'sarebbe un secondo scheduler, cioe la stessa classe di rischio spostata di un file',
+   !!lancio && /steps[.][A-Za-z0-9_-]+[.]outputs/.test(String(lancio.if||'')));
+
+ /* E NON SCRIVE. Due workflow che scrivono lo stesso archivio sono la strada doppia che
+    questo progetto ha gia' pagato tre volte: la vedetta guarda una data e chiama. */
+ const permV=(ved&&ved.permissions)||{};
+ p('e non ha il permesso di scrivere nel repository, solo quello di lanciare '+
+   '(contents: '+(permV.contents||'—')+', actions: '+(permV.actions||'—')+')',
+   String(permV.contents||'read')!=='write' && String(permV.actions||'')==='write');
+
+ /* E PESCA IN ALTRE FASCE. E' la proprieta' aritmetica per cui la vedetta vale la pena, ed
+    e' la sola che si puo' sbagliare in silenzio: due cron scritti allo stesso minuto della
+    stessa ora sono UNA estrazione ripetuta, non due. La lezione e' gia' pagata il 29 agosto
+    2026, quando otto tick tutti fra le 03:23 e le 06:53 ne fecero partire zero. */
+ const schedV=((ved&&ved.on&&ved.on.schedule)||[]).map(x=>x.cron);
+ const slotV=espandi(schedV);
+ const comuni=(slot&&slotV)?Array.from(slotV).filter(x=>slot.has(x)):null;
+ p('e i suoi '+(slotV?slotV.size:'?')+' tick non cadono in NESSUNA delle '+tick+
+   ' fasce del lavoro notturno ('+(schedV.join(' | ')||'nessun cron')+'): due tentativi '+
+   'nella stessa buca sono un tentativo solo'+
+   (comuni&&comuni.length?' — in comune: '+comuni.slice(0,3).join(', '):''),
+   !!slot && !!slotV && slotV.size>1 && !!comuni && comuni.length===0);
 })();
 
 /* ══ I COMANDI DEI WORKFLOW, NON SOLO LA LORO SINTASSI ══

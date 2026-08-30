@@ -544,11 +544,20 @@ e collegato a un giornale.
 
 ## Il lavoro notturno non è puntuale, e chi se ne accorge non può stare dentro il job
 
-Scritto il 28 agosto 2026, la mattina in cui il job **non è partito affatto**. Sono quattro
-voci pronte da eseguire: le prime tre non sono state applicate, la quarta è una regola che
-vale da subito. Stanno insieme perché rispondono alla stessa domanda in due metà — *quando
-gira* e *chi lo dice se non gira* — e la seconda metà è quella che non si risolve dove
-verrebbe da cercarla.
+Scritto il 28 agosto 2026, la mattina in cui il job **non è partito affatto**, e ripreso il
+30, la mattina in cui non è partito di nuovo. Le voci stanno insieme perché rispondono alla
+stessa domanda in due metà — *quando gira* e *chi lo dice se non gira* — e la seconda metà è
+quella che non si risolve dove verrebbe da cercarla.
+
+**Della prima metà adesso c'è tutto**: il cron a finestra (§1), la vedetta che constata e
+lancia (§2-bis) e il push su main (§2-ter), cioè dieci tick, altri dieci in fasce diverse, e
+un innesco che non è un orologio. **Della seconda non c'è niente**, ed è la §3: un run mai
+nato continua a non avere nessun canale interno, e il 30 agosto l'abbiamo saputo solo perché
+l'autore l'ha chiesto.
+
+**E la §2 contiene un paragrafo che ho scritto sbagliato e che è stato corretto il 30**:
+scartava la vedetta con un argomento valido applicato al caso sbagliato. Resta lì, con la
+correzione sotto, perché il modo di fallire che descrive è giusto.
 
 **Il fatto da cui discende tutto: le esecuzioni programmate di GitHub sono dichiaratamente
 *best-effort*.** Vengono accodate e, sotto carico, slittano o saltano, e **non esiste nessun
@@ -661,6 +670,133 @@ stesso meccanismo che può saltare, sorvegliato da sé stesso. Il giorno in cui 
 carico i due tick saltano insieme — e il guardiano tace nello stesso momento in cui il
 guardato tace, che è il caso peggiore possibile. **Chi controlla deve stare fuori
 dall'infrastruttura che controlla**, o non sta controllando niente.
+
+#### Quel paragrafo è sbagliato, e la parte sbagliata è la conclusione — CORRETTO IL 30 AGOSTO 2026
+
+**Resta scritto sopra invece che cancellato, perché il modo di fallire che descrive è giusto
+e va saputo. Quello che non segue è il «quindi non è la via».**
+
+**L'errore, in una riga: ho rifiutato un meccanismo di CONSEGNA con un argomento
+sull'OSSERVABILITÀ.** «Alzare la probabilità che qualcosa parta» e «sapere che non è partito
+niente» sono due mestieri diversi, e il paragrafo giudica il primo con il metro del secondo.
+Un secondo workflow non sa dire che sono saltati tutti e due i tick — vero, ed è per questo
+che la voce 3 resta aperta — ma **fa saltare tutti e due i tick molto più di rado**, che è un
+guadagno che il paragrafo non contava affatto.
+
+**L'aritmetica che manca.** Ogni tick è best-effort *in modo indipendente*: è la premessa da
+cui nasce la finestra dell'§1, e vale identica fra due workflow. Al **33% misurato** — tre
+tick partiti su nove fra il 29 e il 30 agosto — tre tick notturni saltano tutti e tre **il
+30% delle volte**, ed è esattamente quello che è successo la notte del 30. Venti tick in
+venti fasce distinte portano quella probabilità a niente. *Che i due possano saltare insieme
+non vuol dire che saltino insieme quanto ne salta uno.*
+
+**E non è un calcolo: è il confronto controllato.** Il 30 agosto 2026, fra le 00:00 e le
+09:04 UTC, sui tre modelli dello stesso account:
+
+| repo | esecuzioni programmate | quale |
+|---|---|---|
+| germania | **1** | `Verify polling input integrity`, tick 05:17, partita alle **05:20** |
+| uk | **1** | `Review UK polling updates`, tick 05:05, partita alle **05:07** |
+| **israele** | **0** | tre tick attesi, nessuno nato |
+
+**Quella mattina GitHub consegnava**, con ritardi di due e tre minuti: non era sotto carico,
+non c'era nessuna congestione comune. Israele aveva semplicemente perso tre estrazioni.
+
+E il meccanismo dell'UK si è visto in funzione, con gli orari: reviewer partito su schedule
+alle **23:12:06**, `workflow_dispatch` di «Update and deploy UK model» alle **23:12:36** —
+trenta secondi dopo — commit `chore: update UK data` alle **23:17:11**.
+
+**La cosa che rovescia la lettura, e che il paragrafo non poteva sapere perché nessuno aveva
+guardato: il cron DEI DATI dell'UK è UN TICK AL GIORNO**, cioè meno affidabile del nostro, e
+la sera prima era partito alle 17:25 invece che alle 05:15 — dodici ore di ritardo. **Non è
+il loro cron a essere migliore: è che il cron non è il loro unico innesco.**
+
+**Ed è la terza volta in due giorni che sbaglio nello stesso modo** — un ragionamento valido
+applicato a un caso solo. Vedi «L'errore, per come si è manifestato», dove stanno le altre
+due: «da sola» e l'impronta dell'`og:image`.
+
+### 2-bis · La vedetta, applicata il 30 agosto 2026
+
+`.github/workflows/vedetta.yml`, sul modello dell'UK. **Constata e chiama: legge
+`dati/stato-job.json`, e se la data non è di oggi fa `gh workflow run aggiorna.yml`.** Non è
+un secondo scheduler, ed è la distinzione che regge il file: *uno scheduler AFFERMA «adesso»,
+una vedetta CONSTATA «non è successo»* — la seconda resta vera anche quando slitta di un'ora.
+
+Quattro proprietà, e vanno insieme perché da sole non valgono. Le tiene `test/struttura.mjs`,
+undici mutazioni e undici morte:
+
+| | perché |
+|---|---|
+| **sta in un file suo** | dentro `aggiorna.yml` morirebbe insieme a quello che deve rimediare |
+| **i suoi dieci tick non cadono in nessuna delle dieci fasce di `aggiorna`** — :47 sulle ore pari contro :23 sulle dispari | due tentativi nella stessa buca sono un tentativo solo, ed è la lezione già pagata il 29 agosto con otto tick tutti fra le 03:23 e le 06:53 |
+| **il passo che lancia è condizionato alla constatazione** | un lancio incondizionato sarebbe un secondo timer, cioè la stessa classe di rischio spostata di un file |
+| **`contents: read`** | due workflow che scrivono lo stesso archivio sono la strada doppia di sempre: la vedetta guarda una data e chiama |
+
+**E c'è un freno: al più un dispatch al giorno da lì.** Senza, una notte fermata da una
+guardia interna — colonne di lista non riconosciute, l'8 settembre — non scriverebbe
+`stato-job.json`, e la vedetta rilancerebbe il job intero dieci volte al giorno per fallire
+dieci volte allo stesso modo. *La vedetta rimpiazza un tick mancato; non ritenta una notte
+rotta.* Conta anche i dispatch umani: se una persona ha già constatato e lanciato, ripetere
+non aggiunge niente.
+
+**E fallisce IN CHIUSURA, al contrario della guardia**, che è l'asimmetria da non invertire.
+La guardia fallisce in apertura perché una notte ridondante costa pochi secondi e non scrive
+niente; qui il costo di sbagliare è un job da quindici minuti per tick, fino a dieci al
+giorno. *La vedetta ha altre nove occasioni per parlare; una tempesta non ha nessuna
+occasione per essere disfatta.*
+
+### 2-ter · Il terzo innesco, che non è un orologio
+
+Applicato lo stesso giorno: `aggiorna.yml` parte anche **su ogni push su `main`**. Il cron a
+finestra e la vedetta alzano tutti e due la probabilità che qualcosa parta e restano tutti e
+due dentro il best-effort di GitHub; **l'unico innesco che non ci sta dentro è un fatto del
+mondo**, e qui il fatto è che chi scrive spinge più volte al giorno. È quello che fanno UK e
+Germania, ed è la ragione per cui i loro archivi si muovono.
+
+**Nessun filtro su `paths`, ed è voluto**: qui non si ricostruisce un prodotto che dipende da
+certi file, si coglie un'occasione, e un commit di sola documentazione è un'occasione buona
+quanto un'altra. Un elenco di percorsi sarebbe un secondo posto da tenere allineato in cambio
+di niente.
+
+**E la condizione della guardia è cambiata nello stesso commit, perché senza sarebbe stata un
+anello.** Diceva `github.event_name != 'schedule'`, e finché gli inneschi erano due le due
+scritture erano indistinguibili. Col push non lo sono più: un push avrebbe scavalcato la
+guardia, e il push che il job fa da sé sarebbe rientrato dalla porta del push scavalcandola di
+nuovo. Che il giro si chiudesse comunque dipendeva dall'idempotenza di tre scritture —
+`stato-job.json`, `anteprima.png`, `og:title` — cioè da una garanzia che non è dichiarata da
+nessuna parte. **Un rompi-anello dedotto non è un rompi-anello.**
+
+**La riga nomina l'evento ESENTE invece degli eventi soggetti**, e la differenza non è di
+stile: così un innesco aggiunto domani nasce DENTRO la guardia. L'altra forma li fa nascere
+fuori, uno per uno e in silenzio — è la stessa famiglia dell'elenco cablato che resta indietro
+alla prima aggiunta. **E la prova lo prova su un evento che non esiste**: la tabella risolve
+la condizione per cinque eventi, di cui uno inventato, perché la proprietà è «tutto tranne il
+dispatch» e non «questi tre». Il mutante che scrive la condizione per esclusione — diverso da
+schedule *e* diverso da push — dà le stesse tre righe di oggi ed era **vivo** finché la
+tabella conosceva solo gli eventi già dichiarati.
+
+**Il dispatch resta esente, e adesso l'esenzione ha una ragione in più: chi fa un dispatch ha
+già constatato.** La vedetta lo lancia dopo aver letto la data, una persona dopo aver
+guardato. *La guardia non ripete una constatazione già fatta: la fa dove non c'è.*
+
+Il rompi-anello è lo stesso mestiere che Germania e UK affidano a
+`!contains(head_commit.message, '[social-card]')` — con la differenza che quella è una
+convenzione di **messaggio**, che regge finché nessuno riscrive un messaggio, e questa è un
+**fatto** scritto in un file di dati.
+
+**E il push ha portato con sé una cosa che non si deduce: la guardia leggeva lo stato
+sbagliato.** Su un evento `push` il checkout predefinito prende **il commit che ha
+innescato**, non la punta del ramo — e quel commit può essere anteriore allo
+`stato-job.json` che un'esecuzione precedente ha appena scritto. La guardia risponde a
+«stanotte è già andata?», che è una domanda su **adesso**: leggerla nel passato le fa dire
+«si procede» quando la notte è già andata, e il job rifà quindici minuti di lavoro già
+fatto. Adesso il suo checkout è `ref: main`.
+
+Per `schedule` e per `workflow_dispatch` quella riga **non cambia niente**, perché lì il
+predefinito *è* la punta di main — cioè è l'ennesima proprietà che reggeva per coincidenza
+finché non è arrivato l'innesco che la rompe. È la stessa famiglia dell'house effect in
+ordine di blocco «per fortuna», dell'ordine del pannello dell'archivio, e della targa dove
+tela e disegno coincidevano finché non è esistita una card.
 
 ### 3 · La via che regge: una Cloud Routine di Claude Code — NON APPLICATA
 
@@ -5343,10 +5479,23 @@ di «sola» — la difesa era plausibile, coerente e falsa, e l'ha smentita una 
 difesa era plausibile, coerente e falsa, e l'ha smentita un confronto con due repository che
 avevo sotto mano dall'inizio.
 
-**Due volte nello stesso giorno, e la stessa cura per tutte e due**: non rileggere
-l'argomento, ma cercare il caso che lo distingue. Un ragionamento che copre un caso solo si
-legge identico a uno che li copre tutti — è precisamente per questo che «misurare convince di
-aver guardato» vale anche per il ragionare.
+**E il 30 agosto una terza, che è la più grossa delle tre**: il paragrafo che scartava un
+secondo workflow perché «i due tick saltano insieme» — vero, e irrilevante alla domanda posta.
+Lì l'argomento era sull'**osservabilità** (un guardiano dentro GitHub non sa dire che GitHub
+ha taciuto) e serviva a decidere di **consegna** (quanto spesso qualcosa parte). Due mestieri
+diversi giudicati con un metro solo. Vedi «Quel paragrafo è sbagliato, e la parte sbagliata è
+la conclusione».
+
+**Tre volte in due giorni, e la stessa cura per tutte e tre**: non rileggere l'argomento, ma
+cercare il caso che lo distingue. Un ragionamento che copre un caso solo si legge identico a
+uno che li copre tutti — è precisamente per questo che «misurare convince di aver guardato»
+vale anche per il ragionare.
+
+E una regola pratica che le tre hanno in comune, perché tutte e tre si sarebbero chiuse in
+cinque minuti: **il caso che distingue di solito è già sotto mano.** Per «da sola» era una
+mutazione da scrivere; per l'impronta erano due repository dello stesso account; per la
+vedetta era la storia delle esecuzioni di quegli stessi due. In nessuno dei tre casi serviva
+un ragionamento migliore: serviva guardare una cosa che c'era.
 
 #### Quello che l'impronta NON chiude, che resta vero
 
@@ -5436,9 +5585,12 @@ Poi, in quest'ordine — che **non** è l'ordine in cui le voci sono scritte pi�
      la finestra a 7 giorni contro quella a 60, che è la ragione principale.
 
 4. **LA VOCE 3: la guardia esterna, la Cloud Routine.** Resta l'unica cosa che chiude il caso
-   del 29 agosto — un run mai nato non ha nessun canale interno per dirlo, e quella mattina
-   l'abbiamo saputo solo perché l'autore l'ha chiesto. Il cron a finestra alza la
-   probabilità che qualcosa parta; **non** dice niente quando non parte niente.
+   del 29 e del 30 agosto — un run mai nato non ha nessun canale interno per dirlo, e tutte e
+   due le mattine l'abbiamo saputo solo perché l'autore l'ha chiesto.
+   **E il 30 agosto la parte che si poteva fare dentro GitHub è stata fatta**: vedetta e push
+   su main (§2-bis e §2-ter). Quello alza la consegna e **non tocca questa voce**, che è la
+   distinzione su cui avevo già sbagliato una volta: *quanto spesso qualcosa parte* e *sapere
+   che non è partito niente* sono due mestieri, e il secondo non si fa da dentro.
    Il confine è già scritto e non si riapre: guardia che constata, mai scheduler che afferma.
 
 Poi, e nessuna delle sei ha un orologio addosso — ma le prime tre non sono rifinitura:

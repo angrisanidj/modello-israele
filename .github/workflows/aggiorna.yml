@@ -63,6 +63,28 @@ on:
   # dimostrato. Va rimisurato, non creduto.
     - cron: '23 3-21/2 * * *'   # dieci tentativi, dalle 03:23 alle 21:23, uno ogni due ore
   workflow_dispatch:
+  # E IL TERZO INNESCO NON E' UN TIMER: OGNI PUSH SU main.
+  # Misurato il 30 agosto 2026 sui tre modelli dello stesso account, ed e' il confronto
+  # controllato che ha deciso questa riga. Nella stessa finestra — dalle 00:00 alle 09:04
+  # UTC — Germania e UK hanno avuto un'esecuzione programmata ciascuna, in ritardo di tre e
+  # di due minuti, e Israele ZERO su tre tick attesi: quella mattina GitHub consegnava, e
+  # noi avevamo perso tre estrazioni di fila.
+  # Ma il cron DEI DATI dell'UK e' UN TICK AL GIORNO, cioe' meno affidabile del nostro, e la
+  # sera prima era partito alle 17:25 invece che alle 05:15 — dodici ore di ritardo. NON E'
+  # IL LORO CRON A ESSERE MIGLIORE: e' che il cron non e' il loro unico innesco. Il loro job
+  # dei dati parte anche su push, e chi scrive spinge piu' volte al giorno.
+  # NESSUN FILTRO SU paths, ed e' voluto. Qui non si ricostruisce un prodotto che dipende da
+  # certi file: si coglie un'OCCASIONE, e un commit di sola documentazione e' un'occasione
+  # buona quanto un'altra per rinfrescare l'archivio. Un elenco di percorsi sarebbe un
+  # secondo posto da tenere allineato in cambio di niente.
+  # E IL GIRO SI CHIUDE PERCHE' LO CHIUDE LA GUARDIA: il job spinge un commit, quel commit
+  # rientra da questa porta, la guardia legge la data che il job stesso ha appena scritto, e
+  # il secondo giro esce in dieci secondi. E' lo stesso mestiere che Germania e UK affidano a
+  # «!contains(head_commit.message, '[social-card]')» — con la differenza che quella e' una
+  # convenzione di MESSAGGIO, che regge finche' nessuno riscrive un messaggio, e questa e'
+  # un FATTO scritto in un file di dati.
+  push:
+    branches: [main]
 permissions:
   contents: write
   issues: write
@@ -82,7 +104,16 @@ jobs:
     outputs:
       gia: ${{ steps.leggi.outputs.gia }}
     steps:
+      # «ref: main» E NON IL PREDEFINITO, ed e' nato col push il 30 agosto 2026. Su un
+      # evento push il checkout predefinito prende il COMMIT CHE HA INNESCATO, non la punta
+      # del ramo — e quel commit puo' essere piu' vecchio dello stato-job.json che una
+      # esecuzione precedente ha appena scritto. La guardia risponde a «stanotte e' gia'
+      # andata?», che e' una domanda su ADESSO: leggerla nel passato le fa dire di no
+      # quando la risposta e' si', e il job rifa' quindici minuti di lavoro gia' fatto.
+      # Per schedule e per dispatch non cambia niente — li' il predefinito E' la punta di
+      # main — quindi la riga costa zero e chiude un caso che esiste solo per il push.
       - uses: actions/checkout@v4
+        with: {ref: main}
       # dati/stato-job.json E' IL FILE GIUSTO perche' il job lo riscrive a OGNI notte
       # riuscita, anche a mani vuote: «c'e' la data di oggi» vuol dire «stanotte e' gia'
       # andata», non «stanotte ha trovato qualcosa». La data si confronta in UTC perche' in
@@ -108,12 +139,26 @@ jobs:
           fi
   aggiorna:
     needs: guardia
-    # LA GUARDIA VALE SOLO PER LO SCHEDULE, ed e' la riga che non si deduce dalla voce.
-    # Un workflow_dispatch e' una DECISIONE deliberata — «ho constatato che l'archivio e'
-    # fermo, quindi lo faccio partire» — e una guardia che lo saltasse renderebbe impossibile
-    # proprio il gesto per cui il dispatch esiste, compreso quello che il confine dell'agente
-    # gli concede. Il 28 agosto 2026 e' servito due volte in mezz'ora.
-    if: github.event_name != 'schedule' || needs.guardia.outputs.gia != '1'
+    # LA GUARDIA VALE PER TUTTO TRANNE IL DISPATCH, e la riga nomina l'evento ESENTE invece
+    # degli eventi soggetti. Fino al 30 agosto 2026 diceva «diverso da schedule», e finche'
+    # gli inneschi erano due le due scritture erano indistinguibili. Col push non lo sono
+    # piu': «!= 'schedule'» lo avrebbe fatto scavalcare la guardia, e il push che il job fa
+    # da se' sarebbe rientrato dalla porta del push scavalcandola di nuovo. Che il giro si
+    # chiudesse comunque dipendeva dall'idempotenza di tre scritture — stato-job.json,
+    # anteprima.png, og:title — cioe' da una garanzia che non e' dichiarata da nessuna parte.
+    # UN ROMPI-ANELLO DEDOTTO NON E' UN ROMPI-ANELLO.
+    # E la forma per esclusione fa si' che un innesco aggiunto domani nasca DENTRO la
+    # guardia. L'altra lo fa nascere fuori, uno per uno e in silenzio: e' la stessa famiglia
+    # dell'elenco cablato che resta indietro alla prima aggiunta.
+    # IL DISPATCH RESTA ESENTE perche' e' una DECISIONE deliberata — «ho constatato che
+    # l'archivio e' fermo, quindi lo faccio partire» — e una guardia che lo saltasse
+    # renderebbe impossibile proprio il gesto per cui il dispatch esiste, compreso quello che
+    # il confine dell'agente gli concede. Il 28 agosto 2026 e' servito due volte in mezz'ora.
+    # E L'ESENZIONE E' SICURA PERCHE' CHI FA UN DISPATCH HA GIA' CONSTATATO: la vedetta lo
+    # lancia solo dopo aver letto che l'archivio non porta la data di oggi, e una persona lo
+    # lancia dopo aver guardato. La guardia non ripete una constatazione gia' fatta: la fa
+    # dove non c'e'.
+    if: github.event_name == 'workflow_dispatch' || needs.guardia.outputs.gia != '1'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4

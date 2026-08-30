@@ -1,0 +1,100 @@
+# LA VEDETTA DELL'ARCHIVIO: constata, e se l'archivio non e' di oggi lancia il lavoro
+# notturno. NON E' UN SECONDO SCHEDULER, ed e' la distinzione che regge tutto il file:
+# uno scheduler AFFERMA «adesso», una vedetta CONSTATA «non e' successo». La seconda resta
+# vera anche quando slitta di un'ora, la prima no.
+#
+# PERCHE' ESISTE, e la ragione e' una correzione a un ragionamento mio.
+# CLAUDE.md scartava questa via: «un workflow SEPARATO con uno schedule suo avrebbe
+# esattamente lo stesso difetto… il giorno in cui GitHub e' sotto carico i due tick saltano
+# insieme». Il modo di fallire e' descritto giusto e la conclusione non segue: DUE ESTRAZIONI
+# INDIPENDENTI MANCANO INSIEME MENO SPESSO DI UNA. Al 33% misurato, tre tick di aggiorna
+# saltano tutti e tre il 30% delle volte; dieci tick di aggiorna piu' dieci di qui, in venti
+# fasce orarie distinte, portano quella probabilita' a niente.
+# E non e' un calcolo: il 30 agosto 2026 l'UK ha avuto il suo aggiornamento passando
+# esattamente di qui — reviewer partito su schedule alle 23:12:06, workflow_dispatch di
+# «Update and deploy UK model» alle 23:12:36, commit dei dati alle 23:17:11.
+#
+# QUELLO CHE NON CHIUDE, e va detto perche' non lo si creda chiuso: un run MAI NATO continua
+# a non avere nessun canale interno. Se saltano tutti e venti i tick, qui non parla nessuno,
+# ed e' lo stesso silenzio di prima — indistinguibile da una notte andata bene. Questo alza
+# la consegna, non la garantisce. Chi controlla deve stare fuori dall'infrastruttura che
+# controlla, e quella resta la Cloud Routine.
+name: Vedetta dell'archivio
+on:
+  schedule:
+  # I TICK CADONO DOVE QUELLI DI «Aggiorna archivio» NON CADONO, e questa e' la proprieta'
+  # per cui la vedetta vale la pena: quello sta a :23 sulle ore dispari, questa a :47 sulle
+  # ore pari. Venti tentativi in venti fasce distinte, e nessuna coppia che condivide la
+  # stessa coda. Due tentativi nella stessa buca valgono meno di due in due buche diverse —
+  # e' la lezione gia' pagata il 29 agosto 2026, quando otto tick tutti fra le 03:23 e le
+  # 06:53 ne fecero partire ZERO.
+  # NON PRIMA DELLE 04:47 perche' il primo tick di aggiorna e' alle 03:23: la vedetta esiste
+  # per raccogliere quello che quel tick non ha fatto, quindi viene dopo di lui.
+    - cron: '47 4-22/2 * * *'
+  workflow_dispatch:
+permissions:
+  # SOLA LETTURA SUL REPOSITORY, e non e' prudenza generica: due workflow che scrivono lo
+  # stesso archivio sarebbero la strada doppia che questo progetto ha gia' pagato tre volte.
+  # La vedetta non scrive niente e non sa niente di sondaggi: guarda una data e chiama.
+  contents: read
+  actions: write
+concurrency:
+  group: vedetta-archivio
+  cancel-in-progress: true
+jobs:
+  vedetta:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      # NIENTE setup-node E NIENTE npm install: node c'e' gia' sull'immagine del runner, e
+      # una vedetta che installa le dipendenze per leggere una riga di JSON costerebbe piu'
+      # del lavoro che risparmia. E' lo stesso conto della guardia.
+      - name: L'archivio porta la data di oggi?
+        id: constata
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          OGGI=$(date -u +%F)
+          # LA DATA SI CONFRONTA IN UTC perche' in UTC la scrive aggiorna.mjs, con
+          # toISOString().slice(0,10). E dati/stato-job.json e' il file giusto perche' il
+          # job lo riscrive a OGNI notte riuscita, anche a mani vuote: «c'e' la data di
+          # oggi» vuol dire «stanotte e' gia' andata», non «ha trovato qualcosa».
+          DATA=$(node -p "require('./dati/stato-job.json').data" 2>/dev/null || echo '')
+          if [ "$DATA" = "$OGGI" ]; then
+            echo "serve=0" >> "$GITHUB_OUTPUT"
+            echo "stato-job.json porta gia' $OGGI: il lavoro notturno e' passato, non c'e' niente da constatare"
+            exit 0
+          fi
+          # IL FRENO: AL PIU' UN DISPATCH AL GIORNO DA QUI.
+          # Senza, una notte fermata da una guardia interna — colonne di lista non
+          # riconosciute, per dirne una — non scriverebbe stato-job.json, e la vedetta
+          # rilancerebbe il job intero dieci volte al giorno per fallire dieci volte allo
+          # stesso modo. La vedetta rimpiazza un tick mancato; non ritenta una notte rotta.
+          # E CONTA ANCHE I DISPATCH UMANI, ed e' voluto: se una persona ha gia' constatato
+          # e lanciato, la constatazione e' stata fatta e ripeterla non aggiunge niente.
+          CONTO=$(gh run list --workflow 'Aggiorna archivio' --event workflow_dispatch --created "$OGGI" --json databaseId --jq 'length' 2>/dev/null || echo '')
+          # E QUI SI FALLISCE IN CHIUSURA, al contrario della guardia. La guardia fallisce in
+          # apertura perche' una notte ridondante costa pochi secondi e non scrive niente;
+          # qui il costo di sbagliare e' un job da quindici minuti per tick, cioe' fino a
+          # dieci al giorno. L'asimmetria decide il verso: la vedetta ha altre nove occasioni
+          # per parlare, una tempesta non ha nessuna occasione per essere disfatta.
+          if [ -z "$CONTO" ]; then
+            echo "serve=0" >> "$GITHUB_OUTPUT"
+            echo "non si e' potuto stabilire quanti dispatch ci sono gia' stati oggi: si tace e si riprova al tick seguente"
+            exit 0
+          fi
+          if [ "$CONTO" -gt 0 ]; then
+            echo "serve=0" >> "$GITHUB_OUTPUT"
+            echo "stato-job.json porta '$DATA' e oggi e' $OGGI, ma oggi ci sono gia' stati $CONTO dispatch: il freno tiene"
+            exit 0
+          fi
+          echo "serve=1" >> "$GITHUB_OUTPUT"
+          echo "stato-job.json porta '$DATA' e oggi e' $OGGI, e oggi non c'e' stato nessun dispatch: si lancia"
+      # IL DISPATCH E' LA CONSEGUENZA DI UNA CONSTATAZIONE, non un timer — ed e' esattamente
+      # per questo che «Aggiorna archivio» esenta il dispatch dalla sua guardia: chi arriva
+      # di li' ha gia' guardato la data. La guardia non ripete una constatazione gia' fatta.
+      - name: Lancia il lavoro notturno
+        if: steps.constata.outputs.serve == '1'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh workflow run aggiorna.yml --ref main
