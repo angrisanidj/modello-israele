@@ -5110,5 +5110,46 @@
    "amcha": 4.09431064239943
   },
   "_qk": 92
+ },
+ {
+  "data": "2026-08-30",
+  "istituto": "Kantar",
+  "testata": "Kan 11",
+  "campione": 552,
+  "casa": 0,
+  "seggi": {
+   "likud": 21,
+   "byachad": 14,
+   "sionismo_rel": 5,
+   "otzma": 7,
+   "shas": 7,
+   "utj": 8,
+   "beitenu": 8,
+   "raam": 5,
+   "lista_araba": 8,
+   "democratici": 9,
+   "yashar": 24,
+   "amcha": 4
+  },
+  "sotto": {
+   "blue_white": 1.5,
+   "casa_sionista": 2.4,
+   "unity_erdan": 0.7
+  },
+  "_q": {
+   "likud": 15.627088031438296,
+   "byachad": 10.475526519512938,
+   "sionismo_rel": 4.150277713339372,
+   "otzma": 5.489829248980735,
+   "shas": 5.489829248980735,
+   "utj": 6.05267525987729,
+   "beitenu": 6.05267525987729,
+   "raam": 4.150277713339372,
+   "lista_araba": 6.216497495584694,
+   "democratici": 6.916440872801884,
+   "yashar": 17.77664195660852,
+   "amcha": 3.6022406796588773
+  },
+  "_qk": 92
  }
 ]
