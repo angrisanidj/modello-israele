@@ -1738,7 +1738,34 @@ Verificato su browser al confine: a media query 1075 il contenitore è 950 e la 
 sforamento zero. A 760 schede e **sforamento del documento zero**. A 380 schede,
 sforamento della sezione zero e del documento 35, che sono i punti 15 e 16.
 
-**Da rimisurare l'8 settembre**: con quindici colonne la soglia sale a ~1190.
+**RIMISURATO IL 31 AGOSTO 2026, e i numeri di prima erano due stime.** La riga diceva «con
+quindici colonne la soglia sale a ~1190»: era un'estrapolazione dal minimo di allora. Misurato
+sul browser, clonando la tabella dentro `#kn26` e aggiungendo colonne di lista vere:
+
+| colonne | minimo | soglia delle schede | sta nel `max-width` (1070)? |
+|---|---|---|---|
+| **13 · oggi** | **912,2** | 1040 | sì |
+| 14 | 955,7 | 1083 | sì |
+| **15** | **999,3** | **1127** | sì, con **70,7px** di margine |
+| 16 | 1042,8 | 1170 | sì, con 27,2 |
+| **17** | **1086,3** | 1214 | **NO** |
+| 18 | 1129,9 | 1257 | no |
+
+**Costo misurato: 43,5px per colonna.** La soglia si ricava come `minimo + 17 + 110` — la
+barra più larga e la gronda — che è la stessa aritmetica del 1075 di oggi.
+
+**Tre cose che i numeri dicono e le stime non dicevano.**
+La soglia a quindici colonne è **1127, non 1190**: la stima era alta di 63px. Il minimo di
+oggi è **912,2 e non 939,3** — la scala divergente ha tolto lo stile in linea dalle celle, e
+con esso una ventina di pixel che il file registrava ancora. E soprattutto: **il margine
+contro il `max-width:1180` non è dieci pixel, sono 70,7** — la riga che diceva «dieci pixel,
+che il primo deposito si mangia» era tarata sul minimo vecchio.
+
+**IL CONFINE VERO STA FRA SEDICI E DICIASSETTE COLONNE**, ed è un'altra cosa dalla soglia
+delle schede: a diciassette il minimo supera il contenitore **a qualunque larghezza**, perché
+`max-width:1180` blocca il contenitore a 1070. Lì le schede non sono più un rimedio per gli
+schermi stretti: diventano l'unica forma possibile, e la soglia va tolta invece che alzata.
+Con undici liste in aula oggi e 13 colonne, servono **quattro liste nuove** per arrivarci.
 
 ### Il colore: il segno non è un giudizio, quindi il colore non lo dice
 
@@ -5806,6 +5833,62 @@ sedi una per una, che è la regola già scritta. **Un percorso relativo in uno s
 è una trappola a orologeria: la prima volta che qualcuno lo lancia da un'altra cartella, il
 ripristino non ripristina.**
 
+## La verifica a scenari è diventata una suite, e la prima cosa che ha trovato mentiva
+
+Applicata il 31 agosto 2026. Le tavole 1, 4 e 6 — comandi combinati, archivio degenere,
+embed — più gli scenari di lista stanno in `test/suite/scenari.js`: **44 asserzioni, 9,3
+secondi**, dentro `npm run verifica`. Le date restano fuori perché vogliono l'orologio
+congelato, ed è il mestiere di `npm run spazzola`.
+
+**Perché una suite e non uno strumento a mano**: uno strumento a mano si esegue quando
+qualcuno se lo ricorda, e l'8 settembre nessuno se lo ricorderà. Nel banco ci passa da solo.
+
+### Escludendo tutti gli istituti la pagina mostrava la proiezione di ieri
+
+`renderInterno()` usciva con un `return` nudo quando `SEG` è vuoto — corretto come calcolo,
+perché senza rilevazioni non c'è niente da calcolare — **e lasciava la pagina com'era.**
+
+| | prima | esclusi tutti e otto |
+|---|---|---|
+| verdetto | «54 seggi al blocco Netanyahu…» | **«54 seggi al blocco Netanyahu…»** |
+| pastiglie | 4 | **4** |
+| seggi nell'arco | 120 | **120** |
+| `SEG` | pieno | **vuoto** |
+
+**Non è il vuoto: è peggio.** Il vuoto si vede; il conteggio di ieri no — si legge benissimo
+e dice il falso. E non è uno stato di laboratorio: **ci si arriva premendo otto pulsanti che
+la pagina offre.** È la stessa forma del ramo d'uscita che lasciava `#k-anmeta` con il testo
+del render precedente, applicata all'intera proiezione.
+
+**E fra gli elementi lasciati indietro c'era `k-sintriga`**, che non è un elemento come gli
+altri: è la riga che finisce nella **forma compatta dell'embed** e nella **targa delle card**,
+cioè **esce dalla pagina**. Un riquadro incorporato nell'articolo di qualcun altro avrebbe
+continuato ad annunciare una proiezione che il modello non ha più, e nessuno l'avrebbe visto.
+
+**L'asserzione che avrebbe dovuto coglierlo chiedeva «dice qualcosa» invece di «dice cosa»**,
+e passava **proprio perché il testo vecchio era rimasto**. È «misurare convince di aver
+guardato» nella forma più stretta: la proprietà scelta era vera, e la sua verità dipendeva dal
+difetto. Adesso si asserisce che il verdetto **non** porti più i numeri, che dica la **causa**,
+che dia la **via d'uscita**, e che l'arco e le pastiglie si svuotino.
+
+Quello che dice adesso, ed è prosa dell'autore approvata:
+
+> Sono esclusi tutti e N gli istituti, quindi il modello non ha nessuna rilevazione su cui
+> calcolare: **i numeri qui sotto non ci sono, non sono zero**. Reinseriscine almeno uno dalla
+> tabella dell'house effect, o premi «Azzera».
+
+*«Non ci sono, non sono zero» è la distinzione che serve*, e la via d'uscita c'è perché lo
+stato l'ha prodotto un comando e un comando lo disfa — la regola già scritta per l'ipotesi
+della leva.
+
+### Tre fixture mie erano sbagliate, non il modello
+
+`SEME[0]` è la rilevazione **più vecchia** dell'archivio e cade fuori dalla finestra dei
+sessanta giorni: una fixture che dà zero non prova il caso degenere, **prova il filtro**. E la
+nota della soglia dice «si **ridistribuiscono**» al presente — è `FRASE_SOGLIA`, la meccanica
+— mentre la clausola della direzione dice «si sono **ridistribuiti**», che è il fatto
+avvenuto: due frasi diverse, e cercare l'una nell'altra fa cadere una prova buona.
+
 ## La prosa dei quattro blocchi, e tre difetti che stavano lì da prima
 
 Applicata il 31 agosto 2026: i sette casi della direzione, le quattro pastiglie, le
@@ -6644,8 +6727,8 @@ le meta. Le altre tre non offrono niente di equivalente a chiunque.
 ### Nell'ordine, quando si riprende
 
 **PRIMA DI TUTTO, QUELLO CHE ASPETTA L'AUTORE — sta in cima perché non si cerchi.** Sono
-due cose piccole, nessuna bloccante, tutte ferme perché richiedono una decisione o una
-frase che non è mia da scrivere:
+tutte voci CHIUSE: le decisioni erano dell autore, sono state applicate, e restano
+scritte perche la ragione di ciascuna non si ritrova ragionandoci.
 
 1. ~~Due forme corte di `f5o4` che sforano il tetto~~ — **CHIUSE il 30 agosto 2026 in
    `bb298eb`**, e la voce resta perché la parola che le ha fatte entrare è una decisione
@@ -6669,10 +6752,11 @@ frase che non è mia da scrivere:
    prosa dei quattro blocchi». Le due decisioni su `MC.primo` le ha prese l'autore: non è
    una forma del titolo — le dodici sono una partizione sulla soglia dei 61 — e le due
    letture non si unificano, si dichiara che sono diverse.
-3. **Se la fonte usi anche `winter` NUDO** come intestazione di colonna in una tabella di
-   seggi. `'winter party'` è mappata; questa domanda è rimasta senza risposta, ed è la
-   ragione per cui la mappatura precedente era stata sbagliata — si guarda la colonna in cui
-   la grafia compare, non le occorrenze della parola nella pagina.
+3. ~~Se la fonte usi anche `winter` NUDO~~ — **VERIFICATO il 31 agosto 2026: esiste, arriva
+   al parser, e va lasciato NON mappato.** Sta in una tabella 2026 non esclusa che il parser
+   ignora in blocco perché meno della metà delle righe valida; mapparlo la farebbe validare e
+   ci entrerebbero righe di una tabella che non è di sondaggi. Vedi «La domanda si è chiusa
+   all'opposto di come sembrava».
 
 ---
 
@@ -7284,13 +7368,101 @@ da fare.
   sei formulazioni scartate restano nella sezione, perché il numero che ha deciso — il
   plurale più corto del singolare — non si ritrova ragionandoci.
 
-**«Winter party» è mappata dal 26 agosto 2026** — `'winter party':'amcha'` in `W_LISTA` —
-e resta scritto qui perché la correzione ha una lezione dentro, e perché **una domanda è
-rimasta senza risposta**.
+**«Winter party» è mappata dal 26 agosto 2026** — `'winter party':'amcha'` in `W_LISTA` — e
+**`'winter'` nudo è verificato e deliberatamente NON mappato dal 31 agosto 2026.**
 
-**LA DOMANDA APERTA, ed è di due minuti**: se la fonte usi anche `'winter'` **nudo** come
-intestazione di colonna in una tabella di SEGGI. Finché non è verificata, ogni notte in cui
-quella grafia comparisse la guardia si chiuderebbe e l'archivio resterebbe fermo.
+### La domanda si è chiusa all'opposto di come sembrava
+
+Era: «se la fonte usi anche `winter` nudo, e finché non è verificato ogni notte in cui quella
+grafia comparisse la guardia si chiuderebbe». **Misurato sulla pagina vera: esiste, e arriva
+al parser.** Le intestazioni `<th>` sono due, `"Winter party"` e `"Winter"`.
+
+| dove compare `Winter` nudo | anno | sezione | esito |
+|---|---|---|---|
+| **tab#7**, 13 righe | **2026** | **non esclusa** | **arriva al parser**, e la tabella è **ignorata in blocco** |
+| tab#11 · #12 · #16 | 2024 | esclusa | mai lette |
+
+**E la conclusione è il contrario di «va mappata».** Mappandola, le righe di tab#7
+comincerebbero a validare, la tabella potrebbe superare la soglia del 50%, ed **entrerebbero
+nell'archivio righe di una tabella che non è di sondaggi**. È il rischio asimmetrico in forma
+più netta di quella già registrata: una grafia mappata male conta voti per la **lista**
+sbagliata, questa conterebbe una **tabella intera** che non è di sondaggi.
+
+### E il canale strutturale c'è già — è quello che sta lavorando
+
+La domanda successiva era se esistesse un secondo canale che distingua una tabella di
+sondaggi da una di scenari **per struttura invece che per parole**. Le due candidate,
+misurate:
+
+- **il campione: NO.** Tutte e sei le tabelle 2026 non escluse hanno `Samplesize`, **tab#7
+  compresa**. Non discrimina niente;
+- **le righe che sommano 120: SÌ, e la regola c'è già.** «Una tabella si accetta solo se la
+  maggioranza delle sue righe supera la validazione» **è** il discriminante strutturale, e sta
+  funzionando: tab#7 è ignorata per quello, non per l'intestazione.
+
+**Quindi il testo dell'intestazione è un PRIMO filtro, non l'unico**, e il punto fragile è più
+stretto di come sembrava: una rinomina di sezione da sola non fa entrare una tabella di
+scenari — le sue righe devono anche **validare**, cioè sommare 120 con colonne tutte note.
+**Mappare `winter` toglierebbe proprio quella protezione**, ed è la ragione vera per non
+farlo.
+
+**Quello che resta scoperto, come limite noto**: una tabella di scenari le cui righe sommino
+120 con colonne tutte note entrerebbe, e nessuna guardia guarda un *aumento* di righe
+valide — tranne `MASSIMO_NUOVE: 10`, che **regge fino a dieci righe** e oltre ferma la notte.
+Sopra le dieci si è coperti; da una a dieci no.
+
+### Le quattro coppie (data, istituto) duplicate: `simile()` ha ragione su tutte e quattro
+
+Verificato il 31 agosto 2026. Sono **quattro coppie, tutte Direct Polls** — 18 agosto, 16 e 9
+luglio, 25 giugno — e **non sono lo stesso sondaggio due volte**: campioni diversi (636 contro
+522, 752 contro 527, 654 contro 530) e seggi diversi di parecchio, col Likud a 33 contro 29 e
+a 33 contro 27. `simile()` risponde **false** su tutte e quattro, ed è la risposta giusta:
+l'istituto pubblica due rilevazioni nello stesso giorno.
+
+**E una di quelle coppie esercita da sola la doppia struttura**: il 16 luglio la prima riga
+porta `hadash_taal:5` e la seconda `lista_araba:7`. Stesso istituto, stessa data, **due
+tabelle con due strutture di colonne diverse, tutte e due validate**.
+
+### La lezione della correzione di agosto, che resta
+
+Mappando Amcha avevo **escluso** «Winter» con una ragione scritta: nella tabella degli scenari
+è l'etichetta di un aggregato, «Winter parties and Reservists-B&W». Il ragionamento sul
+rischio asimmetrico reggeva; **il fatto su cui poggiava era falso**: «Winter party», al
+singolare, compare come colonna in una tabella di **seggi**. Avevo cercato la parola nel
+markup, visto il plurale, e concluso sull'insieme invece che sulla stringa esatta.
+
+**La cosa da non ripetere è quella**: davanti a una grafia si guarda **la colonna in cui
+compare**, non le occorrenze della parola nella pagina.
+
+**E il 31 agosto la stessa regola ha dato la risposta opposta con lo stesso metodo**: si sono
+guardate le intestazioni `<th>` una per una, e le colonne c'erano tutte e due. Il metodo non
+dice mai «mappa» o «non mappare» — dice dove guardare, e la decisione viene dopo.
+
+### Le due strutture delle colonne arabe, e che cosa succede a metà pagina
+
+Misurato lo stesso giorno, perché è la prova generale dell'8 settembre.
+
+| | righe | `Joint List` | colonne separate |
+|---|---|---|---|
+| tab#2 | 12 | sì | no |
+| **tab#3** | **35** | sì | sì |
+| tab#4 | 42 | sì | sì |
+| tab#5 | 78 | **no** | sì |
+| tab#6 | 84 | sì | sì |
+| tab#7 | 13 | sì | sì → **ignorata** |
+
+**Fra tabelle il cambio di struttura è gestito per costruzione**: `parseWikiTabella` legge le
+intestazioni della *sua* tabella, e quattro tabelle su sei portano già tutte e due le forme.
+
+**Dentro una tabella no, ed è lì che stanno le 24 ambigue** — tutte, e tutte con la stessa
+causa: *«cella su più liste senza contenitore comune (raam+hadash_taal+balad)»*. Una cella
+copre **tre** liste; `lista_araba` ne contiene due e non Ra'am, quindi non esiste un
+contenitore comune e il parser **rifiuta la riga dichiarandolo** invece di indovinare. Sono le
+stesse 24 di gennaio-aprile già registrate: nulla di nuovo si è rotto.
+
+E se una struttura cambia a metà pagina: le righe che non tornano cadono **una per una con la
+ragione**, e se ne cade più della metà la tabella intera va in `ignorate` **con le sue colonne
+ignote** — che è la metà che alimenta la guardia dell'incrocio.
 
 **E la lezione, che è il motivo per cui il paragrafo non si cancella.** Mappando Amcha avevo
 ESCLUSO «Winter» con una ragione scritta: nella tabella degli scenari è l'etichetta di un

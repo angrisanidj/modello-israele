@@ -4314,6 +4314,20 @@ function frasePrimo(pri, quota, s1, s2){
   : 'A questa distanza il primo posto è ancora una questione aperta: '+
     acc(n,'basta','bastano')+' '+seg(n)+' di scarto perché si inverta. ';
 }
+/* ══ IL MODELLO SENZA RILEVAZIONI ATTIVE: DIRLO, INVECE DI TACERE ═════════════════
+   Scritto il 31 agosto 2026, e l'ha trovato la verifica a scenari con un'asserzione che
+   PRIMA ERA DEBOLE: guardava che il verdetto non fosse vuoto, e passava perche' guardava
+   la cosa sbagliata. Escludendo tutti e otto gli istituti, calcola() esce alla prima riga
+   — «if(!L.length){SEG={};PREC=null;return;}», che e' corretto: senza rilevazioni non c'e'
+   niente da calcolare — e tutto quello che sta a valle rendeva IL VUOTO. Misurato:
+   verdetto vuoto, analisi vuota, proiezione vuota, zero pastiglie, zero seggi nell'arco.
+   Una pagina di caselle bianche, e il lettore ci era arrivato premendo otto pulsanti.
+   E' la stessa famiglia della tabella dell'archivio che taceva a zero risultati e del
+   riquadro della direzione che spariva senza PREC: il posto in cui il lettore guarda deve
+   dire perche' non c'e' niente, e da dove viene il vuoto — dal filtro o dai dati.
+   La frase nomina il numero di istituti esclusi e la via d'uscita, perche' lo stato l'ha
+   prodotto un comando e un comando lo disfa: e' la regola gia' scritta per l'ipotesi della
+   leva, «ipotesi senza il comando per toglierla e una parola sola». */
 function rProb(){
  var b=blocchi(SEG),tot=MC.n;
  /* ══ LE QUATTRO PASTIGLIE: P1-P4, dettate dall'autore il 31 agosto 2026 ═══════════
@@ -9270,7 +9284,44 @@ function render(){
 function renderInterno(){
  leggiTema();
  calcola();
- if(!SEG||!Object.keys(SEG).length) return;
+ /* ══ SENZA RILEVAZIONI ATTIVE NON SI TACE: SI DICHIARA ════════════════════════════
+    Qui c'era «return» e basta, e non lasciava la pagina vuota — la lasciava COM'ERA.
+    Misurato il 31 agosto 2026 escludendo tutti e otto gli istituti dalla tabella
+    dell'house effect: SEG resta vuoto, calcola() esce alla prima riga — ed e' corretto,
+    senza rilevazioni non c'e' niente da calcolare — ma il verdetto continuava a dire «54
+    seggi al blocco Netanyahu e 54 all'opposizione», con quattro pastiglie e 120 seggi
+    nell'arco. LA PAGINA MOSTRAVA UNA PROIEZIONE CHE IL SUO STESSO STATO DICE DI NON AVERE,
+    e ci si arriva premendo otto pulsanti che la pagina offre.
+    NON E' IL VUOTO, E' PEGGIO: il vuoto si vede, il conteggio di prima no — si legge
+    benissimo e dice il falso. E' la stessa forma del ramo d'uscita che lasciava k-anmeta
+    con il testo del render precedente, e della tabella dell'archivio che taceva a zero
+    risultati: il posto in cui il lettore guarda deve dire perche' non c'e' niente.
+    LA FRASE NOMINA LA CAUSA E LA VIA D'USCITA, perche' lo stato l'ha prodotto un comando e
+    un comando lo disfa — la stessa regola dell'ipotesi della leva, dove «ipotesi» senza il
+    comando per toglierla e' una parola sola. E si svuota quello che non ha piu' senso
+    invece di lasciarlo indietro: pastiglie, istogrammi, emiciclo e proiezione per lista. */
+ if(!SEG||!Object.keys(SEG).length){
+  var nEsc=Object.keys(ESCL).filter(function(i){return ESCL[i];}).length, nIst=istituti().length;
+  $('k-verdetto').innerHTML = nIst&&nEsc>=nIst
+   ? 'Sono esclusi tutti e '+f(nIst)+' gli istituti, quindi il modello non ha nessuna '+
+     'rilevazione su cui calcolare: i numeri qui sotto non ci sono, non sono zero. '+
+     'Reinseriscine almeno uno dalla tabella dell\'house effect, o premi «Azzera».'
+   : (nEsc
+      ? 'Con '+f(nEsc)+' '+acc(nEsc,'istituto escluso','istituti esclusi')+' non resta '+
+        'nessuna rilevazione nella finestra del modello: reinseriscine uno, o premi «Azzera».'
+      : 'Non c\'è nessuna rilevazione nella finestra del modello, quindi non c\'è una '+
+        'proiezione da mostrare. L\'archivio ne contiene '+f(SOND.length)+'.');
+  /* k-sintriga E k-deck STANNO IN QUESTO ELENCO, e sono i due che contano di piu': la
+     riga di sintesi e' quella che finisce nella forma compatta dell'embed e nella targa
+     delle card, cioe' ESCE DALLA PAGINA. Lasciandola indietro, un riquadro incorporato in
+     un articolo di qualcun altro continuerebbe ad annunciare una proiezione che il modello
+     non ha piu', e nessuno lo vedrebbe — e' la stessa ragione per cui la fascia del
+     dopo-voto dev'essere provata dentro l'embed e non solo in pagina. */
+  ['k-probs','k-sprobs','k-cap1','k-cap2','k-proj','k-emi','k-direz','k-analisi','k-movers',
+   'k-sintriga','k-deck']
+    .forEach(function(i){ if($(i)) $(i).innerHTML=''; });
+  return;
+ }
  /* Due liste accese nello stesso render non devono mai avere lo stesso colore.
     B'Yachad condivide lo slot con Yesh Atid e la Lista Unita con Hadash-Ta'al:
     è corretto finché le alternative non coesistono, e va detto se coesistono. */
