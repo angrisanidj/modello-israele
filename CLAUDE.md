@@ -5692,6 +5692,149 @@ cadere, perché il nome sta nell'elenco degli export. Un mutante che rompe il ca
 proprietà che avrebbe dovuto provare è già coperta da `typeof A.fraseSoglia === 'function'`
 e dalle cinque forme costruite.
 
+## Lo scenario della soglia: le combinazioni, e il paragone che non regge
+
+Applicato il 31 agosto 2026, voce 5-bis della coda. `clausolaSoglia()` risponde a «dove
+vanno i seggi di **questa** lista»; lo scenario risponde a **«e se cadessero insieme, cambia
+chi può governare?»** — che non è la somma delle risposte di prima, perché a ogni caduta i
+divisori si riassestano da capo.
+
+### Il paragone con l'errore dichiarato NON regge, ed è stato tolto invece che scritto
+
+La prima stesura diceva «mezzo punto è meno dell'errore che il modello dichiara». **È un
+errore di unità, e non si ripara convertendo.** L'errore del banco è in **seggi** — 4,5 sul
+totale di blocco a due mesi dal voto, 1,7 nell'ultima settimana — la distanza dalla soglia
+è in **punti di quota**. E attorno alla soglia le due grandezze non diventano confrontabili
+nemmeno con un fattore: lì la funzione **non è continua**. Mezzo punto in meno non toglie
+mezzo seggio, li toglie **tutti**: il Sionismo Religioso ne perde quattro in una volta.
+
+Quello che la frase voleva dire lo dice già il numero: «a 0,36 punti dalla soglia». La
+clausola è stata tolta, e la ragione sta nel commento accanto a `FILO_SOGLIA`, perché è il
+genere di paragone che verrebbe da riscrivere.
+
+**E la distanza si dichiara in punti percentuali**, non in seggi e non in decimi: la soglia
+è dichiarata così in tutta la pagina — 3,25% — e una distanza in un'altra unità chiederebbe
+al lettore una conversione che nessuno fa.
+
+### La frase si genera dalla proprietà, e sa dire il contrario
+
+«Quello che cambia è il margine, non chi governa» è vero oggi **ed è la cosa più facile da
+scrivere per sempre**. Raccontare come un ribaltamento uno scenario che sposta solo il
+margine è la cosa disonesta più facile da fare con questi numeri; **continuare a dire «non
+cambia niente» quando invece cambia è l'altra**, ed è quella che un testo scritto a mano
+produce da sé.
+
+Quindi `chiGoverna()` risolve **ogni** combinazione, e la frase rassicura solo se il
+verdetto è lo stesso dappertutto; altrimenti dichiara **quale** combinazione lo ribalta e in
+che cosa. Le risposte sono le quattro delle pastiglie in cima, e **l'ordine conta**: un
+campo da solo viene prima della somma con i partiti arabi, o «opposizione» e «opposizione +
+arabi» sarebbero indistinguibili proprio nel caso in cui l'opposizione ce la fa senza.
+
+**Il ramo che avverte non lo esercita nessun archivio di oggi**, quindi la composizione è
+separata dal conto — `fraseCombinazioni(filo, comb, sg)` — e la prova costruisce le
+combinazioni. È l'idioma già pagato da `fraseSoglia()`: legato al conto, quel ramo sarebbe
+nato irraggiungibile e un mutante che lo spegne sarebbe rimasto vivo.
+
+### Le misure, il 31 agosto 2026 su 183 rilevazioni
+
+**E sono cambiate rispetto al 28 agosto, che è la ragione per cui non si scrivono a mano.**
+
+| | coal | oppo | arabi | ago | **opp + arabi** |
+|---|---|---|---|---|---|
+| entrambe dentro *(oggi)* | 54 | 54 | 12 | 0 | **66** |
+| cade il Sionismo Religioso | 52 | 56 | 12 | 0 | **68** |
+| cade Popolo d'Israele | 51 | 57 | 12 | 0 | **69** |
+| cadono tutte e due | 48 | 59 | 13 | 0 | **72** |
+
+In **tutte e quattro** nessun blocco arriva a 61 da solo e opposizione + arabi ci arriva
+sempre: lo scenario cambia il margine, non chi governa.
+
+**Ma in pagina oggi le combinazioni sono DUE, non quattro**, e va saputo prima di stupirsi:
+il Sionismo Religioso dista **0,361** punti dalla soglia, Popolo d'Israele **0,544** — cioè
+**quattro millesimi oltre** il mezzo punto di `FILO_SOGLIA`. Il 28 agosto distava 0,532 ed
+era dentro. *Il filo è una condizione, non un elenco: chi ci sta lo decide l'archivio del
+giorno.*
+
+### La clausola del segno non si cerca sul filo
+
+La stessa caduta muove il blocco **nei due versi** a seconda di come si contano quei seggi:
+a leva accesa erano già suoi e li perde, col conteggio della fonte non erano suoi e ne
+recupera una parte dalla dispersione. Misurato: se cade Popolo d'Israele il blocco Netanyahu
+fa **54 → 51 (−3)** con l'ipotesi applicata e **49 → 51 (+2)** con il conteggio della fonte.
+Pubblicare un numero solo vorrebbe dire pubblicare **il segno sbagliato per metà dei
+lettori**.
+
+**E la clausola si cerca fra tutte le liste con seggi, non sul filo.** Legata al filo sarebbe
+**nata irraggiungibile** — Popolo d'Israele è la lista che la leva riclassifica, e oggi il
+filo non la contiene per quattro millesimi. Si cerca dove la proprietà vive: il blocco
+contato diverso da quello dell'anagrafica. E `segnoDipendeDaIpotesi()` parla **solo quando i
+due segni divergono davvero**, che è la regola di `ipotesiNeiNumeri()`: un'ipotesi che non
+sposta niente non si dichiara, o si insegna a saltare la riga proprio prima del giorno in
+cui conta.
+
+### Il quarto blocco e l'arabo nel Monte Carlo, e la banda che mancava
+
+`montecarlo()` conservava `res.coal` e `res.oppz` e basta. Adesso conserva anche **`arab`**,
+**`inc`** e **`oppArab`**.
+
+**E `oppArab` si somma DENTRO il ciclo, non dopo.** `res.oppz` e `res.arab` sono ordinati
+ciascuno per conto suo, quindi l'elemento *k* dell'uno e quello dell'altro **non sono la
+stessa simulazione**: sommarli darebbe una distribuzione che non descrive nessuna
+esecuzione. È la stessa trappola delle due colonne «Seggi» — due grandezze corrette che non
+si possono comporre — e qui morderebbe proprio sulla frase per cui la banda esiste.
+
+Il quarto non si calcola affatto: è `120 − bc − bo − ba`, cioè **zero lavoro nel ciclo
+caldo**, perché l'invariante 1 garantisce la somma.
+
+| | 10º–90º percentile |
+|---|---|
+| **opposizione + arabi** | **61 – 73**, mediana 67 |
+| partiti arabi | 10 – 13 |
+| ago della bilancia | 0 – 0 |
+
+**Il limite inferiore è esattamente 61**, ed è il numero che rende la banda interessante:
+nel decile peggiore la sola maggioranza possibile sta *sul* 61.
+
+### La terza categoria: chi SCEGLIE DI QUALE LISTA PARLARE legge l anagrafica
+
+**Da quando la leva nasce accesa, la clausola di `listeClausola()` su Popolo d'Israele non
+compare più.** La seconda categoria — «le liste fuori dai due campi, dove la meccanica si
+vede meglio, perché i seggi attraversano tutti» — seleziona con `bloccoDi(i)==='incerto'`,
+cioè **leggendo la leva**; con la leva accesa quella lista è `coalizione` e la categoria
+resta vuota. Misurato il 31 agosto: la nota nomina il solo Sionismo Religioso, e la frase
+che CLAUDE.md registra come l'esempio della categoria si vede **solo premendo il pulsante**.
+
+È la trappola già scritta — *un predefinito che diventa un'ipotesi spacca una domanda in
+due* — in una sede nuova. `listeClausola()` non calcola quote e non conta seggi: **sceglie
+di quale lista parlare**, e la ragione per cui quella categoria esiste è **strutturale**, non
+di conteggio — nel conteggio della fonte quella lista non ha un campo. Quindi la riga
+vorrebbe `P[i].b` e non `bloccoDi(i)`.
+
+**Cambiata il 31 agosto 2026, su decisione dell'autore**, ed e' la **terza categoria**
+accanto alle due dichiarate presso `bloccoDi()`: chi **conta seggi** legge la leva, chi
+**calcola quote** legge l'anagrafica, e chi **sceglie di quale lista parlare** legge
+l'anagrafica anche lui.
+
+**E la FORMULAZIONE resta sul conteggio**, che e' la meta' che non si deduce: `fraseSoglia()`
+dice «dal suo campo» guardando `bloccoDi()`, perche' le parole devono concordare con i numeri
+che il lettore ha davanti. *Selezione e formulazione rispondono a due domande diverse, ed e'
+per questo che leggono due cose diverse* — la prova lo tiene nei due versi, e i due mutanti
+che le scambiano muoiono tutti e due.
+
+**Cercata la classe, e le altre selezioni sono corrette.** Le sedi in cui `bloccoDi()`
+**seleziona** invece di contare sono quattro, e tre hanno ragione di leggere la leva: il
+filtro dei seggi dell'arco e quello dei membri di legenda, perche' CLAUDE.md dichiara da
+sempre che **la posizione segue il conteggio**; e il ramo di `fraseSoglia()`, che sceglie una
+**formulazione** e non una lista. `listeClausola()` era l'unica a selezionare su una
+proprieta' **strutturale** — nel conteggio della fonte quella lista non ha un campo — e
+quindi l'unica a sbagliare.
+
+**La prova non nomina nessuna lista**: pretende che `listeClausola()` scelga **le stesse
+liste con la leva accesa e spenta**, che e' la proprieta', e vale per la lista che qualcuno
+riclassifica domani. Piu' il verso che manca sempre — che la categoria non sia vuota per
+costruzione, o una selezione invariante su un elenco vuoto sarebbe invariante senza provare
+niente.
+
 ## La prova di regia dell'8 settembre: quattro buchi, e il primo l'ha preso l'agente
 
 Eseguita il 30 agosto 2026 su un ramo usa-e-getta, senza committare nessuna mappatura. Il
@@ -5832,6 +5975,87 @@ la stessa ragione, lasciando `dati/colore-liste.js` mutato. Tutte e due colte co
 sedi una per una, che è la regola già scritta. **Un percorso relativo in uno script di banco
 è una trappola a orologeria: la prima volta che qualcuno lo lancia da un'altra cartella, il
 ripristino non ripristina.**
+
+## Dove si paga la cessione delle bande di luminanza: ΔE somma tre assi, un tratto sottile ne porta uno
+
+Misurato il 31 agosto 2026, e la voce esiste perché **il prezzo era dichiarato e non aveva
+un posto dove lo si vede**. La tavolozza del 24 agosto ha ceduto le bande di luminanza per
+comprare la distinguibilità dentro il blocco, e questo file registra la contropartita: in
+scala di grigi il ΔE minimo fra liste di blocchi diversi è **0,0**. Adesso c'è l'elemento su
+cui quella cessione si paga.
+
+### La regola, che vale oltre il caso
+
+**ΔE somma tre assi, e su un tratto sottile ne sopravvive uno solo.** Sotto i pochi pixel la
+risoluzione cromatica dell'occhio crolla mentre quella di chiarezza tiene: una coppia può
+stare a **ΔE 140 ed essere indistinguibile a un pixel e mezzo**, se tutta quella distanza è
+nei due assi cromatici e ΔL\* vale zero.
+
+*Quindi davanti a un elemento sottile non si guarda il ΔE: si guarda ΔL\*.* E la tavolozza
+non lo garantisce, perché garantisce il ΔE — è la stessa forma di «due mestieri su un canale
+solo», applicata alla dimensione invece che al ruolo.
+
+### Le sparkline di `#k-proj`, l'elemento più sottile della pagina
+
+Geometria misurata sul reso: SVG **249×16** su viewBox 200×16 con `preserveAspectRatio="none"`,
+fattore x **1,245** e y **1**. La barra della forbice rende **3px**, gli estremi **1,49px**, il
+disco della mediana un'ellisse **10,5 × 8,4px**.
+
+Su dodici liste con seggi, 66 coppie, tema chiaro:
+
+| coppia | ΔE | **ΔL\*** |
+|---|---|---|
+| Likud · Ra'am | 80,16 | **0,03** |
+| B'Yachad · Ra'am | 104,75 | **0,03** |
+| I Democratici · Otzma Yehudit | 140,14 | **0,04** |
+
+**Tre coppie a chiarezza identica, distinte solo dalla tinta, su un tratto da 1,49px.** E il
+ΔE le dichiara lontanissime — 140 è più del doppio della coppia più vicina della pagina.
+
+**E la coppia che l'occhio segnala non è quella che la misura condanna.** Giudaismo Unito
+Torah e Sionismo Religioso *sembrano* vicine — due viola — e stanno a ΔE 34,86, seconde su
+66; ma il loro **ΔL\* è 24,01, il più largo della pagina**, cioè 56ᵉ su 66 per separazione di
+chiarezza. Sono il caso benigno: tinta vicina, chiarezze lontane. *L'occhio segnala la tinta;
+a quella dimensione decide la chiarezza.*
+
+### E costa più di quanto era scritto: collassa anche sull'emiciclo
+
+La domanda giusta non è «quelle tre coppie ricompaiono altrove», ma **«due colori a ΔL zero
+si toccano da qualche altra parte»** — una coppia lontana sull'arco non è un problema, perché
+non si confronta.
+
+Sull'emiciclo, vista per lista, **tredici coppie sono adiacenti**, e la peggiore non è nessuna
+delle tre:
+
+| | ΔE | **ΔL\*** | dove |
+|---|---|---|---|
+| **Otzma Yehudit · Shas** | 52,37 | **0,25** | **adiacenti nell'arco**, `#3284FF` contro `#0092BB` |
+| Popolo d'Israele · Sionismo Religioso | — | 4,52 | adiacenti |
+
+**Otzma e Shas sono due liste dello stesso blocco che siedono una accanto all'altra con la
+stessa chiarezza**, su dischi da **15,07px a 1265 e 8,19px a 380**. Le tre coppie delle
+sparkline invece **non si toccano mai** sull'arco: stanno in blocchi diversi, separate dai
+vuoti e dall'ordine di `ARCO_ORD`.
+
+**Quindi sì, la cessione costa più di quanto è scritto — ma su una coppia che nessuno aveva
+guardato, e con un limite.** I dischi danno alla differenza di tinta **cento volte l'area** di
+un tratto da 1,49px, quindi lì la tinta ha spazio per lavorare; e la coppia adiacente è **una
+sola**. Il prezzo è reale e circoscritto, e adesso ha un numero.
+
+### Perché non si ripara
+
+**Il tratto non identifica niente**: la riga di `#k-proj` porta già nome della lista, blocco e
+leader — «Giudaismo Unito Torah · Blocco Netanyahu · Yitzhak Goldknopf» — quindi il colore è
+ridondante rispetto a un canale che c'è sempre. E il pavimento che gli si applica è quello del
+**codice**, 3,36, non quello dell'inchiostro: è la distinzione della sezione qui sopra, e qui
+cade dalla parte giusta.
+
+Sull'emiciclo lo stesso: il `<title>` di ogni seggio nomina la lista, la legenda la elenca, e
+la coppia adiacente è dentro lo stesso blocco — cioè la confusione, se c'è, è fra due liste
+che il lettore sta comunque contando insieme.
+
+*Se un giorno servisse ripararlo, la leva non è il ΔE: è **dare a una delle due una chiarezza
+diversa**, che è esattamente quello che le bande di luminanza facevano e che è stato ceduto.*
 
 ## Due mestieri su un canale solo: la tavolozza garantisce due cose, e non sono la stessa
 

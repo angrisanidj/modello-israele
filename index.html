@@ -3548,7 +3548,8 @@ function montecarlo(base,N,giorni,al){
  var res={n:N,d:{},primo:{},sotto:{},coal:[],oppz:[],vC:0,vO:0,vA:0,st:0};
  var dist=[],sotto=new Int32Array(n),primo=new Int32Array(n);
  for(i=0;i<n;i++) dist.push(new Int32Array(N));
- var coal=new Int32Array(N),oppz=new Int32Array(N);
+ var coal=new Int32Array(N),oppz=new Int32Array(N),arab=new Int32Array(N),
+     inc=new Int32Array(N),oppAr=new Int32Array(N);
  for(var s=0;s<N;s++){
   var sw=gauss()*sb,tot=0;
   for(j=0;j<n;j++) sim[j]=gauss()*idio[j];
@@ -3564,7 +3565,17 @@ function montecarlo(base,N,giorni,al){
    if(isCo[j])bc+=v;else if(isOp[j])bo+=v;else if(isAr[j])ba+=v;
   }
   if(mk>=0)primo[mk]++;
-  coal[s]=bc;oppz[s]=bo;
+  /* ══ ANCHE IL BLOCCO ARABO E IL QUARTO: la forbice mancava proprio alla frase che la
+     pagina ripete di piu'. «Opposizione + arabi» e' la maggioranza in tutti e quattro i
+     casi dello scenario della soglia, ed era l'unica affermazione del modello di cui non si
+     potesse dare l'intervallo — due blocchi su quattro con la banda e due senza e' la stessa
+     asimmetria che l'emiciclo ha appena finito di chiudere.
+     «ba» ERA GIA' CALCOLATO a ogni simulazione: serve alla riga «if(bo+ba>=61)», non veniva
+     solo conservato. E il quarto non si calcola affatto — e' 120 meno gli altri tre, perche'
+     l'invariante 1 lo garantisce: zero lavoro nel ciclo caldo.
+     Costo misurato: due copie e due ordinamenti in piu', +6ms su 110, il +5,5%; memoria
+     transitoria 2 x Int32Array(20000) = 156 KB. */
+  coal[s]=bc;oppz[s]=bo;arab[s]=ba;inc[s]=120-bc-bo-ba;oppAr[s]=bo+ba;
   if(bc>=61)res.vC++;else if(bo>=61)res.vO++;else if(bo+ba>=61)res.vA++;else res.st++;
  }
  for(i=0;i<n;i++){
@@ -3573,6 +3584,13 @@ function montecarlo(base,N,giorni,al){
  }
  res.coal=Array.prototype.slice.call(coal).sort(function(x,y){return x-y;});
  res.oppz=Array.prototype.slice.call(oppz).sort(function(x,y){return x-y;});
+ res.arab=Array.prototype.slice.call(arab).sort(function(x,y){return x-y;});
+ res.inc =Array.prototype.slice.call(inc ).sort(function(x,y){return x-y;});
+ /* E «oppArab» NON E' res.oppz + res.arab: quei due sono ordinati ciascuno per conto suo,
+    quindi oppz[s] e arab[s] non sono la stessa simulazione e sommarli non vuol dire niente.
+    E' la trappola gia' scritta accanto a MC.coal/MC.oppz, e qui morderebbe proprio sulla
+    frase che serve: la somma si fa DENTRO il ciclo, simulazione per simulazione. */
+ res.oppArab=Array.prototype.slice.call(oppAr).sort(function(x,y){return x-y;});
  return res;
 }
 function q(a,p){return a[Math.min(a.length-1,Math.max(0,Math.floor(p*a.length)))];}
@@ -6043,6 +6061,7 @@ function rProj(){
   ' Una lista che resta sotto il 3,25% non elegge nessuno e i suoi voti escono dal riparto: '+
   FRASE_SOGLIA+'.'+
   (cl.length?' Oggi '+cl.join(', e ')+'.':'')+
+  fraseScenarioSoglia()+
   ' La colonna “Rispetto al 2022” riporta i seggi conquistati dalla lista corrispondente nella 25ª Knesset.';
 }
 /* Mediana dei seggi nelle rilevazioni comprese in una finestra di giorni.
@@ -6166,9 +6185,7 @@ var FRASE_SOGLIA='i seggi che avrebbe preso si ridistribuiscono fra tutte le lis
    110 ms del Monte Carlo. Scritta a mano diventerebbe falsa alla prossima rilevazione, che
    è la classe di difetto chiusa tre volte il 30 agosto 2026. */
 function seSotto(id){
- var q={},k; for(k in QUO) q[k]=QUO[k];
- q[id]=SOGLIA-0.01;                                  /* sotto soglia: dhondt la esclude */
- var dopo=dhondt(q), mio=bloccoDi(id), dentro=0, fuori=0, campi=0;
+ var dopo=ripartoSenza([id]), mio=bloccoDi(id), dentro=0, fuori=0, campi=0, k;
  for(k in SEG){
   if(k===id) continue;
   var d=(dopo[k]||0)-(SEG[k]||0);
@@ -6237,6 +6254,148 @@ function fraseSoglia(id,s){
 function clausolaSoglia(id){
  var s=seSotto(id); return s.persi?fraseSoglia(id,s):null;
 }
+/* LO SCENARIO DELLA SOGLIA: le COMBINAZIONI, non una lista per volta.
+   clausolaSoglia() risponde a «dove vanno i seggi di questa lista». Qui la domanda e'
+   un'altra — «e se cadessero insieme, cambia chi puo' governare?» — e NON e' la somma
+   delle risposte di prima, perche' a ogni caduta i divisori si riassestano da capo.
+   IL FILO SI MISURA IN PUNTI DI QUOTA, non in seggi, e non e' una preferenza: la soglia
+   e' dichiarata in percentuale in tutta la pagina (3,25%), quindi la distanza va detta
+   nella stessa unita'. E NON SI CONFRONTA CON L'ERRORE DICHIARATO DEL MODELLO, che e' in
+   SEGGI (4,5 a due mesi dal voto): non sono la stessa grandezza, e attorno alla soglia non
+   lo diventano nemmeno convertendole, perche' li' la funzione non e' continua — mezzo
+   punto in meno non toglie mezzo seggio, li toglie tutti.
+   E LA FRASE SI GENERA DALLA PROPRIETA', non dal caso di oggi: si calcola chi arriva a 61
+   in OGNI combinazione, e «cambia il margine, non chi governa» si scrive solo se il
+   verdetto e' lo stesso dappertutto. Il giorno in cui una combinazione lo ribalta, la
+   frase lo dice invece di continuare a rassicurare. Raccontare come un ribaltamento uno
+   scenario che sposta solo il margine e' la cosa disonesta piu' facile da fare con questi
+   numeri; continuare a dire «non cambia niente» quando invece cambia e' l'altra. */
+var FILO_SOGLIA=0.5;
+function ripartoSenza(ids){
+ var q={},k; for(k in QUO) q[k]=QUO[k];
+ ids.forEach(function(i){q[i]=SOGLIA-0.01;});   /* sotto soglia: dhondt le esclude */
+ return dhondt(q);
+}
+function listeSulFilo(){
+ return IDS.filter(function(i){
+  return (SEG[i]||0)>0&&QUO[i]>=SOGLIA&&(QUO[i]-SOGLIA)<FILO_SOGLIA;
+ }).sort(function(a,b){return QUO[a]-QUO[b];});
+}
+/* Chi arriva a 61 in una configurazione di seggi. Le risposte sono le stesse delle quattro
+   pastiglie in cima, e l'ORDINE conta: un campo da solo viene prima della somma con i
+   partiti arabi, o «opposizione» e «opposizione + arabi» sarebbero indistinguibili proprio
+   nel caso in cui l'opposizione ce la fa senza. */
+function chiGoverna(b){
+ if(b.coalizione>=61) return 'coalizione';
+ if(b.opposizione>=61) return 'opposizione';
+ if(b.opposizione+b.arabo>=61) return 'oppoarabi';
+ return 'stallo';
+}
+function combinazioniSoglia(filo){
+ var v=[],n=1<<filo.length,j,k;
+ for(j=0;j<n;j++){
+  var fuori=[];
+  for(k=0;k<filo.length;k++) if(j&(1<<k)) fuori.push(filo[k]);
+  var b=blocchi(fuori.length?ripartoSenza(fuori):SEG);
+  v.push({fuori:fuori,b:b,gov:chiGoverna(b),somma:b.opposizione+b.arabo});
+ }
+ return v;
+}
+/* Il nome del blocco in mezzo a una frase: BL[].n e' un titolo e comincia maiuscolo.
+   Si abbassa la sola iniziale, cosi' «Blocco Netanyahu» diventa «blocco Netanyahu» e
+   «Partiti arabi» «partiti arabi», senza toccare i nomi propri che vengono dopo. */
+function blMin(b){var n=BL[b].n; return n.charAt(0).toLowerCase()+n.slice(1);}
+var GOV_ETI={coalizione:function(){return 'il '+blMin('coalizione');},
+             opposizione:function(){return "l'"+blMin('opposizione');},
+             oppoarabi:function(){return "l'"+blMin('opposizione')+' con i '+blMin('arabo');},
+             stallo:function(){return null;}};
+/* Con una lista sola sul filo le combinazioni sono DUE, non quattro, e «fra 68 e 68»
+   sarebbe un intervallo che non e' un intervallo: si dice il numero e si dice quando vale.
+   Il caso a una lista non e' un caso limite — e' quello di oggi. */
+/* LA BANDA DELLA SOMMA, e la sua ragione e' il LIMITE INFERIORE. «Opposizione + arabi» e'
+   la maggioranza in tutte le combinazioni ed era l'unica affermazione della pagina su chi
+   puo' governare senza un intervallo: k-verdetto dichiara due bande, una per BLOCCO —
+   coalizione e opposizione — e la somma dei due decisivi non stava da nessuna parte.
+   Il numero che la rende utile e' il 10º percentile: nel decile peggiore quella somma sta
+   SUL 61, cioe' senza margine. Per questo la frase dice gli estremi e non la mediana.
+   E i numeri vengono da MC.oppArab, che si somma dentro il ciclo del Monte Carlo:
+   res.oppz e res.arab sono ordinati ciascuno per conto suo, quindi il k-esimo dell'uno e
+   il k-esimo dell'altro NON sono la stessa simulazione. */
+function fraseBanda(lo,hi){
+ return ' In 8 simulazioni su 10 quella somma sta fra '+f(lo)+' e '+f(hi)+'.';
+}
+function codaSomme(filo,somme){
+ if(!somme.length) return '';
+ var mn=Math.min.apply(null,somme), mx=Math.max.apply(null,somme);
+ if(somme.length===1) return ' e '+f(mn)+' se restasse fuori '+nmA(filo[0],'');
+ if(mn===mx) return ' e '+f(mn)+' in tutte le altre combinazioni';
+ return ' e fra '+f(mn)+' e '+f(mx)+' nelle altre combinazioni';
+}
+/* LA COMPOSIZIONE E' SEPARATA DAL CONTO, per la ragione gia' pagata da fraseSoglia(): il
+   ramo che dichiara una maggioranza RIBALTATA non lo esercita nessun archivio di oggi —
+   oggi il verdetto e' lo stesso in tutte le combinazioni — quindi legato al conto sarebbe
+   irraggiungibile nelle prove, e un mutante che lo spegne resterebbe vivo. Con le
+   combinazioni passate come argomento la prova le costruisce, e il ramo si esercita nei due
+   versi: quello che rassicura e quello che avverte.
+   LA CLAUSOLA DEL SEGNO NON SI CERCA SUL FILO, e non e' una svista: parla della lista che la
+   LEVA riclassifica, e quella puo' stare a qualunque distanza dalla soglia. Legata al filo
+   sarebbe nata irraggiungibile — oggi Popolo d'Israele dista 0,54 punti, cioe' quattro
+   millesimi oltre il mezzo punto, e la riga non sarebbe mai comparsa. Si cerca dove la
+   proprieta' vive: fra le liste con seggi il cui blocco contato differisce da quello
+   dell'anagrafica. E segnoDipendeDaIpotesi() parla solo quando i due segni divergono
+   davvero, che e' la regola di ipotesiNeiNumeri(): un'ipotesi che non sposta niente non si
+   dichiara. */
+function fraseScenarioSoglia(){
+ var filo=listeSulFilo(); if(!filo.length) return '';
+ var sg=null; IDS.forEach(function(i){if(!sg&&(SEG[i]||0)) sg=segnoDipendeDaIpotesi(i);});
+ return fraseCombinazioni(filo,combinazioniSoglia(filo),sg);
+}
+function fraseCombinazioni(filo,comb,sg){
+ var oggi=comb[0], altre=comb.slice(1);
+ var t=' '+filo.map(function(i,j){
+  return (j?nmA(i,''):Maiu(nmA(i,'')))+(j?' '+f(QUO[i]-SOGLIA,2):' dista '+f(QUO[i]-SOGLIA,2)+' punti dalla soglia');
+ }).join(' e ')+'.';
+ var uguale=comb.every(function(c){return c.gov===oggi.gov;});
+ var eti=GOV_ETI[oggi.gov]();
+ if(uguale&&eti){
+  var somme=altre.map(function(c){return c.somma;});
+  t+=' In nessuna delle combinazioni la maggioranza possibile cambia: a poter governare resta '+
+     eti+(oggi.gov==='oppoarabi'?', che oggi sommano '+seg(oggi.somma)+codaSomme(filo,somme):'')+
+     '. Quello che cambia è il margine, non chi governa.'+
+     (oggi.gov==='oppoarabi'&&MC&&MC.oppArab?fraseBanda(q(MC.oppArab,.10),q(MC.oppArab,.90)):'');
+ }else{
+  /* IL RAMO CHE RENDE VERA LA FRASE DI SOPRA. Senza, «cambia il margine» sarebbe una
+     decorazione: si scriverebbe uguale nel giorno in cui una combinazione ribalta il
+     verdetto. Qui la pagina dichiara QUALE combinazione lo ribalta e in che cosa. */
+  var div=altre.filter(function(c){return c.gov!==oggi.gov;});
+  t+=' La maggioranza possibile non è la stessa in tutte le combinazioni: '+
+     div.map(function(c){
+      var e=GOV_ETI[c.gov]();
+      return 'se restassero fuori '+c.fuori.map(function(i){return nmA(i,'');}).join(' e ')+' '+
+             (e?'a poter governare sarebbe '+e:'nessuna maggioranza sarebbe possibile');
+     }).join(', e ')+'.';
+ }
+ if(sg) t+=' Se a restare fuori è '+nmA(sg.id,'')+', il segno dipende dall’ipotesi: con i '+
+   f(sg.seggi)+' seggi contati nel '+sg.blocco+', il blocco '+
+   (sg.leva<0?'ne perde ':'ne guadagna ')+f(Math.abs(sg.leva))+'; con il conteggio della fonte, '+
+   'che non ce li mette, '+(sg.fonte<0?'ne perde ':'ne guadagna ')+f(Math.abs(sg.fonte))+'.';
+ return t;
+}
+/* LA CLAUSOLA DEL SEGNO, e vale per una lista sola: quella che la leva riclassifica.
+   La stessa caduta muove il blocco nei DUE VERSI a seconda di come si contano quei seggi —
+   a leva accesa erano gia' suoi e li perde, col conteggio della fonte non erano suoi e ne
+   recupera una parte dalla dispersione. Pubblicare un numero solo vorrebbe dire pubblicare
+   il segno sbagliato per meta' dei lettori. La frase esce solo quando i due segni
+   DIFFERISCONO davvero: quando concordano non c'e' nessuna ipotesi da dichiarare, ed e' la
+   regola di ipotesiNeiNumeri() applicata a un riquadro invece che a una condivisione. */
+function segnoDipendeDaIpotesi(id){
+ var b=bloccoDi(id); if(b===P[id].b) return null;
+ var dopo=ripartoSenza([id]);
+ var d =blocchi(dopo)[b]     -blocchi(SEG)[b];
+ var df=blocchi(dopo,true)[b]-blocchi(SEG,true)[b];
+ if(!(d<0&&df>0)&&!(d>0&&df<0)) return null;
+ return {id:id,seggi:SEG[id]||0,blocco:blMin(b),leva:d,fonte:df};
+}
 /* CHI ENTRA NELLA CLAUSOLA: le liste sul filo, PIU' quelle fuori dai due campi che hanno
    seggi. La prima categoria e' la conseguenza del rischio appena dichiarato; la seconda e'
    il caso in cui la meccanica si vede meglio, perche' i seggi attraversano TUTTI — una
@@ -6253,8 +6412,23 @@ function clausolaSoglia(id){
 var CLAUSOLA_MIN=2;
 function listeClausola(){
  var v=aRischio().slice();
+ /* LA SECONDA CATEGORIA LEGGE L ANAGRAFICA, NON LA LEVA, ed e la TERZA categoria
+    accanto alle due dichiarate presso bloccoDi(): chi CONTA SEGGI legge la leva, chi
+    calcola QUOTE legge l anagrafica, e chi SCEGLIE DI QUALE LISTA PARLARE legge
+    l anagrafica anche lui. La ragione per cui questa categoria esiste e STRUTTURALE — nel
+    conteggio della fonte quella lista non ha un campo, ed e li che la meccanica si vede
+    meglio — non di conteggio.
+    LETTA CON LA LEVA LA CATEGORIA SI SVUOTAVA. Da quando PAR.inbilico nasce accesa,
+    bloccoDi() risponde «coalizione» per la lista riclassificata, quindi la categoria non
+    conteneva piu nessuno e la clausola su quella lista compariva SOLO premendo il
+    pulsante. E un predefinito che diventa un ipotesi che spacca una domanda in due, nella
+    sede in cui la domanda e «di che cosa parlo» invece di «quanto vale».
+    E LA FRASE, INVECE, RESTA SUL CONTEGGIO: fraseSoglia() dice «dal suo campo» guardando
+    bloccoDi(), perche le parole devono concordare con i numeri che il lettore ha davanti.
+    Selezione e formulazione rispondono a due domande diverse, ed e per questo che leggono
+    due cose diverse. */
  IDS.forEach(function(i){
-  if(bloccoDi(i)!=='incerto') return;
+  if(P[i].b!=='incerto') return;
   if((SEG[i]||0)<CLAUSOLA_MIN) return;
   if(v.indexOf(i)<0) v.push(i);
  });
