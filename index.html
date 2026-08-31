@@ -2005,6 +2005,7 @@
   <label for="f-txt">Cerca</label><input id="f-txt" placeholder="testata, istituto…">
   <span class="cnt" id="f-cnt"></span>
  </div>
+ <p class="fn" id="k-tabnota"></p>
  <div class="scroll" id="k-tab"></div>
  <p class="fn">Celle vuote: lista sotto la soglia del 3,25% in quella rilevazione, oppure non rilevata. Nessun valore è ricostruito a stima. Le liste di ogni riga sommano 120 seggi. I tre totali in fondo sono i blocchi che gli istituti pubblicano: quando una lista fuori dai due campi ottiene seggi, la loro somma è minore di 120.</p>
 </section>
@@ -9052,6 +9053,46 @@ function cntTab(mostrate,filtrate,totale){
  if(filtrate<totale) return f(filtrate)+' su '+f(totale)+' rilevazioni';
  return f(totale)+' '+acc(totale,'rilevazione','rilevazioni');
 }
+/* LA CLAUSOLA DELLA FASCIA, e sta SOPRA la tabella e non nel piede.
+   Il piede si legge dopo aver scorso; questa dice come e' fatta la tabella, e va letta
+   prima di scorrerla. Misurato a 1265: la tabella e' larga 1374,9 in un contenitore da
+   1104, quindi il piede sta sotto qualcosa che il lettore non ha ancora finito di vedere.
+   DICE DUE COSE, E LA SECONDA E' CONDIZIONALE. La prima — che le colonne sono raggruppate
+   per blocco — vale sempre, ed e' la cosa che i filetti dichiaravano senza nominarla.
+   La seconda — che il gruppo e' quello della FONTE e non quello in cui il modello conta —
+   ha senso solo finche' una lista sta nei due posti diversi: dichiararla quando i due
+   raggruppamenti coincidono insegnerebbe a saltare la riga proprio prima del giorno in cui
+   conta. E' la regola di ipotesiNeiNumeri() applicata a una nota di tabella.
+   E IL DATO CHE LA RENDE NON TEORICA: sette rilevazioni su 183 danno seggi alla lista
+   riclassificata, e sono tutte del 26-30 agosto, cioe' tutte in cima alla tabella — le
+   prime che il lettore vede.
+   I NOMI DEI BLOCCHI STANNO FRA VIRGOLETTE e non dentro una preposizione articolata: «nel
+   ago della bilancia» vorrebbe una seconda anagrafica di lingua accanto ad ART e CONTR,
+   che l'8 settembre resterebbe indietro. Fra virgolette il nome e' una targa e non si
+   accorda con niente — ed e' anche quello che il lettore legge nella fascia. */
+function notaGruppi(cols){
+ /* E DOVE STANNO I TOTALI, che e la cosa che la fascia non riesce a dire: la cella
+    «Totali di blocco» sta sopra colonne che a 1265 sono FUORI dall area visibile — x 1301,3
+    contro un bordo a 1171 — e non c e modo di portarcela, perche seguirebbe comunque le sue
+    colonne. Spostarla vorrebbe dire staccarla dai dati che descrive. Quello che si puo fare
+    e dirlo a parole prima che il lettore cominci a scorrere, cosi la promessa del piede —
+    «i tre totali in fondo sono i blocchi che gli istituti pubblicano» — non arriva a
+    sorpresa. */
+ var t='Le colonne dei seggi sono raggruppate per blocco, e i tre totali di blocco stanno '+
+   'in fondo a ogni riga.';
+ var mossa=cols.filter(function(i){return bloccoDi(i)!==P[i].b;});
+ if(mossa.length) t+=' Il gruppo è quello che la fonte dichiara, non quello in cui il modello conta: '+
+   mossa.map(function(i){
+    /* IL SOGGETTO E LA COLONNA, non la lista, e non e una scelta di stile: il numero
+       grammaticale del NOME di una lista non e ricavabile da niente che il codice conosca —
+       «i Democratici è nel gruppo» — ed e la stessa trappola gia pagata da fraseSoglia().
+       Con «la colonna» il soggetto ha un numero noto, e per giunta e piu esatto: e la
+       colonna a stare in un gruppo, non la lista. */
+    return 'la colonna '+nmA(i,'di')+' è nel gruppo «'+BL[P[i].b].n+'», dove la mette '+
+           'Wikipedia, mentre il modello la conta in «'+BL[bloccoDi(i)].n+'»';
+   }).join('; ')+'.';
+ return t;
+}
 function rTab(){
  var l=SOND.slice().sort(function(a,b){return a.data<b.data?1:-1;});
  var tot=l.length,rif=l.length?new Date(l[0].data):new Date();
@@ -9087,6 +9128,7 @@ function rTab(){
  var cols=colonneBlocco(IDS.filter(function(i){return l.some(function(s){return s.seggi[i];});}));
  var confine={};
  cols.forEach(function(i,n){ if(n && P[i].b!==P[cols[n-1]].b) confine[i]=1; });
+ $('k-tabnota').textContent=notaGruppi(cols);
  /* NIENTE RISULTATI: LA TABELLA DEVE DIRLO, e fino al 23 agosto 2026 non lo diceva.
     Misurato: con una ricerca senza esiti restava un riquadro alto 31,7px con la sola
     intestazione e nessuna parola. Il contatore accanto ai filtri diceva «0 su 173», quindi
@@ -9113,9 +9155,35 @@ function rTab(){
     Il fondo --wash sulle celle dei totali è stato scartato: sarebbe colore su colore dove i
     valori sono già colorati per blocco, e entrerebbe in conflitto con la scala divergente
     il giorno in cui qualcuno colorasse anche i totali. */
+ /* LA FASCIA DI GRUPPO NOMINA I BLOCCHI, e non e' cosmesi: fino al 31 agosto 2026 diceva
+    «Seggi per lista» e «Totali di blocco» e non nominava nessun blocco, quindi il
+    raggruppamento delle colonne lo dichiaravano solo i filetti — un segno senza nome.
+    E LA FASCIA SCORRE COL CORPO: la testata e' appiccicata in VERTICALE, non in
+    orizzontale. Misurato a 1265: la cella «Totali di blocco» sta a x 1308,8 dentro un
+    contenitore che finisce a 1179,5, cioe' 129px oltre il bordo visibile. Chi guarda la
+    tabella senza scorrere non sa che esiste un secondo gruppo, e il piede gli promette tre
+    totali che non vede. I nomi dei blocchi invece cadono sopra le LORO colonne, quindi il
+    primo si legge subito e gli altri arrivano scorrendo, insieme ai dati che descrivono.
+    I NOMI ESCONO DA siglaBlocco(), la stessa funzione dell'arco: due tabelle di nomi corti
+    sarebbero la strada doppia di sempre, e il lettore vedrebbe due parole diverse per la
+    stessa cosa. Misurate a 1265 le larghezze rese contro la corsa di ciascun blocco —
+    arabi 45,2 su 217,9 · opposizione 103,4 su 384,8 · bilancia 70,8 su 107,1 · Netanyahu
+    91,9 su 261,6 — la piu' stretta e' l'ago della bilancia, con 36,3px di margine su due
+    colonne. Con una colonna sola quella cella andrebbe a capo: e' il caso da rimisurare se
+    quel blocco si restringe, non una soglia da scrivere qui.
+    I CONFINI SONO GLI STESSI DELLE COLONNE, presi da `confine`: se il filetto e il nome
+    venissero da due conti diversi, il giorno in cui l'anagrafica cambia il nome starebbe
+    sopra le colonne sbagliate senza che niente cada. */
+ var grup='',run=0,bloc=null;
+ cols.forEach(function(i,n){
+  var b=P[i].b;
+  if(bloc===null){bloc=b;run=0;}
+  if(b!==bloc){grup+='<th colspan="'+run+'"'+(grup?' class="sep"':'')+'>'+E(siglaBlocco(bloc))+'</th>';bloc=b;run=0;}
+  run++;
+  if(n===cols.length-1) grup+='<th colspan="'+run+'"'+(grup?' class="sep"':'')+'>'+E(siglaBlocco(bloc))+'</th>';
+ });
  var h='<table class="sondtab"><thead>'+
-   '<tr class="grup"><th colspan="3"></th>'+
-   '<th colspan="'+cols.length+'">Seggi per lista</th>'+
+   '<tr class="grup"><th colspan="3"></th>'+grup+
    '<th colspan="3" class="sep2">Totali di blocco</th></tr>'+
    '<tr><th class="l">Data</th><th class="l">Istituto</th><th>N</th>';
  cols.forEach(function(i){h+='<th'+(confine[i]?' class="sep"':'')+' title="'+E(nm(i))+'">'+

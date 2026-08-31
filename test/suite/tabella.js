@@ -66,7 +66,8 @@ src = src.replace('carica().then(render,render)',
   'rTab:rTab,rHouse:rHouse,render:render,TAB_LIMITE:TAB_LIMITE,' +
   'mostra:function(){return TAB_MOSTRA;},setMostra:function(v){TAB_MOSTRA=v;},' +
   'filtri:function(){return FILTRI;},cntTab:cntTab,' +
-  'sigla:sigla,senzaArt:senzaArt,ART:ART,nmA:nmA,nonPubblicate:nonPubblicate,promptAI:promptAI};carica().then(render,render)');
+  'sigla:sigla,senzaArt:senzaArt,ART:ART,nmA:nmA,nonPubblicate:nonPubblicate,promptAI:promptAI,' +
+  'siglaBlocco:siglaBlocco,notaGruppi:notaGruppi,bloccoDi:bloccoDi,BL:BL,nm:nm,IN_BILICO:IN_BILICO,senzaArt:senzaArt};carica().then(render,render)');
 eval(src);
 try{ A.render(); }catch(e){ console.log('KO il render non è partito — ' + (e && e.message)); }
 
@@ -892,11 +893,20 @@ esito(colId.length >= 8, 'le colonne di lista sono ' + colId.length, colId.join(
   const grup = tabella2 ? tabella2.querySelector('thead .grup') : null;
   esito(!!grup, 'la testata ha una fila di intestazioni di gruppo');
   const celleG = grup ? [].slice.call(grup.children) : [];
-  esito(celleG.length === 3,
-    'e sono tre: le colonne di servizio, i seggi per lista, i totali di blocco',
+  /* ATTESE AGGIORNATE IL 31 AGOSTO 2026, e la decisione e dell autore: la fascia non dice
+     piu «Seggi per lista» ma NOMINA I BLOCCHI, uno per gruppo di colonne. Il difetto che
+     ha portato al cambio e misurato: la fascia scorre col corpo — la testata e appiccicata
+     in verticale, non in orizzontale — quindi a 1265 la cella «Totali di blocco» stava a x
+     1308,8 dentro un contenitore che finisce a 1179,5, e chi guardava la tabella senza
+     scorrere non sapeva che esistesse un secondo gruppo mentre il piede gli prometteva tre
+     totali. Il numero delle celle non e piu scritto qui: dipende da quanti blocchi hanno
+     colonne, e l 8 settembre puo cambiare. */
+  esito(celleG.length >= 3,
+    'e sono almeno tre: servizio, i gruppi di blocco, i totali',
     String(celleG.length));
-  esito(celleG[1] && /Seggi per lista/i.test(celleG[1].textContent) &&
-        celleG[2] && /Totali di blocco/i.test(celleG[2].textContent),
+  esito(celleG[celleG.length-1] && /Totali di blocco/i.test(celleG[celleG.length-1].textContent) &&
+        celleG.slice(1, -1).length > 0 &&
+        celleG.slice(1, -1).every(c => c.textContent.trim().length > 0),
     'e dicono a parole dove cambia la natura del dato, invece di lasciarlo a un segno',
     celleG.map(c => '«' + c.textContent + '»').join(' '));
   /* i colspan COPRONO la tabella: una fila di gruppo che non somma al numero di colonne
@@ -1012,6 +1022,107 @@ esito(colId.length >= 8, 'le colonne di lista sono ' + colId.length, colId.join(
     'e la fascia dell\'era pre-fusione copre tutte le colonne, totali compresi',
     era.getAttribute('colspan') + ' contro ' + nCol);
 }
+
+const SRCT = html;
+
+/* ══ LA FASCIA DI GRUPPO NOMINA I BLOCCHI ════════════════════════════════════════════
+ * Fino al 31 agosto 2026 diceva «Seggi per lista» e «Totali di blocco» e non nominava
+ * nessun blocco: il raggruppamento delle colonne lo dichiaravano solo i filetti, cioe' un
+ * segno senza nome. E la fascia SCORRE COL CORPO — la testata e' appiccicata in verticale,
+ * non in orizzontale — quindi misurato a 1265 la cella «Totali di blocco» stava a x 1308,8
+ * dentro un contenitore che finisce a 1179,5: chi guardava la tabella senza scorrere non
+ * sapeva che esistesse un secondo gruppo, mentre il piede gli prometteva tre totali. */
+const grupTh = [...D.querySelectorAll('#k-tab .grup th')];
+const colsOra = A.colonneBlocco(IDS.filter(i => A.SOND().some(s => s.seggi[i])));
+
+/* 1 · una cella per blocco, nell'ORDINE delle colonne, e i colspan coprono tutte le
+ *     colonne di lista: se coprissero di meno la fascia starebbe sopra le colonne
+ *     sbagliate, ed e' un difetto che a occhio non si vede. */
+const attesi = [];
+colsOra.forEach((i, n) => {
+  const b = P[i].b;
+  if (!n || b !== P[colsOra[n-1]].b) attesi.push({b: b, n: 0});
+  attesi[attesi.length-1].n++;
+});
+const celleBlocco = grupTh.slice(1, grupTh.length-1);
+const KOgrup = attesi.filter((a, k) => !celleBlocco[k] ||
+  celleBlocco[k].textContent.trim() !== A.siglaBlocco(a.b) ||
+  celleBlocco[k].colSpan !== a.n);
+esito(celleBlocco.length === attesi.length && KOgrup.length === 0,
+  'la fascia ha una cella per blocco, col nome e il colspan giusti',
+  celleBlocco.map(t => t.textContent.trim() + '×' + t.colSpan).join(' · '));
+esito(celleBlocco.reduce((s,t) => s + t.colSpan, 0) === colsOra.length,
+  'e i colspan della fascia coprono esattamente le colonne di lista',
+  celleBlocco.reduce((s,t) => s + t.colSpan, 0) + ' contro ' + colsOra.length);
+
+/* 2 · I NOMI ESCONO DA siglaBlocco(), la stessa funzione dell'arco. Due tabelle di nomi
+ *     corti sarebbero la strada doppia di sempre, e il lettore vedrebbe due parole diverse
+ *     per la stessa cosa. Il legame si prova nel sorgente, perche' un nome ricopiato a mano
+ *     coinciderebbe oggi e divergerebbe al primo ritocco. */
+const rigaFascia = SRCT.split(String.fromCharCode(10))
+  .filter(r => r.indexOf('colspan="\'+run+\'"') >= 0).join(' ');
+esito(rigaFascia.indexOf('siglaBlocco(bloc)') >= 0,
+  'e i nomi della fascia escono da siglaBlocco, come quelli dell arco', rigaFascia.trim());
+
+/* 3 · I CONFINI DELLA FASCIA SONO QUELLI DELLE COLONNE. Se il filetto e il nome venissero
+ *     da due conti diversi, il giorno in cui l'anagrafica cambia il nome starebbe sopra le
+ *     colonne sbagliate senza che niente cada. */
+const thCol = [...D.querySelectorAll('#k-tab thead tr:last-child th')].slice(3, 3 + colsOra.length);
+const sepCol = thCol.map((t,k) => k > 0 && /\bsep\b/.test(t.className)).map((v,k) => v ? k : -1).filter(k => k >= 0);
+let acc = 0; const sepFascia = [];
+celleBlocco.forEach((t,k) => { if (k) sepFascia.push(acc); acc += t.colSpan; });
+esito(sepCol.join(',') === sepFascia.join(','),
+  'i confini della fascia cadono dove cadono i filetti fra le colonne',
+  '[' + sepCol.join(',') + '] contro [' + sepFascia.join(',') + ']');
+
+/* ══ LA CLAUSOLA, E LA SUA SECONDA META' E' CONDIZIONALE ══════════════════════════════
+ * La prima cosa — le colonne sono raggruppate per blocco — vale sempre. La seconda — il
+ * gruppo e' quello della FONTE, non quello in cui il modello conta — ha senso solo finche'
+ * una lista sta nei due posti diversi: dichiararla quando i due raggruppamenti coincidono
+ * insegnerebbe a saltare la riga proprio prima del giorno in cui conta. */
+/* IL CASO SI COSTRUISCE, perche il seme non lo contiene: su BASE la lista che la leva
+   riclassifica non ha seggi, quindi non ha nemmeno una colonna. Provare la clausola solo
+   dove i dati la producono vorrebbe dire non provarla affatto — e in produzione ci sono
+   sette rilevazioni su 183 che le danno seggi, tutte del 26-30 agosto, cioe tutte in cima
+   alla tabella. Si sposta una lista VERA che ha colonne, cosi la proprieta si esercita
+   senza dipendere da quale lista l anagrafica riclassifichi oggi. */
+const CAVIA = colsOra.filter(i => P[i].b === 'opposizione')[0];
+A.IN_BILICO.push({id: CAVIA, verso: 'coalizione', fonte: 'fixture'});
+const spostate = colsOra.filter(i => A.bloccoDi(i) !== P[i].b);
+esito(spostate.length > 0 && spostate.indexOf(CAVIA) >= 0,
+  'la premessa: la cavia risulta contata altrove, o la clausola non morde',
+  spostate.map(i => A.nm(i) + ' ' + P[i].b + ' -> ' + A.bloccoDi(i)).join(', '));
+const ferme = colsOra.filter(i => A.bloccoDi(i) === P[i].b);
+esito(A.notaGruppi(ferme).indexOf('raggruppate per blocco') >= 0 &&
+      A.notaGruppi(ferme).indexOf('la fonte dichiara') < 0,
+  'senza liste spostate la clausola dice solo che le colonne sono raggruppate',
+  A.notaGruppi(ferme));
+const conUna = ferme.concat(spostate.slice(0,1));
+esito(A.notaGruppi(conUna).indexOf('la fonte dichiara') >= 0 &&
+      A.notaGruppi(conUna).toLowerCase().indexOf(A.senzaArt(spostate[0]).toLowerCase()) >= 0,
+  'e con una lista spostata la dichiara, e la nomina', A.notaGruppi(conUna));
+esito(A.notaGruppi(conUna).indexOf(A.BL[P[spostate[0]].b].n) >= 0 &&
+      A.notaGruppi(conUna).indexOf(A.BL[A.bloccoDi(spostate[0])].n) >= 0,
+  'e nomina TUTTI E DUE i gruppi: dire solo dove sta non spiega perche e li',
+  A.notaGruppi(conUna));
+
+/* 4 · E STA SOPRA LA TABELLA, non nel piede: il piede si legge dopo aver scorso, questa
+ *     dice com'e' fatta la tabella e va letta prima di scorrerla. */
+const nota = D.getElementById('k-tabnota'), scroll = D.getElementById('k-tab');
+esito(!!nota && (nota.compareDocumentPosition(scroll) & 4) !== 0,
+  'la clausola sta nel markup PRIMA della tabella',
+  nota ? 'c e, e precede' : 'manca');
+A.IN_BILICO.pop();
+esito(!!nota && nota.textContent.indexOf('raggruppate per blocco') >= 0,
+  'e la dice al lettore, non solo al sorgente', nota ? nota.textContent.slice(0,60) : '');
+
+/* 5 · E DICE DOVE STANNO I TOTALI. La cella «Totali di blocco» sta sopra colonne che a
+ *     1265 sono fuori dall area visibile, e non c e modo di portarcela senza staccarla dai
+ *     dati che descrive: quello che si puo fare e dirlo a parole prima che il lettore
+ *     cominci a scorrere, cosi la promessa del piede non arriva a sorpresa. */
+esito(!!nota && /tre totali di blocco stanno in fondo a ogni riga/.test(nota.textContent),
+  'e dice dove stanno i tre totali, che la fascia non riesce a mostrare',
+  nota ? nota.textContent.slice(0, 110) : '');
 
 console.log('\n' + ok + '/' + (ok + ko));
 

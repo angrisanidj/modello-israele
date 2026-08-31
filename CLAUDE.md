@@ -5835,6 +5835,130 @@ riclassifica domani. Piu' il verso che manca sempre — che la categoria non sia
 costruzione, o una selezione invariante su un elenco vuoto sarebbe invariante senza provare
 niente.
 
+## La fascia di gruppo non nominava i blocchi, e scorreva via insieme alle colonne
+
+Applicato il 31 agosto 2026. Il difetto è **di lettura e non di calcolo**, e nessuna prova
+poteva vederlo: la fascia c'era, i colspan coprivano, tutte le asserzioni erano verdi.
+
+### Il gruppo non era sparito: era fuori dallo schermo
+
+La fascia diceva «SEGGI PER LISTA» e «TOTALI DI BLOCCO». Misurato a 1265, tema chiaro
+forzato dal pulsante e transizioni spente:
+
+| | |
+|---|---|
+| la cella «Totali di blocco» | x **1301,3**, larga 141,7 |
+| il bordo visibile del contenitore | x **1171** |
+| quindi | **130px oltre il bordo**, a `scrollLeft` 0 |
+
+**La testata è appiccicata in VERTICALE, non in orizzontale.** `thead` è
+`position:sticky; top:0`, quindi la fascia scorre **col corpo**: chi guarda la tabella senza
+scorrere vede un gruppo solo e non sa che ne esista un secondo — mentre il piede gli promette
+tre totali. *Il piede prometteva una cosa che la fascia teneva nascosta.*
+
+**E la fascia non nominava nessun blocco.** Il raggruppamento delle colonne lo dichiaravano
+soltanto i filetti, cioè **un segno senza nome**: il lettore che non sa che le colonne sono
+raggruppate non ricava niente dalla posizione di una colonna, né quando è al posto giusto né
+quando non lo è.
+
+### I nomi dei blocchi, uno per gruppo di colonne
+
+Non un'etichetta sola con dentro quattro nomi: **una cella per blocco**, sopra le sue
+colonne. Così il primo nome si legge subito e gli altri arrivano scorrendo, **insieme ai dati
+che descrivono** — che è esattamente quello che la cella dei totali non fa.
+
+Misurate a 1265 le larghezze rese contro la corsa di ciascun blocco:
+
+| gruppo | nome | corsa | margine |
+|---|---|---|---|
+| liste arabe | «arabi» 45,2 | 217,8 | +172,6 |
+| opposizione | «opposizione» 103,4 | 384,8 | +281,4 |
+| **ago della bilancia** | **«bilancia» 70,8** | **107,1** | **+36,3** |
+| blocco Netanyahu | «Netanyahu» 91,9 | 261,6 | +169,7 |
+
+Tutti e quattro **visibili senza scorrere**, la fascia resta su **una riga** (23,2px) e lo
+sforamento del documento è **zero**.
+
+**I NOMI ESCONO DA `siglaBlocco()`, la stessa funzione dell'arco.** Una seconda tabella di
+nomi corti sarebbe la strada doppia di sempre, e il lettore vedrebbe **due parole diverse per
+la stessa cosa** nel disegno e nella tabella. Da qui «bilancia» e non «ago della bilancia»:
+non è una forma corta scelta qui, è la sigla che la pagina già usa.
+
+**Il margine più stretto è l'ago della bilancia, con 36,3px su due colonne.** Con una colonna
+sola quella cella andrebbe a capo. È il caso da rimisurare se quel blocco si restringe, non
+una soglia da scrivere nel codice.
+
+**E i confini della fascia sono quelli delle colonne**, presi dallo stesso `confine`: se il
+filetto e il nome venissero da due conti diversi, il giorno in cui l'anagrafica cambia il
+nome starebbe sopra le colonne sbagliate **senza che niente cada**. Una mutazione che scala i
+colspan di uno fa cadere quattro asserzioni.
+
+### La clausola sta sopra la tabella, e la sua seconda metà è condizionale
+
+**Sopra e non nel piede**: il piede si legge dopo aver scorso, questa dice *com'è fatta* la
+tabella e va letta prima di scorrerla — e a 1265 la tabella è larga **1374,9 in un
+contenitore da 1104**, quindi il piede sta sotto qualcosa che il lettore non ha ancora finito
+di vedere.
+
+Dice **due cose**, e sono di natura diversa:
+
+1. **che le colonne sono raggruppate per blocco** — vale sempre, ed è la cosa che i filetti
+   dichiaravano senza nominarla;
+2. **dove stanno i tre totali** — «e i tre totali di blocco stanno in fondo a ogni riga»:
+   la cella «Totali di blocco» sta sopra colonne che a 1265 sono fuori dall area visibile, e
+   non c è modo di portarcela senza staccarla dai dati che descrive. Si dice a parole prima
+   che il lettore cominci a scorrere, così la promessa del piede non arriva a sorpresa;
+3. **che il gruppo è quello che la FONTE dichiara, non quello in cui il modello conta** —
+   **condizionale**, e la condizione è che esista una colonna il cui blocco contato differisca
+   da quello dell'anagrafica. Dichiararla quando i due raggruppamenti coincidono insegnerebbe
+   a saltare la riga proprio prima del giorno in cui conta: è la regola di
+   `ipotesiNeiNumeri()` applicata a una nota di tabella.
+
+**Il dato che la rende non teorica**: **sette rilevazioni su 183** danno seggi alla lista
+riclassificata, e sono **tutte del 26–30 agosto**, cioè tutte in cima alla tabella — le prime
+che il lettore vede.
+
+Oggi:
+
+> Le colonne dei seggi sono raggruppate per blocco. Il gruppo è quello che la fonte dichiara,
+> non quello in cui il modello conta: la colonna di Popolo d'Israele è nel gruppo «Ago della
+> bilancia», dove la mette Wikipedia, mentre il modello la conta in «Blocco Netanyahu».
+
+**IL SOGGETTO È LA COLONNA, NON LA LISTA**, e non è una scelta di stile: il numero
+grammaticale del *nome* di una lista non è ricavabile da niente che il codice conosca — la
+prima stesura scriveva **«i Democratici è nel gruppo»** — ed è la stessa trappola già pagata
+da `fraseSoglia()`. Con «la colonna» il soggetto ha un numero noto, e per giunta è più esatto:
+è la colonna a stare in un gruppo, non la lista.
+
+**E i nomi dei blocchi stanno fra virgolette**, non dentro una preposizione articolata: «nel
+ago della bilancia» vorrebbe una seconda anagrafica di lingua accanto ad `ART` e `CONTR`, che
+l'8 settembre resterebbe indietro. Fra virgolette il nome è una targa e non si accorda con
+niente — ed è anche quello che il lettore legge nella fascia.
+
+### Due attese aggiornate, e la decisione è dell'autore
+
+`tabella.js` pretendeva **tre** celle di gruppo e i due testi letterali. Sono diventate
+obsolete **di proposito** — l'autore ha deciso la forma nuova — e sono state riscritte nello
+stesso commit: «almeno tre», l'ultima è quella dei totali, e le celle in mezzo **non sono
+vuote**. **Il numero non è più scritto nella prova**: dipende da quanti blocchi hanno colonne,
+e l'8 settembre può cambiare.
+
+### «Totali di blocco» resta fuori schermo, e lo dice la clausola
+
+**A `scrollLeft` 0 quella cella non si vede**, e non c'è modo di portarcela: sta sopra colonne
+che sono fuori, e spostarla vorrebbe dire staccarla dai dati che descrive. Quindi non si
+sposta la cella — **lo dice la clausola**, prima che il lettore cominci a scorrere. Adesso il
+lettore sa tre cose senza scorrere: che le colonne sono raggruppate, come si chiamano i
+gruppi, e che i totali stanno in fondo a ogni riga.
+
+### E una misura che ha corretto due numeri di questo file
+
+L'archivio ha **18 colonne di lista** e non tredici: i 13 e la soglia dei 1075 sono
+dell'**house effect**, non dell'archivio, che ha sempre avuto ventidue colonne e più. Larghezza
+resa a 1265: **1374,9 in un contenitore da 1104**, quindi scorre di 271px **dentro `.scroll`**,
+senza toccare il documento. È il comportamento dichiarato dal 21 agosto, non un difetto —
+ma i due numeri non vanno prestati da una tabella all'altra.
+
 ## La prova di regia dell'8 settembre: quattro buchi, e il primo l'ha preso l'agente
 
 Eseguita il 30 agosto 2026 su un ramo usa-e-getta, senza committare nessuna mappatura. Il
