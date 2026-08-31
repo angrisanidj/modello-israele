@@ -67,7 +67,8 @@ src = src.replace('carica().then(render,render)',
   'mostra:function(){return TAB_MOSTRA;},setMostra:function(v){TAB_MOSTRA=v;},' +
   'filtri:function(){return FILTRI;},cntTab:cntTab,' +
   'sigla:sigla,senzaArt:senzaArt,ART:ART,nmA:nmA,nonPubblicate:nonPubblicate,promptAI:promptAI,' +
-  'siglaBlocco:siglaBlocco,notaGruppi:notaGruppi,bloccoDi:bloccoDi,BL:BL,nm:nm,IN_BILICO:IN_BILICO,senzaArt:senzaArt};carica().then(render,render)');
+  'siglaBlocco:siglaBlocco,notaGruppi:notaGruppi,bloccoDi:bloccoDi,BL:BL,nm:nm,IN_BILICO:IN_BILICO,senzaArt:senzaArt,' +
+  'inkLeggibile:inkLeggibile,contrasto:contrasto,lum:lum,mescola:mescola,C_FALL_T:C_FALL_T};carica().then(render,render)');
 eval(src);
 try{ A.render(); }catch(e){ console.log('KO il render non è partito — ' + (e && e.message)); }
 
@@ -1123,6 +1124,93 @@ esito(!!nota && nota.textContent.indexOf('raggruppate per blocco') >= 0,
 esito(!!nota && /tre totali di blocco stanno in fondo a ogni riga/.test(nota.textContent),
   'e dice dove stanno i tre totali, che la fascia non riesce a mostrare',
   nota ? nota.textContent.slice(0, 110) : '');
+
+
+/* ══ IL PAVIMENTO DI UN INCHIOSTRO E' 4,5 ANCHE QUANDO IL COLORE E' UN CODICE ═════════
+ * Terza volta che questa regola morde, e la prima DENTRO un'eccezione dichiarata: il 31
+ * agosto le cifre di lista hanno perso il colore, e nello stesso giro era scritto che i tre
+ * totali restano colorati «perche' li' e' un codice con la sua legenda». Il ragionamento
+ * regge per il significato e non per il pavimento — quella tinta e' comunque l'unico
+ * inchiostro di un numero che il lettore legge. Misurato: --arab su --card in tema scuro
+ * stava a 4,38. IL SIGNIFICATO NON CAMBIA IL PAVIMENTO.
+ * E il token NON si tocca: e' l'uscita di COLORE.token(), che regola.js verifica. Si chiede
+ * il contrasto invece di darlo per scontato — l'idioma di inchiostroSu() — e il valore e'
+ * DERIVATO, quindi il giorno in cui la tavolozza si muove risponde da se'. */
+{
+  const PAL = A.C_FALL_T, BLOK = ['coal','oppo','arab','inc'];
+  /* 1 · la proprieta', sui due temi e su tutti i token di blocco: vale anche per la
+   *     tavolozza di domani, mentre «--arab scuro sta a 4,56» proverebbe l'istanza. */
+  const sotto = [];
+  ['chiaro','scuro'].forEach(t => BLOK.forEach(k => {
+    const c = A.inkLeggibile(PAL[t][k], PAL[t].card);
+    if (A.contrasto(c, PAL[t].card) < 4.5) sotto.push(t + '/' + k + ' ' + c);
+  }));
+  esito(sotto.length === 0,
+    'ogni token di blocco, usato come inchiostro su --card, arriva a 4,5 nei due temi',
+    ['chiaro','scuro'].map(t => t + ': ' + BLOK.map(k =>
+      k + ' ' + A.contrasto(A.inkLeggibile(PAL[t][k], PAL[t].card), PAL[t].card).toFixed(2)
+    ).join(' ')).join(' · '));
+
+  /* 2 · IL VERSO CHE MANCA SEMPRE: che qualcuno ne avesse bisogno. Se nessun token fosse
+   *     sotto il pavimento, la prima asserzione sarebbe vera senza che la funzione faccia
+   *     niente — e un mutante che la spegne resterebbe vivo. */
+  const bisognosi = [];
+  ['chiaro','scuro'].forEach(t => BLOK.forEach(k => {
+    if (A.contrasto(PAL[t][k], PAL[t].card) < 4.5) bisognosi.push(t + '/' + k +
+      ' ' + A.contrasto(PAL[t][k], PAL[t].card).toFixed(2));
+  }));
+  esito(bisognosi.length > 0,
+    'la premessa: almeno un token NON regge il pavimento da solo, o la funzione non morde',
+    bisognosi.join(', '));
+
+  /* 3 · IL TOKEN NON SI TOCCA, e si sposta il meno possibile: la tinta resta riconoscibile
+   *     come quella del blocco. Un inchiostro che arriva a 4,5 saltando al bianco sarebbe
+   *     leggibile e non direbbe piu' quale blocco. */
+  const lontani = bisognosi.map(x => x.split(/[\/ ]/)).filter(p => {
+    const t = p[0], k = p[1];
+    const c = A.inkLeggibile(PAL[t][k], PAL[t].card);
+    const d = [0,2,4].reduce((s,i) => s + Math.pow(
+      parseInt(c.slice(1).substr(i,2),16) - parseInt(PAL[t][k].slice(1).substr(i,2),16), 2), 0);
+    return Math.sqrt(d) > 40;
+  });
+  esito(lontani.length === 0,
+    'e si sposta il meno possibile: la tinta resta quella del blocco',
+    bisognosi.map(x => { const p = x.split(/[\/ ]/);
+      return p[0] + '/' + p[1] + ' ' + PAL[p[0]][p[1]] + ' -> ' + A.inkLeggibile(PAL[p[0]][p[1]], PAL[p[0]].card); }).join(', '));
+
+  /* 4 · e dove il colore regge gia', non lo tocca affatto: una funzione che «migliora»
+   *     sempre sposterebbe la tavolozza dappertutto senza che nessuno l'abbia deciso. */
+  const toccati = [];
+  ['chiaro','scuro'].forEach(t => BLOK.forEach(k => {
+    if (A.contrasto(PAL[t][k], PAL[t].card) >= 4.5 &&
+        A.inkLeggibile(PAL[t][k], PAL[t].card) !== PAL[t][k]) toccati.push(t + '/' + k);
+  }));
+  esito(toccati.length === 0, 'e dove il colore regge gia il pavimento non lo tocca',
+    toccati.join(', ') || 'nessuno toccato');
+
+  /* 5 · nei DUE VERSI: su carta scura si schiarisce, su carta chiara si scurisce. Il verso
+   *     sbagliato abbasserebbe il contrasto invece di alzarlo, e su una carta sola non si
+   *     vedrebbe. */
+  /* i due colori sono COSTRUITI e non presi dalla tavolozza: servono due casi che il
+     pavimento NON regge, uno per verso, e la tavolozza non ne offre uno per la carta
+     chiara — se il colore regge gia, la funzione non lo tocca e il verso non si vede. */
+  const scuro = A.inkLeggibile('#007B4C', '#0F1727'), chiaro = A.inkLeggibile('#F0C000', '#FFFFFF');
+  esito(A.contrasto(scuro,'#0F1727') >= 4.5 && A.contrasto(chiaro,'#FFFFFF') >= 4.5 &&
+        A.lum(scuro) > A.lum('#007B4C') && A.lum(chiaro) < A.lum('#F0C000'),
+    'e va nel verso opposto al fondo: schiarisce sulla carta scura, scurisce su quella chiara',
+    scuro + ' / ' + chiaro);
+
+  /* 6 · E LE CIFRE DEI TOTALI PASSANO DI LI', non dal token crudo. Il legame si prova nel
+   *     sorgente perche' in jsdom la tavolozza e' quella di ripiego e le due strade
+   *     potrebbero coincidere su un tema solo. Le sedi sono sei: tre nella tabella e tre
+   *     nell'elenco stretto, che sono due viste dello stesso dato. */
+  const righeTot = SRCT.split(String.fromCharCode(10))
+    .filter(r => /C\.(coal|oppo|arab)/.test(r) && /f\(b\.(coalizione|opposizione|arabo)\)/.test(r));
+  const crude = righeTot.filter(r => r.indexOf('inkLeggibile(') < 0);
+  esito(righeTot.length === 6 && crude.length === 0,
+    'le sei cifre dei totali prendono l inchiostro da inkLeggibile, non dal token crudo',
+    righeTot.length + ' righe, ' + crude.length + ' crude');
+}
 
 console.log('\n' + ok + '/' + (ok + ko));
 

@@ -2528,10 +2528,11 @@ function leggiTema(){
 /* mescola un colore verso il bianco: rende leggibili i colori di lista sul fondo
    scuro senza doverne mantenere due serie separate */
 function schiarisci(hex,q){
- var m=/^#?([0-9a-f]{6})$/i.exec(String(hex||'')); if(!m) return hex;
- var n=parseInt(m[1],16),r=(n>>16)&255,g=(n>>8)&255,b=n&255;
- function u(x){return Math.round(x+(255-x)*q);}
- return 'rgb('+u(r)+','+u(g)+','+u(b)+')';
+ /* una strada sola per mischiare due colori: qui il capo e il bianco e l uscita e rgb(),
+    perche questo valore finisce in un attributo di stile e non in un confronto */
+ var o=mescola(hex,'#FFFFFF',q); if(o===hex&&!/^#?[0-9a-f]{6}$/i.test(String(hex||''))) return hex;
+ var n=parseInt(o.slice(1),16);
+ return 'rgb('+((n>>16)&255)+','+((n>>8)&255)+','+(n&255)+')';
 }
 /* La tavolozza dà un colore per tema: in scuro si legge quello, non la
    schiaritura del 40%, che resterebbe una seconda schiaritura sopra la prima.
@@ -4268,6 +4269,52 @@ function lum(h){
  return 0.2126*c[0]+0.7152*c[1]+0.0722*c[2];
 }
 function contrasto(a,b){var x=lum(a),y=lum(b);return (Math.max(x,y)+0.05)/(Math.min(x,y)+0.05);}
+/* IL PAVIMENTO DI UN INCHIOSTRO E' 4,5 ANCHE QUANDO IL COLORE E' UN CODICE — 1º settembre
+   2026, e questa e' la TERZA volta che la regola morde. Le prime due erano fuori da
+   un'eccezione; questa e' dentro quella che avevo appena dichiarato.
+   Il 31 agosto le cifre dell'archivio hanno perso il colore di lista perche' quel colore
+   faceva due mestieri su un canale solo. Nello stesso giro avevo scritto che i TRE TOTALI
+   restano colorati «e li' e' giusto: quello e' il token del blocco, cioe' un codice con la
+   sua legenda». Il ragionamento regge per il SIGNIFICATO e non per il pavimento: quella
+   tinta e' comunque l'unico inchiostro di un numero che il lettore legge, quindi vale 4,5.
+   Misurato in tema scuro: --arab su --card sta a 4,38. Il significato non cambia il
+   pavimento.
+   E NON SI TOCCA IL TOKEN. --arab e' l'uscita di COLORE.token('arabo', tema) e regola.js
+   verifica che la pagina non ne diverga: cambiarlo vuol dire cambiare la tavolozza, cioe'
+   rimisurare contrasti, ΔE e dicromazia dappertutto. La tavolozza dichiara per quel ruolo un
+   pavimento di 4,36 in scuro — «colore sopra il fondo», che vuol dire «la tinta si distingue
+   dal fondo», non «il numero si legge» — ed e' esattamente il requisito sbagliato applicato
+   al caso sbagliato.
+   E NON SERVE UN ALONE. L'idioma dell'alone --card funziona dove il colore sta sopra un
+   FONDO DIVERSO — il disco sulla barra della sparkline, la linea del 61 sui seggi — e
+   separa due tinte. Qui il fondo E' --card: un alone del colore del fondo attorno a un
+   glifo che sta sul fondo non aggiunge nessun contrasto.
+   QUINDI SI CHIEDE IL CONTRASTO INVECE DI DARLO PER SCONTATO, che e' l'idioma di
+   inchiostroSu(): il colore resta il token finche' regge il pavimento, e quando non lo
+   regge viene schiarito verso il fondo opposto QUANTO BASTA. E' un valore DERIVATO, non una
+   seconda voce di tavolozza: il giorno in cui la tavolozza si muove, risponde da se'. */
+var INK_MIN=4.5;
+function mescola(a,b,q){
+ var x=/^#?([0-9a-f]{6})$/i.exec(String(a||'')), y=/^#?([0-9a-f]{6})$/i.exec(String(b||''));
+ if(!x||!y) return a;
+ var n=parseInt(x[1],16), m=parseInt(y[1],16), o=0;
+ for(var s=16;s>=0;s-=8){
+  var c=Math.round(((n>>s)&255)+((((m>>s)&255)-((n>>s)&255))*q));
+  o=(o<<8)|Math.max(0,Math.min(255,c));
+ }
+ return '#'+('000000'+o.toString(16)).slice(-6).toUpperCase();
+}
+function inkLeggibile(col,fondo){
+ if(!/^#[0-9A-Fa-f]{6}$/.test(String(col))||!/^#[0-9A-Fa-f]{6}$/.test(String(fondo))) return col;
+ if(contrasto(col,fondo)>=INK_MIN) return col;
+ /* verso il capo opposto al fondo: su carta scura si schiarisce, su carta chiara si scurisce */
+ var capo=lum(fondo)<0.5?'#FFFFFF':'#000000';
+ for(var k=1;k<=40;k++){
+  var out=mescola(col,capo,k/40);
+  if(contrasto(out,fondo)>=INK_MIN) return out;
+ }
+ return mescola(col,capo,1);
+}
 function inchiostroSu(fondo){
  var a=C['on-color'], b=C.ink;
  if(!/^#[0-9A-Fa-f]{6}$/.test(String(fondo))||!/^#[0-9A-Fa-f]{6}$/.test(String(a))) return a;
@@ -9221,9 +9268,9 @@ function rTab(){
       Il colore resta dov'e' un codice e non un inchiostro: le pastiglie, l'emiciclo, le
       legende, la sparkline. Vedi «Due mestieri su un canale solo» in CLAUDE.md. */
    h+='<td'+(cl?' class="'+cl+'"':'')+'>'+(v?f(v):'')+'</td>';});
-  h+='<td class="s sep2" style="color:'+C.coal+'">'+f(b.coalizione)+'</td>'+
-     '<td class="s" style="color:'+C.oppo+'">'+f(b.opposizione)+'</td>'+
-     '<td class="s" style="color:'+C.arab+'">'+f(b.arabo)+'</td></tr>';
+  h+='<td class="s sep2" style="color:'+inkLeggibile(C.coal,C.card)+'">'+f(b.coalizione)+'</td>'+
+     '<td class="s" style="color:'+inkLeggibile(C.oppo,C.card)+'">'+f(b.opposizione)+'</td>'+
+     '<td class="s" style="color:'+inkLeggibile(C.arab,C.card)+'">'+f(b.arabo)+'</td></tr>';
  });
  h+='</tbody></table>';
  /* ══ L'ALTRA FORMA: L'ELENCO CHE SI APRE ══
@@ -9255,9 +9302,9 @@ function rTab(){
     /* I TRE TOTALI, gli stessi tre della riga desktop e nello stesso ordine: sono due viste
        dello stesso dato, e tabella.js le lega numero per numero. Il terzo è il blocco arabo,
        che il modello dichiara decisivo in tre quarti degli scenari e che qui non compariva. */
-    '<u><em style="color:'+C.coal+'">'+f(b.coalizione)+'</em> · '+
-    '<em style="color:'+C.oppo+'">'+f(b.opposizione)+'</em> · '+
-    '<em style="color:'+C.arab+'">'+f(b.arabo)+'</em></u></summary>';
+    '<u><em style="color:'+inkLeggibile(C.coal,C.card)+'">'+f(b.coalizione)+'</em> · '+
+    '<em style="color:'+inkLeggibile(C.oppo,C.card)+'">'+f(b.opposizione)+'</em> · '+
+    '<em style="color:'+inkLeggibile(C.arab,C.card)+'">'+f(b.arabo)+'</em></u></summary>';
   /* I METADATI NON SONO SEGGI, E NON DEVONO AVERNE LA FORMA.
      «testata Canale 12» e «campione 502» erano due pastiglie identiche alle undici dei
      seggi: stessa forma, stesso flusso, stesso a-capo — quindi si leggevano come un elenco

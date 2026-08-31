@@ -6234,6 +6234,85 @@ applica.** Se quel colore è l'unico inchiostro, è 4,5 e non 3,36 — e la tavo
 garantisce, perché garantisce l'altra cosa. E prima di toglierlo, misurare che cosa fa che
 nient'altro fa: qui non faceva niente, ma è un fatto che si verifica, non che si presume.
 
+## Il significato non cambia il pavimento — terza volta, e stavolta dentro un'eccezione
+
+Chiuso il 1º settembre 2026. **La regola è la stessa di «Due mestieri su un canale solo»**,
+e vale la pena riscriverla perché le prime due volte ha morso fuori da un'eccezione e questa
+volta dentro quella che avevo appena dichiarato.
+
+> **Quando un colore è l'unico inchiostro di un numero che il lettore legge, il pavimento è
+> 4,5 — anche quando quel colore è un codice con la sua legenda.**
+
+Il 31 agosto le cifre di lista dell'archivio hanno perso il colore, e nello stesso giro
+avevo scritto che i **tre totali** restano colorati «e lì è giusto: quello è il token del
+blocco, cioè un codice con la sua legenda». **Il ragionamento regge per il significato e non
+per il pavimento**: quella tinta è comunque l'unico inchiostro di un numero che si legge.
+
+| totale | chiaro | scuro |
+|---|---|---|
+| Coal. | 7,66 | 7,47 |
+| Opp. | 11,43 | 5,74 |
+| **Arabi** | 5,33 | **4,38 → 4,56** |
+
+**È il quinto argomento valido applicato a un caso solo** annotato in questo file, e il primo
+in cui il caso mancante era *dentro* la mia stessa eccezione.
+
+### Il token non si tocca, e le due vie ovvie non funzionano
+
+**Alzare `--arab` è escluso.** È l'uscita di `COLORE.token('arabo', tema)` e `regola.js`
+verifica che la pagina non ne diverga: cambiarlo vuol dire cambiare la tavolozza, cioè
+rimisurare contrasti, ΔE e dicromazia dappertutto. E la tavolozza per quel ruolo dichiara un
+pavimento di **4,36 in scuro** — «colore sopra il fondo», che vuol dire «la tinta si distingue
+dal fondo», non «il numero si legge». È il requisito sbagliato applicato al caso sbagliato,
+ed è per questo che il 4,38 non violava niente di dichiarato.
+
+**E l'alone `--card` non serve, benché sia l'idioma di sei riparazioni.** L'alone separa un
+colore da un fondo **diverso** — il disco sulla barra della sparkline, la linea del 61 sopra
+i seggi. Qui il fondo **è** `--card`: un alone del colore del fondo attorno a un glifo che
+sta sul fondo non aggiunge nessun contrasto. *Un idioma non si applica per somiglianza di
+forma: si applica quando c'è la condizione che lo fa funzionare.*
+
+### Si chiede il contrasto invece di darlo per scontato
+
+`inkLeggibile(colore, fondo)` restituisce il token finché regge il pavimento, e quando non lo
+regge lo sposta **verso il capo opposto al fondo, quanto basta** — schiarisce sulla carta
+scura, scurisce su quella chiara. È l'idioma di `inchiostroSu()`, e il valore è **derivato**:
+non è una seconda voce di tavolozza, e il giorno in cui la tavolozza si muove risponde da sé.
+
+| | |
+|---|---|
+| `--arab` scuro, il token | `#009059` — **invariato**, verificato nel foglio |
+| l'inchiostro usato per la cifra | `#06935D`, contrasto **4,56** |
+| distanza dal token | **8 unità RGB**: la tinta resta quella del blocco |
+| gli altri cinque valori | **identici**, la funzione non li tocca |
+
+**Le sedi sono sei** — tre nella tabella e tre nell'elenco stretto — perché sono due viste
+dello stesso dato, e una sola convertita sarebbe la strada doppia di sempre.
+
+**E `mescola()` è una strada sola**: `schiarisci()`, che esisteva già come ripiego per un
+colore che la tavolozza non conosce, passa di lì e continua a restituire `rgb()` perché quel
+valore finisce in un attributo di stile invece che in un confronto.
+
+### La prova è sulla proprietà, e porta il verso che manca sempre
+
+Non «`--arab` scuro sta a 4,56», che proverebbe l'istanza e cadrebbe al primo ritocco della
+tavolozza: **ogni token di blocco, usato come inchiostro su `--card`, arriva a 4,5 nei due
+temi**. Più le quattro cose che una prova così non dice da sola:
+
+- **che qualcuno ne avesse bisogno** — se nessun token fosse sotto il pavimento, la prima
+  asserzione sarebbe vera senza che la funzione faccia niente, e il mutante che la spegne
+  resterebbe vivo;
+- **che si sposti il meno possibile** — un inchiostro che arriva a 4,5 saltando al bianco
+  sarebbe leggibile e non direbbe più quale blocco;
+- **che dove il colore regge già non lo tocchi** — una funzione che «migliora» sempre
+  sposterebbe la tavolozza dappertutto senza che nessuno l'abbia deciso;
+- **i due versi**, su colori costruiti: la tavolozza non offre un caso che cade sulla carta
+  chiara, quindi con i soli token il verso sbagliato non si vedrebbe.
+
+Sei mutazioni, sei morte: il pavimento riportato a 3,36, la funzione che restituisce sempre
+il token, il verso invertito, il salto al capo invece dello spostamento minimo, e le due viste
+riportate al token crudo una per volta.
+
 ## La verifica a scenari è diventata una suite, e la prima cosa che ha trovato mentiva
 
 Applicata il 31 agosto 2026. Le tavole 1, 4 e 6 — comandi combinati, archivio degenere,
