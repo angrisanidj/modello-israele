@@ -2585,7 +2585,13 @@ function acc(n,s,p){return Math.abs(n)===1?s:p;}
    ha scritto il ramo guardava il numero, non la lettera. Prende la frase che segue e
    restituisce la congiunzione giusta con lei attaccata, così le due non si separano più. */
 function ed(s){return (/^[eèéE]/.test(String(s).replace(/^<[^>]+>/,''))?'ed ':'e ')+s;}
-function seg(n){return f(Math.abs(n))+' '+acc(n,'seggio','seggi');}
+/* «d» e' facoltativo e serve alle grandezze che NON sono un conteggio di seggi ma una loro
+   misura: l'errore medio del banco di prova vale 4,5, e seg() senza decimali lo arrotondava
+   a «5 seggi» — cioe' pubblicava un numero diverso da quello che la nota metodologica
+   dichiara. Il default resta zero, quindi le venti chiamate esistenti non cambiano di un
+   carattere, e l'accordo continua a passare da acc() invece di essere riscritto al punto di
+   chiamata: acc(4,5) da' «seggi», che e' l'italiano giusto. */
+function seg(n,d){return f(Math.abs(n),d)+' '+acc(n,'seggio','seggi');}
 function pc(x,d){return f(100*x,d===undefined?0:d)+'%';}
 /* gg() misura la distanza fra due DATE già allineate a mezzanotte — le rilevazioni
    dell'archivio, che arrivano tutte da new Date('AAAA-MM-GG') e quindi da mezzanotte UTC.
@@ -4248,17 +4254,98 @@ function inchiostroSu(fondo){
  if(!/^#[0-9A-Fa-f]{6}$/.test(String(fondo))||!/^#[0-9A-Fa-f]{6}$/.test(String(a))) return a;
  return contrasto(a,fondo)>=contrasto(b,fondo)?a:b;
 }
+/* ══ LA CODA DELLE DIDASCALIE: I3, I4, I5, I6 ═════════════════════════════════════
+   I1 e I2 sono gia' in pagina — «il triangolo, la mediana» e la spiegazione del perche'
+   divergono, che il documento chiede di tenere perche' e' l'unica frase del modello che
+   spiega un meccanismo. Qui si aggiunge quello che manca.
+   I TRE CASI SONO ESCLUSIVI E IN QUEST'ORDINE: se la mediana e' a un seggio dalla soglia si
+   danno le due frequenze (I4), altrimenti se la banda attraversa 61 lo si dice (I5),
+   altrimenti si dice quanti ne mancano (I3). Sono ordinati dal piu' STRETTO al piu' largo,
+   e non e' l'ordine della prima stesura: I4 implica quasi sempre I5, quindi con I5 davanti
+   il caso in cui l'istogramma serve davvero non si sarebbe visto quasi mai. E I3 viene per
+   ultimo perche' dire «ne mancano 7» quando la banda contiene 61 sarebbe vero e fuorviante.
+   E LA DISTANZA SI MISURA DALLA MEDIANA SIMULATA, non da blocchi(SEG): e' la grandezza che
+   l'istogramma disegna, ed e' scritto nel documento. Usare la proiezione centrale
+   citerebbe un numero che quel grafico non mostra. */
+function codaIsto(k,arr,md){
+ var lo=q(arr,.10), hi=q(arr,.90), t='';
+ /* I4 VIENE PRIMA DI I5, e la prima stesura li aveva al contrario. Sono due condizioni
+    diverse e I4 e' la piu' STRETTA: «la mediana e' a un seggio dalla soglia» implica quasi
+    sempre che la banda dell'80% contenga 61, quindi con I5 davanti I4 non si sarebbe visto
+    quasi mai — e I4 e' il caso in cui l'istogramma serve davvero, perche' da' le due
+    frequenze accanto. Trovato scrivendo la prova, che il caso l'ha COSTRUITO: con
+    l'archivio del giorno quel ramo non si esercita. */
+ if(Math.abs(md-61)<=1){
+  var x=Math.min(md,61), p1=freqEsatta(arr,x)/MC.n, p2=freqEsatta(arr,x+1)/MC.n;
+  t=' La maggioranza si decide per un solo seggio: il risultato di '+f(x)+' seggi compare '+
+    'nel '+pc(p1)+' delle simulazioni, quello di '+f(x+1)+' nel '+pc(p2)+'.';
+ } else if(lo<61&&61<=hi)
+  t=' L\'intervallo d\'incertezza comprende entrambi gli esiti: in otto simulazioni su dieci '+
+    'il risultato è compreso tra '+f(lo)+' e '+f(hi)+' seggi, e quota 61 cade dentro '+
+    'quell\'intervallo.';
+ else if(md<61)
+  t=' Secondo la mediana delle simulazioni, al '+BL[k].n+' '+acc(61-md,'manca','mancano')+
+    ' '+seg(61-md)+' per raggiungere la maggioranza.';
+ /* I6 — SW e AFF non sono la proiezione: sono uno scenario, e va detto sotto il disegno
+    che li mostra. #k-simn lo dice in un angolo, e un angolo non e' una didascalia. */
+ /* «attivo» per tutti e due vuol dire DIVERSO DA ZERO: AFF e' uno scostamento in punti
+    percentuali e nasce a 0, non a null — «AFF!==null» sarebbe sempre vero e la clausola
+    comparirebbe sotto ogni istogramma, dichiarando uno scenario dove c'e' la proiezione. */
+ if(SW||AFF){
+  var q2=[];
+  if(SW) q2.push('uno spostamento di '+f(Math.abs(SW),1)+' punti');
+  if(AFF) q2.push('un\'affluenza araba '+(AFF>0?'più alta':'più bassa')+' del '+f(Math.abs(AFF))+'%');
+  t+=' Questo non è il risultato della proiezione, ma uno scenario costruito applicando '+
+     q2.join(' e ')+'.';
+ }
+ return t;
+}
+/* LA CLAUSOLA DELLO SCARTO E' PURA, e non e' un vezzo: la gara stretta o larga dipende
+   dall'archivio del giorno, quindi il ramo «larga» non si esercita quando la gara e'
+   stretta — e il mutante che fa comparire la clausola SEMPRE resta vivo, perche' oggi
+   comparirebbe comunque. E' l'idioma di fraseSoglia(): separare la composizione dal conto
+   e' l'unico modo di provare tutti e due i rami. */
+function frasePrimo(pri, quota, s1, s2){
+ if(!(pri.length>1)||quota>=PRIMO_STRETTO) return '';
+ var sc=Math.abs(s1-s2), n=Math.ceil((sc+1)/2);
+ return s1===s2
+  ? 'A questa distanza il primo posto è ancora una questione aperta: la proiezione le dà '+
+    'appaiate a '+seg(s1)+'. '
+  : 'A questa distanza il primo posto è ancora una questione aperta: '+
+    acc(n,'basta','bastano')+' '+seg(n)+' di scarto perché si inverta. ';
+}
 function rProb(){
  var b=blocchi(SEG),tot=MC.n;
+ /* ══ LE QUATTRO PASTIGLIE: P1-P4, dettate dall'autore il 31 agosto 2026 ═══════════
+    Le quattro sono una PARTIZIONE delle simulazioni — sommano MC.n — quindi la prosa non
+    puo' sovrapporsi ne' lasciare buchi. E P4 non dice «stallo» senza dire di CHI sono i
+    seggi che mancano: sono delle liste fuori dai due campi, ed e' la cosa che la stampa
+    italiana capisce peggio.
+    P1 NON ELENCA I CINQUE NOMI A MANO. Li elencava, ed era la copia che l'8 settembre
+    resta indietro: se una sesta lista entra nel blocco la frase resta a cinque e diventa
+    falsa in silenzio, perche' continua a leggersi bene. Adesso escono da PRESET.netanyahu,
+    che e' il filtro sull'anagrafica gia' usato dalla scorciatoia del simulatore, e
+    l'accordo passa da acc() come dappertutto. */
+ var nomiCoal=PRESET.netanyahu.filter(function(i){return SEG[i];}).map(function(i){return nm(i);});
+ var elencoCoal=nomiCoal.length>1
+   ? nomiCoal.slice(0,-1).join(', ')+' e '+nomiCoal[nomiCoal.length-1]
+   : (nomiCoal[0]||'le liste del blocco');
  var items=[
   {t:"Maggioranza al blocco Netanyahu",v:MC.vC/tot,c:C.coal,k:'Netanyahu',
-   d:"Likud, Shas, Giudaismo Unito della Torah, Sionismo Religioso e Otzma Yehudit arrivano insieme a 61."},
+   d:"Il governo uscente conserva la maggioranza: "+E(elencoCoal)+" "+
+     acc(nomiCoal.length,'arriva','arrivano')+" insieme a quota 61."},
   {t:"Maggioranza all'opposizione sionista",v:MC.vO/tot,c:C.oppo,k:'Opposizione',
-   d:"Yashar, B'Yachad, Democratici e Yisrael Beitenu ce la fanno senza i partiti arabi."},
+   d:"L'opposizione raggiunge la maggioranza senza il sostegno dei partiti arabi, contando "+
+     "soltanto sulle forze sioniste contrarie a Netanyahu."},
   {t:"Maggioranza solo con i partiti arabi",v:MC.vA/tot,c:C.arab,k:'Serve arabi',
-   d:"Nessuno dei due campi basta a sé stesso: l'appoggio arabo diventa determinante."},
+   d:"Nessuno dei due blocchi raggiunge da solo la maggioranza. I partiti arabi diventano "+
+     "decisivi: potrebbero entrare nella coalizione, oppure sostenere dall'esterno la "+
+     "nascita di un governo — un'ipotesi che finora nessun leader del centro ha accettato "+
+     "apertamente."},
   {t:"Nessuna maggioranza possibile",v:MC.st/tot,c:C.inc,k:'Stallo',
-   d:"Non si arriva a 61 nemmeno sommando opposizione e partiti arabi: Knesset ingovernabile."}
+   d:"Nemmeno la somma tra opposizione e partiti arabi raggiunge quota 61: i seggi mancanti "+
+     "sono delle liste fuori dai due campi. Per formare un governo servirebbe l'appoggio di "+
+     "almeno una di loro; in caso contrario si profila una nuova elezione."}
  ];
  var PI=pctInteri(items.map(function(x){return x.v;}));
  items.forEach(function(x,i){x.pi=PI[i];});
@@ -4278,6 +4365,38 @@ function rProb(){
  if(pri.length) t+='<b>'+Maiu(nmA(pri[0],''))+'</b> risulta il primo partito nel '+pc(MC.primo[pri[0]]/MC.n)+' delle simulazioni'+
   /* la preposizione entra nella funzione, o la contrazione non ha dove avvenire: era «di il Likud» */
   (pri[1]?', contro il '+pc(MC.primo[pri[1]]/MC.n)+' <b>'+nmA(pri[1],'di')+'</b>':'')+'. ';
+ /* ══ IL PRIMO PARTITO NON E' UNA FORMA DEL TITOLO, E' UNA FRASE QUI ═══════════════
+    Deciso dall'autore il 31 agosto 2026. Le dodici forme del titolo sono una PARTIZIONE
+    sulla soglia dei 61: aggiungerne una sul primo partito la romperebbe, perche' e'
+    un'altra domanda e non un altro caso della stessa.
+    LA CLAUSOLA DELLO SCARTO SOLO A GARA STRETTA — sotto il 65%. Misurato su circa 55
+    giorni d'archivio: la gara e' stretta in 26, cioe' quasi la meta' delle volte, mentre
+    le due letture discordano solo nel 7%. La notizia frequente non e' «la proiezione dice
+    il contrario»: e' che il primo posto si decide per pochi seggi.
+    E IL PARI HA UN RAMO SUO, e non e' cosmesi: a parita' di seggi «il capo della
+    proiezione» non e' definito — l'ordinamento ne sceglie una delle due — e «bastano 1
+    seggio perche' si inverta» con due liste appaiate direbbe una cosa strana. k-analisi
+    riconosce gia' il caso con «appaiati a N seggi», ed e' lo stesso idioma. */
+ t+=frasePrimo(pri, MC.primo[pri[0]]/MC.n, SEG[pri[0]]||0, SEG[pri[1]]||0);
+ /* ══ E QUANDO LE DUE LETTURE DISCORDANO, SI DICHIARA CHE SONO DUE ══════════════════
+    Le letture del primo partito sono TRE: le simulazioni (MC.primo), la proiezione
+    centrale (SEG) e la mediana grezza a sette giorni, che vive in k-analisi. I disaccordi
+    possibili sono due, e k-analisi dichiara gia' il suo — «la proiezione ribalta l'ordine»
+    — quindi qui si dichiara SOLO l'altro: simulazioni contro proiezione.
+    NON SI UNIFICANO, e non si ripara la divergenza: sono due domande diverse e possono
+    discordare legittimamente. E' la stessa forma della nota sulle due finestre della
+    tabella dell'analisi — si dichiara che le grandezze sono diverse, non si sceglie quale
+    ha ragione. Con questa e quella di k-analisi la terza coppia e' coperta per
+    transitivita': se le simulazioni discordano dalla proiezione e la proiezione dalla
+    mediana, ciascun riquadro dichiara la sua e il lettore ha i tre nomi con la loro
+    lettura accanto. Una clausola che le nominasse tutte e tre scatterebbe anche quando una
+    sola coppia discorda, e ripeterebbe cio' che k-analisi dice gia'. */
+ var capoSeg=IDS.filter(function(i){return SEG[i];})
+   .sort(function(a,c){return SEG[c]-SEG[a];})[0];
+ if(pri.length&&capoSeg&&capoSeg!==pri[0]&&SEG[capoSeg]!==SEG[pri[0]])
+  t+='La proiezione centrale colloca invece <b>'+nmA(capoSeg,'')+'</b> al primo posto: le '+
+   'due letture rispondono a due domande diverse — in quante simulazioni una lista arriva '+
+   'prima, e quanti seggi le assegna la stima centrale. ';
  if(MC.vA/MC.n>0.4) t+='Lo scenario più probabile resta però quello in cui <b>nessuno dei due blocchi riesce a governare da solo</b> '+
    'e la formazione di una maggioranza dipende dai partiti arabi: un\'ipotesi che, finora, nessun leader del centro '+
    'ha accettato apertamente. ';
@@ -4294,15 +4413,14 @@ function rProb(){
    'la quarta, oggi al '+f(items[3].pi)+'%, è quella in cui non si arriva a 61 in nessuna combinazione.';
  }
  $('k-verdetto').innerHTML=t;
- var mdc=q(MC.coal,.5),mdo=q(MC.oppz,.5);
- $('k-cap1').innerHTML='Distribuzione simulata dei seggi del blocco Netanyahu; in evidenza le simulazioni in cui '+
-  'raggiunge o supera quota 61. Il triangolo segna la proiezione centrale ('+f(b.coalizione)+'), la didascalia la mediana '+
-  'delle simulazioni ('+f(mdc)+').';
- $('k-cap2').innerHTML='Stessa distribuzione per l\'opposizione sionista, senza i partiti arabi. '+
-  'Proiezione centrale '+f(b.opposizione)+', mediana simulata '+f(mdo)+
-  (b.coalizione!==mdc||b.opposizione!==mdo
-   ? ': i due valori non coincidono perché soglia di sbarramento e riparto d\'Hondt non sono trasformazioni lineari, '+
-     'e la mediana degli esiti non è l\'esito calcolato sulla media.' : '.');
+ /* LE DUE DIDASCALIE NON SI SCRIVONO PIU' QUI, e non e' una scelta di stile: erano CODICE
+    MORTO. rProb() gira alla riga 9267 e renderInterno() riscrive k-cap1 e k-cap2 tredici
+    righe dopo, quindi quello che questa funzione ci metteva non l'ha mai letto nessuno.
+    Due scrittori per lo stesso elemento, uno dei quali invisibile — la strada doppia di
+    sempre, vista dal lato peggiore: non divergevano in silenzio, una delle due non
+    esisteva affatto. Trovata il 31 agosto 2026 applicando I3-I6, che erano finiti nella
+    copia morta e non comparivano in pagina.
+    La coda con i quattro casi sta adesso accanto alla didascalia VERA, in renderInterno. */
  if(SW) $('k-simn').textContent=f(SIM)+' simulazioni · swing '+(SW>0?'+':'')+f(SW,1)+' pt verso la coalizione';
 }
 /* ══════════ LA FORMA COMPATTA DELL'EMBED ══════════
@@ -6168,9 +6286,134 @@ function scartoPS(b,bp,mc,mcp){
  return {fermi:fermi, soglia:SCARTO_PS, scatta:fermi&&Math.abs(peggio.d)>=SCARTO_PS,
          blocco:peggio.blocco, d:peggio.d, ora:peggio.ora, prima:peggio.prima};
 }
+/* ══ LA PROSA DELLA DIREZIONE: la CONDIZIONE e il TESTO, separati ══════════════════
+   I sette casi V1-V7 di docs/testi-quattro-blocchi.md, dettati dall'autore il 31 agosto
+   2026. Le due funzioni sono PURE e prendono tutto per argomento: senza, i rami V3, V6 e
+   V7 non si eserciterebbero mai, perche' dipendono da configurazioni che l'archivio del
+   giorno non produce — e un ramo che i dati non raggiungono e' un ramo che nessuna
+   mutazione fa cadere. E' l'idioma gia' pagato da fraseSoglia(). */
+function casoDirezione(x){
+ if(x.dopoVoto) return 'V7';
+ if(!x.prec) return 'V5';
+ var attraversa=BLOCCHI_CAMPO.some(function(k){
+  return (x.b[k]>=61)!==(x.bp[k]>=61); });
+ if(attraversa) return 'V3';
+ var mossi=CHIAVI_BLOCCO.filter(function(k){return (x.b[k]||0)!==(x.bp[k]||0);});
+ if(!mossi.length) return x.ps&&x.ps.scatta?'V4':'V1';
+ return 'V2';
+}
+/* LE CAUSE CHE NON SONO I SONDAGGI — V6. Non e' un caso alternativo agli altri: e' una
+   CLAUSOLA che si aggiunge, perche' il movimento c'e' comunque ed e' quello che V2 o V3
+   raccontano. Tre rami con conseguenze diverse per la prosa: la leva e' reversibile e la
+   governa il lettore, l'attraversamento della soglia e' un fatto dei dati, la caduta sotto
+   soglia muove piu' blocchi insieme. Una frase scritta per la sola leva direbbe la cosa
+   sbagliata proprio nel caso che si e' visto in pagina il 28 agosto. */
+/* LE CAUSE SI SOMMANO, NON SI ESCLUDONO — corretto il 31 agosto 2026, e il caso e' quello
+   che si vede in pagina oggi. Popolo d'Israele ha attraversato la soglia E la leva instrada
+   i suoi cinque seggi nel blocco Netanyahu: sono lo stesso evento visto da due lati, e
+   mostrarne uno solo lascia il lettore a credere che il movimento sia INTERAMENTE
+   un'ipotesi, mentre meta' e' un fatto dei dati.
+   L'ORDINE E' FATTO PRIMA, IPOTESI POI: l'attraversamento e' quello che e' successo, la
+   leva e' dove quei seggi vengono contati. Rovesciarlo farebbe leggere il fatto come una
+   conseguenza dell'ipotesi.
+   E I RAMI RESTANO DISTINGUIBILI: se un giorno contribuisce solo la leva, la sua frase si
+   dice da sola — e' un elenco di cause presenti, non una catena. */
+function clausolaDirezione(x){
+ var c=[];
+ if(x.entrata) c.push('<b>'+Maiu(nmA(x.entrata,''))+'</b> ha superato la soglia del '+
+   f(SOGLIA,2)+'% in questa settimana: i suoi '+seg(x.b_entrata)+' non c\'erano nella '+
+   'proiezione precedente, e il blocco che li accoglie cresce senza che nessun elettore '+
+   'abbia cambiato idea.');
+ if(x.uscita) c.push('<b>'+Maiu(nmA(x.uscita,''))+'</b> è scesa sotto la soglia del '+
+   f(SOGLIA,2)+'%: i suoi seggi si sono ridistribuiti fra tutte le liste rimaste, e per '+
+   'questo più blocchi si muovono insieme.');
+ if(x.leva) c.push('E parte di questo movimento non viene dai sondaggi: è l\'ipotesi che il '+
+   'conteggio applica. Spegnendola i numeri tornano quelli della fonte.');
+ /* la prima causa apre la clausola, quindi la congiunzione della leva serve solo quando ha
+    qualcosa davanti: da sola la frase comincia da capo */
+ if(c.length===1&&x.leva) c[0]=c[0].replace(/^E parte/,'Parte');
+ return c.join(' ');
+}
+/* IL MARGINE DICHIARATO, e il buco che il banco NON copre.
+   btErrori() da' l'errore medio a due mesi e nell'ultima settimana, e BT_VICINO/BT_LONTANO
+   dicono dove finiscono le due fasce. FRA 8 E 29 GIORNI IL BANCO NON HA NESSUNA ISTANTANEA
+   — lo dichiara il commento accanto a BT — e in quella fascia la frase NON cita una cifra
+   sola: dichiara il buco e da' i due numeri veri. Interpolare fra 4,5 e 1,7 sarebbe una
+   stima presentata come misura, e omettere la cifra lascerebbe credere che il margine sia
+   noto.
+   E LA DISTANZA E' ORIZZONTE, NON GIORNI: docs/testi-quattro-blocchi.md lo vieta
+   esplicitamente, perche' dal 28 ottobre GIORNI vale 0 mentre ORIZZONTE resta fermo, e una
+   frase sull'incertezza a «0 giorni dal voto» direbbe una precisione crescente mentre il
+   dato invecchia. Al 31 agosto 2026 divergono gia': 58 contro 57. */
+function margineDichiarato(oriz){
+ var e=btErrori();
+ if(oriz<=BT_VICINO) return {noto:true, val:e.vicino, gg:oriz};
+ if(oriz>=BT_LONTANO) return {noto:true, val:e.lontano, gg:oriz};
+ return {noto:false, lontano:e.lontano, vicino:e.vicino, gg:oriz};
+}
+function fraseDirezione(x){
+ var caso=casoDirezione(x), pi=function(k){return f(Math.round(100*k));};
+ if(caso==='V7')
+  return 'Alla vigilia del voto la proiezione assegnava <b>'+seg(x.b.coalizione)+'</b> al '+
+   'blocco Netanyahu e <b>'+seg(x.b.opposizione)+'</b> all\'opposizione. Il riquadro '+
+   'confrontava due elaborazioni del modello a una settimana di distanza, e non viene più '+
+   'aggiornato.';
+ if(caso==='V5')
+  return 'Non è ancora possibile fare un confronto: nei sette giorni precedenti al <b>'+
+   dl(x.taglio)+'</b> non risultano rilevazioni in archivio. Il riquadro tornerà quando '+
+   'esisteranno due proiezioni distanti una settimana.';
+ var clau=clausolaDirezione(x), coda=clau?' '+clau:'';
+ if(caso==='V1')
+  return 'Nessun blocco guadagna o perde almeno un seggio rispetto al <b>'+dl(x.prec.taglio)+
+   '</b>. La proiezione precedente si basava su '+f(x.prec.n)+' '+
+   acc(x.prec.n,'rilevazione','rilevazioni')+', l\'ultima pubblicata il <b>'+dl(x.prec.data)+
+   '</b>: i sondaggi entrati nel modello in questa settimana non hanno spostato '+
+   'l\'equilibrio.'+coda;
+ if(caso==='V4')
+  return 'La proiezione dei seggi è invariata, ma cambia la probabilità della maggioranza: '+
+   '<b>'+BL[x.ps.blocco].n+'</b> resta a '+seg(x.b[x.ps.blocco])+', mentre le sue '+
+   'possibilità di raggiungere quota 61 passano dal '+pi(x.ps.prima/100)+'% al '+
+   pi(x.ps.ora/100)+'%. È cambiata la distribuzione degli esiti nelle simulazioni, anche '+
+   'se la mediana è rimasta ferma.'+coda;
+ if(caso==='V3'){
+  var k=BLOCCHI_CAMPO.filter(function(z){return (x.b[z]>=61)!==(x.bp[z]>=61);})[0];
+  var pr=k==='coalizione'?[x.pC0,x.pC1]:[x.pO0,x.pO1];
+  return 'Rispetto al <b>'+dl(x.prec.taglio)+'</b> non cambiano soltanto i seggi: <b>'+
+   BL[k].n+'</b> raggiunge o supera quota 61. La probabilità che conquisti la maggioranza '+
+   'passa dal '+pi(pr[0])+'% al '+pi(pr[1])+'%.'+coda;
+ }
+ var el=CHIAVI_BLOCCO.filter(function(k){return (x.b[k]||0)!==(x.bp[k]||0);})
+   .map(function(k){return '<b>'+BL[k].n+'</b>';});
+ var m=margineDichiarato(x.oriz);
+ return 'Rispetto al <b>'+dl(x.prec.taglio)+'</b> '+el.join(' e ')+' '+
+  acc(el.length,'guadagna o perde','guadagnano o perdono')+' almeno un seggio. '+
+  (m.noto
+   ? 'La variazione resta entro il margine d\'incertezza che il modello dichiara a '+
+     f(m.gg)+' '+acc(m.gg,'giorno','giorni')+' dal voto — '+seg(m.val,1)+' — e non indica '+
+     'ancora uno spostamento consolidato.'
+   : 'La variazione resta entro il margine d\'incertezza del modello. Il banco di prova '+
+     'non copre questa distanza dal voto: misura l\'errore a due mesi — '+seg(m.lontano,1)+
+     ' — e nell\'ultima settimana — '+f(m.vicino,1)+' — e fra le due non ha istantanee.')+
+  coda;
+}
 function rDirezione(){
  var el=$('k-direz'); if(!el) return;
- if(!PREC){el.innerHTML='';return;}
+ /* V5 — SENZA «PREC» IL RIQUADRO NON SPARISCE PIU', DICE PERCHE'. Fino al 31 agosto 2026
+    svuotava l'elemento: il lettore trovava un buco fra due sezioni e nessuna spiegazione,
+    che e' la stessa forma della tabella dell'archivio che taceva a zero risultati. Il
+    taglio si ricava qui come lo ricaverebbe PREC — oggi meno sette giorni — perche' e' il
+    solo dato che serve alla frase, e non dipende dall'archivio. */
+ if(!PREC){
+  /* «b» SERVE ANCHE QUI, e la prima stesura non lo passava: dopo il voto V7 vince su V5 —
+     e' giusto, perche' a voto avvenuto il riquadro non torna piu' — ma V7 cita i seggi
+     della vigilia, e senza i blocchi leggeva undefined. L'hanno trovato date.js ed
+     embed.js, che rendono la pagina con l'orologio congelato dopo il 27 ottobre: il caso
+     esiste, e senza quelle due suite sarebbe comparso in pagina il 28. */
+  el.innerHTML='<div class="dz"><h4>La direzione del modello · confronto con sette giorni fa</h4>'+
+   '<p>'+fraseDirezione({prec:null, b:blocchi(SEG), dopoVoto:votoPassato(),
+     taglio:new Date(giornoUTC(new Date())-7*864e5).toISOString().slice(0,10)})+'</p></div>';
+  return;
+ }
  var b=blocchi(SEG),bp=blocchi(PREC.seg);
  function d(v){
   if(!v) return '<em class="fl">invariato</em>';
@@ -6204,12 +6447,39 @@ function rDirezione(){
   '<div class="cell"><div class="lb">Prob. maggioranza coalizione</div><div class="vl">'+pc(pc1)+dp(pc1,pc0)+'</div></div>'+
   '<div class="cell"><div class="lb">Prob. maggioranza opposizione</div><div class="vl">'+pc(po1)+dp(po1,po0)+'</div></div>'+
   '</div>';
- var frasi=[];
+ /* LA PROSA ESCE DA fraseDirezione(), che e' pura e sa dire tutti e sette i casi. Qui si
+    raccolgono i FATTI e si passano: le due cause che non sono i sondaggi si ricavano
+    confrontando le liste dei due riparti — una lista con seggi adesso e nessuno prima ha
+    attraversato la soglia, il verso opposto e' caduta — e la leva la dichiara PAR. */
+ /* gli stessi due blocchi contati come li conta la FONTE: servono a sapere se la leva
+    contribuisce al movimento, e non sono un secondo modo di contare i seggi — e' la stessa
+    blocchi() con il secondo argomento, che esiste da quando l'archivio deve riprodurre il
+    conteggio pubblicato */
+ var bF=blocchi(SEG,true), bpF=blocchi(PREC.seg,true);
+ var entrata=null, uscita=null;
+ IDS.forEach(function(i){
+  if(SEG[i]&&!(PREC.seg[i]||0)&&!entrata) entrata=i;
+  if(!(SEG[i]||0)&&PREC.seg[i]&&!uscita) uscita=i;
+ });
+ var frasi=[fraseDirezione({
+   b:b, bp:bp, prec:PREC, ps:ps, oriz:ORIZZONTE, dopoVoto:votoPassato(),
+   pC0:pc0, pC1:pc1, pO0:po0, pO1:po1,
+   /* LA LEVA VA DICHIARATA QUANDO CONTRIBUISCE AL MOVIMENTO, NON QUANDO E' ACCESA — e la
+      prima stesura sbagliava proprio qui. PREC gira con i parametri di adesso, quindi la
+      leva e' applicata a TUTTI E DUE i termini: se la lista che sposta ha gli stessi seggi
+      nelle due esecuzioni, il delta non ne risente e la frase «parte di questo movimento
+      non viene dai sondaggi» sarebbe falsa. Contribuisce solo quando quei seggi sono
+      CAMBIATI fra le due, e allora si vede chiedendo lo stesso confronto senza l'ipotesi.
+      Misurato il 31 agosto 2026, ed e' il caso in cui succede: con la leva il blocco
+      Netanyahu fa +2, senza fa −3. Cinque seggi di differenza, e il segno si rovescia. */
+   leva:BLOCCHI_CAMPO.some(function(k){
+     return (b[k]-bp[k])!==(bF[k]-bpF[k]); }),
+   entrata:entrata, uscita:uscita,
+   b_entrata:entrata?SEG[entrata]:0
+ })];
  if(mossi.length) frasi.push('Cambiano di almeno un seggio '+mossi.slice(0,4).map(function(i){
    var v=(SEG[i]||0)-(PREC.seg[i]||0);
    return '<b>'+nm(i)+'</b> ('+(v>0?'+':'−')+f(Math.abs(v))+')';}).join(', '));
- else frasi.push('Nessuna lista cambia di un seggio pieno');
- frasi.push('la proiezione di sette giorni fa era costruita su '+PREC.n+' rilevazioni, l\'ultima del '+dl(PREC.data));
  /* LA FRASE ESCE DALLA PROPRIETÀ, non le sta accanto. «A parametri identici» è
     un'affermazione verificabile: le due firme dicono con che cosa i due riparti sono stati
     fatti, e se non coincidono il riquadro dice quell'altra cosa invece di ripetere una
@@ -6217,7 +6487,7 @@ function rDirezione(){
     sempre — il ramo alternativo non si vede — ma è il ramo che rende la prima frase
     un'affermazione invece di una decorazione, ed è quello che una prova può mutare. */
  var stessi=PREC.firma===firmaRiparto(coppieRiparto(sopraSoglia(),null));
- h2+='<p>'+frasi.join('; ')+'. '+(stessi
+ h2+='<p>'+frasi.join(' ')+' '+(stessi
   ? 'Questo riquadro confronta due esecuzioni complete del modello a parametri identici: '+
     'isola il movimento della proiezione da quello dei singoli sondaggi, che la tabella qui sotto mostra invece grezzo.'
   : 'Attenzione: i due termini del confronto non sono stati calcolati con gli stessi parametri, '+
@@ -6670,7 +6940,7 @@ function contoBilico(){
  /* i due conti dello STESSO oggetto: con la leva e con l'anagrafica. Non c'e' un secondo
     modo di contare i seggi, e non ce ne sara' uno domani. */
  var conLeva=blocchi(SEG), fonte=blocchi(SEG,true), mossi=0, dett=[];
- ['coalizione','opposizione','arabo','incerto'].forEach(function(z){
+ CHIAVI_BLOCCO.forEach(function(z){
   if(fonte[z]!==conLeva[z]) dett.push(BL[z].n+' <b>'+f(fonte[z])+' → '+f(conLeva[z])+'</b>');
   if(conLeva[z]>fonte[z]) mossi+=conLeva[z]-fonte[z];
  });
@@ -6838,7 +7108,7 @@ function rigaApp(c){
      dhondt() con coppie diverse, non un secondo modo di contare i seggi. */
   var senza=dhondt(QUO,null,c.senza), bs=blocchi(senza), bc=blocchi(SEG), mossi=0, dett=[], k;
   for(k in SEG) if(SEG[k]>(senza[k]||0)) mossi+=SEG[k]-(senza[k]||0);
-  ['coalizione','opposizione','arabo','incerto'].forEach(function(z){
+  CHIAVI_BLOCCO.forEach(function(z){
    if(bs[z]!==bc[z]) dett.push(BL[z].n+' <b>'+f(bs[z])+' → '+f(bc[z])+'</b>');
   });
   t+='<b>'+f(c.ann)+' '+acc(c.ann,'accordo annunciato','accordi annunciati')+' e non '+
@@ -6968,6 +7238,24 @@ function rCalendario(){
    card, il riquadro dell'evento isolato), il DISEGNO e tutto ciò che ne è la chiave
    seguono l'arco. */
 var ARCO_ORD=['opposizione','arabo','incerto','coalizione'];
+/* ══ I QUATTRO BLOCCHI IN ORDINE DI PROSA, E I DUE CAMPI ═══════════════════════════
+   ARCO_ORD e' l'ordine del DISEGNO ed e' scelto — i due campi agli estremi, i due gruppi
+   decisivi in mezzo. La PROSA li elenca in un altro ordine, ed e' la convenzione dichiarata
+   in CLAUDE.md: il disegno e tutto cio' che ne e' la chiave seguono l'arco, il testo segue
+   il modo in cui li nomina.
+   Quell'elenco era scritto a mano in DUE posti — la riga della leva e quella degli accordi
+   — e il 31 agosto 2026 la prosa della direzione stava per diventare il terzo. Tre copie
+   corrette oggi divergono domani, e divergono in silenzio: adesso e' una costante sola.
+   BLOCCHI_CAMPO sono i due che possono arrivare a 61 DA SOLI, ed e' la ragione per cui la
+   coppia esiste: «attraversa la soglia» ha senso solo per loro. Gli altri due la soglia non
+   la attraversano mai — ci arrivano insieme a un campo, ed e' quello che dicono le
+   pastiglie. */
+var CHIAVI_BLOCCO=['coalizione','opposizione','arabo','incerto'];
+/* sotto questa frequenza la gara per il primo posto e' «stretta» e la frase lo dichiara:
+   il numero e' misurato — su ~55 giorni d'archivio la soglia dei due terzi separa i 26
+   giorni in cui il primo posto si decide per pochi seggi dagli altri */
+var PRIMO_STRETTO=0.65;
+var BLOCCHI_CAMPO=['coalizione','opposizione'];
 /* LA QUOTA E' LA LEVA, NON IL CORPO, ed e' il contrario di quello che si penserebbe.
    Il vuoto dell'arco e' un semicerchio: verso l'alto si stringe, verso la base si allarga.
    A y=180, dov'erano prima, quattro totali costringono il corpo a 17 — il 45% in meno,
@@ -7781,8 +8069,27 @@ function rChips(){
  var t;
  if(!tot) t='Seleziona le liste per comporre una maggioranza.';
  else if(tot>=61) t='<b style="color:var(--pos)">Maggioranza raggiunta</b> con '+f(tot)+' seggi, '+f(tot-60)+' oltre la soglia.';
- else t='<b style="color:var(--neg)">Sotto quota 61</b>: '+f(tot)+' seggi, ne mancano '+f(61-tot)+'.';
- if(confl.length) t+=' <span style="color:var(--neg)">Veti violati: '+confl.filter(function(v,i,a){return a.indexOf(v)===i;}).join(' · ')+'.</span>';
+ else {
+  /* S3 — «ne mancano N» e' meta' della risposta: l'altra e' DA DOVE potrebbero arrivare.
+     La lista piu' grande fra quelle non selezionate e' il dato che il lettore userebbe per
+     la mossa successiva, e non e' un calcolo nuovo: e' SEG ordinato. */
+  var fuori=IDS.filter(function(i){return SEG[i]&&!COAL[i];})
+    .sort(function(a,c){return SEG[c]-SEG[a];});
+  t='<b style="color:var(--neg)">Sotto quota 61</b>: la coalizione si ferma a '+f(tot)+
+    ' seggi, ne '+acc(61-tot,'manca','mancano')+' '+f(61-tot)+' per raggiungere la maggioranza.'+
+    (fuori.length?' La lista più grande fra quelle non selezionate ne ha '+f(SEG[fuori[0]])+'.':'');
+ }
+ /* S4 — QUALE veto e CHI l'ha dichiarato. La stringa dei veti lo dice gia': «Eisenkot
+    esclude un governo guidato da Netanyahu» nomina chi lo pone e verso chi. Quello che
+    mancava e' la cornice — quanti sono, e che il conteggio dei seggi resta valido mentre
+    la coalizione non lo e'. Un veto e' un fatto con una fonte, come un apparentamento. */
+ if(confl.length){
+  var vv=confl.filter(function(v,i,a){return a.indexOf(v)===i;});
+  t+=' <span style="color:var(--neg)">Questa coalizione contraddice '+f(vv.length)+' '+
+    acc(vv.length,'veto dichiarato','veti dichiarati')+': '+vv.join(' · ')+'. Il totale dei '+
+    'seggi resta valido come conteggio, ma la coalizione è incompatibile con le posizioni '+
+    'che i leader hanno dichiarato.</span>';
+ }
  /* QUI SI LEGGE L'ANAGRAFICA DI PROPOSITO, e va scritto o fra un mese sembra la svista che
     k-movers e' stata davvero. La regola generale dice che chi CONTA SEGGI legge la leva; qui
     non si conta niente: si dice che fra le liste selezionate ce n'e' una che ha escluso
@@ -7793,6 +8100,19 @@ function rChips(){
     stanno nell'anagrafica insieme. */
  var ar=sel.filter(function(i){return P[i].b==='arabo'&&!P[i].gov;});
  if(ar.length) t+=' Include liste arabe che hanno escluso l\'ingresso al governo: la maggioranza reggerebbe solo con appoggio esterno.';
+ /* S6 — la scorciatoia ha un NOME, e il nome vale finche' la selezione e' quella: si deduce
+    dal confronto degli insiemi, non si ricorda. E' lo stesso conto che accende la pastiglia
+    della scorciatoia, chiesto qui invece di essere rifatto. */
+ /* il nome si legge dal PULSANTE che il confronto degli insiemi ha appena acceso, invece
+    di rifare qui lo stesso confronto: sarebbero due strade per la stessa domanda, e
+    divergerebbero il giorno in cui una delle due cambia il criterio */
+ var acc1=R.querySelector('[data-pre][aria-pressed="true"]');
+ if(acc1) t+=' Questa selezione corrisponde alla composizione «'+
+   E(acc1.textContent.replace(/\s+/g,' ').trim())+'».';
+ /* S7 — se un accordo annunciato e' nel riparto, i seggi di queste pastiglie sono quelli di
+    QUELLO scenario: citarli senza dirlo sarebbe un totale senza la sua ipotesi. */
+ if(tot&&PAR.apparentamenti&&contoApp(sopraSoglia()).ann)
+  t+=' I totali tengono conto '+(contoApp(sopraSoglia()).ann>1?'degli accordi di eccedenza annunciati e non ancora depositati':'dell\'accordo di eccedenza annunciato e non ancora depositato')+'.';
  $('k-gnote').innerHTML=t;
 }
 /* quanti istituti conosce l'house effect: serve all'annuncio del ricalcolo, che vive nel
@@ -8995,6 +9315,11 @@ function renderInterno(){
   pc(MC.vO/MC.n)+'</b> delle simulazioni, con esito più frequente <b>'+f(i2.moda)+' seggi</b> e stima puntuale '+f(bb.opposizione)+'. '+
   'Stima puntuale e risultato più frequente non coincidono sempre, perché la soglia di sbarramento e il riparto d\'Hondt '+
   'trasformano i voti in seggi a scatti, non con continuità.';
+ /* I3, I4, I5 e I6 in coda alle due didascalie: quanti seggi mancano, oppure le due
+    frequenze quando un seggio decide, oppure che la banda contiene tutti e due gli esiti.
+    Si misurano sulla MEDIANA SIMULATA, che e' la grandezza che l'istogramma disegna. */
+ $('k-cap1').innerHTML+=codaIsto('coalizione',MC.coal,q(MC.coal,.5));
+ $('k-cap2').innerHTML+=codaIsto('opposizione',MC.oppz,q(MC.oppz,.5));
  mostraAff();rSwAnc();rSwNota();rDiag();rMemoria();rFirma();rSommario();rAnalisi();rDirezione();rProj();rEmi();rVeti();rCoal();rPower();rChips();rApp();rBilico();rHouse();rTrend();rCrono();rCalendario();rTab();rFoot();avvisaAltezza();
 }
 

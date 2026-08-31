@@ -5806,6 +5806,103 @@ sedi una per una, che è la regola già scritta. **Un percorso relativo in uno s
 è una trappola a orologeria: la prima volta che qualcuno lo lancia da un'altra cartella, il
 ripristino non ripristina.**
 
+## La prosa dei quattro blocchi, e tre difetti che stavano lì da prima
+
+Applicata il 31 agosto 2026: i sette casi della direzione, le quattro pastiglie, le
+didascalie degli istogrammi, il simulatore e il primo partito. I testi sono dell'autore, e
+la struttura è quella di [docs/testi-quattro-blocchi.md](docs/testi-quattro-blocchi.md).
+
+### Le funzioni sono pure, e senza non si proverebbe quasi niente
+
+`casoDirezione()`, `fraseDirezione()`, `clausolaDirezione()`, `margineDichiarato()`,
+`codaIsto()` e `frasePrimo()` prendono tutto per argomento. **V3, V6 e V7 dipendono da
+configurazioni che l'archivio del giorno non produce** — un blocco che attraversa 61, una
+lista che cade sotto soglia, il voto passato — e un ramo che i dati non raggiungono è un
+ramo che nessuna mutazione fa cadere. È l'idioma già pagato da `fraseSoglia()`.
+
+### Il buco del banco si dichiara, non si interpola
+
+`btErrori()` dà l'errore medio a due mesi (**4,5**) e nell'ultima settimana (**1,7**), e
+`BT_VICINO`/`BT_LONTANO` dicono dove finiscono le due fasce. **Fra 8 e 29 giorni il banco non
+ha nessuna istantanea**, e il commento accanto a `BT` lo dichiara da sempre. In quella fascia
+la frase **non cita una cifra sola**: dà i due numeri veri e dice che fra le due non c'è
+niente. Interpolare sarebbe una stima presentata come misura; omettere la cifra lascerebbe
+credere che il margine sia noto.
+
+**E la distanza è `ORIZZONTE`, non `GIORNI`**, perché dal 28 ottobre `GIORNI` vale 0 mentre
+`ORIZZONTE` resta fermo: una frase sull'incertezza a «0 giorni dal voto» direbbe una
+precisione crescente mentre il dato invecchia. Oggi divergono già, 58 contro 57.
+
+### Le cause di V6 si sommano, e l'ordine è fatto-prima-ipotesi-poi
+
+Il 31 agosto in pagina si applicano **tutte e due**: «Popolo d'Israele» ha attraversato la
+soglia *e* la leva instrada i suoi cinque seggi nel blocco Netanyahu. Sono lo stesso evento
+visto da due lati, e **mostrarne una sola lascerebbe credere che il movimento sia interamente
+un'ipotesi, mentre metà è un fatto dei dati.**
+
+L'ordine non è indifferente: l'attraversamento è **quello che è successo**, la leva è **dove
+quei seggi vengono contati**. Rovesciarlo farebbe leggere il fatto come una conseguenza
+dell'ipotesi. E i rami restano distinguibili — se un giorno contribuisce solo la leva, la sua
+frase comincia da capo invece di legarsi a un fatto che non c'è.
+
+**E la condizione della leva era sbagliata nella prima stesura, in un modo che la misura
+rende evidente.** L'avevo agganciata a «leva accesa»; ma `PREC` gira con i parametri di
+adesso, quindi la leva è applicata a **tutti e due** i termini e contribuisce al movimento
+solo se i seggi della lista sono **cambiati** fra le due esecuzioni. Oggi succede: **con la
+leva il blocco Netanyahu fa +2, senza fa −3** — cinque seggi di differenza, e il segno si
+rovescia. Con la condizione sbagliata la frase avrebbe detto «parte di questo movimento non
+viene dai sondaggi» anche nelle settimane in cui la leva non muove il delta di un seggio.
+
+### Tre difetti che c'erano già, trovati applicando
+
+**1 · `#k-cap1` e `#k-cap2` avevano DUE scrittori, e uno era codice morto.** `rProb()` le
+scriveva, e `renderInterno()` le riscriveva tredici righe dopo averla chiamata: **quello che
+`rProb` ci metteva non l'ha mai letto nessuno.** Due scrittori per lo stesso elemento, uno dei
+quali invisibile — la strada doppia di sempre, vista dal lato peggiore: non divergevano in
+silenzio, una delle due non esisteva. Trovato perché I3-I6 erano finiti nella copia morta e
+non comparivano in pagina.
+
+**2 · L'ordine di I4 e I5 era rovesciato.** «La mediana è a un seggio dalla soglia» implica
+quasi sempre che la banda dell'80% contenga 61, quindi con I5 davanti **il caso in cui
+l'istogramma serve davvero non si sarebbe visto quasi mai**. L'ha trovato la prova, che il
+caso l'ha **costruito**: con l'archivio del giorno quel ramo non si esercita.
+
+**3 · `seg()` arrotondava.** L'errore medio del banco vale 4,5 e `seg()` senza decimali
+pubblicava **«5 seggi»**, cioè un numero diverso da quello che la nota metodologica dichiara.
+Ha preso un secondo argomento facoltativo: le venti chiamate esistenti non cambiano di un
+carattere, e l'accordo continua a passare da `acc()` invece di essere riscritto al punto di
+chiamata.
+
+### E due copie dell'elenco dei blocchi stavano per diventare tre
+
+`['coalizione','opposizione','arabo','incerto']` era scritto a mano nella riga della leva e in
+quella degli accordi, e la prosa della direzione stava per essere il terzo posto. Adesso è
+`CHIAVI_BLOCCO`, una volta sola, e `BLOCCHI_CAMPO` dichiara i due che possono arrivare a 61
+da soli — che è la ragione per cui «attraversa la soglia» ha senso solo per loro.
+
+### Il primo partito: una frase, non una forma del titolo
+
+Le dodici forme del titolo sono una **partizione sulla soglia dei 61**, e il primo partito è
+un'altra domanda: aggiungerla romperebbe la partizione. È una frase in `k-verdetto`, e la
+clausola dello scarto compare **solo a gara stretta** — sotto il 65%, che su ~55 giorni
+d'archivio separa i 26 in cui il primo posto si decide per pochi seggi.
+
+**Il pari ha un ramo suo, e non è cosmesi**: a parità di seggi «il capo della proiezione» non
+è nemmeno definito — l'ordinamento ne sceglie una delle due — e «basta 1 seggio perché si
+inverta» con due liste appaiate direbbe una cosa strana. Lì la frase dice «la proiezione le dà
+appaiate a N seggi», che è l'idioma dell'`exaequo` già in `k-analisi`.
+
+**E le letture del primo partito sono TRE, non due**: le simulazioni (`MC.primo`), la
+proiezione centrale (`SEG`) e la mediana grezza a sette giorni, che vive in `k-analisi`. I
+disaccordi possibili sono due. `k-analisi` dichiara già il suo — «la proiezione ribalta
+l'ordine» — quindi `k-verdetto` dichiara **solo l'altro**, simulazioni contro proiezione. Una
+clausola che le nominasse tutte e tre scatterebbe anche quando una sola coppia discorda, e
+ripeterebbe ciò che l'altro riquadro dice già; con una per riquadro la terza coppia è coperta
+per transitività. **Non si unifica e non si ripara la divergenza: si dichiara che le
+grandezze sono diverse**, come per le due finestre della tabella dell'analisi.
+
+`test/suite/prosa.js`, 56 asserzioni. **Diciannove mutazioni, diciannove morte.**
+
 ## Due elenchi delle stesse liste, sullo stesso schermo, in disaccordo
 
 Trovato e chiuso il 31 agosto 2026. La segnalazione diceva `#k-direz`, e il riquadro era
@@ -6547,7 +6644,7 @@ le meta. Le altre tre non offrono niente di equivalente a chiunque.
 ### Nell'ordine, quando si riprende
 
 **PRIMA DI TUTTO, QUELLO CHE ASPETTA L'AUTORE — sta in cima perché non si cerchi.** Sono
-quattro cose piccole, nessuna bloccante, tutte ferme perché richiedono una decisione o una
+due cose piccole, nessuna bloccante, tutte ferme perché richiedono una decisione o una
 frase che non è mia da scrivere:
 
 1. ~~Due forme corte di `f5o4` che sforano il tetto~~ — **CHIUSE il 30 agosto 2026 in
@@ -6566,16 +6663,13 @@ frase che non è mia da scrivere:
    si legge a elezioni avvenute, dove chi la incontra vuole sapere *cosa diceva il modello*.
    **La `PRIMA` entra al carattere**, e va saputo: qualunque ritocco a quella cella va
    rimisurato con `[X]` a tre cifre prima di essere scritto.
-2. **I quattro blocchi senza prosa**: verdetto, pastiglie, istogrammi, simulatore. La
-   struttura — condizione, grandezze disponibili, che cosa la frase deve dire — è in
-   [docs/testi-quattro-blocchi.md](docs/testi-quattro-blocchi.md); i testi no.
-3. **Il caso V4 è vivo ADESSO**, e non è un'ipotesi: il riquadro della direzione mostra
-   **seggi fermi** e l'opposizione che passa dal **16% al 21%**. Il ramo che lo riconosce
-   c'è — classe `psmossa`, con blocco e numeri negli attributi — la frase no.
-4. **Le due domande su `MC.primo`**: se il primo partito sia una forma del titolo a sé o una
-   frase dentro le esistenti, e se `k-verdetto` e `k-analisi` possano contraddirsi sullo
-   stesso schermo. Il dato per decidere è misurato e sta in «Le quattro cose decise oggi».
-5. **Se la fonte usi anche `winter` NUDO** come intestazione di colonna in una tabella di
+2. ~~I quattro blocchi senza prosa~~, ~~il caso V4~~ e ~~le due domande su `MC.primo`~~ —
+   **APPLICATI il 31 agosto 2026**: i sette casi della direzione (V4 compreso), le quattro
+   pastiglie, le didascalie degli istogrammi, il simulatore e il primo partito. Vedi «La
+   prosa dei quattro blocchi». Le due decisioni su `MC.primo` le ha prese l'autore: non è
+   una forma del titolo — le dodici sono una partizione sulla soglia dei 61 — e le due
+   letture non si unificano, si dichiara che sono diverse.
+3. **Se la fonte usi anche `winter` NUDO** come intestazione di colonna in una tabella di
    seggi. `'winter party'` è mappata; questa domanda è rimasta senza risposta, ed è la
    ragione per cui la mappatura precedente era stata sbagliata — si guarda la colonna in cui
    la grafia compare, non le occorrenze della parola nella pagina.
