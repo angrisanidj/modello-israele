@@ -28,8 +28,29 @@ on:
   # stessa coda. Due tentativi nella stessa buca valgono meno di due in due buche diverse —
   # e' la lezione gia' pagata il 29 agosto 2026, quando otto tick tutti fra le 03:23 e le
   # 06:53 ne fecero partire ZERO.
-  # NON PRIMA DELLE 04:47 perche' il primo tick di aggiorna e' alle 03:23: la vedetta esiste
+  # NON PRIMA DELLE 04:47 perche' il primo tick di aggiorna e' alle 03:30: la vedetta esiste
   # per raccogliere quello che quel tick non ha fatto, quindi viene dopo di lui.
+  #
+  # ══ IL LIMITE E' NOTO E ACCETTATO, NON E' UN DIFETTO ═══════════════════════════════
+  # FRA LE 22:47 E LE 04:47 LA VEDETTA NON HA NESSUN TICK, quindi non puo' soccorrere la
+  # notte profonda — che e' precisamente la fascia in cui il lavoro notturno manca. Sembra
+  # il difetto piu' evidente del file, e invece e' la condizione perche' il file sia quello
+  # che dice di essere.
+  # SPOSTARE UN TICK A 00:47 LA FAREBBE PASSARE DA CONSTATARE AD AFFERMARE. A quell'ora
+  # dati/stato-job.json porta PER COSTRUZIONE la data di ieri — il job scrive
+  # toISOString().slice(0,10), cioe' la data UTC del giorno in cui gira — quindi «la data
+  # non e' di oggi» sarebbe vera ogni notte, prima che aggiorna abbia avuto il suo tick.
+  # La vedetta lancerebbe tutte le notti, sempre, e diventerebbe lo scheduler che questo
+  # file dichiara nella sua prima riga di non essere.
+  # E IL FRENO REGGEREBBE COME CONTATORE E CEDEREBBE COME POLITICA: «al piu' un dispatch al
+  # giorno» resterebbe aritmeticamente vero, ma quel dispatch sarebbe un falso allarme
+  # sistematico — lanciato prima che il job avesse una possibilita' — e consumerebbe
+  # l'unica occasione di soccorso della giornata.
+  # PER SPOSTARLA DAVVERO servirebbe cambiare la CONSTATAZIONE e non il cron: non «la data
+  # non e' di oggi» ma «la data non e' di oggi E la finestra di aggiorna e' gia' cominciata»,
+  # cioe' una costante nuova e un secondo posto da tenere allineato al cron dell'altro
+  # workflow. Non vale il prezzo finche' non si sa se il problema sia l'ora o la latenza —
+  # ed e' quello che l'esperimento del 31 agosto sta misurando.
     - cron: '47 4-22/2 * * *'
   workflow_dispatch:
 permissions:

@@ -355,7 +355,8 @@ await (async function(){
  let load;
  try{ load=(await import('js-yaml')).load; }
  catch(e){ p('cron a finestra: js-yaml non installato',false); return; }
- const d=load(readFileSync(join(qui,'..','.github','workflows','aggiorna.yml'),'utf8'));
+ const yaml=readFileSync(join(qui,'..','.github','workflows','aggiorna.yml'),'utf8');
+ const d=load(yaml);
  const sched=((d&&d.on&&d.on.schedule)||[]).map(x=>x.cron);
  /* 1 · PIU' DI UN TENTATIVO. Non si conta a quanti: si conta che non sia UNO, che e' la
     proprieta' per cui la finestra esiste. Scrivere «otto» qui rimetterebbe in una prova la
@@ -412,8 +413,49 @@ await (async function(){
      ' invece di '+c[1]; });
  p('e l espansore dei tick sa leggere tutte e quattro le forme di un campo cron'+
    (contoKO.length?' ('+contoKO.join(' · ')+')':''), contoKO.length===0);
- p('il cron del lavoro notturno e una FINESTRA e non un istante: '+tick+' tentativi ('+
-   sched.join(' | ')+'), perche un tick solo e best-effort e puo saltare', tick>1);
+ /* ══ LA FINESTRA, O UN ESPERIMENTO CHE SI DICHIARA E SCADE DA SOLO ══════════════════
+    Fino al 31 agosto 2026 qui c'era «tick>1», e basta: un tick solo e' best-effort e puo'
+    saltare. Quel giorno l'autore ha deciso di riportare il cron a UN tick per una
+    settimana, ed e' una decisione, non una riparazione: il conto per giorno dice che dal
+    22 al 28 agosto un tick al giorno ha consegnato SETTE volte su sette, mentre dieci tick
+    ne consegnano tre o quattro — che sotto indipendenza avrebbe probabilita' di una su
+    diecimila. L'esperimento distingue il CONTINGENTAMENTO per workflow dalla LATENZA.
+    QUINDI L'ATTESA NON E' STATA TOLTA, E' STATA MESSA A TERMINE. Un tick solo passa
+    soltanto se accanto c'e' la data in cui l'esperimento finisce, e SMETTE DI PASSARE
+    QUANDO QUELLA DATA E' PASSATA. E' la difesa contro la cosa che l'autore ha chiesto di
+    evitare con queste parole: «altrimenti fra una settimana troviamo un cron a un tick e
+    nessuno saprà perché». Con questa riga, l'8 settembre il banco diventa rosso e dice
+    da solo che cosa era stato deciso e quando.
+    LA SPAZZOLATA NON LA VEDE, e va detto invece di lasciarlo credere: npm run spazzola
+    legge test/suite/, e questa prova sta in struttura.mjs. Quindi l'avviso arriva il giorno
+    DOPO la scadenza, non prima — la prima esecuzione di npm run verifica dall'8 settembre
+    diventa rossa, ed e' il cancello del lavoro notturno, quindi l'archivio si ferma finche'
+    qualcuno guarda. E' rumoroso di proposito: una decisione a termine che scade in silenzio
+    e' esattamente quello che questa riga esiste per impedire.
+    Il conto e' che l'esperimento vale una settimana e la prova ha una data: se un giorno
+    servisse l'avviso IN ANTICIPO, la strada e' spostare questo controllo in una suite —
+    non aggiungere una seconda data da tenere allineata. */
+ /* la data si legge dal COMMENTO accanto al cron, che e' il posto in cui un lettore la
+    cerca: se la si mettesse in una costante della prova sarebbero due posti da tenere
+    allineati, e il commento — che e' quello che si legge aprendo il workflow — potrebbe
+    dire una data e la prova un'altra */
+ const rigaEsp = yaml.split(NL).find(l => l.indexOf('esperimento del') >= 0) || '';
+ const FINE_ESP = (rigaEsp.split(String.fromCharCode(8212))[1] || '').trim();
+ const MESI = 'gennaio febbraio marzo aprile maggio giugno luglio agosto settembre ottobre novembre dicembre'.split(' ');
+ const scad = (function(){
+   const m = FINE_ESP.split(' ');
+   if (m.length !== 3) return null;
+   const i = MESI.indexOf(m[1]);
+   return i < 0 ? null : Date.UTC(+m[2], i, +m[0] + 1);   /* scade il giorno DOPO */
+ })();
+ if (tick > 1)
+   p('il cron del lavoro notturno e una FINESTRA e non un istante: '+tick+' tentativi ('+
+     sched.join(' | ')+'), perche un tick solo e best-effort e puo saltare', true);
+ else
+   p('il cron e a UN tick, e passa solo perche e un ESPERIMENTO DICHIARATO che scade il '+
+     (FINE_ESP||'(nessuna data)')+': dopo quella data questa riga diventa rossa e ricorda '+
+     'da sola perche il tick e uno solo',
+     !!scad && Date.now() < scad);
  /* 1-bis · E UN INNESCO CHE NON E' UN OROLOGIO. Il cron a finestra e la vedetta alzano
     tutti e due la probabilita' che QUALCOSA parta, e restano tutti e due dentro il
     best-effort di GitHub: l'unico innesco che non ci sta dentro e' un fatto del mondo.

@@ -749,6 +749,84 @@ notte profonda, per costruzione.
 è la buona notizia sulla consegna e un buco nel collaudo: dei suoi quattro rami — data di
 oggi, conteggio illeggibile, freno, lancio — **in produzione ne è stato percorso uno solo.**
 
+### 1-ter · L'ESPERIMENTO DEL 31 AGOSTO: un tick al giorno fino al 7 settembre 2026
+
+**È in corso mentre leggi. Se trovi un cron a un tick e ti chiedi perché, è questo.**
+
+| | |
+|---|---|
+| **cominciato** | 31 agosto 2026 |
+| **il conto si rifà** | **7 settembre 2026**, prima del deposito delle liste |
+| **che cosa è cambiato** | `aggiorna` da `23 3-21/2` (dieci tick) a `30 3 * * *` (uno) |
+| **che cosa NON è cambiato** | la vedetta (dieci tick), il push su main, la guardia, tutto il resto |
+
+**L'ipotesi, e da dove viene.** Le esecuzioni programmate di `aggiorna`, giorno per giorno:
+
+| | 22 | 23 | 24 | 25 | 26 | 27 | 28 | 29 | 30 |
+|---|---|---|---|---|---|---|---|---|---|
+| consegne | 1 | 1 | 1 | 1 | 1 | 1 | 1 | **3** | **4** |
+| tick nel cron | 1 | 1 | 1 | 1 | 1 | 1 | 1→8 | 10 | 10 |
+
+**Con un tick al giorno ha consegnato sette volte su sette. Con dieci ne consegna tre o
+quattro.** Sotto indipendenza al 28% misurato, sette su sette avrebbe probabilità di **una su
+diecimila**: le estrazioni non sono indipendenti. Quello che i numeri descrivono è un
+**contingentamento per workflow e per giorno** — e sotto quell'ipotesi la finestra non
+aggiunge tentativi, li **spreca**, e per giunta può consumare la quota su un tick pomeridiano
+invece che notturno.
+
+**Che cosa conferma e che cosa smentisce:**
+
+- **se torna a sette su sette** → il contingentamento è per workflow, e la finestra ci stava
+  danneggiando: si resta a un tick e si sposta semmai l'ora;
+- **se resta a un giorno su tre** → la finestra è neutra, e il problema è la **latenza**, che
+  dal 27 agosto è passata da quaranta minuti a undici ore e che nessun cron ripara. Allora la
+  strada torna a essere la §3, la guardia fuori da GitHub;
+- **e se risulta per REPOSITORY e non per account**, il dispatch cross-repo da Germania o UK
+  vale davvero, e se ne riparla con un numero in mano.
+
+**L'ora è quella di prima, 03:30, non una nuova.** Le tre notti che hanno consegnato — 24, 25
+e 26 agosto alle 04:21, 04:08 e 04:10 — erano quel tick. Metterlo alle 04:0x «perché lì
+consegnava» misurerebbe due cose insieme: quelle sono ore di **consegna**, non di
+pianificazione.
+
+**La copertura non crolla mentre si misura**: restano il push su main — l'innesco che non è un
+orologio, e che in pratica è quello che sta tenendo in piedi l'archivio — e la vedetta con i
+suoi dieci tick.
+
+**E l'esperimento scade da solo.** `test/struttura.mjs` non chiede più «il cron è una
+finestra»: chiede **«è una finestra, oppure è un esperimento dichiarato che non è ancora
+scaduto»**, e legge la data dal commento accanto al cron, che è dove un lettore la cerca.
+Dall'8 settembre quella riga diventa **rossa**, e `npm run verifica` è il cancello del lavoro
+notturno: l'archivio si ferma finché qualcuno guarda. È rumoroso di proposito — *una decisione
+a termine che scade in silenzio è esattamente la cosa che questa riga esiste per impedire.*
+Verificato nei due versi con l'orologio congelato: verde il 6 settembre, rosso l'8.
+
+**Quello che la spazzolata NON fa, detto invece di lasciarlo credere:** `npm run spazzola`
+legge `test/suite/`, e questo controllo sta in `struttura.mjs`. L'avviso arriva il giorno
+**dopo** la scadenza, non prima.
+
+### 1-quater · Il limite della vedetta è noto e accettato
+
+**Fra le 22:47 e le 04:47 la vedetta non ha nessun tick**, quindi non può soccorrere la notte
+profonda — che è la fascia in cui il lavoro notturno manca. Sembra il difetto più evidente del
+file ed è la condizione perché il file sia quello che dice di essere.
+
+**Spostare un tick a 00:47 la farebbe passare da constatare ad affermare.** A quell'ora
+`dati/stato-job.json` porta **per costruzione** la data di ieri — il job scrive la data UTC del
+giorno in cui gira — quindi «la data non è di oggi» sarebbe vera *ogni notte*, prima che
+`aggiorna` abbia avuto il suo tick. La vedetta lancerebbe sempre, e diventerebbe lo scheduler
+che la prima riga del suo file dichiara di non essere.
+
+**E il freno reggerebbe come contatore e cederebbe come politica**: «al più un dispatch al
+giorno» resterebbe aritmeticamente vero, ma quel dispatch sarebbe un falso allarme
+sistematico — lanciato prima che il job avesse una possibilità — e consumerebbe l'unica
+occasione di soccorso della giornata.
+
+Per spostarla davvero servirebbe cambiare **la constatazione** e non il cron: «la data non è
+di oggi **e la finestra di `aggiorna` è già cominciata»**, cioè una costante nuova e un secondo
+posto da tenere allineato al cron dell'altro workflow. Non vale il prezzo finché non si sa se
+il problema sia l'ora o la latenza — che è quello che l'esperimento sta misurando.
+
 ### 2 · Il problema che resta aperto: un run mai nato non ha nessun canale interno
 
 **È la quarta volta in questo progetto che l'allarme muore insieme alla cosa di cui deve
@@ -6452,6 +6530,12 @@ Poi, in quest'ordine — che **non** è l'ordine in cui le voci sono scritte pi�
    Resta prima di tutto perché è l'unica famiglia di difetti che nessuna delle prove vede:
    le due chiuse il 30 agosto erano scritte da mesi, verdi su tutto il banco, e le ha viste
    un occhio il primo giorno in cui il quarto blocco ha avuto dei seggi.
+
+1-bis. **IL 7 SETTEMBRE 2026 SCADE L'ESPERIMENTO DEL CRON, e il banco lo pretende.** Dal 31
+   agosto `aggiorna` ha **un tick al giorno** invece di dieci, per distinguere il
+   contingentamento per workflow dalla latenza: vedi «L'esperimento del 31 agosto». Il conto
+   si rifà quel giorno, e dall'8 `npm run verifica` diventa rosso da solo — che è il cancello
+   del lavoro notturno, quindi l'archivio si ferma finché qualcuno decide. È voluto.
 
 2. **LA PROVA DI REGIA DELL'8 SETTEMBRE, che è l'unica cosa con un orologio.** Il deposito
    delle liste chiude l'anagrafica, ed è il giorno in cui quasi tutto quello che è annotato

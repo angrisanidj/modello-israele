@@ -61,7 +61,33 @@ on:
   # ore per quelli notturni e 66 minuti per quelli dalle 08:00 in poi, e i tre puntuali sul
   # serio erano tutti alle 17:xx. Sono cinque osservazioni per parte: coerente, non
   # dimostrato. Va rimisurato, non creduto.
-    - cron: '23 3-21/2 * * *'   # dieci tentativi, dalle 03:23 alle 21:23, uno ogni due ore
+  #
+  # ══ E DAL 31 AGOSTO 2026 QUESTO CRON E' UN ESPERIMENTO, NON UNA CONFIGURAZIONE ══════
+  # UN TICK AL GIORNO FINO AL 7 SETTEMBRE 2026. Non e' un ripensamento: e' la sola misura
+  # che risponde a una domanda invece di alzare una probabilita'.
+  # IL CONTO CHE L'HA IMPOSTA. Le esecuzioni programmate di questo workflow, giorno per
+  # giorno: dal 22 al 28 agosto UN tick al giorno e UNA consegna al giorno, SETTE SU SETTE.
+  # Dal 29, con dieci tick al giorno, TRE e QUATTRO consegne. Se le estrazioni fossero
+  # indipendenti al 28% misurato, sette consegne su sette avrebbero probabilita' di UNA SU
+  # DIECIMILA: non lo sono. Quello che i numeri descrivono e' un CONTINGENTAMENTO per
+  # workflow e per giorno, e sotto quell'ipotesi la finestra non aggiunge tentativi — li
+  # spreca, e per giunta puo' consumare la quota su un tick pomeridiano invece che notturno.
+  # L'IPOTESI, e come si decide: se con un tick solo la consegna torna a sette su sette, il
+  # contingentamento e' per workflow e QUESTA FINESTRA CI STAVA DANNEGGIANDO. Se resta a un
+  # giorno su tre, la finestra e' neutra e il problema e' la LATENZA — che dal 27 agosto e'
+  # passata da quaranta minuti a undici ore, e che nessun cron ripara.
+  # E L'ORA E' QUELLA DI PRIMA, 03:30, NON UNA NUOVA. Le tre notti che hanno consegnato —
+  # 24, 25 e 26 agosto, alle 04:21, 04:08 e 04:10 — erano questo tick. Spostarlo alle 04:0x
+  # perche' «li' consegnava» sarebbe misurare due cose insieme: quelle sono le ore di
+  # CONSEGNA, non di pianificazione.
+  # LA COPERTURA NON CROLLA MENTRE SI MISURA: restano il push su main, che e' l'innesco che
+  # non e' un orologio, e la vedetta con i suoi dieci tick. L'esperimento toglie tentativi
+  # ridondanti, non l'unica strada.
+  # IL CONTO SI RIFA' IL 7 SETTEMBRE 2026, prima del deposito delle liste. Se il
+  # contingentamento risulta per REPOSITORY e non per account, allora il dispatch cross-repo
+  # da Germania o UK vale davvero — e se ne riparla con un numero in mano invece che con
+  # quattro osservazioni.
+    - cron: '30 3 * * *'   # UN tick: l'esperimento del 31 agosto — 7 settembre 2026
   workflow_dispatch:
   # E IL TERZO INNESCO NON E' UN TIMER: OGNI PUSH SU main.
   # Misurato il 30 agosto 2026 sui tre modelli dello stesso account, ed e' il confronto
