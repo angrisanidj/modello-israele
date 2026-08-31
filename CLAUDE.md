@@ -5833,6 +5833,59 @@ sedi una per una, che è la regola già scritta. **Un percorso relativo in uno s
 è una trappola a orologeria: la prima volta che qualcuno lo lancia da un'altra cartella, il
 ripristino non ripristina.**
 
+## Due mestieri su un canale solo: la tavolozza garantisce due cose, e non sono la stessa
+
+Chiuso il 31 agosto 2026 sulle cifre dell'archivio, e **la regola vale oltre questo caso**.
+
+**La tavolozza dichiara DUE pavimenti, e sono per due domande diverse:**
+
+| | quanto | che domanda risponde |
+|---|---|---|
+| **testo sopra il colore** | **4,74** | «questo testo si legge?» |
+| **colore sopra il fondo** | **3,36** | «questa tinta si distingue dal fondo?» |
+
+Il secondo è il requisito di un **codice**: una pastiglia, un settore dell'emiciclo, una
+linea della tendenza devono distinguersi dalla carta, e 3,36 basta perché nessuno li *legge*
+— li riconosce. Il primo è il requisito di un **inchiostro**.
+
+**E il secondo non basta dove il colore È l'inchiostro del testo.** Nell'archivio le cifre
+dei seggi erano scritte nel colore della lista: quella tinta faceva l'identità *e* l'unico
+inchiostro di un numero che il lettore deve leggere. Misurato in pagina: **3,36 in chiaro,
+3,57 a 760, 4,36 in scuro**, su **2.722 celle** — cioè il pavimento sbagliato applicato al
+caso sbagliato, e la tavolozza lo garantiva pure, perché garantiva l'altra cosa.
+
+**È l'invariante 9 vista dall'altro lato.** Là: l'opacità può ridurre l'enfasi ma non può
+essere l'unico portatore di una distinzione. Qui: il colore può portare un'identità, ma non
+può essere l'unico inchiostro di un testo — e quando lo diventa, il pavimento che gli si
+applica cambia da 3,36 a 4,5.
+
+### Che cosa si è verificato PRIMA di togliere, invece che dopo
+
+La domanda giusta non era «il contrasto è basso» ma «che cosa fa quel colore che nient'altro
+fa». Misurato:
+
+- **le intestazioni sono `position:sticky, top:0`** e restano appese in cima mentre il corpo
+  scorre — l'intestazione passa da 24px a **1px** dal bordo del contenitore e ci resta, su una
+  tabella alta 6.231px dentro un riquadro da 468. **Il nome della lista sta sempre sopra la
+  sua colonna**, quindi l'identità non è mai affidata al colore;
+- **il raggruppamento per blocco lo fanno i filetti**, non le tinte;
+- **per la lettura orizzontale il colore non aiutava**: cambia a ogni cella — **sedici tinte
+  in una riga sola** — quindi segmenta la riga invece di tenerla insieme;
+- **nella forma stretta il nome sta accanto alla cifra**, ancora più esplicito.
+
+**Non si perde niente**, ed è per questo che si è potuto togliere invece di cercare un
+secondo canale. Dopo: peggior cifra a **5,02 in chiaro e 4,75 in scuro**.
+
+**Restano colorati i tre totali di blocco**, e lì è giusto: quello è il token del blocco, cioè
+un codice con la sua legenda, non l'inchiostro di una lettura.
+
+### La regola, per chi colorerà dei numeri domani
+
+**Prima di scrivere una cifra nel colore di qualcosa, chiedersi quale dei due pavimenti si
+applica.** Se quel colore è l'unico inchiostro, è 4,5 e non 3,36 — e la tavolozza non lo
+garantisce, perché garantisce l'altra cosa. E prima di toglierlo, misurare che cosa fa che
+nient'altro fa: qui non faceva niente, ma è un fatto che si verifica, non che si presume.
+
 ## La verifica a scenari è diventata una suite, e la prima cosa che ha trovato mentiva
 
 Applicata il 31 agosto 2026. Le tavole 1, 4 e 6 — comandi combinati, archivio degenere,

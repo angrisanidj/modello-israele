@@ -8964,7 +8964,21 @@ function rTab(){
   /* il colore dei valori resta quello della lista: qui cambia l'ORDINE, non la codifica */
   cols.forEach(function(i){var v=s.seggi[i];
    var cl=(v?'s':'')+(confine[i]?(v?' sep':'sep'):'');
-   h+='<td'+(cl?' class="'+cl+'"':'')+(v?' style="color:'+cp(P[i].c)+'"':'')+'>'+(v?f(v):'')+'</td>';});
+   /* ══ LE CIFRE NON PORTANO PIU' IL COLORE DELLA LISTA — 31 agosto 2026 ═══════════
+      Quel colore faceva DUE mestieri su un canale solo: era l'identita' della lista ed era
+      l'unico inchiostro di una cifra che il lettore deve leggere. E la tavolozza garantisce
+      il requisito sbagliato — «colore sopra il fondo» a 3,36, che vuol dire «la tinta si
+      distingue dal fondo», non «il numero si legge», per cui il pavimento e' 4,5.
+      Misurato sulla pagina: 3,36 in chiaro, 3,57 a 760, 4,36 in scuro, su 2.722 celle.
+      E L'IDENTITA' LI' NON SERVE, verificato prima di togliere invece che dopo: le
+      intestazioni sono «position:sticky, top:0» e restano appese in cima mentre il corpo
+      scorre — misurato, l'intestazione passa da 24px a 1px dal bordo del contenitore e ci
+      resta — quindi il nome della lista sta SEMPRE sopra la sua colonna. Il raggruppamento
+      per blocco lo fanno i filetti. E per la lettura ORIZZONTALE il colore non aiutava
+      comunque: cambia a ogni cella, sedici tinte in una riga sola.
+      Il colore resta dov'e' un codice e non un inchiostro: le pastiglie, l'emiciclo, le
+      legende, la sparkline. Vedi «Due mestieri su un canale solo» in CLAUDE.md. */
+   h+='<td'+(cl?' class="'+cl+'"':'')+'>'+(v?f(v):'')+'</td>';});
   h+='<td class="s sep2" style="color:'+C.coal+'">'+f(b.coalizione)+'</td>'+
      '<td class="s" style="color:'+C.oppo+'">'+f(b.opposizione)+'</td>'+
      '<td class="s" style="color:'+C.arab+'">'+f(b.arabo)+'</td></tr>';
@@ -9023,7 +9037,10 @@ function rTab(){
                        : 'campione non dichiarato');
   h+='<p class="sondmeta">'+meta.join(' · ')+'</p><div class="sondv">';
   cols.forEach(function(i){var v=s.seggi[i]; if(!v) return;
-   h+='<span'+(confine[i]?' class="sep"':'')+'><em>'+E(nm(i))+'</em> <s style="color:'+cp(P[i].c)+'">'+f(v)+'</s></span>';});
+   /* e la forma stretta segue la larga, o sarebbero due strade per lo stesso valore: qui
+      il nome della lista sta gia' ACCANTO alla cifra, quindi l'identita' e' anche piu'
+      esplicita che nella tabella */
+   h+='<span'+(confine[i]?' class="sep"':'')+'><em>'+E(nm(i))+'</em> <s>'+f(v)+'</s></span>';});
   h+='</div></details>';
  });
  /* Il comando dice QUANTE ne aggiunge e QUANTE ne restano: sono due numeri di righe, come
