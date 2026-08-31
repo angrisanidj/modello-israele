@@ -164,6 +164,10 @@ export function guarda(png, pixel){
  return null;
 }
 
+/* IL TITOLO DELLO STESSO RENDER. componi() lo posa qui, e da qui lo prende chi scrive le
+   meta: così og:title e og:image non hanno modo di venire da due render diversi. */
+export let TITOLO = null;
+
 export async function componi(){
  const html = readFileSync(join(RADICE, 'index.html'), 'utf8');
  const app = html.match(/<script>([\s\S]*)<\/script>/)[1];
@@ -191,9 +195,17 @@ export async function componi(){
  global.fetch = () => Promise.resolve({ok: true, json: () => Promise.resolve(arch)});
 
  const spia = {};
+ /* titoloCortoOra ENTRA NELLA SPIA dal 31 agosto 2026, ed è la mossa che rende strutturale
+    una promessa che prima era una coincidenza di ordine dei passi: le DUE meta dello stato —
+    og:title e og:image — nascono adesso dallo stesso render, in questo script, dallo stesso
+    archivio letto dal disco. Prima og:title lo scriveva aggiorna.mjs con un suo render e
+    og:image questo con il proprio: due render, due momenti, e a tenerli d'accordo era solo
+    il fatto che i due passi fossero adiacenti nello stesso job. Il giorno in cui uno dei due
+    è girato senza l'altro — cioè ogni push che cambiava index.html senza toccare
+    l'archivio — la card e la pagina hanno cominciato a dire due cose diverse. */
  eval(app.replace('carica().then(render,render)',
    'Object.assign(spia,{C:C,SEG:SEG,dl:dl,SOND:SOND,applicaTema:applicaTema,' +
-   'ipotesiNeiNumeri:ipotesiNeiNumeri});carica().then(render,render)'));
+   'titoloCortoOra:titoloCortoOra,ipotesiNeiNumeri:ipotesiNeiNumeri});carica().then(render,render)'));
  /* IL TEMA SI SCEGLIE, NON SI EREDITA. Senza questa riga l'anteprima usciva in chiaro lo
     stesso — ma per il default di matchMedia in jsdom, cioè per caso, e un giorno un banco
     diverso l'avrebbe fatta uscire scura senza che nessuno l'avesse deciso.
@@ -214,6 +226,9 @@ export async function componi(){
     silenzio, ed è la stessa ragione per cui #k-upd esiste */
  const ultima = arch.map(s => s.data).filter(Boolean).sort().pop();
  const col = spia.C || {};
+ /* il titolo si prende QUI, dallo stesso render che sta per diventare l'immagine */
+ TITOLO = spia.titoloCortoOra ? spia.titoloCortoOra() : null;
+ if (!TITOLO) throw new Error('titoloCortoOra() non ha risposto: il render non e arrivato in fondo');
  return targa(interno, ink, vb,
    'Knesset 2026 · proiezione dei 120 seggi',
    /* la data si formatta con dl(), la stessa funzione della pagina: scriverne il formato
@@ -266,17 +281,31 @@ export async function genera(){
    niente. Con la data, ogni notte butterebbe la cache di tutti per non dire niente di nuovo.
    Si chiama anche quando il PNG NON e' stato riscritto, perche' la prima volta l'indirizzo
    in pagina e' quello nudo e l'impronta va aggiunta comunque. */
-function impronta(png){
+/* LE DUE META SI SCRIVONO INSIEME, DALLO STESSO RENDER, E IL VALORE DI RITORNO E' IL
+   ROMPI-ANELLO — dal 31 agosto 2026.
+   Restituisce true se index.html e' cambiato. Non e' una comodita': e' il FATTO su cui il
+   job delle meta decide se committare. Un rompi-anello dedotto non e' un rompi-anello — se
+   il job si affidasse all'idempotenza («tanto al secondo giro non scrive») starebbe
+   scommettendo su una garanzia che nessuno dichiara, ed e' esattamente la forma che questo
+   progetto ha gia' pagato con l'anello del push. Qui la domanda «c'e' qualcosa da
+   pubblicare?» ha una risposta calcolata: l'impronta che esce dal PNG e il titolo che esce
+   dal render coincidono, o non coincidono, con quelli scritti nel file. */
+function scriviLeDue(png, titolo){
  const v = createHash('sha256').update(png).digest('hex').slice(0, 12);
  const p = join(RADICE, 'index.html');
  const prima = readFileSync(p, 'utf8');
- const dopo = scriviMeta(prima, null, v);
+ /* UNA CHIAMATA SOLA PER TUTTE E DUE. Scriverle in due passaggi vorrebbe dire due letture e
+    due scritture dello stesso file, cioe' un istante in cui og:title e' di questo render e
+    og:image di quello prima — la finestra che si sta chiudendo, larga microsecondi invece
+    che dieci ore, ma della stessa natura. */
+ const dopo = scriviMeta(prima, titolo, v);
  /* scriviMeta() restituisce null quando la regione non c'e' piu': il job si ferma invece di
     indovinare dove mettere la meta, ed e' il modo di fallire di tutto il resto. */
- if (dopo === null) { console.error('og:image NON aggiornata: la regione delle meta non esiste'); process.exit(1); }
- if (dopo === prima) { console.log('og:image: impronta invariata, ' + v); return; }
+ if (dopo === null) { console.error('meta NON aggiornate: la regione delle meta non esiste'); process.exit(1); }
+ if (dopo === prima) { console.log('meta: invariate — og:title «' + titolo + '», og:image ' + v); return false; }
  writeFileSync(p, dopo);
- console.log('og:image: impronta ' + v);
+ console.log('meta: scritte — og:title «' + titolo + '», og:image ' + v);
+ return true;
 }
 if (import.meta.url === pathToFileURL(process.argv[1]).href) {
  genera().then(png => {
@@ -284,14 +313,18 @@ if (import.meta.url === pathToFileURL(process.argv[1]).href) {
      quando gira a vuoto e non è cambiato niente — e un commit che non cambia niente rende
      invisibile quello che cambia qualcosa. È la stessa ragione per cui scriviMeta() è
      idempotente. */
-  if (existsSync(USCITA) && Buffer.compare(readFileSync(USCITA), png) === 0) {
-   console.log('anteprima: identica, non riscritta');
-   impronta(png);
-   return;
-  }
-  writeFileSync(USCITA, png);
-  console.log('anteprima: scritta, ' + (png.length / 1024).toFixed(1) + ' KB');
-  impronta(png);
+  const pngNuovo = !(existsSync(USCITA) && Buffer.compare(readFileSync(USCITA), png) === 0);
+  if (pngNuovo) { writeFileSync(USCITA, png);
+   console.log('anteprima: scritta, ' + (png.length / 1024).toFixed(1) + ' KB'); }
+  else console.log('anteprima: identica, non riscritta');
+  const metaNuove = scriviLeDue(png, TITOLO);
+  /* IL FATTO ESCE DAL PROCESSO, e il job lo legge da qui. Codice 0 «c'e' qualcosa da
+     pubblicare», 3 «niente». Non e' un errore: e' una risposta, ed e' la ragione per cui il
+     job delle meta puo' girare a ogni push senza committare a vuoto e senza mordersi la
+     coda. Con l'idempotenza al posto suo il giro si chiuderebbe lo stesso — ma per una
+     garanzia che nessuno dichiara, che e' precisamente quello che questo progetto chiama
+     rompi-anello dedotto. */
+  if (!pngNuovo && !metaNuove) { console.log('niente da pubblicare: il render coincide con quello gia scritto'); process.exit(3); }
   return;
  }).catch(e => {
   /* SE UNA GUARDIA SCATTA NON SI SCRIVE NIENTE. Un og:image vecchio è meglio di un

@@ -6250,8 +6250,18 @@ function rAnalisi(){
    var c=v>0?'up':'dn';
    return '<div class="dl '+c+'">'+(v>0?'+':'−')+f(Math.abs(v),Math.abs(v)%1?1:0)+'</div>';
   }
+  /* IL BLOCCO SI NOMINA DAL CONTEGGIO, NON DALL'ANAGRAFICA — riparato il 31 agosto 2026.
+     Qui c'era P0.b, e con la leva accesa questa riga diceva «Popolo d'Israele · Ago della
+     bilancia» col quadratino ocra mentre le pastiglie di k-proj, quaranta righe piu su
+     nella stessa pagina, dicevano «Blocco Netanyahu» col quadratino blu: due elenchi delle
+     stesse liste, sullo stesso schermo, in disaccordo su due canali insieme.
+     E' la stessa forma della posizione nell'arco chiusa ieri — una lettura che segue
+     l'anagrafica dove tutte le altre seguono la leva — e la regola che la governa e' quella
+     scritta accanto a bloccoDi(): chi CONTA SEGGI legge la leva, chi calcola QUOTE legge
+     l'anagrafica. Nominare il blocco di una lista e' contare, non calcolare. */
+  var bl=bloccoDi(x.id);
   hh+='<div class="pr mv"><div class="nm">'+E(nm(x.id))+
-      '<i><b class="blq" style="background:'+BC(P0.b)+'"></b>'+E(BL[P0.b].n)+'</i></div>'+
+      '<i><b class="blq" style="background:'+BC(bl)+'"></b>'+E(BL[bl].n)+'</i></div>'+
       '<div class="sg srf">'+(x.lo===x.hi?f(x.lo):f(x.lo)+'–'+f(x.hi))+'</div>'+
       '<div><svg viewBox="0 0 200 12" preserveAspectRatio="none" style="height:12px">'+
       '<rect x="0" y="3" width="200" height="6" fill="'+C.hair2+'"/>'+
@@ -7773,6 +7783,14 @@ function rChips(){
  else if(tot>=61) t='<b style="color:var(--pos)">Maggioranza raggiunta</b> con '+f(tot)+' seggi, '+f(tot-60)+' oltre la soglia.';
  else t='<b style="color:var(--neg)">Sotto quota 61</b>: '+f(tot)+' seggi, ne mancano '+f(61-tot)+'.';
  if(confl.length) t+=' <span style="color:var(--neg)">Veti violati: '+confl.filter(function(v,i,a){return a.indexOf(v)===i;}).join(' · ')+'.</span>';
+ /* QUI SI LEGGE L'ANAGRAFICA DI PROPOSITO, e va scritto o fra un mese sembra la svista che
+    k-movers e' stata davvero. La regola generale dice che chi CONTA SEGGI legge la leva; qui
+    non si conta niente: si dice che fra le liste selezionate ce n'e' una che ha escluso
+    l'ingresso al governo, e AVERLO ESCLUSO E' UN FATTO DELLA LISTA, non del campo in cui la
+    contiamo. Se un giorno IN_BILICO spostasse una lista araba in un campo, la frase dovrebbe
+    comparire lo stesso — perche' la dichiarazione di quella lista non cambia con la nostra
+    ipotesi — ed e' esattamente quello che questa riga fa leggendo P[i].b e P[i].gov, che
+    stanno nell'anagrafica insieme. */
  var ar=sel.filter(function(i){return P[i].b==='arabo'&&!P[i].gov;});
  if(ar.length) t+=' Include liste arabe che hanno escluso l\'ingresso al governo: la maggioranza reggerebbe solo con appoggio esterno.';
  $('k-gnote').innerHTML=t;

@@ -60,7 +60,7 @@ let src = fs.readFileSync(__dirname + '/../app.js','utf8');
 src = src.slice(0, src.indexOf('carica().then(render,render)')) +
   'global.A={P:P,IDS:IDS,BL:BL,IN_BILICO:IN_BILICO,bloccoDi:bloccoDi,filtraBilico:filtraBilico,' +
   'blocchi:blocchi,render:render,PRESET:PRESET,ARCO_ORD:ARCO_ORD,ARCO_VICINI:ARCO_VICINI,' +
-  'siglaBlocco:siglaBlocco,SIGLA_TIPO:SIGLA_TIPO,SIGLA_PREP:SIGLA_PREP,' +
+  'nm:nm,siglaBlocco:siglaBlocco,SIGLA_TIPO:SIGLA_TIPO,SIGLA_PREP:SIGLA_PREP,' +
   'testoCondivisione:testoCondivisione,promptAI:promptAI,serieModello:serieModello,' +
   'get SOND(){return SOND;},set SOND(v){SOND=v;},get SEG(){return SEG;},' +
   'get PAR(){return PAR;},PAR_DEF:PAR_DEF,statoLeve:statoLeve,' +
@@ -1394,6 +1394,145 @@ function confini(f){
   esito(/ipotesi/.test(apert.riga) && /riporta/.test(apert.riga),
     'e chi non ha toccato niente legge che e un ipotesi E come toglierla');
   A.PAR.inbilico = A.PAR_DEF.inbilico; A.EMIMODE = 'blocchi'; A.render();
+}
+
+/* ══ 15 · DUE VISTE CHE NOMINANO IL BLOCCO DELLA STESSA LISTA LO NOMINANO UGUALE ═══
+ * Scritta il 31 agosto 2026, dopo che «Liste che si muovono» ha detto «Popolo d'Israele ·
+ * Ago della bilancia» col quadratino ocra mentre le pastiglie di k-proj, quaranta righe più
+ * su nella stessa pagina, dicevano «Blocco Netanyahu» col quadratino blu. Due elenchi delle
+ * stesse liste, sullo stesso schermo, in disaccordo su DUE canali insieme.
+ *
+ * PERCHÉ NESSUNA PROVA POTEVA COGLIERLO. Il banco verificava che ogni vista che pubblica dei
+ * TOTALI li pubblichi tutti — ed è la proprietà che ha chiuso il giro dei quattro blocchi.
+ * k-movers non pubblica un totale: pubblica un'ETICHETTA, e le etichette non erano legate a
+ * niente. È la strada doppia di sempre, con la particolarità che le due strade stanno a
+ * quaranta righe di distanza e ciascuna era corretta rispetto a sé stessa.
+ *
+ * LA PROPRIETÀ È DELLA CLASSE, non dell'istanza: si raccolgono TUTTI gli elementi della
+ * pagina che nominano un blocco accanto a una lista — il markup li dichiara con la stessa
+ * grammatica, un `.blq` col colore e il nome accanto — e si pretende che per ogni lista
+ * tutte le viste dicano lo stesso nome e lo stesso colore. Vale per k-proj e k-movers, e
+ * varrà per la vista che qualcuno aggiunge domani senza rileggere questo commento.
+ *
+ * E LA MISURA STA NEL DOM RESO, non nel sorgente: cercare «bloccoDi» col grep proverebbe che
+ * qualcuno ha scritto la parola giusta, non che il lettore veda la stessa cosa in due punti.
+ * Il difetto era precisamente che una delle due strade fosse scritta con l'altra parola. */
+{
+  conBilico(4, 1);
+  /* L'ARCHIVIO VA RIBASATO, o «Liste che si muovono» non esiste: quella tabella vive nella
+     finestra dei sette giorni, e sul seme l'ultima rilevazione è più vecchia di così — il
+     render prende il ramo d'uscita e scrive k-movers vuoto. È la stagionalità che
+     test/frescura.js chiude per le altre sei suite, e si CHIAMA invece di riscriverla:
+     riscrivere lo spostamento delle date qui sarebbe la strada doppia dentro la prova che
+     ne cerca una. L'adattatore serve perché questa suite espone SOND come proprietà e
+     frescura la vuole come funzione. */
+  require('../frescura.js')({
+    SOND: () => A.SOND, setSOND: v => { A.SOND = v; }, render: () => A.render()
+  });
+  A.EMIMODE = 'liste'; A.render();
+  const spostate = A.IN_BILICO.map(r => r.id).filter(i => A.SEG[i] && A.bloccoDi(i) !== A.P[i].b);
+  esito(spostate.length > 0,
+    'premessa: c e almeno una lista che la leva conta in un blocco diverso da quello ' +
+    'dell anagrafica — senza, le due letture coincidono e la prova gira a vuoto',
+    spostate.map(i => i + ' ' + A.P[i].b + ' -> ' + A.bloccoDi(i)).join(', '));
+
+  /* Le viste si CERCANO, non si elencano: ogni riga che porta un nome di lista e accanto
+     una pastiglia di blocco. Un elenco di id sarebbe la copia che resta indietro alla
+     prima vista aggiunta — è la lezione di colonneBlocco() e dei nove consumatori. */
+  const viste = [...D.querySelectorAll('#kn26 .pr > .nm')].map(n => {
+    const q = n.querySelector('.blq');
+    if (!q) return null;
+    const sez = n.closest('[id]');
+    /* il nome del blocco è il testo dell'<i>, meno quello che segue il separatore: k-proj
+       aggiunge « · <leader>», k-movers no */
+    const i2 = n.querySelector('i');
+    return {
+      dove: sez ? sez.id : '?',
+      lista: n.childNodes[0] ? n.childNodes[0].textContent.trim() : '',
+      blocco: i2 ? i2.textContent.split('·')[0].trim() : '',
+      col: (q.getAttribute('style') || '').replace(/.*background:\s*/, '').trim()
+    };
+  }).filter(Boolean);
+
+  const dove = [...new Set(viste.map(v => v.dove))];
+  esito(dove.length >= 2,
+    'ci sono almeno DUE viste che nominano il blocco di una lista: e la condizione perche ' +
+    'la proprieta abbia qualcosa da legare', dove.join(' · '));
+
+  const per = {};
+  viste.forEach(v => { (per[v.lista] = per[v.lista] || []).push(v); });
+  const condivise = Object.keys(per).filter(k => new Set(per[k].map(v => v.dove)).size >= 2);
+  esito(condivise.length > 0,
+    'e almeno una lista compare in tutte e due, altrimenti non c e niente da confrontare',
+    condivise.length + ' liste in comune');
+
+  const disc = [];
+  condivise.forEach(k => {
+    const nomi = new Set(per[k].map(v => v.blocco)), col = new Set(per[k].map(v => v.col));
+    if (nomi.size > 1 || col.size > 1)
+      disc.push(k + ': ' + per[k].map(v => v.dove + '=' + v.blocco + '/' + v.col).join(' contro '));
+  });
+  esito(disc.length === 0,
+    'e per OGNI lista le viste dicono lo stesso nome di blocco e lo stesso colore',
+    disc.slice(0, 3).join(' · '));
+
+  /* IL CONTROLLO CHE SA FALLIRE: la lista spostata dev essere fra quelle confrontate, o la
+     proprietà passerebbe su un insieme in cui la leva non cambia niente — verde per assenza
+     del caso, che è il modo in cui questo difetto è sopravvissuto finora. */
+  esito(spostate.some(i => condivise.indexOf(A.nm(i)) >= 0),
+    'e la lista che la leva sposta e fra quelle confrontate: e il solo caso in cui le due ' +
+    'letture possono divergere', spostate.map(i => A.nm(i)).join(', '));
+  /* e il nome che le viste danno a quella lista è quello del CONTEGGIO, non dell'anagrafica */
+  const q = spostate.map(i => A.nm(i)).filter(n => per[n]).map(n => per[n][0]);
+  esito(q.length > 0 && q.every(v => v.blocco === A.BL[A.bloccoDi(spostate[0])].n),
+    'e quel nome e quello del CONTEGGIO: con la leva accesa la lista spostata si legge nel ' +
+    'blocco in cui e contata, non in quello dell anagrafica',
+    q.map(v => v.dove + '=' + v.blocco).join(' · '));
+
+  /* ── E IL CASO DI CONFINE, DICHIARATO E POI ESERCITATO ────────────────────────────
+     La frase del simulatore — «Include liste arabe che hanno escluso l'ingresso al
+     governo» — legge P[i].b e NON bloccoDi(), ed è giusto: aver escluso l'ingresso al
+     governo è un fatto della lista, non del campo in cui la contiamo. Il commento accanto
+     al codice lo dichiara; questa prova lo rende verificabile, perché una ragione scritta e
+     non provata è una ragione che il prossimo mutante fa sembrare un buco.
+     IL CASO NON ESISTE NELL'ANAGRAFICA DI OGGI — l'unica riga di IN_BILICO sposta una lista
+     che araba non è, quindi per ogni lista le due letture coincidono e il mutante che passa
+     alla leva resta vivo per ASSENZA DEL CASO. Si costruisce: una riga che sposta una lista
+     araba in un campo, e si pretende che la frase compaia lo stesso. */
+  {
+    const araba = A.IDS.filter(i => A.P[i].b === 'arabo' && !A.P[i].gov)[0];
+    if (!araba) {
+      esito(false, 'non c e nessuna lista araba che abbia escluso l ingresso al governo: ' +
+        'la frase del simulatore non ha piu un caso, e la sua ragione va riscritta');
+    } else {
+      const agg = {id: araba, verso: 'opposizione', data: '2026-08-31',
+                   fonte: 'riga costruita dalla prova, non dell anagrafica'};
+      A.IN_BILICO.push(agg);
+      A.PAR.inbilico = 1; A.render();
+      esito(A.bloccoDi(araba) === 'opposizione' && A.P[araba].b === 'arabo',
+        'premessa: la leva conta una lista araba in un campo, e l anagrafica la lascia araba',
+        araba + ': anagrafica ' + A.P[araba].b + ', conteggio ' + A.bloccoDi(araba));
+      /* si seleziona quella lista nel simulatore e si guarda che cosa dice la nota. Le
+         pastiglie sono <button data-p="<id>"> e lo stato sta in aria-pressed: si preme solo
+         se non è già selezionata, o il clic la toglierebbe. */
+      const b = D.querySelector('#k-chips button[data-p="' + araba + '"]');
+      if (b && b.getAttribute('aria-pressed') === 'false') b.click();
+      esito(!!b && D.querySelector('#k-chips button[data-p="' + araba + '"]')
+              .getAttribute('aria-pressed') === 'true',
+        'e la lista araba e selezionata nel simulatore: senza, la nota non ha niente da dire',
+        b ? 'pastiglia trovata' : 'pastiglia ASSENTE');
+      const nota = (D.getElementById('k-gnote') || {textContent: ''}).textContent;
+      esito(/liste arabe/.test(nota),
+        'e la frase compare LO STESSO: aver escluso l ingresso al governo e un fatto della ' +
+        'lista, non del campo in cui la contiamo — quindi quella riga legge l anagrafica ' +
+        'di proposito', nota.slice(0, 120));
+      A.IN_BILICO.splice(A.IN_BILICO.indexOf(agg), 1);
+    }
+  }
+
+  A.PAR.inbilico = A.PAR_DEF.inbilico;
+  A.EMIMODE = 'blocchi';
+  conAgo(4);
 }
 
 console.log('\nblocchi: ' + ok + '/' + (ok + ko));

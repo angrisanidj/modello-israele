@@ -715,9 +715,20 @@ p('og:type e twitter:card dichiarati', contenuto('og:type')==='website' &&
    Un file corretto che nessuno scrive è indistinguibile da un file corretto, finché non lo si
    guarda dal lato di chi lo riceve.
    Quindi il controllo non guarda l'immagine: guarda il LEGAME. Il file che index.html dichiara
-   come og:image dev'essere (1) rigenerato da un passo del lavoro notturno e (2) messo in scena
-   nello STESSO «git add» dell'archivio che racconta. La seconda metà è quella che conta: in un
-   commit a parte i due divergerebbero di una notte, che è precisamente il difetto.
+   come og:image dev'essere (1) rigenerato da un passo del lavoro notturno e (2) legato a
+   og:title: le due meta dello stato devono nascere dallo STESSO render.
+   LA SECONDA META E' STATA RIESPRESSA IL 31 AGOSTO 2026, e va detto come, perche' e' la
+   stessa affermazione detta meglio e non un'attesa indebolita. Diceva: «og:image finisce nel
+   MEDESIMO git add di dati/archivio.json». Era vera e teneva il difetto — ma diceva DOVE
+   FINISCONO I BYTE, quando la cosa da tenere e' DA DOVE VENGONO I NUMERI. La prova che sia
+   la formulazione sbagliata l'ha data il difetto opposto: le meta stavano nel commit
+   dell'archivio, quindi l'asserzione era verde, e per dieci ore la card ha raccontato un
+   conteggio che la pagina non faceva piu' — perche' l'archivio non era cambiato e il codice
+   si'. La regola sul commit non poteva vederlo: parla di un commit che non e' avvenuto.
+   Adesso pretende quello che voleva dire: og:title e og:image escono da UN SOLO script, che
+   fa UN SOLO render, e chi li scrive li scrive con UNA sola chiamata. Da li' discende quello
+   che la vecchia diceva — se nascono insieme non possono divergere — e in piu' vale anche
+   quando l'archivio non si muove, che e' il caso in cui la vecchia taceva.
    E vale per l'og:image di domani e non per anteprima.png: il percorso si ricava dalla meta. */
 await (async function(){
  const ogimg=contenuto('og:image');
@@ -744,24 +755,114 @@ await (async function(){
    /* 1 · QUALCUNO LO GENERA. Si risale allo script dai comandi del job e si guarda che quello
       script scriva davvero quel percorso: un passo che invocasse il file sbagliato passerebbe
       un controllo fatto sul solo nome del comando. */
+   /* CHI LO GENERA È CHI LO SCRIVE, NON CHI LO NOMINA — e la distinzione è costata un
+      falso rosso il 31 agosto 2026. La riga di prima diceva «il sorgente contiene
+      anteprima.png», e due script lo contengono: quello che disegna l'immagine e
+      aggiorna.mjs, che dichiara «export const IMMAGINE = 'https://…/dati/anteprima.png'»,
+      cioè l'INDIRIZZO. Il secondo vinceva per ordine di iterazione, e i tre controlli qui
+      sotto finivano a leggere il sorgente sbagliato. È la trappola di ARCO_ORD in una veste
+      nuova: là era un commento che nominava la costante, qui è una costante che nomina la
+      stessa cosa in un altro spazio — un indirizzo web non è un percorso su disco.
+      La forma che non si può sbagliare: il percorso dev'essere legato a una costante con
+      join(), che è il modo in cui si nomina un file, e quella costante dev'essere l'oggetto
+      di una writeFileSync. Chi lo pubblica lo scrive. */
    for(const r of run) for(const m of r.matchAll(/node\s+(\.github\/scripts\/[\w.-]+\.mjs)/g)){
     const src=join(qui,'..',m[1]);
-    if(existsSync(src)&&readFileSync(src,'utf8').indexOf(rel.split('/').pop())>=0){
+    if(!existsSync(src)) continue;
+    const s=readFileSync(src,'utf8');
+    const base=rel.split('/').pop();
+    /* SENZA ESPRESSIONI REGOLARI, e non e' una preferenza: la riga che stava qui e'
+       arrivata in questo file con le sequenze di escape mangiate — «\\s» diventato «\s»
+       dentro una stringa, cioe' la lettera s — e il rilevatore non trovava piu' niente.
+       E' la trappola gia' registrata in CLAUDE.md, e la difesa che regge e' non averne
+       bisogno: si legge LA RIGA che lega il percorso a una costante e si guarda il nome. */
+    const riga=s.split(NL).find(function(l){
+      return l.indexOf('= join(')>=0 && l.indexOf(base)>=0;})||'';
+    const nome=riga.indexOf('=')<0?'':
+      riga.slice(0,riga.indexOf('=')).trim().split(' ').filter(Boolean).pop()||'';
+    if(nome && s.indexOf('writeFileSync('+nome)>=0){
      generato=true; dove=f+' · '+m[1];
      srcGen=src;
     }
    }
-   /* 2 · E STA NELLO STESSO «git add» DELL'ARCHIVIO. È la metà che chiude il difetto:
-      generarlo e committarlo a parte li farebbe divergere di una notte. */
+   /* 2 · E VIENE COMMITTATO. Non piu' «nello stesso git add dell'archivio»: il legame che
+      conta e' quello col render, e si prova sul sorgente qui sotto. Qui basta che qualcuno
+      lo metta in scena, o sarebbe rigenerato ogni notte e mai pubblicato. */
    for(const r of run) for(const riga of r.split('\n')){
     if(!/^\s*git add\b/.test(riga)) continue;
-    if(riga.indexOf(rel)>=0){ inScena=true; if(/dati\/archivio\.json/.test(riga)) conArchivio=true; }
+    if(riga.indexOf(rel)>=0) inScena=true;
    }
   }
  }
  p('l\'immagine di og:image la RIGENERA il lavoro notturno'+(dove?' ('+dove+')':''), generato);
- p('e finisce nello stesso «git add» di dati/archivio.json, così l\'immagine e i numeri che '+
-   'racconta non possono divergere di una notte', inScena&&conArchivio);
+ p('e qualcuno la mette in scena, o sarebbe rigenerata ogni notte e mai pubblicata', inScena);
+ /* ══ LE DUE META NASCONO DALLO STESSO RENDER ══
+    La riespressione del 31 agosto 2026, e sono TRE proprieta' meccaniche sul sorgente dello
+    script che genera l'immagine — non sul workflow, perche' il legame non e' dove finiscono
+    i byte ma da dove vengono i numeri:
+    a · lo stesso script chiede alla pagina il titolo, cioe' fa il render da cui esce anche
+        l'immagine. Se og:title lo calcolasse un altro script sarebbero due render;
+    b · e le scrive con UNA sola chiamata a scriviMeta(), con tutti e due gli argomenti: due
+        chiamate vorrebbero dire due letture e due scritture dello stesso file, cioe' un
+        istante in cui una meta e' di questo render e l'altra di quello prima;
+    c · e NESSUN ALTRO script scrive og:title. E' il verso che manca sempre a questa
+        famiglia: la prima meta' passerebbe anche se una seconda strada continuasse a
+        scrivere per conto suo, ed e' esattamente quello che faceva aggiorna.mjs. */
+ const gen = srcGen ? readFileSync(srcGen,'utf8') : '';
+ /* NON BASTA CHE LA PAROLA CI SIA: dev'essere il valore che si scrive. La prima stesura
+    guardava soltanto che il sorgente contenesse «titoloCortoOra», e il mutante che mette
+    una costante al posto della chiamata — TITOLO = 'Knesset 2026' — restava VIVO, perche'
+    la parola compare comunque nella riga che la espone alla spia. Si legge LA RIGA che
+    assegna, come per il punto d'ingresso. */
+ const rigaTit = gen.split(NL).find(function(l){
+   return l.indexOf('TITOLO =')>=0 && l.indexOf('export')<0;})||'';
+ p('e chiede il titolo alla pagina, cioe' + String.fromCharCode(39) + ' og:title esce dallo STESSO render dell' + String.fromCharCode(39) + 'immagine',
+   rigaTit.indexOf('titoloCortoOra(')>0);
+ p('e scrive le due meta con UNA chiamata sola, cosi\' non esiste un istante in cui una e\' '+
+   'di questo render e l\'altra di quello prima',
+   /scriviMeta\(\s*prima\s*,\s*titolo\s*,\s*v\s*\)/.test(gen));
+ {
+  /* SI CERCA UNA CHIAMATA, NON LA DEFINIZIONE — e la prima stesura non lo faceva, quindi
+     dichiarava seconda strada proprio il file che ESPORTA scriviMeta(): la firma «export
+     function scriviMeta(html, titolo, impronta)» contiene la parola «titolo» dentro le
+     parentesi come la conterrebbe una chiamata. La libreria che DEFINISCE non e' una
+     seconda strada: e' LA strada, e chi la chiama e' un'altra cosa. */
+  const chiama = t => t.split(NL).some(l =>
+    l.indexOf('scriviMeta(')>=0 && l.indexOf('function scriviMeta')<0);
+  const altri = readdirSync(join(qui,'..','.github','scripts'))
+    .filter(f=>f.slice(-4)==='.mjs' && join(qui,'..','.github','scripts',f)!==srcGen)
+    .filter(f=>chiama(readFileSync(join(qui,'..','.github','scripts',f),'utf8')));
+  p('e nessun altro script scrive og:title: una seconda strada renderebbe vera la prima '+
+    'meta\' e falsa la promessa'+(altri.length?' ('+altri.join(', ')+')':''), altri.length===0);
+ }
+ /* ══ E IL JOB CHE LE SCRIVE NON E' GUARDATO ══
+    E' la meta' della riparazione del 31 agosto 2026 che nessun'altra asserzione tiene, e
+    il mutante che rimette il job dentro la guardia era VIVO: tutto il resto continuava a
+    essere vero — un render, una chiamata, un solo scrittore — e le meta tornavano a
+    fermarsi per dieci ore a ogni push che non toccasse l'archivio.
+    La guardia risponde a «l'archivio di stanotte e' gia' andato?». Le meta hanno un'altra
+    domanda, e un flag solo per due domande e' la forma gia' pagata da statoLeve() contro
+    ipotesiNeiNumeri(). Quindi: il job che invoca il generatore non puo' dipendere
+    dall'uscita della guardia. */
+ {
+  let jobMeta='', condMeta='', trovato=false;
+  const doc=load(readFileSync(join(qui,'..','.github','workflows','aggiorna.yml'),'utf8'));
+  for(const [nome,j] of Object.entries((doc&&doc.jobs)||{})){
+   const run=((j&&j.steps)||[]).filter(x=>typeof x.run==='string').map(x=>x.run).join(NL);
+   /* il separatore si normalizza senza espressioni regolari: su Windows srcGen porta
+      le barre rovesce, e una classe di caratteri scritta a mano qui e gia stata
+      mangiata una volta dalle sequenze di escape */
+   const base=srcGen.split(String.fromCharCode(92)).join('/').split('/').pop();
+   if(srcGen && run.indexOf('scripts/'+base)>=0){
+    trovato=true; jobMeta=nome; condMeta=String(j.if||'');
+   }
+  }
+  p('il job che scrive le meta esiste e si trova'+(jobMeta?' ('+jobMeta+')':''), trovato);
+  p("e NON e' guardato: la guardia risponde a «l'archivio e' gia' andato», che e' " +
+    "un'altra domanda — un flag solo per due domande e' la forma di statoLeve() contro " +
+    "ipotesiNeiNumeri()",
+    trovato && condMeta.indexOf('guardia.outputs')<0);
+ }
  /* 3 · E IL SUO PUNTO D'INGRESSO FUNZIONA SUL RUNNER, NON SOLO SU CHI LO SCRIVE.
     Il 28 agosto 2026 il passo e' andato VERDE stampando ZERO righe. La guardia «sono il
     modulo principale» componeva l'indirizzo a mano concatenando «file:///» con argv[1]:

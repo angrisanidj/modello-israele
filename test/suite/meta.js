@@ -348,8 +348,13 @@ esito(A.titoloCortoOra().slice(-A.TIT_CODA.length) === A.TIT_CODA,
      generatore non è esercitabile qui. È la differenza fra «una notte a vuoto non butta la
      cache di nessuno» e «ogni notte la butta per non dire niente di nuovo». */
   const srcAnt = fs.readFileSync(path.join(RADICE, '.github', 'scripts', 'anteprima.mjs'), 'utf8');
-  const daImp = srcAnt.indexOf('function impronta(');
-  const fnImp = daImp < 0 ? '' : srcAnt.slice(daImp, daImp + 400);
+  /* L'ANCORA È LA RIGA CHE CALCOLA, NON IL NOME DELLA FUNZIONE. Era «function impronta(»,
+     e il 31 agosto 2026 quella funzione è stata rinominata in scriviLeDue() perché adesso
+     scrive tutte e due le meta: la prova è caduta senza che la proprietà fosse cambiata di
+     un carattere. Un'ancora sul nome misura come si chiama il codice; questa misura che
+     cosa fa. */
+  const rigaImp = srcAnt.split('\n').find(l => l.indexOf('createHash(') >= 0) || '';
+  const fnImp = rigaImp;
   esito(fnImp.indexOf('update(png)') > 0 && !/new Date|toISOString|Date\.now/.test(fnImp),
     'l\'impronta si calcola sui BYTE del png e non sulla data: una notte senza rilevazioni ' +
     'nuove lascia l\'indirizzo identico');

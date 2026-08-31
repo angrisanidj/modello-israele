@@ -355,15 +355,18 @@ async function main(){
      direbbe il contrario di quello che la pagina calcola.
      Il titolo esce dal modello appena ricalcolato da A.calcola(), quindi è esattamente lo
      stato che il lettore vedrà stamattina. */
-  const pIndex = join(RADICE, 'index.html');
-  const titolo = A.titoloCortoOra();
-  const indexNuovo = scriviMeta(readFileSync(pIndex, 'utf8'), titolo);
-  if (indexNuovo === null){
-    console.error('GUARDIA: i marcatori delle meta dello stato non sono più in index.html');
-    process.exit(1);
-  }
-  writeFileSync(pIndex, indexNuovo);
-  console.log('og:title · ' + titolo);
+  /* LE META NON SI SCRIVONO PIÙ QUI — dal 31 agosto 2026, e la ragione è che erano DUE
+     RENDER. Questo script ne faceva uno e scriveva og:title; anteprima.mjs, il passo dopo,
+     ne faceva un altro e scriveva og:image. A tenerli d'accordo era solo l'adiacenza dei due
+     passi dentro lo stesso job — cioè niente di dichiarato. Il 30 agosto la leva è cambiata
+     alle 19:58 e le meta sono rimaste ferme dieci ore, perché la guardia salta il job che
+     scrive appena stato-job.json porta la data di oggi: quella data risponde a «l'archivio è
+     già andato», e la stavamo usando anche per «le meta sono aggiornate». Un flag, due
+     domande — la stessa forma di statoLeve() contro ipotesiNeiNumeri().
+     Adesso le due meta nascono dallo stesso render, in anteprima.mjs, che gira in un job suo
+     a ogni push. Qui resta il titolo solo come RIGA DI LOG, perché il registro della notte
+     deve poter dire che cosa il modello ha calcolato — ma non lo scrive in pagina. */
+  console.log('og:title calcolato · ' + A.titoloCortoOra() + '  (lo scrive anteprima.mjs)');
   if (nuove) writeFileSync(join(RADICE, 'dati', 'archivio.json'), JSON.stringify(A.SOND(), null, 1) + '\n');
   writeFileSync(join(RADICE, 'dati', 'eventi-grezzi.json'), JSON.stringify(reg.registro, null, 1) + '\n');
   writeFileSync(pStato, JSON.stringify(statoNuovo, null, 1) + '\n');

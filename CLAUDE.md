@@ -686,6 +686,69 @@ costante teneva verdi due prove: qui a tenerla verde era il messaggio che la spi
 si guarda **l'insieme dei file di dati nominati**, che dev'essere esattamente uno — e cadono
 tutti e due i versi, il file sbagliato e nessun file.
 
+### 1-bis · Il conto della settimana: la finestra consegna, la NOTTE no — e non è di GitHub
+
+Rifatto il 31 agosto 2026 sui tre modelli dello stesso account, sulla settimana dal 24. Il
+conto era stato promesso «dopo una settimana» e la settimana è passata.
+
+| workflow | tick attesi | consegnati | |
+|---|---|---|---|
+| israele · aggiorna | 19 | 7 | 37% |
+| israele · vedetta | 9 | 3 | 33% |
+| germania · social cards | 15 | 6 | 40% |
+| germania · verify polling | 30 | 8 | 27% |
+| uk · review poll updates | 59 | 12 | 20% |
+| uk · update data | 8 | 3 | 38% |
+| uk · social cards | 15 | 5 | 33% |
+| **in tutto** | **155** | **44** | **28%** |
+
+**Il tasso è lo stesso per tutti e tre**, fra il 24% e il 36% per repository. Un tick vale
+poco più di un quarto ovunque, e la finestra è l'unica cosa che trasforma quel quarto in una
+consegna quotidiana: il 29 e il 30 agosto israele ha avuto tre e quattro esecuzioni, dove un
+tick solo ne avrebbe quasi certamente avute zero o una. **Su questo l'ipotesi non era
+rumore.**
+
+**Ma la notte non si compra con la frequenza, e questa è la parte nuova.** Nove tick notturni
+di israele — 03:23, 05:23, 07:23 per tre notti — **zero consegnati**. E la fascia non è
+morta per GitHub: le stesse due mattine, gli altri due modelli sono stati serviti alle
+**05:20 e 05:28** (germania) e alle **05:07 e 05:15** (uk).
+
+**La misura immune all'attribuzione** — a che ora arriva la PRIMA consegna del giorno, che
+non dipende da quale tick le si assegni — dice la cosa che decide:
+
+| | 24 ago | 25 | 26 | 27 | 28 | 29 | 30 | 31 |
+|---|---|---|---|---|---|---|---|---|
+| israele · aggiorna | **04:21** | **04:08** | **04:10** | 14:28 | 15:34 | 15:39 | 09:19 | — |
+| uk · review | | | | | 11:08 | 06:52 | **05:07** | **05:15** |
+| germania · verify | | | | | | 01:44 | **05:20** | **05:28** |
+
+**Israele la notte l'ha avuta, e l'ha persa il 27 agosto.** Tre notti di fila a 04:08–04:21,
+poi mai più. E il cambio del cron — otto tick il 28, dieci il 29 — è arrivato *dopo* che la
+degradazione era cominciata, e **non l'ha recuperata**.
+
+**Quindi «spostare la finestra dove GitHub consegna» non è la mossa, ed è la conclusione che
+il conto rovescia.** Dove consegna agli altri due è **05:0x–05:2x**, che è *dentro* la
+finestra di israele — il tick delle 05:23 c'è, e viene saltato lo stesso. Spostare le ore
+sarebbe indovinare.
+
+**Quello che il conto suggerisce davvero**, e va valutato prima di scriverlo: gli altri due
+repository dello stesso account **vengono serviti**, ed è misurato, non supposto. Uno di
+loro potrebbe lanciare il job di israele con un `workflow_dispatch` cross-repo — la vedetta,
+spostata su un'infrastruttura che risulta servita. **Non chiude la §3**: resta dentro GitHub,
+quindi non sa dire che GitHub ha taciuto. Alza la consegna con una prova in mano invece che
+con una congettura sulle ore.
+
+**E la vedetta è saltata per la stessa ragione, non per una sua.** Tre esecuzioni in tutta la
+sua vita, tutte e tre `success`, nessun fallimento, permessi a posto: semplicemente non è
+nata. Ma porta un limite suo che va saputo — **il suo cron parte alle 04:47**, perché il
+primo tick di `aggiorna` è alle 03:23 e la vedetta esiste per raccogliere quello che quel
+tick non ha fatto. Fra le 22:47 e le 04:47 **non ha nessun tick**: non può soccorrere la
+notte profonda, per costruzione.
+
+**E il ramo che LANCIA non è mai stato esercitato.** Ha constatato e taciuto tre volte, che
+è la buona notizia sulla consegna e un buco nel collaudo: dei suoi quattro rami — data di
+oggi, conteggio illeggibile, freno, lancio — **in produzione ne è stato percorso uno solo.**
+
 ### 2 · Il problema che resta aperto: un run mai nato non ha nessun canale interno
 
 **È la quarta volta in questo progetto che l'allarme muore insieme alla cosa di cui deve
@@ -5185,8 +5248,120 @@ una censura dell'avvertimento, ed è scritto accanto alla funzione che taglia.
 
 ---
 
-## La nota della soglia diceva il falso, e la seconda metà si genera
+## Le meta dello stato: un flag rispondeva a due domande, e le due meta erano due render
 
+Scorporate il 31 agosto 2026. Il difetto si è visto così: il 30 agosto la leva dell'ago
+della bilancia è stata rovesciata alle 19:58, e la mattina dopo `og:image` disegnava ancora
+**49 · 54 · 12 · 5** mentre la pagina calcolava **54 · 54 · 12 · 0**. Nove push in mezzo, e
+nove `aggiorna: skipped`.
+
+**LA CAUSA È UN FLAG CHE RISPONDEVA A DUE DOMANDE.** La data di `dati/stato-job.json` dice
+«l'archivio di stanotte è già andato?», e la guardia la usa per saltare il job che scrive —
+giusto, perché rifare il parser costa quindici minuti. Ma quello stesso salto fermava anche
+le meta, che rispondono a un'altra domanda: «dicono quello che la pagina calcola adesso?».
+Le due divergono **ogni volta che cambia `index.html` senza che cambi l'archivio**, cioè a
+ogni push di codice. *È la stessa forma di `statoLeve()` contro `ipotesiNeiNumeri()`, spostata
+sul lavoro notturno.*
+
+**E sotto ce n'era una seconda, che la prima nascondeva: erano DUE RENDER.**
+`aggiorna.mjs` ne faceva uno e scriveva `og:title`; `anteprima.mjs`, il passo dopo, ne faceva
+un altro e scriveva `og:image`. A tenerli d'accordo c'era **solo l'adiacenza dei due passi
+dentro lo stesso job** — nessuna garanzia dichiarata da nessuna parte.
+
+### Che cosa è cambiato
+
+| | prima | adesso |
+|---|---|---|
+| chi calcola `og:title` | `aggiorna.mjs`, render suo | `anteprima.mjs`, **lo stesso render dell'immagine** |
+| chi lo scrive | `aggiorna.mjs` | `anteprima.mjs`, **una chiamata sola** |
+| quando | solo se la guardia lascia passare il parser | **a ogni evento**, in un job suo |
+| costo | dentro i quindici minuti del parser | **3,9 secondi misurati** |
+
+Il job `meta` sta in `aggiorna.yml`, `needs: [guardia, aggiorna]` con
+`if: always() && needs.aggiorna.result != 'failure'`. Gira **anche** quando la guardia ha
+saltato tutto; **non** gira se l'archivio è fallito, perché le meta di un archivio respinto
+direbbero il contrario di quello che la pagina calcola. Il checkout è `ref: main`, per la
+stessa ragione della guardia: su un push il predefinito è il commit che ha innescato, che può
+essere anteriore all'archivio appena spinto.
+
+### Il rompi-anello è il codice d'uscita, non l'idempotenza
+
+Il job committa, il commit è un push, il push rifà scattare il workflow. **Il giro si
+chiuderebbe anche da solo** — al secondo passaggio il render coincide e non si scrive niente
+— ma quella è una garanzia *dedotta*, e questo file ha già scritto che **un rompi-anello
+dedotto non è un rompi-anello**.
+
+Quindi il fatto è calcolato e dichiarato: `anteprima.mjs` esce **3** quando l'impronta del
+PNG e il titolo del render coincidono con quelli già in pagina, **0** quando c'è qualcosa da
+pubblicare. Il job legge quello. Provato a mano nei due versi: primo giro 0, secondo 3.
+
+### L'asserzione del «git add» unico è stata RIESPRESSA, non tolta
+
+Diceva: «`og:image` finisce nel medesimo `git add` di `dati/archivio.json`, così l'immagine e
+i numeri che racconta non possono divergere di una notte». Era vera e teneva il difetto per
+cui era stata scritta — **ma diceva DOVE FINISCONO I BYTE, quando la cosa da tenere è DA DOVE
+VENGONO I NUMERI.**
+
+La prova che fosse la formulazione sbagliata l'ha data il difetto opposto: le meta stavano nel
+commit dell'archivio, quindi l'asserzione era **verde**, e per dieci ore la card ha raccontato
+un conteggio che la pagina non faceva più. *Una regola sul commit non può vedere un commit che
+non è avvenuto.*
+
+Adesso sono tre proprietà meccaniche sul sorgente del generatore, e la terza è il verso che a
+questa famiglia manca sempre:
+
+1. lo stesso script **chiede il titolo alla pagina** — e si legge la **riga** che assegna, non
+   la presenza della parola: il mutante che ci mette una costante lasciava verde la prima
+   stesura, perché «titoloCortoOra» compare comunque nella riga che lo espone alla spia;
+2. le scrive con **una chiamata sola**, con tutti e due gli argomenti — due chiamate sarebbero
+   due letture e due scritture dello stesso file, cioè un istante in cui una meta è di questo
+   render e l'altra di quello prima: la finestra di dieci ore rifatta larga microsecondi;
+3. **nessun altro script scrive `og:title`.** Senza, la prima proprietà resterebbe vera con
+   una seconda strada che continua a scrivere per conto suo — che è esattamente quello che
+   faceva `aggiorna.mjs`.
+
+E una quarta, che nessuna delle altre tiene: **il job che scrive le meta non è guardato.** Il
+mutante che lo rimette dentro la guardia era vivo con tutto il resto verde — un render, una
+chiamata, un solo scrittore — e le meta tornavano a fermarsi a ogni push.
+
+### Tre trappole del banco, e due sono vecchie conoscenze
+
+**1 · Il rilevatore puntava allo script sbagliato, per una COSTANTE che nomina un'altra cosa.**
+Il controllo trovava «chi genera l'immagine» cercando `anteprima.png` nel sorgente degli script
+invocati dal workflow. Due lo contengono: quello che la disegna e `aggiorna.mjs`, che dichiara
+`export const IMMAGINE` con **l'indirizzo web**. Vinceva il secondo per ordine di iterazione, e
+i tre controlli finivano a leggere il file sbagliato. È la trappola di `ARCO_ORD` in una veste
+nuova: là era un commento che nominava la costante, qui una costante che nomina la stessa cosa
+**in un altro spazio** — un indirizzo web non è un percorso su disco. La forma che non si può
+sbagliare: **chi lo pubblica lo scrive**, cioè il percorso dev'essere legato a una costante con
+`join()` e quella costante dev'essere l'oggetto di una `writeFileSync`.
+
+**2 · Le sequenze di escape mangiate, due volte nello stesso pomeriggio.** Le espressioni
+regolari costruite da stringhe sono arrivate nel file con `\s` diventato la lettera `s`, e il
+rilevatore non trovava più niente. **La difesa che regge non è scrivere meglio l'escape: è non
+averne bisogno.** Le due sedi sono state riscritte con operazioni su stringhe, e leggono *la
+riga* invece di setacciare il sorgente — che è anche l'idioma già usato per il punto
+d'ingresso.
+
+**3 · `git checkout -- index.html` ha portato via il lavoro non committato, di nuovo.** Avevo
+eseguito il generatore a mano per misurare, e ho usato `git checkout` per disfare quello che
+aveva scritto: si è portato via anche le due riparazioni del giorno, che stavano nello stesso
+file. **È la stessa famiglia del banco delle mutazioni che possiede `index.html` mentre gira**,
+vista da un'altra porta: là il file è di un processo, qui di un generatore che ho lanciato io.
+La regola generale: *un file che un generatore ha appena scritto non si ripristina con un
+comando che ragiona sul file intero.* Le due modifiche sono state rifatte dai file di patch, e
+ci sono voluti trenta secondi **solo perché le patch esistevano ancora**.
+
+**E un'attesa aggiornata, di quelle che si spiegano invece di riparare:** `meta.js` si
+ancorava a `function impronta(`, e quella funzione è stata rinominata perché adesso scrive
+tutte e due le meta. La prova è caduta **senza che la proprietà fosse cambiata di un
+carattere**: l'impronta si calcola ancora sui byte del PNG e non sulla data. Riancorata alla
+riga che calcola — *un'ancora sul nome misura come si chiama il codice, questa misura che cosa
+fa*.
+
+Cinque mutazioni sullo scorporo, cinque morte.
+
+## La nota della soglia diceva il falso, e la seconda metà si genera
 Chiusa il 30 agosto 2026. `#k-soglianota` affermava che una lista sotto soglia «disperde i
 propri voti e li **consegna di fatto ai partiti più grandi dello stesso campo**: nel 2022 fu
 questo meccanismo a garantire la maggioranza a Netanyahu».
@@ -5481,6 +5656,82 @@ la stessa ragione, lasciando `dati/colore-liste.js` mutato. Tutte e due colte co
 sedi una per una, che è la regola già scritta. **Un percorso relativo in uno script di banco
 è una trappola a orologeria: la prima volta che qualcuno lo lancia da un'altra cartella, il
 ripristino non ripristina.**
+
+## Due elenchi delle stesse liste, sullo stesso schermo, in disaccordo
+
+Trovato e chiuso il 31 agosto 2026. La segnalazione diceva `#k-direz`, e il riquadro era
+pulito: legge `blocchi(SEG)`, che segue la leva, quindi con l'ago della bilancia a zero la
+cella non viene proprio disegnata. **Il difetto era in `#k-movers`**, «Liste che si muovono»,
+che sta nella stessa sezione quaranta righe sotto — e il meccanismo era esattamente quello
+che la segnalazione descriveva.
+
+| | nome | quadratino |
+|---|---|---|
+| `#k-movers` | Popolo d'Israele · **Ago della bilancia** | `#B57600` |
+| `#k-proj` | Popolo d'Israele · **Blocco Netanyahu** | `#143EDB` |
+
+`rAnalisi()` leggeva `P0.b`, l'anagrafica; `rProj()` legge `bloccoDi()`, il conteggio. **Due
+canali in disaccordo insieme**, il nome e il colore, in due elenchi che il lettore vede senza
+scorrere. È la stessa forma della posizione nell'arco chiusa il giorno prima: una lettura che
+segue l'anagrafica dove tutte le altre seguono la leva.
+
+### L'inventario, cercando la classe
+
+Cercate **tutte** le sedi che nominano o colorano un blocco:
+
+| dove | sorgente | |
+|---|---|---|
+| `#k-movers` | `P0.b` | ❌ **l'unica** |
+| `#k-proj`, pastiglie per lista | `bloccoDi(i)` | ✓ |
+| emiciclo: seggi, legenda, filtro | `bloccoDi()`, `blocchi()` | ✓ |
+| `#k-direz` | `blocchi(SEG)` | ✓ |
+| tendenza, evento isolato, `notaSerie`, tooltip | chiavi di `SERIE[].bl`, valori da `blocchi()` | ✓ |
+| riga della leva, riga degli apparentamenti | `BL[verso].n` | ✓ per definizione |
+| archivio: ordine e filetti | `P[i].b` | ✓ **voluto e dichiarato**: riproducono la fonte |
+| `PRESET.netanyahu`, swing, affluenza araba | `P[i].b` | ✓ voluto: sono quote, non conteggi |
+
+**Una sola, non quattro** — e la ragione per cui era sopravvissuta è che nessuna prova poteva
+coglierla: il banco verifica che ogni vista che pubblica dei **totali** li pubblichi tutti, e
+`#k-movers` non pubblica un totale, pubblica un'**etichetta**. Le etichette non erano legate a
+niente.
+
+### La prova è della classe, e si misura nel DOM reso
+
+> **Due viste che nominano il blocco della stessa lista lo nominano allo stesso modo.**
+
+Si raccolgono tutte le righe della pagina che portano un nome di lista e accanto una
+pastiglia di blocco — il markup le dichiara con la stessa grammatica — e si pretende che per
+ogni lista tutte le viste diano lo stesso nome e lo stesso colore. Le viste si **cercano**,
+non si elencano: un elenco di id sarebbe la copia che resta indietro alla prima vista
+aggiunta.
+
+**E la misura sta nel DOM reso, non nel sorgente.** Cercare `bloccoDi` col grep proverebbe che
+qualcuno ha scritto la parola giusta, non che il lettore veda la stessa cosa in due punti — e
+il difetto era precisamente che una delle due strade fosse scritta con l'altra parola.
+
+**Due cose che la prova ha imposto.** La sezione ribasa l'archivio con `test/frescura.js`
+prima di rendere: «Liste che si muovono» vive nella finestra dei sette giorni, e sul seme
+l'ultima rilevazione è più vecchia — il render prende il ramo d'uscita e la tabella è vuota,
+cioè la prova girerebbe a vuoto. E `frescura.js` si **chiama** con un adattatore invece di
+riscriverne lo spostamento delle date, che sarebbe la strada doppia dentro la prova che ne
+cerca una.
+
+### E un caso di confine, dichiarato e poi esercitato
+
+`rChips()` legge `P[i].b === 'arabo' && !P[i].gov` per la frase sull'appoggio esterno, e
+**legge l'anagrafica di proposito**: aver escluso l'ingresso al governo è un fatto della
+lista, non del campo in cui la contiamo. Se un giorno `IN_BILICO` spostasse una lista araba in
+un campo, la frase dovrebbe comparire lo stesso.
+
+Il commento accanto al codice lo dichiara — ma **una ragione scritta e non provata è una
+ragione che il prossimo mutante fa sembrare un buco**, e infatti il mutante che porta quella
+riga alla leva era vivo: nell'anagrafica di oggi nessuna riga di `IN_BILICO` tocca una lista
+araba, quindi le due letture coincidono per **assenza del caso**. Il caso si costruisce — una
+riga che sposta una lista araba in un campo — e si pretende che la frase compaia lo stesso.
+
+`blocchi.js` da 156 a 177 asserzioni. **Cinque mutazioni, cinque morte**: `#k-movers` che
+torna all'anagrafica nel nome, nel colore e in tutti e due, `#k-proj` che ci passa, e la frase
+del simulatore che passa alla leva.
 
 ## La passata del 30 agosto: due difetti che il quarto blocco ha reso visibili
 

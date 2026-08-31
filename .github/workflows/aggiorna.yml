@@ -137,6 +137,90 @@ jobs:
             echo "gia=0" >> "$GITHUB_OUTPUT"
             echo "stato-job.json porta '$DATA' e oggi e' $OGGI: si procede"
           fi
+  # ══ LE META DELLO STATO, IN UN JOB CHE NON E' GUARDATO ═══════════════════════════════
+  # Scorporate dall'archivio il 31 agosto 2026, e la ragione e' che la data di
+  # dati/stato-job.json rispondeva a DUE domande diverse. «L'archivio di stanotte e' gia'
+  # andato?» e «le meta sono aggiornate?» divergono ogni volta che cambia index.html senza
+  # che cambi l'archivio — cioe' a ogni push di codice. Il 30 agosto la leva dell'ago della
+  # bilancia e' stata rovesciata alle 19:58 e le meta sono rimaste ferme fino alla notte
+  # dopo: nove push, nove «aggiorna: skipped», e la card ha raccontato per dieci ore un
+  # conteggio che la pagina non faceva piu'. Un flag solo per due domande e' la stessa forma
+  # gia' pagata da statoLeve() contro ipotesiNeiNumeri().
+  # E SONO DUE LAVORI DI NATURA DIVERSA: il parser scarica una pagina, la analizza, passa
+  # le guardie e rilancia il banco — quindici minuti, e rifarlo a vuoto e' proprio quello
+  # che la guardia esiste per evitare. Le meta sono un render e un rasterizzatore: 3,9
+  # secondi misurati. Guardare il primo e non il secondo non e' una svista, e' la
+  # separazione che mancava.
+  # PERCHE' «needs: aggiorna» CON always(): il job deve girare sia quando l'archivio e'
+  # cambiato — e allora deve leggere il main appena spinto — sia quando la guardia ha
+  # saltato tutto, che e' il caso di ogni push. Non gira se l'archivio e' FALLITO: le meta
+  # di un archivio respinto direbbero il contrario di quello che la pagina calcola, ed e'
+  # la stessa regola per cui aggiorna.mjs scrive dopo le guardie e non prima.
+  # IL CHECKOUT E' ref: main, non il commit che ha innescato. Su un push il predefinito e' il
+  # commit di partenza, che puo' essere anteriore all'archivio appena spinto dal job qui
+  # sopra: si renderizzerebbe l'anteprima di un archivio vecchio di un minuto. E' la stessa
+  # riga, con la stessa ragione, gia' scritta nella guardia.
+  meta:
+    needs: [guardia, aggiorna]
+    if: always() && needs.aggiorna.result != 'failure'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with: {ref: main}
+      - uses: actions/setup-node@v4
+        with: {node-version: '22'}
+      - run: npm install
+      # anteprima.mjs importa test/estrai.mjs da se', come aggiorna.mjs: il parser che legge
+      # dev'essere quello di questo index.html, non quello dell'ultima esecuzione locale.
+      - name: Le due meta, dallo stesso render
+        id: meta
+        run: |
+          # IL ROMPI-ANELLO E' IL CODICE D'USCITA, NON L'IDEMPOTENZA.
+          # Questo job committa, il commit e' un push, e il push rifa' scattare il workflow:
+          # il giro si chiuderebbe anche da solo, perche' al secondo passaggio il render
+          # coincide e non si scrive niente. Ma quella e' una garanzia DEDOTTA, e un
+          # rompi-anello dedotto non e' un rompi-anello — e' la riga che questo file si e'
+          # gia' scritto addosso il 30 agosto per l'anello del push.
+          # Quindi il fatto e' calcolato e dichiarato: anteprima.mjs esce 3 quando l'impronta
+          # del PNG e il titolo del render coincidono con quelli gia' in pagina. 0 = c'e'
+          # qualcosa da pubblicare, 3 = niente, altro = guasto.
+          set +e
+          node .github/scripts/anteprima.mjs
+          E=$?
+          set -e
+          if [ "$E" = "3" ]; then echo "cambiato=0" >> "$GITHUB_OUTPUT"; exit 0; fi
+          if [ "$E" != "0" ]; then echo "anteprima guasta (uscita $E)"; exit "$E"; fi
+          echo "cambiato=1" >> "$GITHUB_OUTPUT"
+      # La verifica gira anche qui, e con LAVORO_NOTTURNO=1: index.html e' stato toccato, e
+      # il controllo sul diff pretende che le righe cambiate stiano dentro i marcatori. E' lo
+      # stesso cancello del job dell'archivio, sullo stesso file, per la stessa ragione.
+      - name: Verifica completa con le meta nuove
+        if: steps.meta.outputs.cambiato == '1'
+        env:
+          LAVORO_NOTTURNO: '1'
+        run: npm run verifica
+      - name: Commit e push delle meta dello stato
+        if: steps.meta.outputs.cambiato == '1'
+        run: |
+          git config user.name "aggiornamento-notturno"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          # I DUE FILE SI MUOVONO INSIEME O NON SI MUOVONO: index.html porta og:title e
+          # og:image, dati/anteprima.png e' l'immagine che og:image indirizza, e tutti e tre
+          # i valori escono dallo stesso render. Metterli in due commit li farebbe divergere
+          # di un istante, che e' la versione piccola del difetto di dieci ore.
+          git add index.html dati/anteprima.png
+          if git diff --cached --quiet; then
+            echo "niente in scena: il fatto diceva che c'era qualcosa e i file non sono cambiati"
+            exit 1
+          fi
+          git commit -m "Aggiornare le meta dello stato dal render di adesso (lavoro notturno)"
+          if ! git pull --rebase --autostash origin main; then
+            git rebase --abort || true
+            echo "rebase non pulito: mi arrendo senza forzare"
+            exit 1
+          fi
+          git push origin main
+
   aggiorna:
     needs: guardia
     # LA GUARDIA VALE PER TUTTO TRANNE IL DISPATCH, e la riga nomina l'evento ESENTE invece
@@ -207,9 +291,8 @@ jobs:
       # Se una guardia del rasterizzatore scatta il passo fallisce e la notte non pubblica
       # niente: un archivio nuovo con l'anteprima di ieri è esattamente il difetto che questo
       # passo esiste per chiudere, e pubblicarlo a metà è peggio che non pubblicarlo.
-      # A mani vuote non scrive: anteprima.mjs confronta i byte e dice «identica, non riscritta».
-      - name: Anteprima Open Graph
-        run: node .github/scripts/anteprima.mjs
+      # L'ANTEPRIMA E og:title NON SI SCRIVONO PIU' QUI: le scrive il job «meta», che gira a
+      # ogni evento e non e' guardato. Vedi il commento in testa a quel job.
       # LAVORO_NOTTURNO=1 accende, dentro test/struttura.mjs, il controllo sul diff di
       # index.html: qui è il solo posto in cui esiste un «commit notturno» da giudicare.
       - name: Verifica completa con i dati nuovi
@@ -230,11 +313,15 @@ jobs:
           # quello che verrà committato, quindi non può divergere da sé stessa.
           git config user.name "aggiornamento-notturno"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          # index.html entra per la sola regione delle meta dello stato: il passo di
-          # verifica qui sopra ha già fallito se il diff toccava altro
-          # dati/anteprima.png sta QUI e non in un commit suo: l'immagine e i numeri che
-          # racconta si muovono insieme o non si muovono affatto.
-          git add dati/archivio.json dati/eventi-grezzi.json dati/stato-job.json dati/anteprima.png index.html
+          # SOLO I FILE DI DATI. index.html e dati/anteprima.png sono usciti da questo commit
+          # il 31 agosto 2026: le due meta le scrive il job «meta», dallo stesso render, e le
+          # committa lui. Il legame che questa riga teneva — «l'immagine e i numeri che
+          # racconta non possono divergere di una notte» — non e' stato tolto: e' stato
+          # spostato dal DOVE FINISCONO I BYTE al DA DOVE VENGONO I NUMERI, che e' quello che
+          # voleva dire davvero. Il job «meta» gira dopo questo, sul main appena spinto,
+          # quindi il render da cui escono og:title e og:image nasce dall'archivio che sta
+          # nel commit qui sopra. Vedi test/struttura.mjs.
+          git add dati/archivio.json dati/eventi-grezzi.json dati/stato-job.json
           # UNA NOTTE A MANI VUOTE NON È UN FALLIMENTO. Senza questa guardia, quando il
           # parser non cambia un byte «git commit» esce 1 perché non c'è niente da
           # committare, e con «bash -e» il passo muore: il job risulterebbe fallito e il
