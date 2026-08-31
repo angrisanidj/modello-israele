@@ -160,6 +160,73 @@ function esito(cond, desc, dettaglio){
   esito(aggiornaRegistro(null, [{data: '2026-01-01', testo: 'x y z'}], chiave, '2026-01-02').nuove === 1,
     'un registro assente vale come vuoto, non come errore');
 
+  /* ══ dati/stato-job.json REGISTRA I BLOCCHI DELLA FONTE, E DICHIARA L'IPOTESI ═══════
+   * Scritto il 31 agosto 2026. Il file registrava il conteggio del MODELLO, cioe' con la
+   * leva applicata, e da li' venivano due cose diverse:
+   *
+   * 1 · LA GUARDIA POTEVA SCATTARE PER UNA DECISIONE UMANA. DELTA_BLOCCO e' tarata sui
+   *     dati — massimo storico 2-3 seggi, soglia 6 — e il rovesciamento di PAR.inbilico del
+   *     30 agosto ha spostato la coalizione da 49 a 54: CINQUE su sei, passata per uno. Con
+   *     la soglia a 4 la notte si sarebbe fermata per una ragione che non ha niente a che
+   *     vedere con la qualita' del dato. E si ripresentera' a OGNI cambio di leva futuro.
+   * 2 · E CHI LEGGE IL FILE NON POTEVA SAPERLO: e' servito da Pages con
+   *     access-control-allow-origin: *, e diceva «coalizione: 54» senza dichiarare che
+   *     cinque di quei seggi ci sono per ipotesi.
+   *
+   * LE DUE PROPRIETA' SONO DIVERSE E VANNO PROVATE SEPARATE. La prima si prova sul
+   * SORGENTE, perche' la scrittura del file non e' esercitabile qui — e' il legame, come
+   * per og:title col job. La seconda sulla FUNZIONE, che e' pura e si esercita.
+   * E la terza e' quella che tiene insieme le altre due: il campo che dichiara l'ipotesi
+   * dev'essere la STESSA stringa che esce dalla pagina, non un secondo testo. */
+  {
+    /* stesso idioma della riga 117: il percorso relativo a __dirname, che e' quello che
+       questa suite usa gia' per leggere il sorgente del job */
+    const src = require('fs').readFileSync(__dirname + '/../../.github/scripts/aggiorna.mjs', 'utf8');
+    const riga = src.split('\n').find(l => l.indexOf('const blocchi =') >= 0) || '';
+    esito(riga.indexOf('true') > 0,
+      'i blocchi registrati sono quelli della FONTE: la guardia e sui dati, e non deve poter ' +
+      'scattare perche qualcuno ha cambiato una leva', riga.trim());
+    const rigaIp = src.split('\n').find(l => l.indexOf('const ipotesi =') >= 0) || '';
+    esito(rigaIp.indexOf('ipotesiNeiNumeri(') > 0,
+      'e l ipotesi che li accompagna e la STESSA stringa che esce dalla pagina: sesto ' +
+      'consumatore, non un secondo testo', rigaIp.trim());
+    esito(/statoNuovo *= *\{[^}]*\bipotesi\b/.test(src.replace(/\n/g, ' ')),
+      'e finisce davvero nel file: una stringa calcolata e non scritta e il difetto ' +
+      'dell anteprima che nessuno generava');
+    /* IL VERSO CHE MANCA SEMPRE: non basta che ci sia il campo giusto, serve che NON ci sia
+       il conteggio del modello accanto. Due serie che divergono, e il primo che legge quella
+       sbagliata non se ne accorge — e' la ragione per cui l alternativa a due campi e stata
+       scartata, e senza questa riga la si potrebbe reintrodurre lasciando tutto verde. */
+    /* SI GUARDA LA RIGA CHE COMPONE, NON IL SORGENTE — e la prima stesura non lo faceva,
+       quindi cadeva sul COMMENTO che spiega perche' l alternativa e stata scartata: quel
+       commento nomina «blocchiModello» per dire che non c e. E' la trappola di ARCO_ORD per
+       la terza volta in un giorno, e la difesa e sempre la stessa — un controllo che cerca
+       una stringa nel sorgente crudo trova anche chi la nomina per negarla. */
+    /* ══ E OGNI FUNZIONE CHIAMATA SU «A.» DEV'ESSERE ESPOSTA NELLA SPIA ══
+       Il mutante che toglie ipotesiNeiNumeri dalla spia era VIVO, e non era un mutante da
+       poco: a esecuzione «A.ipotesiNeiNumeri()» su undefined LANCIA, cioe' il job muore.
+       Letale in produzione e invisibile a una prova che legge le righe del sorgente, perche'
+       quelle righe restano scritte identiche — la funzione semplicemente non c'e' piu'.
+       La proprieta' non nomina nessuna funzione: OGNI «A.qualcosa(» che lo script chiama
+       dev'essere fra quelle che la spia espone. Vale anche per quella che qualcuno aggiunge
+       domani, che e' il giorno in cui nessuno rileggerebbe questo commento. */
+    {
+      const spia = (src.match(/global\.A=\{[\s\S]*?\};/) || [''])[0];
+      const usate = [...new Set((src.match(/\bA\.[A-Za-z_$][\w$]*/g) || [])
+        .map(x => x.slice(2)))].filter(n => src.indexOf('A.' + n + '(') >= 0);
+      const fuori = usate.filter(n => spia.indexOf(n + ':') < 0);
+      esito(usate.length > 3 && fuori.length === 0,
+        'ogni funzione che il job chiama su A. e esposta nella spia: una che manca non fa ' +
+        'cadere nessuna riga del sorgente, fa MORIRE il job',
+        usate.length + ' chiamate' + (fuori.length ? ' · fuori: ' + fuori.join(', ') : ''));
+    }
+    const rigaSt = src.split('\n').find(l => l.indexOf('const statoNuovo =') >= 0) || '';
+    const campi = (rigaSt.match(/\{(.*)\}/) || ['', ''])[1].split(',').map(x => x.trim().split(':')[0].trim());
+    esito(campi.filter(c => c.indexOf('blocchi') === 0).length === 1,
+      'e NON c e un secondo conteggio accanto: una serie sola piu una frase non ha un modo ' +
+      'sbagliato di essere letta', 'campi: ' + campi.join(' · '));
+  }
+
   console.log('\njob: ' + ok + '/' + (ok + ko));
   if (ko) process.exit(1);
 })();

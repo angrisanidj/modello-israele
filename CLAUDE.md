@@ -5326,6 +5326,77 @@ una censura dell'avvertimento, ed è scritto accanto alla funzione che taglia.
 
 ---
 
+## `stato-job.json` registrava l'ipotesi senza dichiararla, e la guardia poteva scattare per una decisione
+
+Chiuso il 31 agosto 2026. Il file registrava `blocchi: A.blocchi(A.SEG())` — cioè il
+conteggio **con la leva applicata** — e da lì venivano due cose di natura diversa.
+
+| | |
+|---|---|
+| registrava | `54 · 54 · 12 · 0` |
+| la fonte pubblica | `49 · 54 · 12 · 5` |
+| scarto | **5 seggi**, contro `DELTA_BLOCCO: 6` |
+
+### 1 · La guardia è sui dati e non deve poter scattare per una decisione umana
+
+`DELTA_BLOCCO` esiste per accorgersi che «la proiezione di blocco si è mossa troppo in 24
+ore», ed è tarata sul banco storico: massimo osservato 2-3 seggi, soglia 6. Il rovesciamento
+di `PAR.inbilico` del 30 agosto ha spostato la coalizione da 49 a 54 — **cinque su sei, cioè
+la guardia è passata per uno**. Con `DELTA_BLOCCO: 4` la notte si sarebbe fermata **per una
+ragione che non ha niente a che vedere con la qualità del dato**.
+
+**E leggere il conteggio della fonte non toglie niente alla guardia**: la leva cambia *in
+quale campo* una lista è contata, non *quanti seggi prende*, quindi un movimento vero dei
+sondaggi si vede identico nei due conteggi. È una riparazione senza prezzo.
+
+**E si ripresenterà a ogni cambio di leva futuro, e il prossimo può valere più di cinque
+seggi.** È la ragione per cui non basta alzare la soglia: alzarla renderebbe la guardia più
+sorda ai dati per far posto a una cosa che non è un dato.
+
+### 2 · E chi legge il file dall'esterno non aveva modo di saperlo
+
+`dati/stato-job.json` è servito da Pages con `access-control-allow-origin: *`, e diceva
+«coalizione: 54» senza dichiarare che **cinque di quei seggi ci sono per ipotesi**. È la
+regola di `ipotesiNeiNumeri()` — *quello che esce dalla pagina deve portare l'ipotesi con sé*
+— applicata a un **file** invece che a una frase, e non l'avevamo mai fatto.
+
+Adesso il file porta un campo `ipotesi` con la **stessa stringa** che va nel testo di
+condivisione, nel prompt e nella targa dell'anteprima: **sesto consumatore, non un secondo
+testo**. Vuota quando la leva non sposta niente, che è la stessa regola della pagina —
+dichiarare un'ipotesi che non cambia un numero insegna a saltare la riga proprio prima del
+giorno in cui conta.
+
+### L'alternativa dei due conteggi è stata scartata
+
+Registrare `blocchi` della fonte **e** `blocchiModello` con l'ipotesi sembra la risposta
+completa. **Sono due serie che divergono, e il primo che legge quella sbagliata non se ne
+accorge.** Una serie sola più una frase che dice che cosa c'è dentro non ha un modo sbagliato
+di essere letta.
+
+### Quello che le prove hanno imposto
+
+Le due proprietà si provano in due modi perché sono due cose: la prima sul **sorgente** — la
+scrittura del file non è esercitabile in jsdom, quindi il legame si prova dove sta, come per
+`og:title` col job — la seconda sulla **funzione**, che è pura. Più il verso che manca sempre:
+**non basta che ci sia il campo giusto, serve che non ci sia il secondo conteggio accanto**,
+o l'alternativa scartata potrebbe rientrare lasciando tutto verde.
+
+**E un mutante vivo ha trovato una proprietà che mancava del tutto.** Togliere
+`ipotesiNeiNumeri` dalla spia lasciava **tutte** le righe del sorgente identiche — la
+funzione semplicemente non c'era più — mentre a esecuzione `A.ipotesiNeiNumeri()` su
+`undefined` **lancia, cioè il job muore**. Letale in produzione e invisibile a una prova che
+legge le righe. La proprietà nuova non nomina nessuna funzione: **ogni `A.qualcosa(` che lo
+script chiama dev'essere fra quelle che la spia espone**, e vale per quella che qualcuno
+aggiunge domani.
+
+**E la trappola di `ARCO_ORD` per la terza volta in un giorno**: l'asserzione che vieta il
+secondo conteggio cercava `blocchiModello` nel sorgente, e cadeva sul **commento che spiega
+perché quell'alternativa è stata scartata**. Adesso guarda la riga che compone l'oggetto, non
+il sorgente crudo. *Un controllo che cerca una stringa nel sorgente trova anche chi la nomina
+per negarla.*
+
+Cinque mutazioni, cinque morte. `job.js` da 29 a 34 asserzioni.
+
 ## Le meta dello stato: un flag rispondeva a due domande, e le due meta erano due render
 
 Scorporate il 31 agosto 2026. Il difetto si è visto così: il 30 agosto la leva dell'ago

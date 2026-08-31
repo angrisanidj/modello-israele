@@ -255,7 +255,7 @@ async function main(){
     'global.A={parseWiki:parseWiki,unisci:unisci,calcola:calcola,blocchi:blocchi,' +
     'chiaveEvento:chiaveEvento,SEG:function(){return SEG;},SOND:function(){return SOND;},' +
     'validaApparentamenti:validaApparentamenti,GAP_SONDAGGI:function(){return GAP_SONDAGGI;},' +
-    'titoloCortoOra:titoloCortoOra,' +
+    'titoloCortoOra:titoloCortoOra,ipotesiNeiNumeri:ipotesiNeiNumeri,' +
     'setSOND:function(v){SOND=v;},sim:function(v){SIM=v;}};carica().then(render,render)');
   eval(src);
   await new Promise(res => setTimeout(res, 2500));
@@ -273,7 +273,37 @@ async function main(){
   A.setSOND(archivio.slice());
   const nuove = out.sondaggi.length ? A.unisci(out.sondaggi) : 0;
   A.calcola();
-  const blocchi = A.blocchi(A.SEG());
+  /* ══ I BLOCCHI REGISTRATI SONO QUELLI DELLA FONTE, E L'IPOTESI VA ACCANTO ══════════
+     Cambiato il 31 agosto 2026, e le due ragioni sono di natura diversa: una riguarda la
+     guardia qui sotto, l'altra chi legge il file dall'esterno.
+
+     1 · LA GUARDIA E' SUI DATI, E NON DEVE POTER SCATTARE PER UNA DECISIONE UMANA.
+     DELTA_BLOCCO esiste per accorgersi che «la proiezione di blocco si e' mossa troppo in
+     24 ore», ed e' tarata sul banco storico: massimo osservato 2-3 seggi, soglia 6. Con
+     blocchi() che segue la leva, il rovesciamento di PAR.inbilico del 30 agosto ha fatto
+     passare la coalizione da 49 a 54 — CINQUE seggi contro una soglia di sei, cioe' la
+     guardia e' passata per uno. Con DELTA_BLOCCO a 4 la notte si sarebbe fermata per una
+     ragione che non ha niente a che vedere con la qualita' del dato.
+     E leggere il conteggio della fonte NON TOGLIE NIENTE alla guardia: la leva cambia in
+     quale campo una lista e' contata, non quanti seggi prende, quindi un movimento vero
+     dei sondaggi si vede identico nei due conteggi. E' una riparazione senza prezzo.
+     E SI RIPRESENTERA' A OGNI CAMBIO DI LEVA FUTURO, e il prossimo puo' valere piu' di
+     cinque seggi: e' la ragione per cui non basta alzare la soglia.
+
+     2 · E CHI LEGGE IL FILE DALL'ESTERNO NON HA MODO DI SAPERLO. dati/stato-job.json e'
+     servito da Pages con access-control-allow-origin: *, e finora diceva «coalizione: 54»
+     senza dichiarare che cinque di quei seggi ci sono PER IPOTESI. E' la regola di
+     ipotesiNeiNumeri() — quello che esce dalla pagina deve portare l'ipotesi con se' —
+     applicata a un FILE invece che a una frase, e non l'avevamo mai fatto: la stessa
+     stringa che va nel testo di condivisione, nel prompt e nella targa dell'anteprima
+     adesso va anche qui. Sesto consumatore, non un secondo testo.
+
+     SCARTATA L'ALTERNATIVA DEI DUE CONTEGGI — «blocchi» della fonte piu' «blocchiModello»
+     con l'ipotesi — e la ragione e' quella di sempre: sono due serie che divergono, e il
+     primo che legge quella sbagliata non se ne accorge. Una serie sola piu' una frase che
+     dice che cosa c'e' dentro non ha un modo sbagliato di essere letta. */
+  const blocchi = A.blocchi(A.SEG(), true);
+  const ipotesi = A.ipotesiNeiNumeri() || '';
   const ambigue = out.scartate.filter(x => x.tipo === 'ambigua').length;
 
   const esito = valuta({
@@ -330,12 +360,20 @@ async function main(){
     process.exit(1);
   }
 
-  const statoNuovo = {data: oggi, valide: out.sondaggi.length, ambigue, blocchi};
+  /* «ipotesi» sta accanto ai blocchi e non altrove, perche' e' di loro che parla: dice che
+     cosa c'e' dentro quei numeri. Stringa vuota quando l'ipotesi non sposta niente, che e'
+     la stessa regola di ipotesiNeiNumeri() in pagina — dichiarare un'ipotesi che non cambia
+     un numero insegna a saltare la riga proprio prima del giorno in cui conta. */
+  const statoNuovo = {data: oggi, valide: out.sondaggi.length, ambigue, blocchi, ipotesi};
 
   if (prova){
     console.log('[prova] +' + nuove + ' rilevazioni (' + archivio.length + ' → ' + A.SOND().length + '), ' +
       '+' + reg.nuove + ' voci-evento, blocchi ' + JSON.stringify(blocchi));
     console.log('[prova] og:title: ' + A.titoloCortoOra());
+    /* l'ipotesi si stampa anche a secco, perche' e' il campo che dice che cosa c'e' dentro
+       i blocchi qui sopra: vederli senza vederla e' esattamente il difetto che il campo
+       esiste per chiudere */
+    console.log('[prova] ipotesi: ' + (A.ipotesiNeiNumeri() || '(nessuna: la leva non sposta niente)'));
     console.log('[prova] da-fare.json:\n' + JSON.stringify(daFare, null, 1));
     process.exit(0);
   }
