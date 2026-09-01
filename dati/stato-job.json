@@ -1,11 +1,12 @@
 {
- "data": "2026-08-31",
- "valide": 166,
+ "data": "2026-09-01",
+ "valide": 167,
  "ambigue": 24,
  "blocchi": {
-  "coalizione": 54,
-  "opposizione": 54,
+  "coalizione": 48,
+  "opposizione": 55,
   "arabo": 12,
-  "incerto": 0
- }
+  "incerto": 5
+ },
+ "ipotesi": "Sono contati 5 seggi in un blocco in cui la fonte non li mette: Popolo d'Israele con Blocco Netanyahu. È un’ipotesi del modello, non un fatto."
 }
