@@ -1,16 +1,40 @@
 {
- "generato": "2026-08-31",
+ "generato": "2026-09-01",
  "job": {
   "esito": "ok",
   "motivo": null,
-  "archivioAl": "2026-08-30",
+  "archivioAl": "2026-08-31",
   "rilevazioniNuove": 1
  },
  "conto": {
   "blocca": 0,
-  "richiedono": 0,
+  "richiedono": 1,
   "informative": 0
  },
- "riga": "Niente da fare.",
- "voci": []
+ "riga": "1 cosa richiede te",
+ "voci": [
+  {
+   "id": "eventi-da-tradurre",
+   "categoria": "eventi",
+   "urgenza": "richiede",
+   "titolo": "2 voci-evento da tradurre",
+   "quanti": 2,
+   "dettaglio": {
+    "voci": [
+     {
+      "chiave": "2026-08-31|former-yesh-atid-mk-yoav-segalovitz-to-run-with-the-united-arab-list-ra-",
+      "data": "2026-08-31",
+      "testo": "Former Yesh Atid MK Yoav Segalovitz to run with the United Arab List (Ra'am)"
+     },
+     {
+      "chiave": "2026-08-25|ofer-winter-forms-a-new-political-party-called-amcha-yisrael",
+      "data": "2026-08-25",
+      "testo": "Ofer Winter forms a new political party, called \"Amcha Yisrael\""
+     }
+    ]
+   },
+   "chiude": "Apri `dati/eventi-grezzi.json`, cerca `\"stato\": \"nuovo\"`. Per ognuna: o la traduci — riga italiana in `EVENTI` dentro index.html, e la voce passa a `\"tradotto\"` — o la scarti portandola a `\"scartato\"`. GIUDIZIO: se la voce meriti la cronologia lo decide una persona; la data NON si tocca, sposta il marcatore sull'asse.",
+   "procedura": "docs/tradurre-una-voce-evento.md"
+  }
+ ]
 }
