@@ -7204,6 +7204,72 @@ mandare il link **in una chat nuova**, o misura il passato.
 si incolla l'indirizzo, **fino a dieci per volta**. Forza i crawler di Telegram a rileggere
 le meta. Le altre tre non offrono niente di equivalente a chiunque.
 
+### L'ANTEPRIMA VECCHIA ERA DELLA CONVERSAZIONE, NON DEL LINK — CHIUSA il 1º settembre 2026
+
+Misurata dall'autore mandando il link in una chat **nuova** di WhatsApp: **esce corretta** —
+55 · 12 · 53, «dati al 31 agosto». E il link con `?v=<impronta>` dà **lo stesso risultato**.
+
+**Quindi non serve l'indirizzo versionato**, e il fatto che pulito e versionato coincidano lo
+conferma dal lato di chi legge: il parametro non aggiunge niente, perché non c'era niente da
+scavalcare. La cache era **della conversazione**.
+
+> **Un messaggio già inviato tiene la sua anteprima per sempre; un link letto per la prima
+> volta prende quella corrente.**
+
+E i tre costi della via versionata non si pagano: il conteggio non si spezza, nessun link si
+porta dietro un'impronta che gli sopravvive, e l'elenco chiuso dei parametri resta chiuso.
+
+#### LA REGOLA A MONTE, che è quella che verrà rifatta
+
+**Non esiste nessun difetto nostro dietro un'anteprima vecchia, se file, impronta e meta sono
+allineati.** Allineati vuol dire tre cose, e si controllano in cinque minuti:
+
+1. **il file servito** — si scarica da Pages e se ne fa l'impronta, che deve essere quella del
+   file a HEAD;
+2. **`og:image`** — il `?v=` in pagina deve essere quella stessa impronta;
+3. **il generatore** — rilanciato a mano deve uscire **3**, «niente da pubblicare: il render
+   coincide con quello gia scritto». Se esce 0 c'è qualcosa da pubblicare, e allora il difetto
+   è nostro.
+
+Se i tre tornano, **la verifica è mandare il link in una conversazione NUOVA — non guardare
+quella in cui il difetto è comparso**, che è l'unica cosa che non cambierà mai. Guardare lì è
+misurare il passato, e sembra una diagnosi.
+
+**E se serve leggere che cosa disegna davvero il PNG**, non lo si deduce dai byte: si rilancia
+il generatore con una riga che scrive l'SVG accanto al PNG e se ne leggono i `<text>`. Sono i
+numeri, la data della targa e la riga dell'ipotesi, in chiaro.
+
+#### Tre giorni sull'anteprima: due difetti veri e uno che non esisteva
+
+Vale la pena tenerne il conto, perché la proporzione è la lezione.
+
+| | |
+|---|---|
+| **1 · `anteprima.mjs` non era invocato da nessuna parte** | **vero.** Era scritto, provato, con le sue guardie — e `og:image` dichiarata dal 24 agosto senza che nessun passo generasse il file |
+| **2 · le meta ferme dietro la guardia dell'archivio** | **vero.** Un flag rispondeva a due domande: «l'archivio di stanotte è già andato?» saltava anche le meta, che rispondono a «dicono quello che la pagina calcola adesso?». Dieci ore di card sbagliata, nove push in mezzo |
+| **3 · l'anteprima vecchia del 1º settembre** | **non esisteva.** File, impronta e meta erano allineati, e il generatore usciva 3 |
+
+Due su tre erano nostri, e il terzo somigliava ai primi due **esattamente**: stessa
+schermata, stesso sintomo, stessa sensazione. È la ragione per cui la regola qui sopra è
+scritta come una procedura invece che come un'intuizione — dopo due difetti veri, il terzo
+sintomo identico si legge come il terzo difetto, e non lo è.
+
+#### Quello che resta misurato, e non va rimisurato
+
+**Pages serve la pagina con qualunque query, a costo zero.** Misurato il 1º settembre 2026:
+
+| | |
+|---|---|
+| `…/modello-israele/` | 200 · 780.211 byte · sha `0a0f9f5cc703` |
+| `…/?v=9b54259395fb` | 200 · 780.211 byte · **sha identico** |
+| `…/?qualunquecosa=1` | 200 · 780.211 byte · **sha identico** |
+
+Stesse intestazioni, stesso `ETag`, stesso `cache-control: max-age=600`; e la pagina non se ne
+accorge, perché `contesto()` non analizza parametri ed `EMBED` legge solo `?embed=`. **Serve
+se un giorno la domanda tornasse per un altro aggregatore**: il meccanismo è disponibile, e
+quello che non si sa è soltanto se il crawler deduplichi su `canonical` — che resta non
+osservabile da qui, e si misura mandando un link.
+
 ### Nell'ordine, quando si riprende
 
 **PRIMA DI TUTTO, QUELLO CHE ASPETTA L'AUTORE — sta in cima perché non si cerchi.** Sono
