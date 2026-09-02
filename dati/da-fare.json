@@ -1,10 +1,10 @@
 {
- "generato": "2026-09-01",
+ "generato": "2026-09-02",
  "job": {
   "esito": "ok",
   "motivo": null,
   "archivioAl": "2026-08-31",
-  "rilevazioniNuove": 1
+  "rilevazioniNuove": 0
  },
  "conto": {
   "blocca": 0,
@@ -17,19 +17,14 @@
    "id": "eventi-da-tradurre",
    "categoria": "eventi",
    "urgenza": "richiede",
-   "titolo": "2 voci-evento da tradurre",
-   "quanti": 2,
+   "titolo": "1 voce-evento da tradurre",
+   "quanti": 1,
    "dettaglio": {
     "voci": [
      {
-      "chiave": "2026-08-31|former-yesh-atid-mk-yoav-segalovitz-to-run-with-the-united-arab-list-ra-",
+      "chiave": "2026-08-31|former-yesh-atid-mk-yoav-segalovitz-announces-he-will-run-with-the-unite",
       "data": "2026-08-31",
-      "testo": "Former Yesh Atid MK Yoav Segalovitz to run with the United Arab List (Ra'am)"
-     },
-     {
-      "chiave": "2026-08-25|ofer-winter-forms-a-new-political-party-called-amcha-yisrael",
-      "data": "2026-08-25",
-      "testo": "Ofer Winter forms a new political party, called \"Amcha Yisrael\""
+      "testo": "Former Yesh Atid MK Yoav Segalovitz announces he will run with the United Arab List (Ra'am) as a technical bloc"
      }
     ]
    },
