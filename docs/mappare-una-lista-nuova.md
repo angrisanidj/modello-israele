@@ -24,7 +24,7 @@ Ogni passo di questa procedura sposta seggi: una lista nuova entra nel riparto.
 | # | dove | che cosa |
 |---|---|---|
 | 1 | `W_LISTA` in `index.html` | la **grafia di Wikipedia** → l'id. Più grafie per lo stesso id sono normali: `'rzp'`, `'religious zionism'`, `'mafdal-rz'` |
-| 2 | `P{}` | l'anagrafica: `n` nome, `l` leader, `c` colore, `b` blocco, `o` ordine, `gov`, `r22` |
+| 2 | `P{}` | l'anagrafica: `n` nome, `l` leader, `c` colore, `b` blocco, `o` ordine, `gov`, `r22`, e **`ab`** la sigla delle colonne — **solo** se quella automatica non va: `sigla()` prende la prima parola senza tagliarla, quindi «I Democratici» darebbe «Democratici» e «Giudaismo Unito Torah» darebbe «Giudaismo». Da qui `Dem` e `UTJ` |
 | 3 | `P{}` campo `dentro` | **solo** se è una componente di un contenitore già presente |
 | 4 | `ART` | **solo** se il nome vuole l'articolo — «il Likud», «i Democratici» |
 | 5 | `COLORE.ORDINE[blocco]` | in coda: le assegnate non si spostano |
@@ -74,42 +74,59 @@ nessuno, era la sigla a non esistere.
 node -e "const C=require('./dati/colore-liste.js');console.log(JSON.stringify(C.capienza(),null,1))"
 ```
 
-**DOVE C'È POSTO DAVVERO, misurato il 26 agosto 2026 — e il numero che circolava era di un
-altro blocco.** Si diceva che il blocco di Netanyahu avesse zero slot liberi: non è vero, ed
-è l'ago della bilancia ad averli a zero, in tema chiaro. `capienza()` eseguita:
+**L'AGO DELLA BILANCIA È PIENO, IN TUTTI E DUE I TEMI, E L'HA RIEMPITO LA PROVA DI REGIA.**
+Rimisurato il 1º settembre 2026 con `capienza()`:
 
 | blocco | liberi in chiaro | liberi in scuro |
 |---|---|---|
-| **blocco Netanyahu** | **5** | **2** |
+| blocco Netanyahu | 5 | 2 |
 | opposizione sionista | 5 | 3 |
 | liste arabe | 1 | 1 |
-| **ago della bilancia** | **0** | 1 |
+| **ago della bilancia** | **0** | **0** |
 
-Da cui la risposta alla domanda che questa sezione esiste per porre: **per una lista nuova
-nel blocco di Netanyahu la scala di ripiego NON serve.** Verificato mappando Winter: dopo
-l'inserimento la coalizione passa a 6 su 10 in chiaro e 6 su 7 in scuro, `COLORE` non
-avvisa e non fallisce.
+Il 26 agosto quel blocco aveva 0 slot liberi in chiaro e 1 in scuro. Mappando «Popolo
+d'Israele» — che è finito in **`b:"incerto"`**, l'ago della bilancia, e non nella coalizione,
+perché è lì che lo mette Wikipedia — il quinto slot è stato occupato e adesso **è saturo in
+tutti e due i temi**.
 
-**E la scala di ripiego non l'ha ancora vista resa nessuno**, perché non c'è stata
-occasione: per arrivarci servirebbe una **quinta lista fuori dai due campi**, cioè
-nell'unico blocco che in chiaro è pieno. Resta scritta nel §9 di `regola-colore.md` e
-resta non collaudata — è un fatto da sapere la sera in cui servisse, non una lacuna da
-chiudere adesso a tavolino.
+**Quindi la scala di ripiego del §9 non è più il caso improbabile: è quello che scatta alla
+prossima lista lì dentro.** Non «se un giorno servisse»: la prima lista nuova fuori dai due
+campi la fa scattare, e l'8 settembre è il giorno in cui le liste nuove arrivano tutte
+insieme.
+
+**E non l'ha mai vista resa nessuno.** Resta scritta nel §9 di `regola-colore.md` e resta
+non collaudata — la si esercita la sera in cui serve, che è un fatto da sapere prima, non una
+lacuna da chiudere a tavolino. Quello che si sa è come si applica: **un parametro per volta**,
+prima `dentro_dic` di quel blocco meno 0,6, poi `fra_blocchi_dic` delle sue coppie meno 0,5,
+poi allargare il settore; e `capienza()` restituisce quel percorso nel campo `ripiego`.
+
+**Per gli altri tre blocchi la scala NON serve**, ed è la risposta alla domanda che questa
+sezione esiste per porre: coalizione e opposizione hanno cinque slot liberi in chiaro, le
+liste arabe uno. Il blocco che si rompe per primo è uno solo, ed è già rotto.
 
 `capienza()` dice, per blocco e per tema, a quante liste la regola satura e quante ne
 restano. **Il modello del fallimento è questo, ed è quello da copiare altrove**: al primo
 slot oltre la saturazione la regola **avvisa**; dal secondo **fallisce con un errore
 esplicito** che nomina il blocco e rimanda alla scala di ripiego. Non restituisce mai un
-colore in silenzio — prima lo faceva, e restituiva `--mute`, cioè una lista dipinta come
-testo disabilitato.
+colore in silenzio — prima lo faceva, e restituiva `--mute`.
 
-**Se `COLORE` avvisa o fallisce, l'agente si ferma.** La scala di ripiego è nel §9 di
-`regola-colore.md` e si applica **un parametro per volta**: prima `dentro_dic` di quel
-blocco meno 0,6, poi `fra_blocchi_dic` delle sue coppie meno 0,5, poi allargare il settore.
-`capienza()` restituisce quel percorso nel campo `ripiego`.
+**E DAL 30 AGOSTO 2026 IL COLORE DEL PRIMO SLOT NON È PIÙ `--mute`: È `--ink2`**, `#33435A`
+in chiaro e `#A3B3C8` in scuro. La ragione non è il contrasto — `--mute` ce l'aveva, 5,24 e
+5,10 — **è che `--mute` è il colore del testo attenuato, e la pagina lo usa altrove per dire
+«esclusa»**: una lista dipinta così non si legge come «senza colore assegnato», si legge come
+**spenta**, cioè disattivata, che è uno stato che quella lista non ha.
 
-Da sapere: **l'ago della bilancia in tema chiaro ha zero slot liberi**. È il blocco che
-l'8 settembre si romperà per primo.
+`--ink2` sta sulla stessa tinta — 257,5° contro 259,1° — ma più scuro e più presente, ed è
+l'inchiostro secondario **normale**, quello dei nomi di lista nelle schede dell'house effect.
+Una pastiglia slate dice «la regola ha finito i colori». Misurato contro tutte e ventuno le
+liste dell'anagrafica: contrasto 10,04 e 8,39 su `--card`, e la lista più vicina sta a ΔOKLab
+10,3 e 10,7 — mentre `--acc` sarebbe stato a 6,0 da `--coal` e si sarebbe letto come
+coalizione. **È scritta qui perché è la ragione che impedisce di tornare indietro**: chi
+vedesse una pastiglia slate e la trovasse poco espressiva rimetterebbe `--mute` in dieci
+secondi.
+
+**Se `COLORE` avvisa o fallisce, l'agente si ferma.** Il percorso della scala è scritto qui
+sopra, e `capienza()` lo restituisce nel campo `ripiego`.
 
 ---
 
@@ -129,7 +146,12 @@ blocco: «Zionist Home» sta nell'opposizione o nell'ago della bilancia a second
 guida e di che cosa ha dichiarato. Questa è la decisione che l'agente **prepara** — con le
 fonti — e che una persona conferma.
 
-**3 · Scrivi le sette righe** nell'ordine della tabella qui sopra.
+**3 · Scrivi le OTTO righe** nell'ordine della tabella qui sopra.
+
+> ⚠️ **SONO OTTO, NON SETTE.** Questa riga ha detto «sette» fino al 1º settembre 2026, e la
+> tabella sopra ne elencava otto dal 26 agosto: chi legge questo passo alle undici di sera
+> esegue il numero che ci trova, non risale a contare le righe. L'ottavo è `PAL_SCURO`, ed è
+> quello che non lascia un buco ma **produce un colore**.
 
 **4 · Verifica.**
 
@@ -157,7 +179,14 @@ sé se l'anagrafica manda un blocco oltre la saturazione, e questo comando lo di
 | la somma dei seggi | `npm run verifica`, invariante 1 | **120**, sempre |
 | `capienza()` del blocco | il comando sopra | slot liberi **≥ 0**, e nessun avviso |
 | le colonne ignote | `--prova` | **zero**: se ne resta una, la guardia si richiude stanotte |
-| la soglia delle schede dell'house effect | misura su browser | con **quindici** colonne sale a ~1190: la media query va rifatta |
+| la soglia delle schede dell'house effect | misura su browser | con **quindici** colonne sale a **1127**, e il minimo di oggi è **912,2**. Il ~1190 che stava qui era una stima, rifatta sul browser il 31 agosto 2026 |
+
+**E il confine vero non è la soglia: sta fra SEDICI e DICIASSETTE colonne.** A diciassette il
+minimo della tabella supera il contenitore **a qualunque larghezza**, perché `max-width:1180`
+lo blocca a 1070 — lì le schede non sono più un rimedio per gli schermi stretti, diventano
+l'unica forma possibile e la soglia va **tolta** invece che alzata. Costo misurato: **43,5px
+per colonna**, e la soglia si ricava come `minimo + 17 + 110`, cioè la barra più larga e la
+gronda. Con undici liste in aula e 13 colonne servono **quattro liste nuove** per arrivarci.
 
 **5 · Rilancia il job a mano** (`workflow_dispatch`) o aspetta la notte: riprende da solo,
 non c'è nessun interruttore da ricordare.
@@ -188,3 +217,33 @@ interroga una data fissa, la fixture va datata rispetto a **quella**.
 
 E `npm run spazzola` esegue tutto il banco con l'orologio portato avanti: va rilanciata
 dopo ogni modifica a una data.
+
+---
+
+## Cose che vedrai, e che sono normali
+
+Non stanno in nessun passo perché non c'è niente da fare: sorprendono, e senza queste due
+righe si passa mezz'ora a cercare un difetto che non c'è.
+
+**1 · Mappare una lista NON rianalizza l'archivio.** Le rilevazioni già dentro restano cieche
+sulla lista nuova: sono state analizzate prima che la mappatura esistesse, e `unisci()` scarta
+le righe `simile()` a una già presente invece di riscriverle. **La mappatura vale per le righe
+analizzate da lì in avanti**, e le vecchie restano nella forma che avevano.
+
+È il comportamento voluto — l'archivio è un deposito, non una vista ricalcolabile — ma vuol
+dire che la sera dell'8 settembre la lista nuova comparirà **solo nelle rilevazioni nuove**, e
+che una colonna che resta vuota per giorni non è un difetto della mappatura. Verificato
+mappando Amcha il 26 agosto: quattro rilevazioni già in archivio la nominavano sotto soglia, e
+nessuna delle quattro ha acquisito il dato. Se un giorno servisse il contrario, la strada è
+**reimportare**, non aspettare.
+
+**2 · Una lista sopravvive nel modello finché un istituto ne dichiara la percentuale, anche
+senza darle un seggio.** Wikipedia scrive `(1,4%)` per una lista sotto soglia: quel valore
+entra in `s.sotto`, e `quoteDa()` lo mette come quota — `sh = Object.assign({}, s._q, sotto)` —
+quindi la lista ha una quota vera nel riparto pur avendo zero seggi, e può tornare sopra
+soglia senza che nessuno la rimappi.
+
+**Da cui: una lista che sembra sparita può restare**, e una che non compare fra i seggi può
+comparire fra le quote. Non è un residuo da ripulire: è il solo modo in cui il modello vede
+una lista sul filo prima che elegga qualcuno, ed è quello che alimenta «Sul filo del 3,25%
+ci sono…» e lo scenario della soglia.
