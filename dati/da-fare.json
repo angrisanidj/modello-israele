@@ -1,35 +1,16 @@
 {
- "generato": "2026-09-02",
+ "generato": "2026-09-03",
  "job": {
   "esito": "ok",
   "motivo": null,
   "archivioAl": "2026-08-31",
-  "rilevazioniNuove": 0
+  "rilevazioniNuove": 1
  },
  "conto": {
   "blocca": 0,
-  "richiedono": 1,
+  "richiedono": 0,
   "informative": 0
  },
- "riga": "1 cosa richiede te",
- "voci": [
-  {
-   "id": "eventi-da-tradurre",
-   "categoria": "eventi",
-   "urgenza": "richiede",
-   "titolo": "1 voce-evento da tradurre",
-   "quanti": 1,
-   "dettaglio": {
-    "voci": [
-     {
-      "chiave": "2026-08-31|former-yesh-atid-mk-yoav-segalovitz-announces-he-will-run-with-the-unite",
-      "data": "2026-08-31",
-      "testo": "Former Yesh Atid MK Yoav Segalovitz announces he will run with the United Arab List (Ra'am) as a technical bloc"
-     }
-    ]
-   },
-   "chiude": "Apri `dati/eventi-grezzi.json`, cerca `\"stato\": \"nuovo\"`. Per ognuna: o la traduci — riga italiana in `EVENTI` dentro index.html, e la voce passa a `\"tradotto\"` — o la scarti portandola a `\"scartato\"`. GIUDIZIO: se la voce meriti la cronologia lo decide una persona; la data NON si tocca, sposta il marcatore sull'asse.",
-   "procedura": "docs/tradurre-una-voce-evento.md"
-  }
- ]
+ "riga": "Niente da fare.",
+ "voci": []
 }
