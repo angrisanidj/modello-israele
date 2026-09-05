@@ -255,10 +255,26 @@ setTimeout(function(){
   esito(JSON.stringify(APERTURA.filter(conSeggi)) === JSON.stringify(DAL_PULSANTE),
     'premendo «Blocco Netanyahu» si ottiene la selezione di apertura, per le liste che hanno seggi',
     'apertura ' + JSON.stringify(APERTURA) + ' · pulsante ' + JSON.stringify(DAL_PULSANTE));
-  /* e OGGI coincidono per intero: senza questa riga il filtro qui sopra potrebbe nascondere
-     una divergenza vera dietro «tanto è una lista senza seggi» */
-  esito(APERTURA.every(conSeggi),
-    'e oggi ogni lista del blocco ha seggi, quindi il filtro non sta nascondendo niente',
+  /* LA CONTROPROVA DEL 26 AGOSTO, RISCRITTA IL 2 SETTEMBRE PERCHE HA SCATTATO SUL CASO
+     VERO. Diceva «e oggi ogni lista del blocco ha seggi», e serviva a impedire che il filtro
+     qui sopra nascondesse una divergenza vera dietro «tanto e una lista senza seggi». Era
+     giusta e ha smesso di esserlo il giorno in cui e stata mappata Zehut: e la finestra fra
+     il deposito e il primo sondaggio che da seggi a una lista nuova, cioe lo scenario che la
+     verifica a scenari elencava e che non era mai capitato.
+     NON SI TOGLIE, SI RISCRIVE PERCHE REGGA IN QUELLA FINESTRA: l inventario dichiara QUALI
+     liste del blocco sono senza seggi, e cade se ne compare una non dichiarata — l idioma di
+     opacita.js. Cosi il filtro continua a non poter nascondere niente, e il giorno in cui
+     Zehut prende il primo seggio la riga cade di nuovo e chiede di togliere la voce. */
+  const SENZA_SEGGI = [
+    'zehut',      /* mappata l 1 settembre 2026, ancora sotto soglia: 1,1-2,6% */
+    'rzp_zehut'   /* il contenitore del blocco tecnico: prende seggi solo nelle rilevazioni
+                     che pubblicano la cella congiunta, e oggi il lato che vince e quello
+                     delle componenti */
+  ];
+  const nonDichiarate = APERTURA.filter(i => !conSeggi(i) && SENZA_SEGGI.indexOf(i) < 0);
+  const dichiarateConSeggi = SENZA_SEGGI.filter(conSeggi);
+  esito(nonDichiarate.length === 0 && dichiarateConSeggi.length === 0,
+    'e le liste del blocco senza seggi sono quelle dichiarate: il filtro non nasconde altro',
     JSON.stringify(APERTURA.filter(i => !conSeggi(i))));
 
   /* ══ LA FINESTRA DELL'8 SETTEMBRE, ESERCITATA ══

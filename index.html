@@ -2120,7 +2120,38 @@ var P={
  likud       :{n:"Likud",              l:"Benjamin Netanyahu", c:"#0061B4", b:"coalizione",  o:14, gov:1, r22:32},
  shas        :{n:"Shas",               l:"Aryeh Deri",         c:"#0092BB", b:"coalizione",  o:15, gov:1, r22:11},
  utj         :{n:"Giudaismo Unito Torah",    l:"Yitzhak Goldknopf",  c:"#590092", b:"coalizione",  o:16, gov:1, r22:7, ab:"UTJ"},
- sionismo_rel:{n:"Sionismo Religioso", l:"Bezalel Smotrich",   c:"#8649FF", b:"coalizione",  o:17, gov:1, r22:null},
+ /* IL CONTENITORE DEL BLOCCO TECNICO, dichiarato l 1 settembre 2026.
+    NON DECIDE LA QUESTIONE POLITICA: da al parser un modo di leggere la CELLA CONGIUNTA —
+    Wikipedia in alcune righe pubblica una cella sola che copre le due colonne, e senza un
+    contenitore comune il parser rifiuta la riga invece di spezzare un numero in due.
+    Misurato: senza, le ambigue passavano da 24 a 32 e le valide da 175 a 168.
+    E SICCOME LA CONFIGURAZIONE SI SCEGLIE PER RILEVAZIONE, le righe con le due colonne
+    separate restano separate: ogni rilevazione dice la sua. Il lato della famiglia lo
+    decide quella piu recente che ne nomina uno — oggi sono le separate.
+    NELLE RIGHE CON LA CELLA CONGIUNTA la soglia del 3,25% vale per la SOMMA, perche li
+    RZP+Zehut sono una lista sola: e quello che il sondaggista ha pubblicato. */
+ rzp_zehut   :{n:"Sionismo Religioso–Zehut", l:"Smotrich · Feiglin", c:"#5800CA", b:"coalizione", o:16.9, gov:1, r22:null, ab:"SR-Zehut"},
+ sionismo_rel:{n:"Sionismo Religioso", l:"Bezalel Smotrich",   c:"#8649FF", b:"coalizione",  o:17, gov:1, r22:null, dentro:"rzp_zehut"},
+ /* ZEHUT — mappata l 1 settembre 2026 come LISTA AUTONOMA, decisione dell autore, e le
+    ragioni vanno scritte perche la lettura alternativa e plausibile e costerebbe caro.
+    1 · OGGI NON PORTA SEGGI. Dove la fonte la pubblica con un valore e fra parentesi —
+      1,1%, 2,1%, 2,6% — cioe sotto soglia. E la controprova e indipendente dal nostro
+      allineamento delle colonne: dove Wikipedia pubblica la colonna COMBINATA «RZP-Zehut»
+      i valori sono 5, 6 e 7, la stessa grandezza di RZP da sola. Se Zehut portasse seggi
+      propri la combinata leggerebbe 11-16.
+    2 · TRATTARLA COME COMPONENTE TOGLIEREBBE RZP DAL FILO. Sommando i voti la soglia
+      varrebbe per la coppia: da 3,611% — +0,361 dalla soglia, una delle DUE liste che il
+      riquadro dello scenario nomina — a circa 5,7%. Cioe si spegnerebbe una frase
+      pubblicata sulla base di un accordo che la fonte non ha ancora deciso come scrivere.
+    3 · E «dentro» COSTA UN CONTENITORE. Vorrebbe un id nuovo per il blocco tecnico e
+      trasformerebbe sionismo_rel in una componente, con 116 righe di storia in archivio.
+    LA CONDIZIONE CHE RIAPRE LA DECISIONE: se Wikipedia comincia a pubblicare «RZP-Zehut»
+    come colonna unica nella MAGGIORANZA delle tabelle, allora il contenitore esiste
+    davvero e la lettura va rifatta. Il 1 settembre 2026 sono DUE tabelle su cinque.
+    Il leader viene dalla citazione della fonte — Jerusalem Post, 1 settembre 2026,
+    «Smotrich, Feiglin sign on joint run» — che da il solo cognome: il nome proprio e da
+    confermare. */
+ zehut       :{n:"Zehut",              l:"Moshe Feiglin",      c:"#5E30F0", b:"coalizione",  o:17.5, gov:1, r22:null, dentro:"rzp_zehut"},
  otzma       :{n:"Otzma Yehudit",      l:"Itamar Ben Gvir",    c:"#3284FF", b:"coalizione",  o:18, gov:1, r22:null}
 };
 var IDS=Object.keys(P).sort(function(a,b){return P[a].o-P[b].o;});
@@ -2362,7 +2393,25 @@ var EVENTI=[
     decide la terna dei trenta giorni del riquadro dell evento isolato — tre numeri
     pubblicati che si spostano se la data si sposta. E la riga che il confine dell agente
     riserva a una persona. */
- {data:"2026-08-27",testo:"Winter dichiara che raccomanderà solo Netanyahu come premier"}
+ {data:"2026-08-27",testo:"Winter dichiara che raccomanderà solo Netanyahu come premier"},
+ /* LA DATA E DELL AUTORE, come per la voce qui sopra. E questa e la PRIMA voce POSTERIORE
+    all ultima rilevazione in archivio (31 agosto): la finestra dei trenta giorni si taglia
+    all ultimo dato, quindi gg esce <= 0 e la terna NON viene scritta — il riquadro mostra il
+    marcatore e basta, che e la cosa giusta, perche una terna calcolata su zero rilevazioni
+    direbbe un numero senza averlo misurato. La riga tornera a dire qualcosa da se col primo
+    sondaggio successivo, senza che nessuno la tocchi.
+    E IL FATTO NON E SOLO UN EVENTO: un blocco tecnico e una configurazione di lista, cioe
+    la categoria che «Il confine dell agente» riserva a una persona. La cronologia lo
+    registra; l anagrafica NON e stata toccata. */
+ {data:"2026-08-31",testo:"Yoav Segalovitz si presenta con Ra'am come blocco tecnico"},
+ {data:"2026-09-01",testo:"Sionismo Religioso e Zehut si presentano insieme come blocco tecnico"},
+ {data:"2026-09-03",testo:"La deputata del Likud Tally Gotliv passa a Otzma Yehudit"},
+ /* IL RITIRO DI UNITY PESA PIU DEGLI ALTRI TRE, e va saputo: unity_erdan e in anagrafica e
+    compare nelle quote sotto soglia di settembre. Il modello NON ha un campo che dica «non
+    corre piu»: la lista resta con le sue quote storiche, e quoteDa() le IMPUTA perfino un
+    valore nelle rilevazioni che non la nominano — min(3,0 · media·0,75) — finche non esce
+    dalla finestra dei sessanta giorni. La cronologia registra il fatto; il modello no. */
+ {data:"2026-09-04",testo:"Unity si ritira dalle elezioni"}
 ];
 /* LE DUE SOGLIE DELLA DIVERGENZA FRA LE DATE.
    Non sono ricavabili dai dati: dipendono da come è impostato il lavoro notturno, che
@@ -2542,6 +2591,8 @@ function schiarisci(hex,q){
    divergano. Rigenerarla, non ritoccarla a mano. */
 var PAL_SCURO={
  "#955A00":"#EEBA00",
+ "#5E30F0":"#95BFFF",
+ "#5800CA":"#009ADC",
  "#004329":"#00E6D2",
  "#0061B4":"#59B3FF",
  "#006F47":"#00C24E",
@@ -9722,7 +9773,14 @@ var W_LISTA={
     plurale: la conclusione era sull'insieme invece che sulla stringa esatta, e «Winter
     party» compare come colonna in una tabella di SEGGI. Davanti a una grafia si guarda la
     colonna in cui compare, non le occorrenze della parola nella pagina. */
- 'winter party':'amcha'
+ 'winter party':'amcha',
+ /* SOLO la grafia singola. «RZP-Zehut» NON e mappata, ed e una scelta misurata: la
+    tabella che la porta ha ZERO righe valide, quindi mapparla non farebbe entrare
+    nessuna rilevazione — toglierebbe soltanto il nome dall elenco delle colonne ignote,
+    cioe spegnerebbe la guardia che avvisa quando la fonte cambia convenzione. Misurato
+    il 1 settembre 2026 nei due versi: 175 valide e 34 scartate con e senza la grafia. */
+ 'zehut':'zehut',
+ 'rzp-zehut':'rzp_zehut','rzp - zehut':'rzp_zehut'
 };
 var W_IST={'filber':'Direct Polls','direct':'Direct Polls','lazar':'Lazar · Panel4All','midgam':'Midgam',
  'hamidgam':'Hamidgam Project','maagar':'Maagar Mochot','kantar':'Kantar','yossi':'Yossi Taktika',

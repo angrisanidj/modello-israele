@@ -105,7 +105,7 @@ var COLORE = (function () {
 
   /* ── 5 · anagrafica ──────────────────────────────────────── */
   var ORDINE = {
-    coalizione : ['likud','shas','utj','otzma','sionismo_rel'],
+    coalizione : ['likud','shas','utj','otzma','sionismo_rel','zehut','rzp_zehut'],
     opposizione: ['byachad','democratici','beitenu','yashar','blue_white','yesh_atid','bennett26'],
     arabo      : ['raam','lista_araba','hadash_taal','balad'],
     incerto    : ['casa_sionista','economico','unity_erdan','israel_first','amcha']
@@ -142,7 +142,13 @@ var COLORE = (function () {
     economico   : 90,
     unity_erdan : 58,
     israel_first: 100,
-    amcha       : 66   /* varco fra unity_erdan 58 e casa_sionista 75: 8° per parte */
+    amcha       : 66,  /* varco fra unity_erdan 58 e casa_sionista 75: 8° per parte */
+    rzp_zehut   : 287, /* il contenitore del blocco tecnico: varco fra sionismo_rel 280 e
+                          utj 294, 7° per parte — lo stesso ordine di grandezza degli 8°
+                          con cui e entrata amcha */
+    zehut       : 269  /* varco piu largo del settore della coalizione: fra likud 258 e
+                          sionismo_rel 280, 11° per parte. Gli altri quattro varchi valgono
+                          14, 12, 6 e 10 gradi, e la tolleranza dichiarata e 14 */
   };
   var TINTA_STORICA = TINTA_ASSEGNATA;   /* nome della revisione 5, conservato */
 

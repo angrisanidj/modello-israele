@@ -189,8 +189,23 @@ esito(margineAsse(stretto) * k(380) >= 9,
   (margineAsse(stretto)*k(380)).toFixed(2) + 'px (erano 2,07)');
 
 /* ── 2 · i mesi ── */
-esito(largo.mesi.length === 8, 'sopra i 660 i mesi restano tutti',
-  JSON.stringify(largo.mesi.map(x => x.m)));
+/* IL NUMERO NON E PIU SCRITTO QUI, ed e la ragione per cui questa riga e caduta il 2
+   settembre 2026: diceva OTTO, e una voce-evento del 1 settembre ha allungato l asse a nove
+   mesi. Non era un difetto, era una costante temporale dentro una prova — la famiglia
+   dell invariante 10.
+   LA PROPRIETA E CHE SOPRA I 660 NON NE CADA NESSUNO, e si esprime contro i mesi che l asse
+   copre DAVVERO: si contano i mesi distinti fra il primo e l ultimo tick dell asse, che e la
+   stessa cosa che il disegno deve mostrare. Il conto viene dalle etichette rese, ma
+   l ATTESA viene dall arco: se il disegno ne saltasse uno, il primo numero scenderebbe e il
+   secondo no. */
+const mesiArco = (function(){
+  const p = largo.mesi.map(x => x.m), mm = ['gen','feb','mar','apr','mag','giu','lug','ago','set','ott','nov','dic'];
+  const a = mm.indexOf(p[0]), b = mm.indexOf(p[p.length-1]);
+  return (a < 0 || b < 0) ? -1 : b - a + 1;
+})();
+esito(largo.mesi.length === mesiArco,
+  'sopra i 660 i mesi restano tutti: nessun salto fra il primo e l ultimo',
+  JSON.stringify(largo.mesi.map(x => x.m)) + ' · attesi ' + mesiArco);
 esito(stretto.mesi.length === Math.ceil(largo.mesi.length / 2),
   'sotto i 660 se ne mostra uno sì e uno no',
   JSON.stringify(stretto.mesi.map(x => x.m)));
@@ -199,12 +214,21 @@ esito(stretto.mesi[stretto.mesi.length-1].m === largo.mesi[largo.mesi.length-1].
   'e il mese più recente c\'è sempre: il conto parte dall\'ultimo, non dal primo',
   'sopra finisce con «' + largo.mesi[largo.mesi.length-1].m + '», sotto con «' +
   stretto.mesi[stretto.mesi.length-1].m + '»');
-/* la controprova: contando dal primo cadrebbe proprio quello */
-const daInizio = largo.mesi.filter((_,i) => i % 2 === 0).map(x => x.m);
-esito(daInizio[daInizio.length-1] !== largo.mesi[largo.mesi.length-1].m,
-  'mentre contando dal primo l\'ultimo mese cadrebbe: è la mutazione che questa prova coglie',
-  'da inizio: ' + JSON.stringify(daInizio));
-/* e i mesi mostrati sono un sottoinsieme ORDINATO di quelli di sopra, senza salti dispari */
+/* LA CONTROPROVA, RIFATTA IL 2 SETTEMBRE 2026 PERCHE DIPENDEVA DALLA PARITA.
+   Diceva: «contando dal primo, l ultimo mese cadrebbe» — vero con un numero PARI di mesi,
+   falso con uno dispari, dove le due strategie tengono lo stesso ultimo elemento. Con la
+   voce-evento del 1 settembre i mesi sono diventati nove e la controprova ha smesso di
+   mordere: non per un difetto, per la parita.
+   Adesso la stessa regola di dimezzamento si applica a una sequenza COSTRUITA di lunghezza
+   pari, dove le due strategie divergono per definizione. Cosi non dipende da quanti mesi
+   copre l archivio di oggi, e il mutante che conta dal primo muore in ogni stagione. */
+const FINTI = ['gen','feb','mar','apr','mag','giu'];   /* pari: sei */
+const daInizio = FINTI.filter((_,i) => i % 2 === 0);
+const daFine   = FINTI.filter((_,i) => (FINTI.length-1-i) % 2 === 0);
+esito(daInizio[daInizio.length-1] !== FINTI[FINTI.length-1] &&
+      daFine[daFine.length-1] === FINTI[FINTI.length-1],
+  'contando dal primo l ultimo mese cadrebbe, contando dall ultimo no',
+  'da inizio ' + JSON.stringify(daInizio) + ' · da fine ' + JSON.stringify(daFine));
 esito(stretto.mesi.every(x => largo.mesi.some(y => y.m === x.m)),
   'i mesi mostrati sotto i 660 sono un sottoinsieme di quelli di sopra');
 /* le etichette dei mesi non si toccano più */
