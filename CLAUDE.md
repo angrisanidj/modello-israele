@@ -2514,8 +2514,32 @@ di due giorni. Si **misura**: si compone la forma A, si guarda se ci sta in
 `window.innerHeight` — che dentro un iframe *è* l'altezza del riquadro — e se non ci sta si
 tolgono le probabilità, che è il pezzo più sacrificabile.
 
-Verificato: a **380×460** resta A (419px), a **380×360** passa a C (**401px**). Se non ci sta
-nemmeno C non resta niente da togliere, e il riquadro scorre come fa oggi.
+Verificato il 24 agosto 2026: a **380×460** restava A (419px), a **380×360** passava a C
+(**401px**). Se non ci sta nemmeno C non resta niente da togliere, e il riquadro scorre.
+
+**RIMISURATO IL 5 SETTEMBRE 2026, E I DUE NUMERI ERANO VECCHI DI ~130px.** A **380×460** la
+forma compatta è **530px** ed è **già in C** — le probabilità sono state potate e sfora lo
+stesso, di 70px. La composizione, a 380:
+
+| pezzo | altezza |
+|---|---|
+| testata | **94** — a 380 va a capo |
+| **`k-sticky`, la fascia dell'indice** | **35** |
+| la sezione: riga di sintesi 18,9 + emiciclo 174,8 | 307,7 |
+| firma | 51,4 |
+
+**`k-sticky` SOPRAVVIVE NELLA FORMA COMPATTA**, ed è 35px — il 7% del riquadro — per un
+indice che in una sintesi non serve: `SINT_TIENI` tiene la catena degli antenati dei pezzi
+dichiarati, e la fascia dell'indice ci passa in mezzo. **È il candidato ovvio il giorno in
+cui si volesse far rientrare quella forma**, e non è stato toccato perché toglierlo è una
+decisione, non una riparazione.
+
+**E la fascia del perché resta qui dentro, con la sua ragione.** Costa **118px** — misurate
+anche due formulazioni più corte, 60,8 e 41,4 di banda, e **nessuna delle tre fa entrare la
+forma**, perché il problema non è la fascia. Il costo è **scorrimento e non rottura**, e un
+riquadro dentro l'articolo di qualcun altro è precisamente il posto in cui il lettore ha più
+bisogno di sapere che l'archivio è fermo. La potatura ha una cosa sola da cedere — le
+probabilità — e quando la fascia compare l'ha già ceduta.
 
 Non lampeggia: misura e potatura stanno nello stesso compito sincrono, e il browser non
 dipinge in mezzo — è l'argomento di `FORZA_LARGO`.
