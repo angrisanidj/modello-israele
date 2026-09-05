@@ -5959,6 +5959,122 @@ resa a 1265: **1374,9 in un contenitore da 1104**, quindi scorre di 271px **dent
 senza toccare il documento. È il comportamento dichiarato dal 21 agosto, non un difetto —
 ma i due numeri non vanno prestati da una tabella all'altra.
 
+## Il blocco tecnico RZP–Zehut: un contenitore che non decide la politica
+
+Applicato il 2 settembre 2026, ed è la prima mappatura fatta con il contratto a otto posti
+sul caso vero. **Vale doppio con l'8 settembre dopodomani**: è la prova generale di quello
+che quel giorno succederà cinque o sei volte insieme.
+
+### Zehut è una lista autonoma, e le tre ragioni sono misurate
+
+La decisione è dell'autore; queste sono le misure che la reggono, e stanno accanto alla riga
+dell'anagrafica perché fra un mese sembrerebbero arbitrarie.
+
+1. **Oggi non porta seggi.** Dove la fonte la pubblica con un valore è **fra parentesi** —
+   1,1%, 2,1%, 2,6% — cioè sotto soglia. E la controprova è **indipendente dal nostro
+   allineamento delle colonne**: dove Wikipedia pubblica la colonna **combinata** i valori
+   sono **5, 6 e 7**, la stessa grandezza di RZP da sola. Se Zehut portasse seggi propri, la
+   combinata leggerebbe 11–16.
+2. **Trattarla come componente toglierebbe RZP dal filo**: sommando i voti la soglia
+   varrebbe per la coppia, da **3,611%** — una delle due liste che il riquadro dello
+   scenario nomina — a circa **5,7%**. Si spegnerebbe una frase pubblicata sulla base di un
+   accordo che la fonte non ha ancora deciso come scrivere.
+3. **`dentro` costa un contenitore**, e trasformerebbe `sionismo_rel` in una componente con
+   **116 righe di storia** in archivio.
+
+**LA CONDIZIONE CHE RIAPRE LA DECISIONE, scritta perché non si riapra per intuizione:** se
+Wikipedia comincia a pubblicare `RZP-Zehut` come colonna unica nella **maggioranza** delle
+tabelle, allora il contenitore esiste davvero e la lettura va rifatta. Il 2 settembre 2026
+sono **due tabelle su cinque**.
+
+### Il contenitore serve a un'altra cosa, e senza di lui la notte non riparte
+
+`rzp_zehut` **non decide la questione politica**: dà al parser un modo di leggere la **cella
+congiunta**. Wikipedia pubblica in alcune righe una cella sola che copre le due colonne, e
+`wContenitore()` senza un padre comune **rifiuta la riga invece di spezzare un numero in
+due** — che è la cosa giusta, e lo dichiara.
+
+| | valide | ambigue |
+|---|---|---|
+| Zehut mappata, senza contenitore | **168** | **32** |
+| con il contenitore | 175 | 24 |
+
+Il motivo nuovo era `cella su più liste senza contenitore comune (sionismo_rel+zehut)`, cioè
+**esattamente la struttura della «Joint List»** che le 24 righe ambigue di gennaio-aprile
+avevano già fatto pagare. Senza il contenitore, la lettura autonoma **da sola non faceva
+ripartire il lavoro notturno**: la guardia passava da «colonne non riconosciute» a
+«configurazioni ambigue in crescita».
+
+**E siccome la configurazione si sceglie per rilevazione, le righe con le due colonne
+separate restano separate: ogni rilevazione dice la sua.** Il lato della famiglia lo decide
+la rilevazione più recente che ne nomina uno.
+
+### Le 116 righe non si muovono, verificato e non dedotto
+
+Reso il modello **prima e dopo** sullo stesso archivio: **nessuna lista** cambia quota o
+seggi, i blocchi restano 53·55·12·0, il filo resta «Sionismo Religioso +0,232».
+
+Provato anche a **forzare il ribaltamento** con una e poi tre rilevazioni a cella congiunta
+datate oggi: `sionismo_rel` tiene la sua quota e resta sul filo. **Lo scenario della soglia
+non cambia.**
+
+**Il punto in cui il lato passerebbe al contenitore non è stabilito**, e va detto invece di
+dedurlo: con tre rilevazioni non si raggiunge. L'archivio pubblicato il 5 settembre lo
+mostra dal vivo — **6 righe con `rzp_zehut`, 0 con `zehut`** — e `sionismo_rel` continua a
+essere la lista che il modello conta.
+
+### `RZP-Zehut` non è mappata su `sionismo_rel`, e la ragione non è quella che sembra
+
+Verrebbe da dire «sommerebbe voti che teniamo separati». Misurato, oggi non li sommerebbe
+nemmeno: **la tabella che porta quella colonna ha ZERO righe valide**, quindi mapparla su
+`sionismo_rel` non farebbe entrare **nessuna rilevazione** — 175 valide e 34 scartate con e
+senza la grafia. Toglierebbe soltanto il nome dall'elenco delle colonne ignote, cioè
+**spegnerebbe la guardia** che avvisa quando la fonte cambia convenzione.
+
+*Mapparla comprerebbe zero righe e costerebbe l'allarme.* È il contenitore a raccoglierla.
+
+### LA COALIZIONE È A ZERO SLOT LIBERI IN SCURO: secondo blocco saturo
+
+Misurato dopo la mappatura, con `capienza()`:
+
+| blocco | liberi in chiaro | liberi in scuro |
+|---|---|---|
+| blocco Netanyahu | 3 | **0** |
+| opposizione sionista | 5 | 3 |
+| liste arabe | 1 | 1 |
+| **ago della bilancia** | **0** | **0** |
+
+**Due liste sono entrate nella coalizione in un giro solo** — Zehut e il contenitore — e il
+blocco è passato da 4/1 a 3/0. **Adesso i blocchi saturi sono due**, e la scala di ripiego
+del §9 di `regola-colore.md` scatta alla prossima lista in uno dei due.
+
+**Con l'8 settembre dopodomani questa riga vale doppio**: il deposito porta liste nuove tutte
+insieme, e due dei quattro blocchi non hanno più margine in tema scuro. La scala **non l'ha
+mai vista resa nessuno**, e si esercita la sera in cui serve.
+
+### Il colore si chiede alla regola, e il contratto è stato seguito alla lettera
+
+Zehut `#5E30F0`/`#95BFFF`, il contenitore `#5800CA`/`#009ADC`, **nessun avviso** e
+`regola.js` verde — che è l'unico modo in cui quel passo può fallire. Le tinte sono i due
+varchi più larghi del settore della coalizione: Zehut fra Likud 258 e Sionismo Religioso 280,
+**11° per parte**; il contenitore fra Sionismo Religioso e UTJ, **7° per parte**.
+
+### E tre attese sono cambiate, tutte per stati e non per difetti
+
+- **`tendenza.js`, «i mesi sono otto»**: era una **costante temporale dentro una prova**, e
+  la voce-evento del 1º settembre ha allungato l'asse a nove mesi. Adesso l'attesa si ricava
+  dall'arco — i mesi distinti fra il primo e l'ultimo tick — e non invecchia.
+- **`tendenza.js`, la controprova del conteggio dall'ultimo**: dipendeva dalla **parità**, e
+  con nove mesi le due strategie tengono lo stesso ultimo elemento. Adesso si applica a una
+  sequenza **costruita** di lunghezza pari, dove divergono per definizione.
+- **`simulatore.js`, la controprova del 26 agosto**: ha scattato **per la prima volta sul
+  caso vero** — una lista mappata senza seggi, la finestra fra il deposito e il primo
+  sondaggio, cioè lo scenario che la verifica a scenari elencava e che non era mai capitato.
+  **Non è stata tolta ma riscritta perché regga in quella finestra**: adesso è un
+  **inventario** che dichiara quali liste del blocco sono senza seggi e cade se ne compare
+  una non dichiarata — l'idioma di `opacita.js`. Il giorno in cui Zehut prende il primo
+  seggio cade di nuovo e chiede di togliere la voce.
+
 ## La prova di regia dell'8 settembre: quattro buchi, e il primo l'ha preso l'agente
 
 Eseguita il 30 agosto 2026 su un ramo usa-e-getta, senza committare nessuna mappatura. Il
