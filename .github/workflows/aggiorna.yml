@@ -87,7 +87,18 @@ on:
   # contingentamento risulta per REPOSITORY e non per account, allora il dispatch cross-repo
   # da Germania o UK vale davvero — e se ne riparla con un numero in mano invece che con
   # quattro osservazioni.
-    - cron: '30 3 * * *'   # UN tick: l'esperimento del 31 agosto — 7 settembre 2026
+    # IL RICONTO E FATTO, il 5 settembre 2026, e l'esperimento ha risposto: con UN tick
+    # al giorno il lavoro notturno ha consegnato SEI VOLTE SU SEI — 31 ago, 1, 2, 3, 4 e 5
+    # settembre — mentre con dieci tick ne consegnava tre o quattro. Il contingentamento e
+    # per workflow e per giorno: la finestra non aggiungeva tentativi, li sprecava.
+    # E LA LATENZA RESTA, ed e la seconda meta della risposta: il tick e alle 03:30 UTC e le
+    # consegne arrivano fra le 07:49 e le 09:52, cioe con quattro-sei ore di ritardo.
+    # L ora non si compra, ed e la ragione per cui non si sposta il tick: sarebbe indovinare.
+    # LA DATA QUI SOTTO NON E PIU UN ESPERIMENTO, e il nome resta solo perche struttura.mjs
+    # lo cerca: e il punto di revisione DOPO il voto. Prima era il 7 settembre, cioe il
+    # giorno prima del deposito delle liste: l 8 il cancello si sarebbe chiuso da solo e il
+    # modello avrebbe smesso di aggiornarsi nel giorno in cui i dati cambiano di piu.
+    - cron: '30 3 * * *'   # UN tick: l'esperimento del 31 agosto — 31 ottobre 2026
   workflow_dispatch:
   # E IL TERZO INNESCO NON E' UN TIMER: OGNI PUSH SU main.
   # Misurato il 30 agosto 2026 sui tre modelli dello stesso account, ed e' il confronto

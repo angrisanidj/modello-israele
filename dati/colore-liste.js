@@ -533,9 +533,27 @@ var COLORE = (function () {
     }
     /* Il rimedio si deve trovare dal punto in cui la regola fallisce, non cercandolo:
        chi legge questo oggetto la sera del deposito ha poco tempo e nessuna memoria. */
+    /* IL CRITERIO D ARRESTO, aggiunto il 5 settembre 2026 dopo aver percorso la scala per
+       intero su un ramo usa-e-getta. Era il buco: il §9 diceva l ORDINE dei parametri e non
+       QUANDO FERMARSI, e chi la esegue alle undici di sera scende finche gli errori
+       smettono — che e il criterio sbagliato. Misurato mettendo due liste nuove nella
+       coalizione, satura in tema scuro: gli avvisi cessano a dentro_dic 2,7, TRE gradini
+       sotto il 4,5 di partenza, e li la distanza dicromatica dentro il blocco e scesa a
+       2,75 — sotto il 3,0 che questo progetto tratta come minimo per «distinguibile».
+       Cioe la regola smette di lamentarsi PRIMA che i colori smettano di funzionare. */
     R.ripiego='Se «liberi» è 0 per il blocco che serve: docs/regola-colore.md §9. '+
       'Prima mossa: abbassare VINCOLI.dentro_dic di quel blocco di 0,6 — costa '+
       'distinguibilità per un dicromate dentro quel blocco, e solo lì.';
+    R.arresto = 'QUANDO FERMARSI: non quando gli avvisi cessano, ma al gradino PRIMA che la '
+      + 'distanza dicromatica dentro il blocco scenda sotto 3,0. Dopo ogni gradino si '
+      + 'rimisura; se nessun gradino la tiene, la scala di quel parametro e finita e si passa '
+      + 'al successivo del §9 — fra_blocchi_dic, poi il settore. E se non tiene nessuno dei '
+      + 'tre, la risposta e che quel blocco non ha piu posto: si pubblica senza la lista '
+      + 'nuova e lo si dichiara, invece di darle un colore che nessuno distingue.';
+    R.prezzo = 'OGNI GRADINO RIPINGE LE LISTE GIA ASSEGNATE: misurato, a dentro_dic 2,7 '
+      + 'nella coalizione cambiano colore TRE liste su sette. Ogni colore che si muove va '
+      + 'ricopiato in P e in PAL_SCURO di index.html, o regola.js cade — ed e giusto che '
+      + 'cada. La scala non e «aggiungi una lista e abbassa un numero».';
     _cap=R; return R;
   }
 
