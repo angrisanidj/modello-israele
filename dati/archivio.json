@@ -5232,5 +5232,249 @@
    "amcha": 3.578231227234729
   },
   "_qk": 92
+ },
+ {
+  "data": "2026-09-04",
+  "istituto": "Lazar · Panel4All",
+  "testata": "Maariv",
+  "campione": 600,
+  "casa": 0,
+  "seggi": {
+   "likud": 20,
+   "byachad": 15,
+   "rzp_zehut": 5,
+   "otzma": 8,
+   "shas": 7,
+   "utj": 7,
+   "beitenu": 9,
+   "raam": 5,
+   "lista_araba": 7,
+   "democratici": 10,
+   "yashar": 23,
+   "amcha": 4
+  },
+  "sotto": {
+   "blue_white": 0.7,
+   "casa_sionista": 2.1,
+   "unity_erdan": 1.1
+  },
+  "_q": {
+   "likud": 14.924400194882356,
+   "byachad": 11.209459881242083,
+   "rzp_zehut": 3.9701248984712083,
+   "otzma": 6.054194757764475,
+   "shas": 5.491207446816681,
+   "utj": 5.491207446816681,
+   "beitenu": 6.9181772153019905,
+   "raam": 4.151319622568908,
+   "lista_araba": 5.491207446816681,
+   "democratici": 7.621092454645922,
+   "yashar": 17.07446362810632,
+   "amcha": 3.6031450065667103
+  },
+  "_qk": 92
+ },
+ {
+  "data": "2026-09-03",
+  "istituto": "Direct Polls",
+  "testata": "Canale 14",
+  "campione": 865,
+  "casa": 1,
+  "seggi": {
+   "likud": 31,
+   "byachad": 9,
+   "rzp_zehut": 7,
+   "otzma": 7,
+   "shas": 10,
+   "utj": 8,
+   "beitenu": 6,
+   "raam": 5,
+   "lista_araba": 7,
+   "democratici": 8,
+   "yashar": 22
+  },
+  "sotto": {
+   "blue_white": 1.2,
+   "casa_sionista": 1.3,
+   "unity_erdan": 0.1,
+   "amcha": 2.7
+  },
+  "_q": {
+   "likud": 23.428470994380096,
+   "byachad": 6.90859599012575,
+   "rzp_zehut": 5.412578152402652,
+   "otzma": 5.412578152402652,
+   "shas": 7.657169845179025,
+   "utj": 6.160346756811711,
+   "beitenu": 4.665565403030637,
+   "raam": 4.112991028837431,
+   "lista_araba": 5.412578152402652,
+   "democratici": 6.160346756811711,
+   "yashar": 16.668778767615677
+  },
+  "_qk": 92
+ },
+ {
+  "data": "2026-09-03",
+  "istituto": "Kantar",
+  "testata": "Israel Hayom",
+  "campione": 555,
+  "casa": 0,
+  "seggi": {
+   "likud": 21,
+   "byachad": 13,
+   "rzp_zehut": 6,
+   "otzma": 7,
+   "shas": 7,
+   "utj": 8,
+   "beitenu": 9,
+   "raam": 5,
+   "lista_araba": 7,
+   "democratici": 9,
+   "yashar": 24,
+   "amcha": 4
+  },
+  "sotto": {
+   "blue_white": 1.7,
+   "casa_sionista": 2.7,
+   "unity_erdan": 0.7
+  },
+  "_q": {
+   "likud": 15.779371491241523,
+   "byachad": 9.79596844536031,
+   "rzp_zehut": 4.530599921627173,
+   "otzma": 5.420570152765005,
+   "shas": 5.420570152765005,
+   "utj": 6.001011718529549,
+   "beitenu": 6.885741875223301,
+   "raam": 4.1762952681673,
+   "lista_araba": 5.420570152765005,
+   "democratici": 6.885741875223301,
+   "yashar": 18.00024119980514,
+   "amcha": 3.683317746527387
+  },
+  "_qk": 92
+ },
+ {
+  "data": "2026-09-03",
+  "istituto": "Yossi Taktika",
+  "testata": "Zman Israel",
+  "campione": 500,
+  "casa": 0,
+  "seggi": {
+   "likud": 22,
+   "byachad": 15,
+   "rzp_zehut": 5,
+   "otzma": 6,
+   "shas": 9,
+   "utj": 8,
+   "beitenu": 10,
+   "raam": 5,
+   "lista_araba": 6,
+   "democratici": 8,
+   "yashar": 22,
+   "casa_sionista": 4
+  },
+  "sotto": {
+   "blue_white": 1.4,
+   "unity_erdan": 0.2,
+   "amcha": 2.4
+  },
+  "_q": {
+   "likud": 16.34340075571744,
+   "byachad": 11.204172424582582,
+   "rzp_zehut": 4.149361461978068,
+   "otzma": 4.791955258650952,
+   "shas": 6.753925641739911,
+   "utj": 6.051339018707558,
+   "beitenu": 7.617497616314829,
+   "raam": 4.149361461978068,
+   "lista_araba": 4.791955258650952,
+   "democratici": 6.215125087595091,
+   "yashar": 16.330460596370642,
+   "casa_sionista": 3.6014454177139075
+  },
+  "_qk": 92
+ },
+ {
+  "data": "2026-09-02",
+  "istituto": "Maagar Mochot",
+  "testata": "Canale 16",
+  "campione": 552,
+  "casa": 0,
+  "seggi": {
+   "likud": 19,
+   "byachad": 18,
+   "rzp_zehut": 5,
+   "otzma": 9,
+   "shas": 9,
+   "utj": 7,
+   "beitenu": 7,
+   "raam": 4,
+   "lista_araba": 7,
+   "democratici": 10,
+   "yashar": 20,
+   "amcha": 5
+  },
+  "sotto": {
+   "blue_white": 1,
+   "casa_sionista": 2,
+   "unity_erdan": 1
+  },
+  "_q": {
+   "likud": 14.215437158057892,
+   "byachad": 13.478429789544162,
+   "rzp_zehut": 4.150446312858763,
+   "otzma": 6.7556914561303225,
+   "shas": 6.916721844025402,
+   "utj": 5.49005226600197,
+   "beitenu": 5.49005226600197,
+   "raam": 3.6023870159017206,
+   "lista_araba": 5.353453224034293,
+   "democratici": 7.4756217935521825,
+   "yashar": 14.921260561032573,
+   "amcha": 4.150446312858763
+  },
+  "_qk": 92
+ },
+ {
+  "data": "2026-09-02",
+  "istituto": "Lazar · Panel4All",
+  "testata": "Walla",
+  "campione": 500,
+  "casa": 0,
+  "seggi": {
+   "likud": 22,
+   "byachad": 15,
+   "rzp_zehut": 5,
+   "otzma": 7,
+   "shas": 7,
+   "utj": 8,
+   "beitenu": 9,
+   "raam": 5,
+   "lista_araba": 8,
+   "democratici": 10,
+   "yashar": 24
+  },
+  "sotto": {
+   "blue_white": 0.7,
+   "casa_sionista": 3,
+   "unity_erdan": 0.7,
+   "amcha": 2.3
+  },
+  "_q": {
+   "likud": 16.66114022547093,
+   "byachad": 11.506015786301855,
+   "rzp_zehut": 4.094661280134853,
+   "otzma": 5.302882185164368,
+   "shas": 5.302882185164368,
+   "utj": 6.0545356649528665,
+   "beitenu": 6.94715686597832,
+   "raam": 4.094661280134853,
+   "lista_araba": 6.0545356649528665,
+   "democratici": 7.677159044757006,
+   "yashar": 18.304369816987695
+  },
+  "_qk": 92
  }
 ]
