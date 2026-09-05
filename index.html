@@ -2113,7 +2113,13 @@ var P={
  yashar      :{n:"Yashar",             l:"Gadi Eisenkot",      c:"#FF1F91", b:"opposizione", o:8,  gov:1, r22:null},
  casa_sionista:{n:"Casa Sionista",     l:"Tropper · Hendel",   c:"#8B5400", b:"incerto",     o:9,  gov:1, r22:null},
  economico   :{n:"Partito Economico",  l:"Yaron Zelekha",      c:"#413B00", b:"incerto",     o:10, gov:1, r22:null},
- unity_erdan :{n:"Unità",              l:"Erdan · Edelstein",  c:"#6D3B00", b:"incerto",     o:11, gov:1, r22:null},
+ /* SI E RITIRATA IL 4 SETTEMBRE 2026, dalla fonte. Il campo `fine` e la stessa forma di
+    quello degli apparentamenti ritirati: una data da cui la lista non concorre piu.
+    NON SI TOGLIE DALL ANAGRAFICA — cancellerebbe le 32 rilevazioni in cui era candidata,
+    che sono un fatto storico e che la tendenza disegna — E NON SI LASCIA COM ERA, o il
+    modello continuerebbe a imputarle una quota per sessanta giorni a una lista che non
+    corre. */
+ unity_erdan :{n:"Unità",              l:"Erdan · Edelstein", fine:"2026-09-04",  c:"#6D3B00", b:"incerto",     o:11, gov:1, r22:null},
  israel_first:{n:"Israel First",       l:"Sharren Haskel",     c:"#674F00", b:"incerto",     o:12, gov:1, r22:null},
  amcha       :{n:"Popolo d'Israele",   l:"Ofer Winter",        c:"#955A00", b:"incerto",     o:12.5, gov:1, r22:null},
  beitenu     :{n:"Yisrael Beitenu",    l:"Avigdor Lieberman",  c:"#720055", b:"opposizione", o:13, gov:1, r22:6},
@@ -3735,15 +3741,40 @@ function pesoDi(s,rif,quanti){
  if(s.casa) w*=0.5;
  return w;
 }
-function quoteDa(L){
+/* UNA LISTA CHE SI E RITIRATA. Il campo `fine` di P{} dice da quando non concorre piu, ed e
+   la stessa forma del `fine` degli apparentamenti ritirati: una DATA, non un interruttore.
+   E SI VALUTA A UNA DATA, come coppieAl(): prima di quella data le rilevazioni la contano
+   come sempre — la serie storica la disegna fino li e poi si ferma, invece di farla sparire
+   da tutto il grafico — dopo, non riceve seggi e non le si imputa nessuna quota.
+   NASCE COME REGOLA E NON PER UNA LISTA: legge P[i].fine per qualunque id, e fra l 8
+   settembre e il voto i ritiri saranno piu di uno. Chi aggiunge un consumatore passa di qui.
+   E NON TOCCA IL PARSER: la lista resta in W_LISTA e in P{}, quindi se Wikipedia continua a
+   pubblicare la colonna per qualche giorno il modello la legge senza fermarsi — cambia solo
+   che cosa ne fa.
+   E NON TOCCA NEMMENO PRESET, ed e il banco ad avermelo insegnato: PRESET.netanyahu ha DUE
+   consumatori — la scorciatoia del simulatore e la guardia «Gov.» del parser notturno —
+   e filtrarlo avrebbe fatto respingere righe VALIDE dove Wikipedia conta ancora la lista
+   ritirata dentro il totale pubblicato, nel lavoro notturno cioe dove nessuno guarda.
+   Il simulatore smette di offrirla da se: le pastiglie si montano su SEG[i], e una lista che
+   non corre non ha seggi. Una strada che c era gia. */
+function corre(i,al){
+ var d=P[i]&&P[i].fine; if(!d) return true;
+ return (al||oggiISO())<d;
+}
+function quoteDa(L,al){
  if(!L||!L.length) return null;
  /* 1 · ogni sondaggio viene riportato a quote di voto */
  var noti={},k;
  var per=L.map(function(s){
   var sotto={},ws=0;
-  if(s.sotto) for(k in s.sotto) if(P[k]){sotto[k]=s.sotto[k];ws+=s.sotto[k];}
+  if(s.sotto) for(k in s.sotto) if(P[k]&&corre(k,al)){sotto[k]=s.sotto[k];ws+=s.sotto[k];}
   var q=100-Math.max(ws,DISP);
-  if(s._qk!==q){s._q=invD(s.seggi,sotto,q);s._qk=q;}   /* cache: l'inversione è costosa */
+  /* LA CHIAVE DELLA CACHE PORTA ANCHE LA DATA, e non e pignoleria: `sotto` adesso dipende
+     da `al`, quindi due date diverse possono dare lo stesso `q` con un monte diverso, e la
+     cache servirebbe l inversione dell altra. E la stessa famiglia della chiave della serie
+     fatta su SOND.length. */
+  var ck=q+'@'+(al||'');
+  if(s._qk!==ck){s._q=invD(s.seggi,sotto,q);s._qk=ck;}   /* cache: l'inversione è costosa */
   var sh=Object.assign({},s._q,sotto);
   /* le rilevazioni pre-fusione vengono riportate alla struttura attuale sommando
      le quote di Yesh Atid e Bennett 2026: sulle quote la somma è esatta */
@@ -3758,6 +3789,15 @@ function quoteDa(L){
    var jb=(sh.hadash_taal||0)+(sh.balad||0);
    if(jb>0){sh.lista_araba=(sh.lista_araba||0)+jb;delete sh.hadash_taal;delete sh.balad;}
   }
+  /* LE QUOTE DI UNA LISTA RITIRATA SI IGNORANO, non si redistribuiscono come quelle di una
+     lista sotto soglia, e le due cose danno totali diversi. Sotto soglia il monte resta 99 e
+     i voti sono PERSI: e quello che succede a una lista che CORRE e non passa. Una lista che
+     non corre non ha elettori che sprecano un voto — quei voti andranno altrove, e non
+     sappiamo dove. Toglierla dal monte li distribuisce come e distribuito il resto del
+     campo, che e l ipotesi piu neutra fra le due; lasciarla come sotto soglia direbbe che
+     sono perduti, che e un'affermazione sul comportamento di elettori che nessuno ha
+     misurato. */
+  for(k in sh) if(!corre(k,al)) delete sh[k];
   for(k in sh){if(!P[k])continue;if(!noti[k])noti[k]=[];noti[k].push(sh[k]);}
   return {s:s,sh:sh};
  });
@@ -8593,7 +8633,7 @@ function serieModello(){
  date.forEach(function(d){
   var l=attiviAl(d,true);
   if(l.length<6) return;
-  var qq=quoteDa(l); if(!qq) return;
+  var qq=quoteDa(l,d); if(!qq) return;
   if(SW) qq=applicaSwing(qq,SW);
   /* `d` e non oggi: una coppia annunciata il 22 agosto non deve comparire nella
      proiezione di luglio. È la ragione per cui APPARENTAMENTI porta una data. */
