@@ -192,7 +192,19 @@ export async function componi(){
  /* l'archivio si legge dal disco, non dalla rete: il job lo ha appena aggiornato, ed è
     quello che l'immagine deve mostrare */
  const arch = JSON.parse(readFileSync(join(RADICE, 'dati', 'archivio.json'), 'utf8'));
- global.fetch = () => Promise.resolve({ok: true, json: () => Promise.resolve(arch)});
+ /* IL FINTO FETCH SERVE IL FILE CHIESTO, non l archivio per qualunque indirizzo. Prima
+    rispondeva l archivio a tutti e tre, quindi GIRO restava nullo e nel job
+    composizioneCambiata() era falsa PER COSTRUZIONE: og:title avrebbe continuato ad
+    affermare mentre la pagina taceva, cioe esattamente il difetto che questo stato esiste
+    per chiudere. Uno stub che mente su quale file sta servendo e una prova che non prova.
+    Gli altri file si rifiutano, come quando la pagina si apre da disco. */
+ const dafare = (function(){ try{ return JSON.parse(readFileSync(join(RADICE,'dati','da-fare.json'),'utf8')); }catch(e){ return null; } })();
+ global.fetch = (u) => {
+  const s = String(u||'');
+  if (s.indexOf('archivio.json') >= 0) return Promise.resolve({ok: true, json: () => Promise.resolve(arch)});
+  if (dafare && s.indexOf('da-fare.json') >= 0) return Promise.resolve({ok: true, json: () => Promise.resolve(dafare)});
+  return Promise.reject(0);
+ };
 
  const spia = {};
  /* titoloCortoOra ENTRA NELLA SPIA dal 31 agosto 2026, ed è la mossa che rende strutturale

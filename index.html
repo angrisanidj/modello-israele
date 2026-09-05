@@ -3424,6 +3424,29 @@ var TIT_DOPO={
    nomina né Israele né l'anno. La prova misura la lunghezza su tutte le configurazioni,
    [X] a tre cifre compreso. */
 var TIT_CODA=' · Knesset 2026';
+/* LA FORMA NEUTRA E LO STATO IN CUI IL MODELLO SMETTE DI AFFERMARE.
+   IL GIORNO DEL DEPOSITO NON E UN MOMENTO IN CUI IL DATO PEGGIORA GRADUALMENTE: e il
+   momento in cui smette di descrivere la cosa che dice di descrivere. Fino al 7 settembre
+   un archivio fermo di qualche giorno mostra una proiezione VECCHIA — sbagliata di poco, e
+   la pagina lo dichiara; dall 8 mostra una proiezione di un ALTRO campo di liste, e chi la
+   cita non cita un dato vecchio, cita un dato che non descrive piu niente.
+   PERCIO LA CONDIZIONE NON E UNA SOGLIA DI GIORNI, e' `colonne-ignote` aperta: se la fonte
+   pubblica liste che non conosciamo la composizione E GIA cambiata, e aspettare due o tre
+   giorni non aggiunge informazione — aggiunge giorni in cui la pagina afferma un risultato
+   su un campo che non esiste.
+   E SI SPEGNE DA SE: componi() ricostruisce le voci da zero a ogni notte e da-fare.json si
+   riscrive anche quando una guardia ferma tutto, quindi la notte in cui le liste sono
+   mappate la voce sparisce e lo stato cade al caricamento successivo. Nessun interruttore.
+   IL TESTO NEUTRO E LO STESSO DEL <title> STATICO, che e gia il ripiego per chi non esegue
+   il JavaScript: non afferma nessun risultato e non puo diventare falso in una data che
+   nessuno ha segnato. struttura.mjs verifica che le due copie non divergano. */
+var TIT_NEUTRO='Knesset 2026 — Modello previsionale';
+function composizioneCambiata(){
+ var v=GIRO&&GIRO.voci; if(!v||!v.length) return false;
+ for(var i=0;i<v.length;i++)
+  if(v[i]&&v[i].urgenza==='blocca'&&v[i].id==='colonne-ignote') return true;
+ return false;
+}
 var TIT_CORTO_PRIMA={
  f1:function(X){return 'Netanyahu alla maggioranza: '+X+' seggi';},
 /* «DA SOLA» AL POSTO DI « SEGGI», e il baratto e' voluto. La lunga dice «raggiunge la
@@ -3535,6 +3558,7 @@ function datiTitolo(fo,mc){
  return {cella:k, X:X, P:P, fonte:fonte};
 }
 function testoTitolo(fo,dopo,mc){
+ if(composizioneCambiata()) return TIT_NEUTRO;
  var d=datiTitolo(fo,mc);
  return (dopo?TIT_DOPO:TIT_PRIMA)[d.cella](d.X,d.P);
 }
@@ -3550,7 +3574,16 @@ function testoTitolo(fo,dopo,mc){
    senza che niente lo dicesse. test/suite/meta.js lega le due strade a questa funzione.
    formaTitolo(blocchi(SEG)) resta chiamata due volte per render: blocchi() è una somma su
    venti liste, e il prezzo di una riga in più è più basso di quello di una copia. */
-function titoloCortoOra(){return titoloCorto(formaTitolo(blocchi(SEG)),votoPassato());}
+function ultimaData(){return SOND.map(function(s){return s.data;}).sort().pop();}
+function titoloCortoOra(){
+ /* LA PORTA E QUI, e non in rTitolo(): la chiedono in due — il render per document.title
+    e il lavoro notturno per og:title — e una porta sola e la ragione per cui le due non
+    possono divergere. Se il titolo diventasse neutro in pagina e og:title continuasse ad
+    affermare, l anteprima condivisa direbbe esattamente la cosa che questo stato esiste
+    per non dire. */
+ if(composizioneCambiata()) return TIT_NEUTRO;
+ return titoloCorto(formaTitolo(blocchi(SEG)),votoPassato());
+}
 /* LA FRASE E LA CODA SONO DUE COSE, e si sono separate il 24 agosto 2026 perché la forma
    compatta dell'embed ha bisogno della prima senza la seconda. TIT_CODA — « · Knesset
    2026» — esiste per la linguetta del browser e per la scheda di condivisione, dove il
@@ -3560,6 +3593,13 @@ function titoloCortoOra(){return titoloCorto(formaTitolo(blocchi(SEG)),votoPassa
    sintesi — la prendono da qui. Ricavarla altrove con un replace su TIT_CODA sarebbe la
    strada doppia mascherata da riparazione. */
 function fraseCorta(fo,dopo){
+ /* LA FORMA LUNGA E NON QUELLA CORTA, e la ragione e dove questa frase VIVE: nella card e
+    nella forma compatta dell embed non c e il verdetto sopra a spiegarla. «Proiezione al
+    4 settembre, prima del deposito delle liste» si legge come «e di prima, e si
+    aggiornera»; quello che il lettore deve sapere e che le liste SONO CAMBIATE, e fuori
+    contesto quella e l unica meta che conta. */
+ if(composizioneCambiata())
+  return 'Proiezione al '+dl(ultimaData())+': le liste depositate sono cambiate';
  var d=datiTitolo(fo,null);
  return (dopo?TIT_CORTO_DOPO:TIT_CORTO_PRIMA)[d.cella](d.X);
 }
@@ -4287,7 +4327,7 @@ function rTesta(){
     letta dal registro del lavoro notturno; k-fresh è l'ultimo SONDAGGIO.
     E si dichiara quando divergono, nei due modi in cui possono farlo — vedi GAP_VERIFICA
     e GAP_SONDAGGI. */
- var u=SOND.map(function(s){return s.data;}).sort().pop();
+ var u=ultimaData();
  var v=JOB&&JOB.data;
  var ritardo=v?ggCal(new Date(v+'T00:00:00'),new Date()):null;
  var eu=$('k-upd');
@@ -4614,6 +4654,23 @@ function rProb(){
    'l\'equilibrio attuale si spezza. Le quattro ipotesi qui sopra sono alternative fra loro e sommano a 100%: '+
    'la quarta, oggi al '+f(items[3].pi)+'%, è quella in cui non si arriva a 61 in nessuna combinazione.';
  }
+ /* LO STATO IN CUI IL VERDETTO SMETTE DI AFFERMARE. Non sostituisce i numeri: li PRECEDE.
+    Toglierli sarebbe peggio — chi li cerca li troverebbe altrove senza il contesto — ma
+    smettono di essere presentati come la proiezione di adesso. La data del deposito non e
+    scritta: esce dal calendario, come tutto il resto.
+    L\u2019ARTICOLO DAVANTI ALLA DATA NON SI GENERA, ed e la ragione per cui la data sta
+    fra trattini invece che dentro la frase. «L\u20198 settembre» vuole l\u2019elisione,
+    «il 9» no, e la regola dipende da come si PRONUNCIA il numero: non e ricavabile da
+    niente che il codice conosca, ed e la stessa trappola gia pagata da acc() e da ed().
+    Scriverla a mano sarebbe una costante temporale in prosa. Fra trattini l\u2019inciso
+    non chiede nessun articolo e la data resta generata. */
+ if(composizioneCambiata())
+  t='<b>La composizione delle liste \u00e8 cambiata dopo l\u2019ultima rilevazione.</b> '+
+    'Il deposito delle liste definitive \u00e8 passato \u2014 '+
+    dl(dataTappa('Deposito delle liste'))+' \u2014 e la fonte pubblica liste che il '+
+    'modello non ha ancora mappato. <b>La proiezione qui sotto \u00e8 quella precedente</b>: '+
+    'descrive il campo com\u2019era al '+dl(ultimaData())+', non quello che si presenta '+
+    'al voto.';
  $('k-verdetto').innerHTML=t;
  /* LE DUE DIDASCALIE NON SI SCRIVONO PIU' QUI, e non e' una scelta di stile: erano CODICE
     MORTO. rProb() gira alla riga 9267 e renderInterno() riscrive k-cap1 e k-cap2 tredici
@@ -5124,10 +5181,19 @@ function testoCondivisione(conIndirizzo){
 function promptAI(){
  var b=blocchi(SEG), g=ggCal(new Date(),VOTO), tot=MC.n||SIM;
  var pc=function(x){return f(Math.round(100*x/tot));};
- var u=SOND.map(function(s){return s.data;}).sort().pop();
+ var u=ultimaData();
  var leve=statoLeve(), ip=ipotesiNeiNumeri(), np=nonPubblicate().length;
  var ind=CANONICO.replace(/^https?:\/\//,'').replace(/\/$/,'');
- return 'Sto guardando un modello previsionale per le elezioni israeliane del 27 ottobre 2026, a '+
+ /* L\u2019AVVERTENZA APRE E NON CHIUDE, ed e la stessa ragione della targa dell\u2019anteprima:
+    questo testo puo\u0027 essere troncato da chi lo riceve, e quello che sopravvive a un taglio
+    dev\u2019essere la parte che AVVERTE, non quella che dettaglia. Un servizio terzo che legge
+    i numeri senza questa riga li ripete come se fossero la proiezione di adesso. */
+ var avv=composizioneCambiata()
+  ? 'Attenzione: questi numeri descrivono un campo di liste precedente al deposito del '+
+    dl(dataTappa('Deposito delle liste'))+'. Non sono una proiezione dell\u2019elezione come '+
+    'si presenta. '
+  : '';
+ return avv+'Sto guardando un modello previsionale per le elezioni israeliane del 27 ottobre 2026, a '+
   f(g)+' giorni dal voto. La proiezione di oggi assegna '+f(b.coalizione)+' seggi al blocco Netanyahu, '+
   f(b.opposizione)+' all\'opposizione sionista e '+f(b.arabo)+' ai partiti arabi'+
   /* «su 120 totali» va detto insieme a TUTTI gli addendi: questo testo esce dalla pagina e
@@ -5627,7 +5693,7 @@ function targaPNG(dis,inner,W,H,sonda,cornice){
    è la verifica. Se il registro non c'è si ripiega sull'ultimo sondaggio dichiarandolo. */
 function dataPNG(){
  if(JOB&&JOB.data) return 'aggiornato al '+dl(JOB.data);
- var u=SOND.map(function(s){return s.data;}).sort().pop();
+ var u=ultimaData();
  return u?'ultimo sondaggio '+dl(u):'data non disponibile';
 }
 /* Il piede porta quello che in pagina sta in HTML accanto al disegno: per gli istogrammi la

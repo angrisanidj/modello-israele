@@ -199,7 +199,16 @@ jobs:
   # riga, con la stessa ragione, gia' scritta nella guardia.
   meta:
     needs: [guardia, aggiorna]
-    if: always() && needs.aggiorna.result != 'failure'
+    # E GIRA ANCHE QUANDO UNA GUARDIA HA FERMATO L'ARCHIVIO. La distinzione che conta e'
+    # fra «fermato da una guardia» e «rotto»: nel primo caso l'archivio e' fermo APPOSTA e
+    # le meta devono dire la cosa nuova — che la composizione delle liste e' cambiata —
+    # invece di restare congelate ad affermare un risultato che nessuno puo' piu'
+    # verificare; nel secondo direbbero il contrario di quello che la pagina calcola.
+    # LA DECISIONE NON PASSA DAGLI OUTPUT DEL JOB, che GitHub non propaga da un job
+    # fallito: passa da dati/da-fare.json, che il passo del riepilogo committa con
+    # «if: always()» anche quando una guardia ha fermato tutto. E' LA STESSA FONTE CHE
+    # LEGGE LA PAGINA, quindi og:title e il titolo non possono divergere per costruzione.
+    if: always() && needs.aggiorna.result != 'cancelled'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -209,7 +218,24 @@ jobs:
       - run: npm install
       # anteprima.mjs importa test/estrai.mjs da se', come aggiorna.mjs: il parser che legge
       # dev'essere quello di questo index.html, non quello dell'ultima esecuzione locale.
+      - name: Si procede?
+        id: procedi
+        run: |
+          # Si procede se l'archivio e' andato bene, oppure se una guardia lo ha fermato su
+          # colonne che l'anagrafica non conosce — che e' esattamente lo stato in cui la
+          # pagina smette di affermare, e in cui og:title deve smettere con lei. Qualunque
+          # altro esito e' un guasto, e li' le meta non si toccano.
+          if [ "${{ needs.aggiorna.result }}" = "success" ]; then
+            echo "si=1" >> "$GITHUB_OUTPUT"
+          elif node .github/scripts/colonne-ignote.mjs; then
+            echo "si=1" >> "$GITHUB_OUTPUT"
+            echo "guardia sulle colonne non riconosciute: le meta passano alla forma neutra"
+          else
+            echo "si=0" >> "$GITHUB_OUTPUT"
+            echo "esito ${{ needs.aggiorna.result }} senza colonne ignote: le meta non si toccano"
+          fi
       - name: Le due meta, dallo stesso render
+        if: steps.procedi.outputs.si == '1'
         id: meta
         run: |
           # IL ROMPI-ANELLO E' IL CODICE D'USCITA, NON L'IDEMPOTENZA.

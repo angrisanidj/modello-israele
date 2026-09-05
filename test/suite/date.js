@@ -86,7 +86,7 @@ async function alGiorno(iso, job, stretto, giro){
     'global.A={render:render,stato:function(){return{GIORNI:GIORNI,ORIZZONTE:ORIZZONTE,MC:MC,SEG:SEG,' +
     'JOB:JOB,GIRO:GIRO,SOND:SOND,L:L,VOTO:VOTO,GAP_VERIFICA:GAP_VERIFICA,'+
     'GAP_SONDAGGI:GAP_SONDAGGI,GAP_GIRO:GAP_GIRO};},' +
-    'q:q,ggCal:ggCal,blocchi:blocchi,finestra:finestra};carica().then(render,render)');
+    'q:q,ggCal:ggCal,blocchi:blocchi,finestra:finestra,titoloCortoOra:titoloCortoOra,fraseCorta:fraseCorta,formaTitolo:formaTitolo,composizioneCambiata:composizioneCambiata,TIT_NEUTRO:TIT_NEUTRO,promptAI:promptAI,votoPassato:votoPassato,SEG2:function(){return SEG;}};carica().then(render,render)');
   eval(src);
   /* la catena di carica() è fatta di microtask: un setTimeout(0) è un macrotask e arriva
      dopo tutte. Senza questa attesa JOB sarebbe ancora nullo e la prova misurerebbe lo
@@ -107,6 +107,12 @@ async function alGiorno(iso, job, stretto, giro){
     fascia: testo('k-postvoto'),
     fasciaVisibile: !!pv && /(^|\s)on(\s|$)/.test(pv.className),
     fermo: testo('k-fermo'),
+    titoloCortoOra: global.A.titoloCortoOra(),
+    fraseCorta: global.A.fraseCorta(global.A.formaTitolo(global.A.blocchi(global.A.SEG2())), global.A.votoPassato()),
+    cambiata: global.A.composizioneCambiata(),
+    neutro: global.A.TIT_NEUTRO,
+    verdetto: testo('k-verdetto'),
+    prompt: global.A.promptAI(),
     fermoVisibile: (function(){ const e = D.getElementById('k-fermo');
       return !!e && (' '+e.className+' ').indexOf(' on ') >= 0; })(),
     nota: testo('k-foot'),
@@ -494,6 +500,62 @@ esito(SENZA.GIRO === null,
   esito(rigaS.indexOf(String.fromCharCode(39) + 'k-fermo' + String.fromCharCode(39)) >= 0,
     'e la fascia resta nella forma compatta dell embed: un archivio fermo conta di piu li',
     rigaS.trim().slice(0, 110));
+}
+
+
+/* ══ QUANDO IL MODELLO SMETTE DI AFFERMARE ═══════════════════════════════════════════
+ * Il giorno del deposito non e un momento in cui il dato peggiora gradualmente: e il
+ * momento in cui smette di descrivere la cosa che dice di descrivere. La condizione non e
+ * una soglia di giorni — e `colonne-ignote` aperta: se la fonte pubblica liste che non
+ * conosciamo la composizione E GIA cambiata, e aspettare aggiunge solo giorni in cui la
+ * pagina afferma un risultato su un campo che non esiste. */
+{
+  const IGNOTE = {generato:'2026-09-09', voci:[{id:'colonne-ignote', urgenza:'blocca'}]};
+  const PULITO = {generato:'2026-09-09', voci:[]};
+  const JOB    = {data:'2026-09-04'};
+
+  const n = await alGiorno('2026-09-09', JOB, false, IGNOTE);
+  const s = await alGiorno('2026-09-09', JOB, false, PULITO);
+
+  esito(n.cambiata && !s.cambiata,
+    'lo stato si accende su colonne-ignote e su nient altro',
+    'con la voce ' + n.cambiata + ' · senza ' + s.cambiata);
+
+  /* LA COPPIA CHE OGGI DIVERGE, e si prova INSIEME e non a una a una: il titolo in pagina
+     e quello che finisce in og:title escono dalla stessa funzione, e la prova lo pretende
+     nello stesso respiro. Se un giorno og:title tornasse ad affermare mentre la pagina
+     tace, l anteprima condivisa direbbe la cosa che questo stato esiste per non dire. */
+  esito(n.titoloCortoOra === n.neutro && n.titolo === n.neutro,
+    'og:title e document.title tacciono INSIEME: una funzione sola, nessuna divergenza',
+    'titoloCortoOra «' + n.titoloCortoOra + '» · document.title «' + n.titolo + '»');
+
+  /* e il verso che manca sempre: che senza lo stato affermino tutti e due */
+  esito(s.titoloCortoOra !== s.neutro && s.titolo !== s.neutro,
+    'e senza la voce affermano tutti e due, o la prova sarebbe verde per assenza del caso',
+    'titoloCortoOra «' + s.titoloCortoOra + '»');
+
+  esito(n.h1 === n.neutro,
+    'anche l h1 passa alla forma neutra: e la stessa domanda del titolo',
+    '«' + n.h1 + '»');
+
+  esito(n.verdetto.indexOf('composizione delle liste') >= 0 &&
+        n.verdetto.indexOf('quella precedente') >= 0,
+    'il verdetto dice che la composizione e cambiata e che la proiezione e la precedente',
+    n.verdetto.slice(0, 150));
+
+  esito(n.fraseCorta.indexOf('le liste depositate sono cambiate') >= 0,
+    'e la riga di sintesi — card ed embed compatto — si legge anche fuori contesto',
+    n.fraseCorta);
+
+  esito(n.prompt.indexOf('Attenzione') === 0,
+    'e l avvertenza APRE il prompt che va a un servizio terzo, cosi sopravvive a un taglio',
+    n.prompt.slice(0, 110));
+
+  /* I NUMERI RESTANO. Toglierli sarebbe peggio: chi li cerca li troverebbe altrove senza
+     il contesto. Smettono di essere presentati come la proiezione di adesso, non di esserci. */
+  esito(n.S.SEG && Object.keys(n.S.SEG).length > 0,
+    'e i numeri restano visibili: lo stato cambia come sono presentati, non se ci sono',
+    Object.keys(n.S.SEG).length + ' liste con seggi');
 }
 
 console.log('\ndate: ' + ok + '/' + (ok + ko));

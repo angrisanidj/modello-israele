@@ -361,6 +361,21 @@ esito(A.titoloCortoOra().slice(-A.TIT_CODA.length) === A.TIT_CODA,
 
   }
 })().then(function(){
-  console.log('\n' + ok + '/' + (ok + ko));
+  
+/* ══ LO STUB DEL GENERATORE NON PUO MENTIRE SU QUALE FILE SERVE ══════════════════════
+ * Il finto fetch di anteprima.mjs rispondeva l ARCHIVIO a qualunque indirizzo, quindi nel
+ * job GIRO restava nullo e composizioneCambiata() era falsa PER COSTRUZIONE: og:title
+ * avrebbe continuato ad affermare mentre la pagina taceva. Uno stub che mente su quale
+ * file sta servendo rende vacua la prova che gli sta sopra — e la prova che gli sta sopra
+ * e quella che lega og:title al titolo in pagina. */
+{
+  const g = fs.readFileSync(__dirname + '/../../.github/scripts/anteprima.mjs', 'utf8');
+  const riga = g.split(String.fromCharCode(10)).filter(r => r.indexOf('global.fetch') >= 0).join(' ');
+  esito(g.indexOf('da-fare.json') >= 0 && riga.indexOf('(u)') >= 0,
+    'il finto fetch del generatore serve il file CHIESTO, non l archivio per ogni indirizzo',
+    riga.trim().slice(0, 110));
+}
+
+console.log('\n' + ok + '/' + (ok + ko));
   if (ko) process.exit(1);
 });

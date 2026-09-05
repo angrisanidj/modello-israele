@@ -42,6 +42,9 @@ const RADICE = join(QUI, '..', '..');
  *   3. La soglia è 6, il doppio del massimo mai osservato: un riassetto post-deposito
  *   muove le liste, non i blocchi, e se un movimento senza precedenti fosse vero, un
  *   giorno di ritardo per conferma umana è il comportamento giusto. */
+/* Il codice d'uscita che dice «fermato da una guardia», non «rotto». Lo legge il log, e le
+   prove lo leggono da qui invece di ricopiarlo. */
+export const USCITA_GUARDIA = 4;
 export const SOGLIE = {CORPO_MINIMO: 1_000_000, CALO_VALIDE: 5, MASSIMO_NUOVE: 10, DELTA_BLOCCO: 6};
 
 export function valuta(p){
@@ -357,7 +360,18 @@ async function main(){
        riepilogo appena scritto — che porta la stessa cosa da fare, con dentro anche
        tutto il resto della nottata. `esito.issue` resta perché è la spiegazione che
        valuta() dà della sua decisione, e le prove la leggono da lì. */
-    process.exit(1);
+    /* ESCE CON UN CODICE SUO, e la distinzione e' fra «FERMATO DA UNA GUARDIA» e «ROTTO»,
+       non fra «uscito zero» e tutto il resto. Un guasto vero — Wikipedia irraggiungibile,
+       il parser che esplode, lo stato assente — resta 1, e continua a saltare il job delle
+       meta come adesso: le meta di un archivio ROTTO direbbero il contrario di quello che
+       la pagina calcola. Una guardia e' un'altra cosa: l'archivio non e' rotto, e' fermo
+       APPOSTA, e in quello stato le meta devono dire la cosa nuova invece di restare
+       congelate ad affermare un risultato.
+       QUATTRO E NON TRE: il 3 e' gia' preso da anteprima.mjs per «niente da pubblicare»,
+       che e' l'esito OPPOSTO — tutto a posto, nulla da scrivere. Due esiti diversi con lo
+       stesso numero sarebbero i due significati sulla stessa variabile che la targa del
+       PNG ha gia' pagato. */
+    process.exit(USCITA_GUARDIA);
   }
 
   /* «ipotesi» sta accanto ai blocchi e non altrove, perche' e' di loro che parla: dice che
