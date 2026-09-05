@@ -106,6 +106,9 @@ async function alGiorno(iso, job, stretto, giro){
     titolo: D.title,
     fascia: testo('k-postvoto'),
     fasciaVisibile: !!pv && /(^|\s)on(\s|$)/.test(pv.className),
+    fermo: testo('k-fermo'),
+    fermoVisibile: (function(){ const e = D.getElementById('k-fermo');
+      return !!e && (' '+e.className+' ').indexOf(' on ') >= 0; })(),
     nota: testo('k-foot'),
     swnota: testo('k-sw-nota'),
     simn: (D.getElementById('k-simn') || {}).textContent,
@@ -441,6 +444,57 @@ esito(SPENTO.S.GAP_GIRO >= 1 && SPENTO.S.GAP_GIRO <= 3,
 /* e senza il file il battito non inventa niente, come per lo stato */
 esito(SENZA.GIRO === null,
   'senza dati/da-fare.json il battito resta nullo invece di ripiegare su una data');
+
+
+/* ══ LA FASCIA DEL PERCHE, non del quando ═══════════════════════════════════════════
+ * La testata dice da quanti giorni il dato e vecchio, ed e onesto ma non e un allarme: al
+ * lettore serve sapere che qualcuno deve intervenire. La condizione il modello la conosce
+ * gia — stato-job.json fermo e da-fare.json con voci che BLOCCANO — quindi non c e nessuno
+ * stato nuovo e nessun fetch nuovo: il file lo scarica gia battitoJob().
+ * E LA CAUSA SI LEGGE DALLA VOCE, NON DAL CONTEGGIO. Le voci che bloccano sono quattro e
+ * non dicono la stessa cosa: colonne-ignote e la fonte che pubblica liste che non
+ * conosciamo, accordo-invalido e un errore nella NOSTRA tabella. Condizionare su
+ * «blocca > 0» avrebbe dato la colpa alla fonte anche per una nostra riga sbagliata, cioe
+ * una frase falsa scritta con sicurezza. */
+{
+  const IGNOTE  = {generato:'2026-09-08', voci:[{id:'colonne-ignote', urgenza:'blocca'}]};
+  const NOSTRA  = {generato:'2026-09-08', voci:[{id:'accordo-invalido-3', urgenza:'blocca'}]};
+  const INNOCUA = {generato:'2026-09-08', voci:[{id:'eventi-da-tradurre', urgenza:'richiede'}]};
+  const FERMO   = {data:'2026-08-20'};
+  const FRESCO  = {data:'2026-09-08'};
+
+  const fa = await alGiorno('2026-09-08', FERMO, false, IGNOTE);
+  esito(fa.fermoVisibile && fa.fermo.indexOf('liste che il modello non ha ancora mappato') >= 0,
+    'con le colonne ignote e la verifica ferma la fascia dice PERCHE, non da quanti giorni',
+    fa.fermo.slice(0, 130));
+
+  const fb = await alGiorno('2026-09-08', FERMO, false, NOSTRA);
+  esito(fb.fermoVisibile && fb.fermo.indexOf('La fonte ha pubblicato') < 0 &&
+        fb.fermo.indexOf('richiede un intervento') >= 0,
+    'e con una voce che NON e della fonte non da la colpa alla fonte',
+    fb.fermo.slice(0, 130));
+
+  const fc = await alGiorno('2026-09-08', FRESCO, false, IGNOTE);
+  esito(!fc.fermoVisibile,
+    'e non scatta un giorno prima: con la verifica fresca tace, come la testata',
+    fc.fermo || '(vuota)');
+
+  const fd = await alGiorno('2026-09-08', FERMO, false, INNOCUA);
+  esito(!fd.fermoVisibile,
+    'e non scatta per una voce che non blocca: quelle non fermano l archivio',
+    fd.fermo || '(vuota)');
+
+  const fe = await alGiorno('2026-09-08', FERMO, false, null);
+  esito(!fe.fermoVisibile,
+    'e senza da-fare.json — pagina aperta da disco — tace invece di indovinare',
+    fe.fermo || '(vuota)');
+
+  const rigaS = src0.split(String.fromCharCode(10))
+    .find(r => r.indexOf('SINT_TIENI') >= 0) || '';
+  esito(rigaS.indexOf(String.fromCharCode(39) + 'k-fermo' + String.fromCharCode(39)) >= 0,
+    'e la fascia resta nella forma compatta dell embed: un archivio fermo conta di piu li',
+    rigaS.trim().slice(0, 110));
+}
 
 console.log('\ndate: ' + ok + '/' + (ok + ko));
 if (ko) process.exit(1);

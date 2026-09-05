@@ -1702,6 +1702,12 @@
      privata, o con i dati dei siti bloccati. Stava dentro «Archivio dati», che è un
      <details> chiuso: un avviso in un cassetto non è un avviso. Vale per la pagina
      intera quanto per l'embed — l'embed rendeva pubblico un difetto che c'era già. -->
+<!-- LA FASCIA DEL PERCHE, non del quando. La testata dice gia da quanti giorni il dato
+     e vecchio, e quello e onesto ma non e un allarme: al lettore serve sapere che
+     qualcuno deve intervenire, non che sono passati tre giorni. La condizione il modello
+     la conosce gia — stato-job.json fermo e da-fare.json con voci che bloccano — quindi
+     non serve nessuno stato nuovo, e il file lo scarica gia battitoJob(). -->
+<div class="fascia" id="k-fermo"></div>
 <div class="fascia" id="k-mem"></div>
 
 <div class="boot" id="k-boot">
@@ -4108,6 +4114,26 @@ function rFirma(){
    Una strada sola: il paragrafo in --neg è uscito da rDiag(), che adesso dice il FATTO
    («salvato in: nessuna») e non l'avviso. Due copie dello stesso avvertimento a schermi di
    distanza sarebbero divergute alla prima riscrittura. */
+/* LA CAUSA SI LEGGE DALLA VOCE, non dal conteggio, ed e la stessa regola di
+   ipotesiNeiNumeri(): una frase che dichiara una causa dev'essere emessa dalla condizione
+   che E quella causa. Le voci che bloccano sono QUATTRO e non dicono la stessa cosa —
+   colonne-ignote (la fonte ha pubblicato liste che non conosciamo), ambigue-cresciute,
+   accordo-invalido (un errore nella NOSTRA tabella, non della fonte) e job-fermo.
+   Condizionare sul solo «blocca > 0» avrebbe detto «la fonte ha pubblicato liste nuove»
+   anche quando la colpa e di una nostra riga sbagliata, cioe una frase falsa scritta con
+   sicurezza. Quella che il lettore incontrera l'8 settembre e la prima; le altre tre
+   hanno una frase che dice quello che si sa senza inventare il resto. */
+function motivoFermo(){
+ var v=GIRO&&GIRO.voci; if(!v||!v.length) return null;
+ var b=v.filter(function(x){return x&&x.urgenza==='blocca';});
+ if(!b.length) return null;
+ return b.some(function(x){return x.id==='colonne-ignote';})
+  ? '<b>L\u2019aggiornamento \u00e8 fermo.</b> La fonte ha pubblicato liste che il modello '+
+    'non ha ancora mappato: l\u2019archivio resta all\u2019ultimo giorno buono, e riprende '+
+    'da s\u00e9 quando saranno mappate.'
+  : '<b>L\u2019aggiornamento \u00e8 fermo.</b> Una verifica del lavoro notturno si \u00e8 '+
+    'chiusa e richiede un intervento: l\u2019archivio resta all\u2019ultimo giorno buono.';
+}
 function rMemoria(){
  var el=$('k-mem'); if(!el) return;
  var c=contesto();
@@ -4282,6 +4308,11 @@ function rTesta(){
      ? 'verificato il '+dl(v)+(ritardo>=GAP_VERIFICA?' · '+f(ritardo)+' '+acc(ritardo,'giorno','giorni')+' fa':'')
      : 'ultima verifica non nota');
  eu.className=nonGira||(v&&ritardo>=GAP_VERIFICA)||!v?'vecchio':'';
+ /* LA FASCIA SI ACCENDE CON LA TESTATA, e non un giorno prima: la soglia e la stessa,
+    perche un ritardo di un giorno non e un guasto e dirlo insegnerebbe a ignorare la
+    fascia. Le date sono gia calcolate qui: rifarle altrove sarebbe la strada doppia. */
+ var ef=$('k-fermo'), mf=(nonGira||(v&&ritardo>=GAP_VERIFICA))?motivoFermo():null;
+ if(ef){ ef.className=mf?'fascia on':'fascia'; ef.innerHTML=mf||''; }
  var quiete=v?ggCal(new Date(u+'T00:00:00'),new Date(v+'T00:00:00')):null;
  $('k-fresh').innerHTML=(str?'sondaggi al <b>'+dc(u)+'</b>':'ultimo sondaggio <b>'+dl(u)+'</b>')+
   (quiete!==null&&quiete>=GAP_SONDAGGI
@@ -4625,7 +4656,7 @@ function rProb(){
    NIENTE COMANDI. Le leve cambiano numeri che il lettore di un articolo altrui non ha il
    contesto per interpretare: un controfattuale senza la sua spiegazione è peggio di nessun
    controfattuale. Resta il collegamento alla pagina intera, che la firma porta già. */
-var SINT_TIENI=['k-sintriga','k-emi','k-sprobs','k-firma','k-postvoto','k-mem','k-upd','k-fresh'];
+var SINT_TIENI=['k-sintriga','k-emi','k-sprobs','k-firma','k-postvoto','k-mem','k-fermo','k-upd','k-fresh'];
 /* SI POTA, NON SI SPOSTA, ed è una scelta e non una comodità. Comporre la sintesi
    spostando i pezzi in un contenitore nuovo li farebbe atterrare sotto selettori
    discendenti che non conoscono: è la trappola di #k-evsel, l'unico elemento che si sposta
