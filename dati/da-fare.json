@@ -1,16 +1,68 @@
 {
- "generato": "2026-09-04",
+ "generato": "2026-09-05",
  "job": {
-  "esito": "ok",
-  "motivo": null,
-  "archivioAl": "2026-08-31",
-  "rilevazioniNuove": 0
+  "esito": "fermo",
+  "motivo": "colonne di lista non riconosciute: Zehut",
+  "archivioAl": "2026-09-04",
+  "rilevazioniNuove": 6
  },
  "conto": {
-  "blocca": 0,
-  "richiedono": 0,
+  "blocca": 2,
+  "richiedono": 3,
   "informative": 0
  },
- "riga": "Niente da fare.",
- "voci": []
+ "riga": "3 cose richiedono te — 2 BLOCCANO la pubblicazione",
+ "voci": [
+  {
+   "id": "colonne-ignote",
+   "categoria": "liste",
+   "urgenza": "blocca",
+   "titolo": "Una colonna di lista non riconosciuta",
+   "quanti": 1,
+   "dettaglio": {
+    "colonne": [
+     "Zehut"
+    ]
+   },
+   "chiude": "Mappa le colonne in `W_LISTA` e le liste in `P{}` dentro index.html — con `dentro` se sono componenti di una fusione. Poi il job riprende da solo la notte successiva. GIUDIZIO: quale id dare a un nome inglese lo decide una persona.",
+   "procedura": "docs/mappare-una-lista-nuova.md"
+  },
+  {
+   "id": "job-fermo",
+   "categoria": "job",
+   "urgenza": "blocca",
+   "titolo": "Il lavoro notturno si è fermato",
+   "quanti": 1,
+   "dettaglio": {
+    "motivo": "colonne di lista non riconosciute: Zehut",
+    "esecuzioni": 1,
+    "archivioAl": "2026-09-04"
+   },
+   "chiude": "Il motivo è: colonne di lista non riconosciute: Zehut. L'archivio pubblicato resta fermo al 2026-09-04 finché la causa non è tolta.",
+   "procedura": null
+  },
+  {
+   "id": "eventi-da-tradurre",
+   "categoria": "eventi",
+   "urgenza": "richiede",
+   "titolo": "2 voci-evento da tradurre",
+   "quanti": 2,
+   "dettaglio": {
+    "voci": [
+     {
+      "chiave": "2026-09-03|likud-mk-tally-gotliv-announces-she-is-running-with-otzma-yehudit",
+      "data": "2026-09-03",
+      "testo": "Likud MK Tally Gotliv announces she is running with Otzma Yehudit"
+     },
+     {
+      "chiave": "2026-09-01|the-religious-zionist-party-and-zehut-agree-to-run-together-as-a-technic",
+      "data": "2026-09-01",
+      "testo": "The Religious Zionist Party and Zehut agree to run together as a technical bloc"
+     }
+    ]
+   },
+   "chiude": "Apri `dati/eventi-grezzi.json`, cerca `\"stato\": \"nuovo\"`. Per ognuna: o la traduci — riga italiana in `EVENTI` dentro index.html, e la voce passa a `\"tradotto\"` — o la scarti portandola a `\"scartato\"`. GIUDIZIO: se la voce meriti la cronologia lo decide una persona; la data NON si tocca, sposta il marcatore sull'asse.",
+   "procedura": "docs/tradurre-una-voce-evento.md"
+  }
+ ]
 }
