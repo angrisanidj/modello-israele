@@ -1,40 +1,16 @@
 {
- "generato": "2026-09-05",
+ "generato": "2026-09-06",
  "job": {
   "esito": "ok",
   "motivo": null,
   "archivioAl": "2026-09-04",
-  "rilevazioniNuove": 6
+  "rilevazioniNuove": 0
  },
  "conto": {
   "blocca": 0,
-  "richiedono": 1,
+  "richiedono": 0,
   "informative": 0
  },
- "riga": "1 cosa richiede te",
- "voci": [
-  {
-   "id": "eventi-da-tradurre",
-   "categoria": "eventi",
-   "urgenza": "richiede",
-   "titolo": "2 voci-evento da tradurre",
-   "quanti": 2,
-   "dettaglio": {
-    "voci": [
-     {
-      "chiave": "2026-09-03|likud-mk-tally-gotliv-announces-she-is-running-with-otzma-yehudit",
-      "data": "2026-09-03",
-      "testo": "Likud MK Tally Gotliv announces she is running with Otzma Yehudit"
-     },
-     {
-      "chiave": "2026-09-01|the-religious-zionist-party-and-zehut-agree-to-run-together-as-a-technic",
-      "data": "2026-09-01",
-      "testo": "The Religious Zionist Party and Zehut agree to run together as a technical bloc"
-     }
-    ]
-   },
-   "chiude": "Apri `dati/eventi-grezzi.json`, cerca `\"stato\": \"nuovo\"`. Per ognuna: o la traduci — riga italiana in `EVENTI` dentro index.html, e la voce passa a `\"tradotto\"` — o la scarti portandola a `\"scartato\"`. GIUDIZIO: se la voce meriti la cronologia lo decide una persona; la data NON si tocca, sposta il marcatore sull'asse.",
-   "procedura": "docs/tradurre-una-voce-evento.md"
-  }
- ]
+ "riga": "Niente da fare.",
+ "voci": []
 }
