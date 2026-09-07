@@ -212,8 +212,36 @@ setTimeout(function(){
   const gg = [].slice.call(D.querySelectorAll('#k-calend .g')).map(e => e.textContent.trim());
   esito(gg.length === A.TAPPE.length, 'il calendario rende tutte le sue tappe',
     gg.length + ' rese, ' + A.TAPPE.length + ' dichiarate');
-  esito(gg.every(t => /giorni|oggi|passato/.test(t)),
-    'e ognuna dice o quanti giorni mancano, o «oggi», o «passato»', gg.join(' · '));
+  /* L'ATTESA NON È UNA PAROLA, È LA COPPIA. Il controllo era /giorni|oggi|passato/ e NON
+     AMMETTEVA IL SINGOLARE che acc() produce: il 7 settembre 2026, vigilia del deposito
+     delle liste, la prima tappa ha detto «1 giorno» per la prima volta e questa prova è
+     caduta su un testo corretto — cioè ha dichiarato un difetto dove c'era esattamente
+     l'accordo che acc() esiste per fare. Verificato nei due versi: con l'orologio al 5
+     settembre la suite è 58/58, e nella spazzolata al 23 ottobre è verde.
+
+     È LA STESSA RIPARAZIONE GIÀ FATTA AL CONTO ALLA ROVESCIA della fascia, in final.js:
+     là l'attesa cercava la parola «giorni», la spazzolata al 20 novembre l'ha trovata
+     falsa — dopo il voto la fascia dice «voto concluso» — ed è diventata «o quanto manca,
+     o che si è votato». Qui la coppia è «o quanto manca, o in che stato è la tappa».
+
+     E NON SI RIPARA AGGIUNGENDO «giorno» ALL'ALTERNANZA: quello sarebbe l'elenco delle
+     forme che acc() produce oggi, cioè la copia che resta indietro alla prima forma nuova,
+     ed è la ragione per cui questa riga è caduta la prima volta. Un conto si riconosce
+     perché comincia con una cifra, qualunque parola gli venga dietro. */
+  const STATO_TAPPA = ['oggi', 'passato'];
+  const diceQuando = s => /^\d/.test(String(s).trim()) ||
+    STATO_TAPPA.indexOf(String(s).trim().toLowerCase()) >= 0;
+  /* IL RILEVATORE SI PROVA SU CASI COSTRUITI, e non sul calendario di oggi: la forma
+     singolare esiste un giorno per tappa, quindi un'asserzione che la esercitasse solo
+     quando capita sarebbe verde per assenza del caso in tutti gli altri giorni — che è
+     precisamente il modo in cui il difetto è arrivato fin qui. */
+  esito(['1 giorno','1giorno','29 giorni','29giorni','oggi','passato','Passato']
+          .every(diceQuando) &&
+        !diceQuando('') && !diceQuando('fra poco') && !diceQuando('domani'),
+    'il rilevatore accetta il singolare, il plurale e i due stati, e rifiuta una tappa muta',
+    'accettati e rifiutati come dichiarato');
+  esito(gg.every(diceQuando),
+    'e ognuna dice o quanto manca, o in che stato è: mai muta', gg.join(' · '));
   esito(past.length === 0 || past.every(e => /passato/.test(e.querySelector('.g').textContent)),
     'e la tappa passata scrive la parola al posto del conto alla rovescia',
     past.length ? past[0].querySelector('.g').textContent : 'nessuna tappa è ancora passata');
