@@ -68,6 +68,49 @@ nessuno, era la sigla a non esistere.
 
 ---
 
+## Se il blocco è pieno: prima si guarda se una lista si è RITIRATA
+
+Aggiunto il 7 settembre 2026, mappando Riservisti · NEP. Il contratto mandava dritti alla
+scala di ripiego del §9, e per l'ago della bilancia **quella scala è finita**: il primo
+parametro è stato speso il 26 agosto (`dentro_dic` 3,0 → 2,4, cioè già sotto il criterio
+d'arresto di 3,0), il secondo non produce niente — misurato fino a `fra_blocchi_dic` 3,5,
+la saturazione resta cinque — e il terzo allargherebbe il settore prendendo tinta a un
+altro blocco.
+
+**La domanda da fare prima è un'altra: c'è una lista di quel blocco con `fine`?** Un
+ritiro libera uno slot, e riprenderlo costa zero.
+
+### Come si riprende, e come NON si riprende
+
+| via | costo, misurato |
+|---|---|
+| togliere la ritirata e mettere la nuova **in coda** | **ripinge tutte** le liste che la seguivano: l'assegnazione è per posizione |
+| **mettere la nuova nella POSIZIONE della ritirata** | **nessuno si sposta** |
+
+Quindi **si sostituisce in loco**, dentro `COLORE.ORDINE[blocco]`, e si lascia la posizione
+di tinta della ritirata dov'è: è il parametro con cui il suo colore fu calcolato, e
+toglierlo renderebbe irricostruibile un esadecimale che l'anagrafica porta ancora.
+
+### Le tre cose da sapere prima di farlo
+
+1. **LA LISTA NUOVA EREDITA L'ESADECIMALE DELLA RITIRATA**, e non si può evitare: nel blocco
+   è lo **slot** a determinare il colore, non la tinta dichiarata. Provate dodici posizioni
+   di tinta nella stessa posizione di slot: tutte danno lo stesso valore.
+   È accettabile perché `corre()` toglie la ritirata da `QUO` prima di ogni render, quindi
+   le due non compaiono mai insieme in un grafico. **Verificalo invece di darlo per
+   scontato**: se la ritirata comparisse ancora da qualche parte con la sua tinta, quel
+   posto mostrerebbe due liste dello stesso colore.
+2. **IL RILASCIO SI SCRIVE, NON SI DEDUCE DAL CAMPO `fine`.** Dedotto sarebbe automatico e
+   silenzioso, e la prima lista che si ritira ripingerebbe tutte quelle che la seguono.
+   Scritto in `COLORE.ORDINE`, è una decisione presa una volta e visibile.
+3. **UNA RITIRATA PUÒ RESTARE NELL'ORDINE.** Uno slot si riprende **quando serve**, non
+   quando si libera: Unità è ritirata dal 4 settembre e tiene il suo posto, perché
+   riprenderlo ripingerebbe le due liste vive che lo seguono in cambio di niente.
+
+E `regola.js` lo sa: una lista può stare in anagrafica e **non** nella regola solo se
+dichiara `fine`, e in quel caso deve tenere i due colori con cui è stata pubblicata. Senza
+`fine` la prova cade e dice «lista mappata a metà», che è il caso dell'8 settembre.
+
 ## Il colore, che è l'unico passo con una regola che si difende da sé
 
 ```bash

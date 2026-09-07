@@ -60,6 +60,7 @@ let src = fs.readFileSync(__dirname + '/../app.js','utf8');
 src = src.slice(0, src.indexOf('carica().then(render,render)')) +
   'global.A={P:P,IDS:IDS,BL:BL,IN_BILICO:IN_BILICO,bloccoDi:bloccoDi,filtraBilico:filtraBilico,' +
   'blocchi:blocchi,render:render,PRESET:PRESET,ARCO_ORD:ARCO_ORD,ARCO_VICINI:ARCO_VICINI,' +
+  'corre:corre,' +
   'nm:nm,siglaBlocco:siglaBlocco,SIGLA_TIPO:SIGLA_TIPO,SIGLA_PREP:SIGLA_PREP,' +
   'testoCondivisione:testoCondivisione,promptAI:promptAI,serieModello:serieModello,' +
   'get SOND(){return SOND;},set SOND(v){SOND=v;},get SEG(){return SEG;},' +
@@ -85,7 +86,57 @@ const SEME = A.SOND.slice();
    misurare questa. Il quarto blocco si esercita con «Casa Sionista», che l ago della
    bilancia ce l ha per anagrafica e che nessuna riga di IN_BILICO nomina — ed e' anche
    piu' onesto, perche' la proprieta' e' del BLOCCO e non della lista che la leva sposta. */
-const ENTRA = 'casa_sionista';
+/* LA LISTA SI CERCA, NON SI NOMINA, e la costante e' costata cinque asserzioni il 7
+   settembre 2026: era «casa_sionista», quella lista si e' ritirata il 6, corre() la toglie
+   da QUO e i quattro seggi della fixture non arrivavano piu' — «incerto: 0» e con lui la
+   riga di condivisione, il prompt, il sommario, il verdetto e la legenda. La proprieta'
+   non era diventata obsoleta: lo era la LISTA scelta, che e' un'altra cosa.
+   E' la forma gia' usata per colonneBlocco(), dove la prova cerca nell'anagrafica la lista
+   che distingue le due strade invece di scriverne il nome: un id cablato in una prova e' la
+   costante che l'8 settembre resta indietro.
+   I VINCOLI SONO TRE, e il terzo e' quello che mancava:
+   · del blocco «incerto» PER ANAGRAFICA — il quarto blocco si esercita li';
+   · non nominata da IN_BILICO — o la leva la conterebbe altrove e il quarto blocco non
+     esisterebbe mai, che e' il difetto della prima stesura, del 27 agosto;
+   · CHE CORRA, cioe' senza `fine` alla data a cui la pagina viene resa: una lista ritirata
+     non prende seggi, e una fixture che gliene desse misurerebbe il filtro invece del
+     quarto blocco. */
+const CANDIDATI = A.IDS.filter(i =>
+  A.P[i].b === 'incerto' && A.IN_BILICO.every(r => r.id !== i) && A.corre(i));
+const ENTRA = CANDIDATI[0];
+/* I VINCOLI SI VERIFICANO SULL INSIEME, non sulla lista scelta, ed e la differenza fra una
+   guardia e una coincidenza. Con l anagrafica di oggi il primo candidato soddisfa i tre
+   vincoli anche se il filtro ne perde uno — amcha, che IN_BILICO nomina, viene DOPO
+   nell ordine — quindi un mutante che toglie quel vincolo resta vivo se si guarda solo
+   ENTRA. Sull insieme muore: togliendolo, amcha diventa candidato e la riga cade.
+   E i tre vincoli devono ESCLUDERE davvero qualcuno, o sarebbero dichiarati e inerti: e
+   l inventario di opacita.js applicato a una ricerca. */
+esito(CANDIDATI.length > 0 &&
+      CANDIDATI.every(i => A.P[i].b === 'incerto') &&
+      CANDIDATI.every(i => A.IN_BILICO.every(r => r.id !== i)) &&
+      CANDIDATI.every(i => A.corre(i)),
+  'e i tre vincoli valgono su TUTTI i candidati, non solo su quello scelto',
+  CANDIDATI.join(', ') || 'nessuno');
+{
+  const fuoriBlocco = A.IDS.filter(i => A.P[i].b !== 'incerto');
+  const fuoriLeva   = A.IDS.filter(i => A.P[i].b === 'incerto' &&
+                                        A.IN_BILICO.some(r => r.id === i));
+  const ritirate    = A.IDS.filter(i => A.P[i].b === 'incerto' && !A.corre(i));
+  esito(fuoriBlocco.length > 0 && fuoriLeva.length > 0 && ritirate.length > 0,
+    'e ciascuno dei tre esclude davvero qualcuno: un vincolo che non toglie niente e ' +
+    'dichiarato e inerte',
+    'blocco ' + fuoriBlocco.length + ' · leva ' + (fuoriLeva.join(',') || '—') +
+    ' · ritirate ' + (ritirate.join(',') || '—'));
+}
+/* E SE NON SI TROVA, LA SUITE FALLISCE DICHIARANDOLO. Una prova che non ha una lista da
+   usare non ha niente da provare, e proseguire darebbe una fila di asserzioni che passano
+   su un caso che non esiste — cioe' il verde per assenza del caso contro cui questo banco
+   mette in guardia da v5.js in poi. */
+esito(!!ENTRA,
+  'esiste una lista dell ago della bilancia, fuori da IN_BILICO, che corre: e quella con cui',
+  'nessuna lista soddisfa i tre vincoli — la prova non ha un caso da esercitare');
+if (!ENTRA){ console.log('\nblocchi: ' + ok + '/' + (ok + ko)); process.exit(1); }
+console.log('   (la lista che entra e ' + ENTRA + ')');
 /* LA LEVA È UN ARGOMENTO, NON UN'EREDITÀ, e questa riga è costata dodici asserzioni.
    Fino al 27 agosto 2026 le due fixture facevano «PAR.inbilico = PAR_DEF.inbilico», con
    scritto accanto «al DIFETTO, non a zero: una fixture che la spegnesse proverebbe uno

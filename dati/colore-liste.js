@@ -108,7 +108,25 @@ var COLORE = (function () {
     coalizione : ['likud','shas','utj','otzma','sionismo_rel','zehut','rzp_zehut'],
     opposizione: ['byachad','democratici','beitenu','yashar','blue_white','yesh_atid','bennett26'],
     arabo      : ['raam','lista_araba','hadash_taal','balad'],
-    incerto    : ['casa_sionista','economico','unity_erdan','israel_first','amcha']
+    /* LO SLOT DI casa_sionista E' STATO RILASCIATO IL 7 SETTEMBRE 2026, ed e' scritto qui
+       invece che dedotto dal campo `fine` dell'anagrafica. Un rilascio dedotto sarebbe
+       automatico e silenzioso: la prima lista che si ritira ripingerebbe tutte quelle che
+       la seguono, perche' l'assegnazione e' per posizione. Scritto, il rilascio e' una
+       decisione presa una volta e visibile.
+       IN LOCO E NON IN CODA, e la differenza e' misurata: togliendo casa_sionista dalla
+       testa e mettendo la nuova in fondo si spostano TUTTE E QUATTRO le altre — economico
+       da #413B00 a #8B5400, e a cascata. Sostituendola nella sua posizione non si sposta
+       nessuno, e il prezzo e' che la lista nuova eredita il suo esadecimale.
+       PERCHE' NON LA SCALA DEL §9: per questo blocco e' finita. Il primo parametro e' gia'
+       stato speso il 26 agosto — dentro_dic 3,0 → 2,4 — ed e' sotto il criterio d'arresto
+       di 3,0; il secondo non produce niente, misurato fino a fra_blocchi_dic 3,5 senza che
+       la saturazione si muova da cinque; il terzo allargherebbe il settore prendendo tinta
+       a un altro blocco. L'ago della bilancia e' la famiglia ocra, larga 47°, e non ha
+       altro da dare.
+       E unity_erdan RESTA benche' ritirata il 4 settembre: uno slot si riprende quando
+       serve, non quando si libera. Riprenderli tutti e due adesso ripingerebbe le due
+       liste vive che li seguono in cambio di niente. */
+    incerto    : ['reserv_nep','economico','unity_erdan','israel_first','amcha']
   };
   /* TINTA_ASSEGNATA: la posizione di tinta di ogni lista dentro il
      settore del suo blocco. E' un PARAMETRO DELLA REGOLA, uno per
@@ -138,7 +156,11 @@ var COLORE = (function () {
     lista_araba : 147,  /* STORICA · #3f8047 H 146,5 C 0,110 */
     hadash_taal : 170,
     balad       : 186,
+    /* casa_sionista tiene la sua posizione dichiarata benche' non sia piu' nell'ORDINE:
+       e' il parametro con cui il suo colore fu calcolato, e toglierlo renderebbe
+       irricostruibile un esadecimale che l'anagrafica porta ancora. */
     casa_sionista: 75,
+    reserv_nep  : 75,
     economico   : 90,
     unity_erdan : 58,
     israel_first: 100,

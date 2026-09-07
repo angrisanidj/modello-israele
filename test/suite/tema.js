@@ -128,6 +128,67 @@ esito(liste.length>=15,'la tavolozza delle liste è stata letta ('+liste.length+
    Hadash-Ta'al e Balad. È corretto finché non coesistono — e non coesistono mai —
    quindi la distinzione si verifica solo fra liste che possono comparire insieme.
    Che coesistano davvero è compito della guardia in index.html, non di questa prova. */
+/* ══ DUE LISTE POSSONO CONDIVIDERE LA TINTA SE LE LORO VITE NON SI SOVRAPPONGONO ═══════
+ * Clausola generale, aggiunta il 7 settembre 2026. NON e' una voce in ALTERNATIVE: quello
+ * e' l'elenco delle FUSIONI — contenitore e componenti, che condividono lo slot per
+ * costruzione — e allungarlo con una coppia di natura diversa vorrebbe dire chiamare
+ * fusione un ritiro. Qui la ragione e' un'altra: una lista si e' ritirata e il suo slot e'
+ * stato ripreso, quindi la tinta e' la stessa e le due non compaiono mai nello stesso
+ * momento perche' non esistono nello stesso momento.
+ *
+ * IL CONFRONTO E' «fine» CONTRO LA PRIMA RILEVAZIONE DELL'ALTRA, e va letto sapendo che
+ * `fine` e' ESCLUSIVA: corre(i,al) e' «al < fine», cioe' il giorno nominato la lista gia'
+ * non corre piu'. Quindi «non si sovrappongono» e' «fine NON POSTERIORE alla prima
+ * rilevazione dell'altra», e la differenza di un carattere decide il caso vero: Casa
+ * Sionista finisce il 6 settembre e la prima rilevazione di Riservisti · NEP e' del 6
+ * settembre. Con il confronto stretto la clausola non si applicherebbe proprio la notte in
+ * cui quella riga entra in archivio.
+ *
+ * E UNA LISTA SENZA RILEVAZIONI NON HA ANCORA COMINCIATO: la sua vita non puo' sovrapporsi
+ * a niente. E' il caso di oggi — la riga del 6 settembre entra stanotte — ed e' dichiarato
+ * invece di essere lasciato passare per distrazione.
+ *
+ * MISURATO SUL DOM RESO, e non dedotto: con l'archivio come sara' stanotte, l'unica sede
+ * che mostra le due liste INSIEME e' la tabella dell'archivio, dove dal 31 agosto le cifre
+ * non portano piu' il colore della lista. Le sedi che portano la tinta condivisa — k-proj
+ * e il modulo di inserimento — mostrano solo quella che corre. */
+const ARCHIVIO = (function(){
+  try { return JSON.parse(require('fs').readFileSync('../../dati/archivio.json','utf8')); }
+  catch(e){ return []; }
+})();
+function primaRilevazione(id){
+  const d = ARCHIVIO.filter(s => (s.seggi && s.seggi[id] !== undefined) ||
+                                 (s.sotto && s.sotto[id] !== undefined))
+    .map(s => s.data).sort();
+  return d[0] || null;
+}
+const FINE = (function(){
+  const o = {};
+  for (const riga of blocco.split('\n')){
+    const m = riga.match(/^\s*([a-z0-9_]+)\s*:\s*\{/);
+    const f = riga.match(/fine:"(\d{4}-\d{2}-\d{2})"/);
+    if (m && f) o[m[1]] = f[1];
+  }
+  return o;
+})();
+/* vero se A si e' ritirata prima che B cominciasse, in un verso o nell'altro */
+function viteDisgiunte(a,b){
+  return finePrimaDi(a,b) || finePrimaDi(b,a);
+}
+/* IL CONFRONTO E' UNA FUNZIONE PURA SU DUE DATE, e non una riga dentro finePrimaDi(),
+   perche' la distinzione fra «<=» e «<» oggi NON SI ESERCITA: Riservisti · NEP non ha
+   ancora nessuna riga in archivio — la sua prima entra stanotte — quindi primaRilevazione()
+   risponde null e il ramo del confronto non viene mai percorso. Un mutante che stringe il
+   confronto resterebbe vivo fino a domani, cioe' fino al giorno in cui comincia a contare.
+   Separata, la si prova su date costruite e il verdetto non dipende dall'archivio. */
+function nonPosteriore(fineA, primaB){
+  return primaB === null || fineA <= primaB;
+}
+function finePrimaDi(a,b){
+  if (!FINE[a]) return false;
+  return nonPosteriore(FINE[a], primaRilevazione(b));
+}
+
 const ALTERNATIVE=[['byachad',['yesh_atid','bennett26']],['lista_araba',['hadash_taal','balad']]];
 function coesistono(a,b){
  for(const [x,ys] of ALTERNATIVE){
@@ -145,11 +206,43 @@ function scuroDi(c){return PAL_SCURO[c.toUpperCase()]||schiarisci(c,0.40);}
  const visti={},doppi=[];
  for(const L of liste){
   const chiave=String(rgb(tr(L.c)));
-  if(visti[chiave]){ if(coesistono(visti[chiave],L.id)) doppi.push(visti[chiave]+' e '+L.id+' → '+tr(L.c)); }
+  if(visti[chiave]){ if(coesistono(visti[chiave],L.id) && !viteDisgiunte(visti[chiave],L.id))
+    doppi.push(visti[chiave]+' e '+L.id+' → '+tr(L.c)); }
   else visti[chiave]=L.id;
  }
  esito(doppi.length===0,'tema '+nome+': i colori delle liste sono tutti distinti fra loro',
        doppi.join(' | '));
+
+/* LA CLAUSOLA DEV ESSERE ESERCITATA, o e' vera a vuoto e il giorno in cui smette di valere
+   nessuno se ne accorge: e' l'inventario di opacita.js applicato ai colori. Se un giorno
+   nessuna coppia condivide piu' la tinta per ritiro, questa riga cade e chiede di togliere
+   la clausola invece di lasciarla li' a coprire un caso che non c'e' piu'. */
+{
+ const cond=[];
+ for(let a=0;a<liste.length;a++) for(let b=a+1;b<liste.length;b++){
+  if(String(rgb(liste[a].c))!==String(rgb(liste[b].c))) continue;
+  if(!coesistono(liste[a].id,liste[b].id)) continue;
+  if(viteDisgiunte(liste[a].id,liste[b].id)) cond.push(liste[a].id+' e '+liste[b].id);
+ }
+ esito(cond.length>0,
+  'e almeno una coppia condivide la tinta perche le vite non si sovrappongono: la clausola '+
+  'e esercitata, non vera a vuoto', cond.join(' · ')||'nessuna coppia la esercita');
+ /* e il rilevatore sa dire di no: due liste vive con la stessa tinta restano un difetto */
+ esito(!viteDisgiunte('likud','shas'),
+  'e due liste che corrono entrambe NON sono disgiunte: la clausola non assolve tutti');
+ /* LE DATE COSTRUITE, perche' il caso vero non c'e' ancora. «fine» e' ESCLUSIVA — corre()
+    e' «al < fine» — quindi il giorno nominato la lista gia' non corre, e due vite che si
+    toccano in quel giorno NON si sovrappongono. E' esattamente il caso che arriva stanotte:
+    Casa Sionista finisce il 6 settembre, la prima riga di Riservisti · NEP e' del 6
+    settembre. Con il confronto stretto la clausola smetterebbe di applicarsi proprio
+    quando serve. */
+ esito(nonPosteriore('2026-09-06','2026-09-06'),
+  'e due vite che si toccano nello stesso giorno non si sovrappongono: fine e ESCLUSIVA');
+ esito(!nonPosteriore('2026-09-07','2026-09-06'),
+  'e una che finisce DOPO l inizio dell altra si sovrappone: il confronto sa dire di no');
+ esito(nonPosteriore('2026-09-06',null),
+  'e una lista senza rilevazioni non ha ancora cominciato, quindi non si sovrappone a niente');
+}
 });
 
 if(ko) process.exitCode=1;

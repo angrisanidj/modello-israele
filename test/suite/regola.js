@@ -47,17 +47,60 @@ if (tab) {
     scuroDa[m[1].toUpperCase()] = m[2].toUpperCase();
 }
 
-esito(Object.keys(chiaro).length === ATTESE.length,
-  'la pagina contiene le ' + ATTESE.length + ' liste che la regola conosce',
+esito(Object.keys(chiaro).length >= ATTESE.length,
+  'la pagina contiene almeno le ' + ATTESE.length + ' liste che la regola conosce',
   'pagina ' + Object.keys(chiaro).length + ' · regola ' + ATTESE.length);
 /* e sono le stesse: una lista in anagrafica che la regola non conosce non avrebbe
    colore l'8 settembre, e non se ne accorgerebbe nessuno finché non si guarda */
+/* ══ LE RITIRATE: IN ANAGRAFICA SÌ, NELLA REGOLA NO ═══════════════════════════════════
+ * Fino al 7 settembre 2026 l'insieme dell'anagrafica e quello di COLORE.ORDINE dovevano
+ * coincidere esattamente, e l'asserzione portava la sua ragione: «una lista in anagrafica
+ * che la regola non conosce non avrebbe colore l'8 settembre, e non se ne accorgerebbe
+ * nessuno». Quella ragione vale ancora, e resta coperta dal verso `soloRegola`.
+ *
+ * QUELLO CHE È CAMBIATO È CHE UNO SLOT PUÒ ESSERE RIPRESO. Casa Sionista si è ritirata il
+ * 6 settembre e il suo slot è andato a Riservisti · NEP: la lista resta in P{} — le sedici
+ * rilevazioni in cui ha preso seggi sono un fatto, e la tabella dell'archivio le disegna —
+ * ma la regola non le assegna più un colore, perché quel posto adesso è di un'altra.
+ * L'attesa è diventata obsoleta di proposito, e la decisione è dell'autore.
+ *
+ * IL CONTROLLO CHE RESTA È PIÙ STRETTO DI COME SEMBRA, ed è la ragione per cui la
+ * relazione è a UN SOLO VERSO: una lista può stare in anagrafica e non nella regola SOLO
+ * se dichiara `fine`. Senza quel campo la vecchia asserzione ricompare identica — e il
+ * caso che deve cogliere è precisamente quello dell'8 settembre, una lista mappata a metà
+ * che nessuno ha messo in ORDINE. Il verso opposto non si allenta affatto: una lista nella
+ * regola e non in pagina resta un errore, ritirata o no.
+ *
+ * E UNA RITIRATA PUÒ ANCORA STARE NELLA REGOLA: Unità si è ritirata il 4 settembre e tiene
+ * il suo slot, perché uno slot si riprende quando serve e non quando si libera. Riprenderlo
+ * ripingerebbe le liste che lo seguono, che è il prezzo scritto in COLORE.ORDINE. */
+const RITIRATE = [];
+if (blocco) {
+  for (const riga of blocco[1].split('\n')) {
+    const m = riga.match(/^\s*([a-z0-9_]+)\s*:\s*\{/);
+    if (m && /fine:"\d{4}-\d{2}-\d{2}"/.test(riga)) RITIRATE.push(m[1]);
+  }
+}
+esito(RITIRATE.length > 0,
+  'l\'anagrafica dichiara almeno una lista ritirata: senza, le due asserzioni qui sotto ' +
+  'sarebbero vere per assenza del caso', 'ritirate: ' + (RITIRATE.join(', ') || 'nessuna'));
+
 const soloPagina = Object.keys(chiaro).filter(i => ATTESE.indexOf(i) < 0);
 const soloRegola = ATTESE.filter(i => !chiaro[i]);
-esito(soloPagina.length === 0 && soloRegola.length === 0,
-  'e sono le stesse liste, non solo lo stesso numero',
-  'solo in pagina: ' + (soloPagina.join(', ') || '—') +
+const orfane = soloPagina.filter(i => RITIRATE.indexOf(i) < 0);
+esito(orfane.length === 0 && soloRegola.length === 0,
+  'e ogni lista dell\'anagrafica che la regola non conosce dichiara `fine`: senza quel ' +
+  'campo sarebbe una lista mappata a meta\u0300, che l\'8 settembre resta senza colore',
+  'orfane: ' + (orfane.join(', ') || '—') +
   ' · solo nella regola: ' + (soloRegola.join(', ') || '—'));
+
+/* e il verso che manca sempre: la ritirata NON deve aver perso il colore che ha */
+RITIRATE.filter(i => ATTESE.indexOf(i) < 0).forEach(i => {
+  esito(!!chiaro[i] && /^#[0-9A-F]{6}$/.test(chiaro[i].c) && !!scuroDa[chiaro[i].c],
+    'e la ritirata ' + i + ' tiene i due colori con cui e\u0300 stata pubblicata: la sua ' +
+    'storia resta disegnata nell\'archivio, e un colore che sparisce la fa sparire con se\u0301',
+    chiaro[i] ? chiaro[i].c + ' → ' + (scuroDa[chiaro[i].c] || '(assente da PAL_SCURO)') : 'assente');
+});
 
 /* ── il confronto vero, lista per lista, nei due temi ── */
 for (const id of ATTESE) {

@@ -47,6 +47,48 @@ const RADICE = join(QUI, '..', '..');
 export const USCITA_GUARDIA = 4;
 export const SOGLIE = {CORPO_MINIMO: 1_000_000, CALO_VALIDE: 5, MASSIMO_NUOVE: 10, DELTA_BLOCCO: 6};
 
+/* ══ LE COLONNE CHE STIAMO PERDENDO ═══════════════════════════════════════════════════
+ * Restituisce i nomi delle colonne non riconosciute che compaiono in una tabella SCARTATA
+ * la quale si porta via almeno una riga di sondaggio piu' recente dell'ultima in archivio.
+ *
+ * IL CASO MUTO DEL 6 SETTEMBRE 2026, che nessuna guardia ha colto. La fonte ha aperto una
+ * tabella nuova con una riga sola di sondaggio — Kantar/Kan 11 — e una colonna che
+ * l'anagrafica non conosceva, «Reserv.-NEP». Senza quella colonna la riga somma 116 invece
+ * di 120, quindi cade; la tabella resta con ZERO righe valide e parseWiki la scarta INTERA;
+ * e le sue colonne ignote finiscono in «ignorate», che la guardia della congiunzione legge
+ * solo se le righe valide sono ANCHE crollate. Non erano crollate — 175 ieri, 175 oggi —
+ * perche' le righe che si perdevano non erano mai state contate. Risultato: l'archivio
+ * smette di crescere, «valide» non cala, nessuna guardia parla, e il riepilogo dice «Niente
+ * da fare». Un caso muto e' peggio di un rosso: un rosso lo si vede.
+ *
+ * PERCHE' LA DATA E NON IL CROLLO. Fra le due tabelle scartate la differenza non e' la
+ * presenza di colonne ignote — ce l'hanno tutte e due — ma quello che si perde: la tabella
+ * degli scenari («Winter», «Other», «Don't know») butta righe del 16 luglio-9 agosto, cioe'
+ * roba che l'archivio ha gia' o non vuole; quella nuova butta il 6 settembre, che e' piu'
+ * recente di tutto quello che abbiamo. Misurato sulle tabelle preesistenti: ZERO falsi
+ * allarmi su trenta notti.
+ *
+ * E NON SI RESTRINGE AL FALLIMENTO PER SOMMA, benche' una colonna non letta tolga sempre
+ * dei seggi e la firma tipica sia quella. Il 2 settembre 2026 la cella congiunta di Zehut
+ * ha fatto cadere delle righe come «ambigua», non come «somma»: una guardia ristretta a un
+ * tipo sarebbe stata cieca proprio li'. Quello che conta e' che stiamo perdendo una riga
+ * NUOVA da una tabella che non sappiamo leggere; PERCHE' non sappiamo leggerla e' la
+ * diagnosi, non la condizione.
+ *
+ * SENZA archivioAl NON DECIDE: restituisce vuoto invece di indovinare. E' l'asimmetria
+ * della guardia notturna — una notte ridondante costa pochi secondi, una notte fermata su
+ * un confronto che non si poteva fare costa l'archivio. */
+export function colonnePerse(ignorate, archivioAl){
+  const nomi = [];
+  if (!archivioAl) return nomi;
+  (ignorate || []).forEach(t => {
+    if (!(t.ignote || []).length) return;
+    if (!(t.ko || []).some(k => k && k.data > archivioAl)) return;
+    t.ignote.forEach(c => { if (nomi.indexOf(c) < 0) nomi.push(c); });
+  });
+  return nomi;
+}
+
 export function valuta(p){
   if (!p.httpOk) return {stop: 'Wikipedia non raggiungibile'};
   if (p.byte < SOGLIE.CORPO_MINIMO)
@@ -87,6 +129,25 @@ export function valuta(p){
      Other, Don't know) e farebbero scattare la guardia ogni notte; il crollo da solo puo'
      essere Wikipedia che riorganizza, ed e' il caso che la riga qui sotto continua a
      coprire. Insieme sono la firma del deposito delle liste, e nient'altro le produce. */
+  /* LA STESSA VOCE, «colonne-ignote», e la stessa procedura di quella qui sopra: da fuori
+     il caso e' identico — la fonte pubblica una lista che non conosciamo — e cambia solo da
+     dove si vede. Due voci direbbero al lettore del mattino che sono due problemi. */
+  if ((p.colonnePerse || []).length)
+    return {stop: 'colonne non riconosciute in una tabella scartata che si porta via ' +
+                  'rilevazioni piu’ recenti dell’archivio (' + p.archivioAl + '): ' +
+                  p.colonnePerse.join(', '),
+            issue: {titolo: 'Il parser ha trovato colonne di lista non riconosciute',
+                    corpo: 'L’aggiornamento notturno si e’ fermato: una tabella di ' +
+                           'Wikipedia contiene colonne che l’anagrafica non conosce, e con ' +
+                           'quelle colonne le sue righe non sommano 120 — quindi la tabella e’ ' +
+                           'stata scartata INTERA, portandosi via rilevazioni piu’ recenti ' +
+                           'dell’ultima in archivio (' + p.archivioAl + ').' + '\n\n' +
+                           p.colonnePerse.map(c => '- `' + c + '`').join('\n') +
+                           '\n\nVanno mappate a mano in `W_LISTA` e in `P{}` — con `dentro` ' +
+                           'per le fusioni — dentro index.html, seguendo ' +
+                           'docs/mappare-una-lista-nuova.md.\nL’archivio pubblicato resta ' +
+                           'fermo all’ultimo giorno buono.'}};
+
   const crollo = p.valide < p.valideIeri - SOGLIE.CALO_VALIDE;
   const nomiScartati = [];
   (p.ignorate || []).forEach(t => (t.ignote || []).forEach(c => {
@@ -309,16 +370,24 @@ async function main(){
   const ipotesi = A.ipotesiNeiNumeri() || '';
   const ambigue = out.scartate.filter(x => x.tipo === 'ambigua').length;
 
+  /* archivioAl SALE SOPRA valuta(), perche' la guardia delle colonne perse lo confronta:
+     e' l'ultima data che l'archivio possiede DOPO l'unione, cioe' il metro con cui si
+     giudica se una riga che stiamo buttando via e' nuova o e' un residuo di mesi fa.
+     E il conto si fa UNA VOLTA SOLA: gli stessi nomi servono alla guardia e al riepilogo,
+     e calcolarli due volte sarebbe la strada doppia che diverge alla prima riscrittura. */
+  const archivioAl = A.SOND().map(s => s.data).sort().pop() || null;
+  const perse = colonnePerse(out.ignorate || [], archivioAl);
+
   const esito = valuta({
     httpOk, byte: testo.length,
     valide: out.sondaggi.length, valideIeri: stato.valide,
     nuove, ignote: out.ignote || [], ignorate: out.ignorate || [],
     ambigue, ambigueIeri: stato.ambigue,
+    colonnePerse: perse, archivioAl,
     blocchi, blocchiIeri: stato.blocchi
   });
 
   const oggi = new Date().toISOString().slice(0, 10);
-  const archivioAl = A.SOND().map(s => s.data).sort().pop() || null;
   const registro = JSON.parse(readFileSync(join(RADICE, 'dati', 'eventi-grezzi.json'), 'utf8'));
   const reg = aggiornaRegistro(registro, out.eventi, A.chiaveEvento, oggi);
 
@@ -342,7 +411,13 @@ async function main(){
     archivioAl,
     nuove,
     accordiInvalidi: A.validaApparentamenti(),
-    ignote: out.ignote || [],
+    /* UNA SOLA VOCE «colonne-ignote», e i nomi arrivano dalle due strade con cui lo stesso
+       fatto si manifesta: una colonna ignota in una tabella ACCETTATA (out.ignote) e una in
+       una tabella SCARTATA che si porta via righe nuove (perse). L'unione e' CONDIZIONATA e
+       non totale: «Winter», «Other» e «Don't know» stanno in una tabella scartata da mesi
+       che non perde niente, quindi non entrano — o la voce che blocca si accenderebbe ogni
+       notte, e si imparerebbe a saltarla proprio prima della notte in cui conta. */
+    ignote: (out.ignote || []).concat(perse.filter(c => (out.ignote || []).indexOf(c) < 0)),
     ambigue, ambigueIeri: stato.ambigue,
     esempiAmbigui: out.scartate.filter(x => x.tipo === 'ambigua')
       .map(x => ({data: x.data, istituto: x.istituto, motivo: x.motivo})),

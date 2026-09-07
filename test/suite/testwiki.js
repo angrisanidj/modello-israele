@@ -277,6 +277,67 @@ setTimeout(function(){
     sr ? sr.motivo : 'entrata lo stesso');
 }
 
+
+/* ══ LA COLONNA CON COLSPAN, DAI DUE VERSI ═══════════════════════════════════════════
+ * Riproduce la forma vera del 6 settembre 2026: la fonte apre una tabella con una lista
+ * nuova la cui intestazione ha colspan 2, e la riga di sondaggio le dà i suoi seggi in una
+ * cella sola, anch'essa a colspan 2.
+ *
+ * IL VERSO BUONO prova la mappatura: la cella vale UNA volta e la riga arriva a 120. Il
+ * verso cattivo — la stessa tabella con un nome che l'anagrafica non conosce — prova le due
+ * cose che quel giorno hanno taciuto: che il nome finisca in «ignote» UNA VOLTA SOLA, e che
+ * le date delle righe perdute viaggino con lui.
+ *
+ * PERCHÉ IL DEDUP CONTA, e non è cosmesi: «slice(0,4)» è un budget di POSIZIONI, non di
+ * nomi, e wGriglia replica l'intestazione su tutte le colonne che copre. Con due colonne
+ * unite l'elenco esaurisce il budget con due soli nomi distinti — cioè l'elenco delle liste
+ * da mappare si accorcia da solo, la notte in cui serve intero. */
+{
+  const TAB = '<h3>2026</h3><table class="wikitable">' +
+    '<tr><th>Fieldwork date</th><th>Polling firm</th><th>Publisher</th><th>Sample size</th>' +
+    '<th>Likud</th><th>Together</th><th>RZP-Zehut</th><th>Otzma</th><th>Shas</th><th>UTJ</th>' +
+    '<th>Yisrael Beiteinu</th><th>Ra\'am</th><th>Joint List</th><th>Dems</th><th>Yashar</th>' +
+    '<th colspan="2">NOME</th><th>Gov.</th></tr>' +
+    '<tr><td>6 Sep</td><td>Kantar</td><td>Kan 11</td><td>551</td>' +
+    '<td>20</td><td>13</td><td>10</td><td>7</td><td>7</td><td>8</td><td>7</td><td>6</td>' +
+    '<td>7</td><td>8</td><td>23</td><td colspan="2">4</td><td>52</td></tr></table>';
+
+  const buona = A.parseWiki(require('../../dati/fixture.js') + TAB.replace('NOME', 'Reserv.-NEP'), ['2026']);
+  const r = buona.sondaggi.filter(x => x.data === '2026-09-06')[0];
+  esito(!!r && r.seggi.reserv_nep === 4,
+    'la colonna «Reserv.-NEP» con colspan vale una volta sola e i suoi seggi vanno a reserv_nep',
+    r ? JSON.stringify(r.seggi) : 'riga non entrata');
+  const somma = r ? Object.keys(r.seggi).reduce((n,k) => n + r.seggi[k], 0) : 0;
+  esito(somma === 120,
+    'e con quella colonna la riga arriva a 120: senza, si ferma a 116 e cade come «somma»',
+    'somma ' + somma);
+
+  /* IL NOME SI PRENDE DALLA SORGENTE, non si riscrive qui: una grafia ricopiata in una
+     prova è la copia che resta indietro alla prima riscrittura, e questa prova esiste
+     proprio per il giorno in cui la fonte cambia grafia. */
+  const src = fs.readFileSync('../../index.html', 'utf8');
+  esito(/'reserv\.-nep'\s*:\s*'reserv_nep'/.test(src),
+    'e la grafia sta in W_LISTA una volta sola, mappata sull\'id nuovo',
+    'W_LISTA');
+
+  /* ── il verso cattivo: lo stesso markup con un nome che nessuno conosce ── */
+  const ignota = A.parseWiki(require('../../dati/fixture.js') + TAB.replace('NOME', 'Reserv.-XYZ'), ['2026']);
+  const scartata = (ignota.ignorate || []).filter(x => (x.ignote || []).indexOf('Reserv.-XYZ') >= 0)[0];
+  esito(!!scartata,
+    'con un nome ignoto la tabella viene scartata intera e il nome finisce in «ignorate»',
+    JSON.stringify(ignota.ignorate || []));
+  esito(!!scartata && scartata.ignote.length === 1,
+    'e ci finisce UNA VOLTA SOLA benché l\'intestazione copra due colonne: «slice(0,4)» è ' +
+    'un budget di posizioni, e senza dedup l\'elenco da mappare si accorcia da solo',
+    scartata ? JSON.stringify(scartata.ignote) : '—');
+  esito(!!scartata && (scartata.ko || []).some(k => k.data === '2026-09-06'),
+    'e la data della riga perduta viaggia col nome: è la sola cosa che distingue un ' +
+    'sondaggio nuovo da una tabella di scenari ferma da mesi',
+    scartata ? JSON.stringify(scartata.ko || []) : '—');
+  esito(!!scartata && ignota.sondaggi.filter(x => x.data === '2026-09-06').length === 0,
+    'e la riga NON entra: è il caso muto del 6 settembre, l\'archivio smette di crescere ' +
+    'senza che «valide» cali');
+}
   console.log('\ntestwiki: ' + ok + '/' + (ok + ko));
   if (ko) process.exit(1);
 }, 3000);

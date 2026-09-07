@@ -2117,7 +2117,17 @@ var P={
  bennett26   :{n:"Bennett 2026",        l:"Naftali Bennett",    c:"#E20064", b:"opposizione", o:6.6,gov:1, r22:null, dentro:"byachad"},
  blue_white  :{n:"Blu e Bianco",       l:"Benny Gantz",        c:"#C30094", b:"opposizione", o:7,  gov:1, r22:12},
  yashar      :{n:"Yashar",             l:"Gadi Eisenkot",      c:"#FF1F91", b:"opposizione", o:8,  gov:1, r22:null},
- casa_sionista:{n:"Casa Sionista",     l:"Tropper · Hendel",   c:"#8B5400", b:"incerto",     o:9,  gov:1, r22:null},
+ /* SI E RITIRATA IL 6 SETTEMBRE 2026: Hili Tropper corre con Yashar e scioglie l'alleanza
+    con i Riservisti, che si fondono col Nuovo Partito Economico. La fonte lo registra due
+    volte lo stesso giorno — la riga di cronologia, e la colonna «Zionist Home» che sparisce
+    dalla tabella nuova. Stessa forma del ritiro di Unita': la lista resta in anagrafica
+    perche' le sedici rilevazioni in cui ha preso seggi sono un fatto, e smette di correre
+    da quella data invece che sparire.
+    E IL SUO SLOT DI COLORE E' STATO RIASSEGNATO, che e' l'unica cosa che il ritiro di
+    Unita' non aveva fatto: vedi COLORE.ORDINE in dati/colore-liste.js. Il colore qui sotto
+    resta scritto perche' e' quello con cui la lista e' stata pubblicata per due mesi, e
+    perche' il modulo dell'archivio deve poterla ancora nominare. */
+ casa_sionista:{n:"Casa Sionista",     l:"Tropper · Hendel", fine:"2026-09-06", c:"#8B5400", b:"incerto",     o:9,  gov:1, r22:null},
  economico   :{n:"Partito Economico",  l:"Yaron Zelekha",      c:"#413B00", b:"incerto",     o:10, gov:1, r22:null},
  /* SI E RITIRATA IL 4 SETTEMBRE 2026, dalla fonte. Il campo `fine` e la stessa forma di
     quello degli apparentamenti ritirati: una data da cui la lista non concorre piu.
@@ -2126,6 +2136,34 @@ var P={
     modello continuerebbe a imputarle una quota per sessanta giorni a una lista che non
     corre. */
  unity_erdan :{n:"Unità",              l:"Erdan · Edelstein", fine:"2026-09-04",  c:"#6D3B00", b:"incerto",     o:11, gov:1, r22:null},
+ /* NASCE IL 6 SETTEMBRE 2026, e non ha storia: i Riservisti e il Nuovo Partito Economico
+    si fondono il giorno stesso in cui Tropper li lascia. Nessuna rilevazione anteriore la
+    nomina — la fonte apre una colonna nuova, non ne rinomina una vecchia — quindi niente
+    `dentro`: non e' il contenitore di due liste che l'archivio conosce, e trattarla come
+    tale le attribuirebbe una storia che non ha.
+    IL COLORE E' QUELLO DELLO SLOT LIBERATO DA casa_sionista, ed e' lo stesso esadecimale.
+    Non e' una svista e non si puo' evitare: nel blocco dell'ago della bilancia lo slot
+    determina il colore, e la tinta dichiarata non lo sposta — provate dodici posizioni
+    fra 58° e 103°, tutte danno #8B5400. Le due liste non coesistono mai in un grafico,
+    perche' una e' ritirata e `corre()` la toglie da QUO prima di ogni render. */
+    /* IL LEADER E' VUOTO PERCHE' LA FONTE NON NE NOMINA NESSUNO. Cercato nel markup del 7
+    settembre 2026: la voce dei Riservisti compare come collegamento e come colonna, e in
+    nessun punto la pagina attribuisce loro un capolista. Hendel era il co-leader di Casa
+    Sionista insieme a Tropper, e dedurre che sia passato di qua e' esattamente il genere
+    di inferenza che questo file non fa: si scriverebbe un nome proprio in una pagina
+    pubblica sulla base di una somiglianza.
+    LA CONDIZIONE CHE RIAPRE L'IDENTITA' CON economico, nella forma usata il 2 settembre
+    per RZP-Zehut. «NEP» sta per New Economic Party, e in anagrafica c'e' gia' un Partito
+    Economico (Zelekha): se fossero la stessa cosa, questa sarebbe un CONTENITORE e
+    vorrebbe `dentro`, non una lista nuova. Misurato il 7 settembre: `economico` ha ZERO
+    righe in tutto l'archivio — mai un seggio, mai una quota sotto soglia — cioe' la fonte
+    non gli ha mai dedicato una colonna nel 2026, e le due letture sono indistinguibili
+    dai dati. Si riapre il giorno in cui Wikipedia pubblica una colonna per il Partito
+    Economico ACCANTO a «Reserv.-NEP» (allora sono due liste e questa lettura e'
+    confermata) oppure una cella che copre tutte e due (allora il contenitore esiste
+    davvero e serve `dentro`). Finche' nessuna delle due compare, non c'e' niente da
+    decidere e non si decide. */
+ reserv_nep  :{n:"Riservisti · NEP",   l:"",                  c:"#8B5400", b:"incerto",     o:9.5, gov:1, r22:null, ab:"Riserv"},
  israel_first:{n:"Israel First",       l:"Sharren Haskel",     c:"#674F00", b:"incerto",     o:12, gov:1, r22:null},
  amcha       :{n:"Popolo d'Israele",   l:"Ofer Winter",        c:"#955A00", b:"incerto",     o:12.5, gov:1, r22:null},
  beitenu     :{n:"Yisrael Beitenu",    l:"Avigdor Lieberman",  c:"#720055", b:"opposizione", o:13, gov:1, r22:6},
@@ -6251,7 +6289,11 @@ function rProj(){
   var x=function(v){return 100*v/mx;};
   h+='<div class="pr"><div class="nm">'+E(nm(i))+
      '<i><b class="blq" style="background:'+BC(bloccoDi(i))+'"></b>'+E(BL[bloccoDi(i)].n)+
-     ' · '+E(P[i].l)+'</i></div>'+
+     /* IL SEPARATORE SEGUE IL LEADER, e non lo precede a vuoto: una lista senza capolista
+        dichiarato — perche' la fonte non ne nomina uno — scriveva «Ago della bilancia · »
+        con il punto sospeso nel vuoto. Non e' un caso di questa lista: e' il caso generale
+        di un campo dell'anagrafica che puo' essere vuoto, e la riga lo deve reggere. */
+     (P[i].l?' · '+E(P[i].l):'')+'</i></div>'+
      '<div class="sg srf">'+(md||'—')+'</div>'+
      /* I tre marcatori stavano a tre opacità — barra .30, estremi .55, mediana piena — e
         l'alfa era la codifica: più debole vuol dire più periferico. Costava troppo: sotto
@@ -9900,7 +9942,22 @@ var W_LISTA={
  "ra'am":'raam',"hadash -ta'al":'hadash_taal',"hadash-ta'al":'hadash_taal',"hadash ta'al":'hadash_taal',
  'balad':'balad','joint list':'lista_araba',
  'dems':'democratici','democrats':'democratici','the democrats':'democratici',
- 'yashar':'yashar','zionist home':'casa_sionista','reserv.':'casa_sionista','reservists':'casa_sionista',
+ 'yashar':'yashar','zionist home':'casa_sionista',
+ /* «Reserv.» e «Reservists» RESTANO su casa_sionista, e non si spostano su reserv_nep.
+    Misurato il 7 settembre 2026 sulle tabelle della fonte: quella grafia e' la colonna di
+    gennaio-6 luglio, e in tutta la sua era ha prodotto ZERO seggi e 60 quote sotto soglia.
+    Spostarla riscriverebbe il passato — sessanta rilevazioni direbbero che una lista nata
+    il 6 settembre correva a gennaio — e questo modello non riscrive l'archivio: la
+    tendenza disegna quello che i sondaggi dicevano il giorno in cui uscirono.
+    Dal 6 luglio la fonte intitola quella colonna «Zionist Home»; dal 6 settembre non la
+    intitola affatto, perche' Tropper e' andato con Yashar. */
+ 'reserv.':'casa_sionista','reservists':'casa_sionista',
+ /* La colonna nuova del 6 settembre. UNA GRAFIA SOLA benche' in ignote comparisse due
+    volte: e' un'intestazione con colspan 2, e wGriglia la replica su tutte e due le
+    colonne che copre. «NEP» da solo NON si mappa — non compare come colonna di lista in
+    nessuna tabella, e una grafia mappata a vuoto toglie un nome dall'elenco di quelle
+    ignote senza far entrare una riga: spegne la guardia e non compra niente. */
+ 'reserv.-nep':'reserv_nep',
  'unity':'unity_erdan',
  'amcha israel':'amcha','amcha yisrael':'amcha','amcha':'amcha',
  'party of ofer winter':'amcha','people of israel':'amcha',
@@ -10164,7 +10221,24 @@ function parseWiki(html,anni){
      validazione. Se quasi tutte falliscono non sono righe sbagliate: è la tabella
      a non essere di seggi, e segnalarle una per una sarebbe solo rumore. */
   if(!loc.ok.length||loc.ok.length/tot<0.5){
-   out.ignorate.push({righe:tot,ignote:loc.ignote.slice(0,4)});
+   /* IL DEDUP C'ERA E NON ERA SU QUESTO RAMO, e lo slice lo rendeva peggio di un
+      dettaglio: «slice(0,4)» e' un budget di POSIZIONI, non di nomi. Un'intestazione con
+      colspan viene replicata da wGriglia su tutte le colonne che copre, quindi «Reserv.-NEP»
+      finiva in ignote DUE volte — misurato il 7 settembre 2026 — e due colonne unite
+      esaurirebbero il budget con due soli nomi distinti. L'8 settembre, con piu' liste
+      unite, l'elenco direbbe MENO colonne di quante ce ne sono: e' un elenco da mappare,
+      e uno che si accorcia da solo manda a mappare meta' delle liste nuove.
+      Il dedup esisteva gia' due volte — sul ramo delle tabelle ACCETTATE, tre righe piu'
+      sotto, e in valuta() su nomiScartati — ma non qui, che e' il ramo su cui si decide
+      la notte del deposito.
+      E LE DATE DELLE RIGHE PERSE VIAGGIANO CON I NOMI: una tabella scartata si porta via
+      le sue righe senza lasciare traccia in «scartate», quindi la sola cosa che dice se
+      stiamo perdendo un sondaggio NUOVO o una tabella di scenari ferma da mesi e' la data
+      di quelle righe. Senza, la guardia non ha di che distinguerle. */
+   var nomi=[];
+   loc.ignote.forEach(function(c){if(nomi.indexOf(c)<0) nomi.push(c);});
+   out.ignorate.push({righe:tot,ignote:nomi.slice(0,4),
+    ko:loc.ko.map(function(x){return {data:x.data,tipo:x.tipo};})});
    continue;
   }
   loc.ok.forEach(function(x){out.sondaggi.push(x);});
@@ -10477,7 +10551,12 @@ $('k-refresh').addEventListener('click',function(){
   '<div><label>Istituto</label><input id="i-i" placeholder="Lazar"></div>'+
   '<div><label>Testata</label><input id="i-t" placeholder="Maariv"></div>'+
   '<div><label>Campione</label><input type="number" id="i-c" placeholder="500"></div>';
- $('k-form-seggi').innerHTML=IDS.map(function(i){
+ /* SOLO LE LISTE CHE CORRONO. Il modulo serve alle rilevazioni troppo fresche per essere
+    gia' su Wikipedia, cioe' a sondaggi di oggi: una lista ritirata non puo' prendere seggi
+    in un sondaggio di oggi, e offrirla e' un invito a scrivere una riga che non esiste.
+    Ed e' l'unico posto in cui il colore di una ritirata compare accanto a quello della
+    lista che ne ha ereditato lo slot: qui la coincidenza si vedrebbe. */
+ $('k-form-seggi').innerHTML=IDS.filter(function(i){return corre(i);}).map(function(i){
   return '<div><label style="color:'+cp(P[i].c)+'">'+E(nm(i).slice(0,16))+'</label>'+
    '<input class="i-s" type="number" min="0" max="120" data-p="'+i+'" placeholder="0"></div>';}).join('');
  function somma(){var t=0;

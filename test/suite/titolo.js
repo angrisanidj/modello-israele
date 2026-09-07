@@ -494,13 +494,53 @@ const viste = {};      /* cella → insieme dei valori di [X] che può portare *
         esito(dd.P === A.inPc(c.valore),
           'e [P] è la frequenza della proposizione — quella della pastiglia «' + c.pastiglia + '»',
           dd.P + ' contro ' + A.inPc(c.valore));
-        const serie = A.TIT_BLOCCO[c.cella] === 'coalizione' ? S.MC.coal : S.MC.oppz;
-        const config = A.inPc(A.freqEsatta(serie, dd.X) / S.MC.n);
-        esito(dd.P !== config,
-          'e NON quella della configurazione, che è un\'altra cosa: ' + config + ' contro ' + dd.P);
+        /* LA PROPRIETÀ SI PROVA SULLE DUE GRANDEZZE, NON SU DUE STRINGHE STAMPATE.
+           L'attesa era «dd.P !== config», cioè: i due numeri, arrotondati a un decimale,
+           devono venire diversi. È vera finché non coincidono per caso — e il 7 settembre
+           2026 hanno coinciso: ritirando una lista le quote si sono spostate quel tanto che
+           basta perché stallo e configurazione arrivassero entrambi all'1,7%, e la prova è
+           caduta con il codice giusto. Al 23 ottobre cadeva uguale, a 1,4%.
+           Un confronto fra due valori che POSSONO coincidere non prova che vengano da due
+           posti diversi: prova che oggi sono diversi.
+           LA PROPRIETÀ VERA È FUNZIONALE — [P] deve MUOVERSI quando si muove lo stallo e
+           RESTARE FERMO quando si muove la configurazione — e si esercita doppiando MC, che
+           datiTitolo() riceve come argomento. Nessun caso fortunato, e il verdetto non
+           dipende dall'archivio del giorno. */
+        const serieC = A.TIT_BLOCCO[c.cella] === 'coalizione' ? S.MC.coal : S.MC.oppz;
+        const config = A.inPc(A.freqEsatta(serieC, dd.X) / S.MC.n);
+        /* SI MUOVE LA SORGENTE DICHIARATA, non lo stallo: TIT_FONTE_P dice per ogni cella
+           da dove viene [P], e non è sempre lo stesso campo — «f5o3» lo prende dallo
+           SCENARIO ARABO. Un'asserzione che muovesse sempre `st` fallirebbe su quella cella
+           con il codice giusto, ed è quello che è successo alla prima stesura: «nel 79,9% →
+           nel 79,9%», cioè [P] non si muoveva perché non doveva. La proprietà è «[P] viene
+           dalla sorgente che la cella DICHIARA», e la prova la legge da lì. */
+        const campo = {stallo: 'st', arabi: 'vA'}[c.fonte];
+        const mosso = Object.assign({}, S.MC);
+        mosso[campo] = S.MC[campo] === 0 ? Math.round(S.MC.n / 10) : 0;
+        esito(A.datiTitolo(c.fo, mosso).P !== dd.P,
+          'e [P] SI MUOVE quando si muove «' + c.fonte + '», la sorgente che la cella dichiara',
+          'MC.' + campo + ' ' + S.MC[campo] + ' → ' + mosso[campo] + ' · ' +
+          dd.P + ' → ' + A.datiTitolo(c.fo, mosso).P);
+        /* e la configurazione azzerata: una serie lunga n che non contiene mai X, quindi
+           freqEsatta() vale 0 dove prima valeva qualcosa. Se [P] venisse di lì cambierebbe. */
+        const vuota = new Int32Array(S.MC.n).fill(dd.X === 0 ? 1 : 0);
+        const altraConfig = Object.assign({}, S.MC,
+          A.TIT_BLOCCO[c.cella] === 'coalizione' ? {coal: vuota} : {oppz: vuota});
+        esito(A.datiTitolo(c.fo, altraConfig).P === dd.P,
+          'e NON si muove quando si azzera la configurazione: non è quella',
+          dd.P + ' → ' + A.datiTitolo(c.fo, altraConfig).P + ' · freqEsatta ' +
+          A.freqEsatta(serieC, dd.X) + ' → ' + A.freqEsatta(vuota, dd.X));
         /* e la frase porta davvero quel numero, non un altro ricalcolato accanto */
         const testo = A.testoTitolo(c.fo, false, S.MC);
-        esito(testo.indexOf(dd.P) >= 0 && testo.indexOf(config) < 0,
+        /* LA SECONDA META' E' CONDIZIONATA, e la ragione e' la stessa che ha fatto cadere
+           l'asserzione qui sopra: quando le due frequenze coincidono al decimale — succede,
+           ed e' successo il 7 settembre 2026 — «l'altro numero» non esiste come stringa
+           distinta, e pretenderne l'assenza vorrebbe dire pretendere che la frase non porti
+           il numero che deve portare. Che [P] venga dallo stallo e non dalla configurazione
+           lo provano le due asserzioni funzionali qui sopra, che non dipendono da nessuna
+           coincidenza; qui si guarda solo che la FRASE porti il numero calcolato, e che non
+           ne porti un altro quando un altro c'e'. */
+        esito(testo.indexOf(dd.P) >= 0 && (config === dd.P || testo.indexOf(config) < 0),
           'e la frase della cella ' + c.cella + ' porta quel numero e non l\'altro', testo);
       }
       /* le altre restano sulla configurazione: quattro celle cambiate, non cinque.

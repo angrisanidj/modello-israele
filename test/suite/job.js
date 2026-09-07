@@ -19,7 +19,7 @@ function esito(cond, desc, dettaglio){
 }
 
 (async function(){
-  const {valuta, aggiornaRegistro, SOGLIE} =
+  const {valuta, aggiornaRegistro, SOGLIE, colonnePerse} =
     await import('file:///' + (__dirname + '/../../.github/scripts/aggiorna.mjs').replace(/\\/g, '/'));
 
   /* il caso buono, tarato sui numeri veri del 21 agosto */
@@ -227,6 +227,83 @@ function esito(cond, desc, dettaglio){
       'sbagliato di essere letta', 'campi: ' + campi.join(' · '));
   }
 
+
+  /* ══ LA GUARDIA DELLE COLONNE PERSE, e il caso muto che l'ha resa necessaria ═════════
+   * Il 6 settembre 2026 la fonte ha aperto una tabella nuova con una riga sola di sondaggio
+   * e una colonna che l'anagrafica non conosceva. Senza quella colonna la riga sommava 116
+   * invece di 120, quindi cadeva; la tabella restava con zero righe valide e veniva scartata
+   * INTERA; e le sue colonne ignote finivano in «ignorate», che la guardia della congiunzione
+   * legge solo se le righe valide sono ANCHE crollate. Non erano crollate — 175 ieri, 175
+   * oggi — perché le righe che si perdevano non erano mai state contate.
+   * Nessuna guardia ha parlato, il riepilogo ha detto «Niente da fare», e l'archivio ha
+   * smesso di crescere. Un caso muto è peggio di un rosso: un rosso lo si vede.
+   *
+   * LE ASSERZIONI SONO SEI E NON UNA, e ciascuna tiene una mutazione diversa in vita. */
+  {
+    /* 1 · la funzione pura decide sulla DATA, non sul crollo e non sul tipo di fallimento */
+    esito(colonnePerse([{ignote: ['X'], ko: [{data: '2026-09-06', tipo: 'somma'}]}],
+                       '2026-09-04').join() === 'X',
+      'una tabella scartata che perde una riga piu recente dell archivio nomina le sue colonne');
+
+    esito(colonnePerse([{ignote: ['Winter', 'Other'], ko: [{data: '2026-08-09', tipo: 'somma'}]}],
+                       '2026-09-04').length === 0,
+      'e una che perde righe VECCHIE non nomina niente: e la tabella degli scenari, ferma da ' +
+      'mesi, e senza questa meta la voce che blocca si accenderebbe ogni notte');
+
+    /* 2 · NON SI RESTRINGE AL TIPO «somma», benche quella sia la firma tipica di una colonna
+       non letta. Il 2 settembre 2026 la cella congiunta di Zehut ha fatto cadere delle righe
+       come «ambigua»: una guardia ristretta a un tipo sarebbe stata cieca proprio li. */
+    esito(colonnePerse([{ignote: ['X'], ko: [{data: '2026-09-06', tipo: 'ambigua'}]}],
+                       '2026-09-04').join() === 'X',
+      'e il tipo di fallimento non conta: una riga persa come «ambigua» vale quanto una persa ' +
+      'come «somma»');
+
+    /* 3 · il dedup, e il caso senza metro */
+    esito(colonnePerse([{ignote: ['X', 'X'], ko: [{data: '2026-09-06'}]}], '2026-09-04')
+            .length === 1,
+      'e un nome che l intestazione ripete per colspan si conta una volta sola');
+    esito(colonnePerse([{ignote: ['X'], ko: [{data: '2026-09-06'}]}], null).length === 0,
+      'e senza archivioAl non decide: meglio tacere che fermare la notte su un confronto che ' +
+      'non si puo fare');
+
+    /* 4 · LA GUARDIA NON E UNA CONGIUNZIONE COL CROLLO, ed e il mutante che conta: nel caso
+       vero «valide» NON cala — le righe perse non erano mai state contate — quindi una
+       congiunzione tacerebbe esattamente nel caso per cui la guardia esiste. */
+    let p = buono();
+    p.valide = p.valideIeri;                       /* nessun crollo, come il 6 settembre */
+    p.colonnePerse = ['Reserv.-NEP']; p.archivioAl = '2026-09-04';
+    const e = valuta(p);
+    esito(/Reserv\.-NEP/.test(e.stop || ''),
+      'e la guardia ferma il job SENZA crollo delle righe valide, nominando la colonna',
+      e.stop || 'nessuno stop');
+    esito(!!e.issue && /mappate a mano/.test(e.issue.corpo || ''),
+      'e apre la issue che dice che cosa mappare', e.issue ? e.issue.titolo : 'nessuna issue');
+
+    /* 5 · e il caso buono resta buono: una guardia che ferma sempre passerebbe le altre */
+    let q = buono(); q.colonnePerse = []; q.archivioAl = '2026-09-04';
+    esito(valuta(q).ok === true,
+      'e senza colonne perse non scatta', JSON.stringify(valuta(q)));
+  }
+
+  /* ══ IL CABLAGGIO, PROVATO NEL SORGENTE ═══════════════════════════════════════════════
+   * job.js chiama valuta() diretta e le passa «colonnePerse» a mano: resterebbe tutto verde
+   * il giorno in cui aggiorna.mjs smettesse di calcolarlo, e la guardia diventerebbe
+   * irraggiungibile senza che niente cadesse. E la stessa lista di nomi deve arrivare al
+   * riepilogo, o la guardia fermerebbe la notte senza dire che cosa mappare.
+   * E' l'idioma gia' pagato da og:title col job e da colonneBlocco() con le due tabelle. */
+  {
+    const src = require('fs').readFileSync(__dirname + '/../../.github/scripts/aggiorna.mjs', 'utf8');
+    const righe = src.split(/\r?\n/);
+    const calcolo = righe.filter(l => l.indexOf('const perse = colonnePerse(') >= 0);
+    esito(calcolo.length === 1,
+      'aggiorna.mjs calcola le colonne perse UNA VOLTA SOLA: due conti sarebbero la strada ' +
+      'doppia che diverge alla prima riscrittura', calcolo.length + ' occorrenze');
+    esito(righe.some(l => /colonnePerse:\s*perse/.test(l)),
+      'e le passa alla guardia');
+    esito(righe.some(l => l.indexOf('ignote:') >= 0 && l.indexOf('perse') >= 0),
+      'e le passa AL RIEPILOGO nella stessa voce «colonne-ignote»: una guardia che ferma la ' +
+      'notte senza dire che cosa mappare manda a cercare a mano');
+  }
   console.log('\njob: ' + ok + '/' + (ok + ko));
   if (ko) process.exit(1);
 })();

@@ -6099,6 +6099,291 @@ varchi più larghi del settore della coalizione: Zehut fra Likud 258 e Sionismo 
   una non dichiarata — l'idioma di `opacita.js`. Il giorno in cui Zehut prende il primo
   seggio cade di nuovo e chiede di togliere la voce.
 
+## Il caso muto del 6 settembre: l'archivio smette di crescere e nessuno lo dice
+
+Chiuso il 7 settembre 2026. È la peggiore delle famiglie già elencate in questo file,
+perché **non produce un rosso e non produce un verde sbagliato: produce un silenzio** — e
+un silenzio, in un riepilogo che dice «Niente da fare», è indistinguibile da una notte
+andata bene.
+
+La riga Kantar / Kan 11 del 6 settembre non è entrata in archivio. Il conto della notte:
+
+| | |
+|---|---|
+| righe valide | **175 ieri, 175 oggi** |
+| `p.ignote` | **vuoto** |
+| guardie scattate | **nessuna** |
+| `da-fare.json` | `esito: "ok"`, `blocca: 0`, «Niente da fare» |
+| archivio | **fermo al 4 settembre** |
+
+### Il meccanismo, e le due diagnosi sbagliate che ho fatto per prime
+
+La fonte ha aperto una **tabella nuova** con una colonna che l'anagrafica non conosceva,
+`Reserv.-NEP`. Senza quella colonna la riga somma **116** invece di 120, quindi cade; la
+tabella resta con **zero** righe valide e `parseWiki` la scarta **intera**; le sue colonne
+ignote finiscono in `ignorate`, che la guardia della congiunzione legge **solo se le righe
+valide sono anche crollate**. Non erano crollate — *le righe che si perdevano non erano mai
+state contate*.
+
+**Due cose che avevo riportato e che erano sbagliate**, e vale la pena tenerle perché sono
+la ragione per cui la fase 2 esisteva:
+
+1. **«righe valide = 1»** era una mia etichetta del campo `righe` di `ignorate`, che vale
+   `ok.length + ko.length`. La tabella aveva **una riga sola, ed era una KO**.
+2. **«la regola del 50% conta le righe-evento contro la tabella»** è falsa. Una riga di
+   cronologia esce dal ciclo **prima** di poter finire in `ok` o `ko`, quindi il
+   denominatore le esclude da sempre. Misurato su tutte e sette le tabelle 2026: le 26
+   righe di cronologia non sono in nessun denominatore, e **col denominatore ristretto
+   nessuna tabella cambierebbe esito**. La tabella nuova non cade per il rapporto: cade
+   sulla clausola `!loc.ok.length`, che è un'altra riga.
+
+**La somma non ha tolleranza**, e la riga che decide è una sola:
+`else if(tot!==120){motivo='somma '+tot;tipo='somma';}`. Nessun valore diverso da 120
+passa.
+
+### La condizione che lo coglie: la DATA di quello che si perde, non il crollo
+
+Fra le due tabelle scartate della stessa notte la differenza **non** è la presenza di
+colonne ignote — ce l'hanno tutte e due:
+
+| | ignote | righe scartate |
+|---|---|---|
+| tabella nuova | `Reserv.-NEP` | **2026-09-06** |
+| tabella degli scenari | `Winter`, `Other`, `Don't know` | 16 luglio → **9 agosto** |
+
+Da qui `colonnePerse(ignorate, archivioAl)`: **una tabella scartata con colonne ignote che
+si porta via almeno una riga più recente dell'ultima in archivio.** Misurata sulle tabelle
+preesistenti, cioè quelle delle notti normali: **zero falsi allarmi su trenta notti**, e
+scatta dalla notte in cui la tabella nuova compare.
+
+**E NON SI RESTRINGE AL FALLIMENTO PER SOMMA**, benché una colonna non letta tolga sempre
+dei seggi e quella sia la firma tipica. Il 2 settembre 2026 la cella congiunta di Zehut ha
+fatto cadere delle righe come **`ambigua`**: una guardia ristretta a un tipo sarebbe stata
+cieca proprio lì. *Quello che conta è che stiamo perdendo una riga nuova da una tabella che
+non sappiamo leggere; **perché** non sappiamo leggerla è la diagnosi, non la condizione.*
+
+**Una voce sola, e l'unione è condizionata.** I nomi vanno nella stessa `colonne-ignote` di
+`da-fare.json` — da fuori il caso è identico, e due voci direbbero al lettore del mattino
+che sono due problemi. Ma l'unione **non è totale**: le colonne della tabella degli scenari
+non entrano, o la voce che blocca si accenderebbe ogni notte e si imparerebbe a saltarla
+proprio prima della notte in cui conta. È la regola di `ipotesiNeiNumeri()` applicata a
+una guardia.
+
+E il conto si fa **una volta sola**: gli stessi nomi servono alla guardia e al riepilogo.
+
+### Il dedup c'era e non era su questo ramo
+
+`Reserv.-NEP` compariva **due volte** in `ignote`. Non è un difetto del dedup: è che il
+dedup esiste in due punti — sul ramo delle tabelle **accettate** e in `valuta()` su
+`nomiScartati` — e non su quello delle **scartate**, che è il ramo su cui si decide la
+notte del deposito.
+
+La causa è un `<th colspan="2">`, che `wGriglia` replica su tutte le colonne che copre. E
+la conseguenza non è cosmetica: **`slice(0,4)` è un budget di POSIZIONI, non di nomi.** Con
+due colonne unite l'elenco esaurisce il budget con due soli nomi distinti — cioè l'elenco
+delle liste da mappare **si accorcia da solo**, la notte in cui serve intero.
+
+---
+
+## Riservisti · NEP: uno slot si riprende, e il colore viene con lui
+
+Mappata il 7 settembre 2026, contratto `docs/mappare-una-lista-nuova.md`. Il caso è la
+prova generale dell'8 settembre eseguita sul caso vero, e ha trovato una cosa che il
+contratto non contiene.
+
+### Che cosa ha fatto la fonte, in una notte
+
+| | prima | dal 6 settembre |
+|---|---|---|
+| colonne | `RZP` · `Zehut` · `Zionist Home` · `Unity` | `RZP-Zehut` · `Reserv.-NEP` |
+
+Due liste si ritirano e due colonne si fondono nello stesso giorno. **La colonna nuova
+prende il posto di quella di Casa Sionista**, ed è la fonte stessa a suggerire la forma
+della riparazione.
+
+### Il blocco è pieno, e la scala del §9 è finita
+
+`COLORE.capienza()` per l'ago della bilancia: **zero slot liberi in tutti e due i temi**.
+Esercitata la scala prima di scegliere:
+
+| gradino | esito |
+|---|---|
+| **primo parametro** — `dentro_dic` | **già speso il 26 agosto**: 3,0 → 2,4, cioè **sotto il criterio d'arresto di 3,0** |
+| **secondo** — `fra_blocchi_dic` | **non produce niente**: misurato fino a 3,5, la saturazione resta **cinque** |
+| **terzo** — allargare il settore | prenderebbe tinta a un altro blocco |
+
+L'ago della bilancia è la famiglia ocra, larga **47°**, e non ha altro da dare. Senza slot
+la lista esce **`--ink2`** con due avvisi, e `regola.js` pretende zero avvisi: la verifica
+sarebbe rossa, che è il comportamento dichiarato e non una via d'uscita.
+
+### Il rilascio è IN LOCO, ed è scritto invece che dedotto
+
+| via | costo, misurato |
+|---|---|
+| nessun rilascio | `--ink2` + 2 avvisi |
+| `casa_sionista` tolta, la nuova **in coda** | **ripinge tutte e quattro** le altre — `economico` da `#413B00` a `#8B5400`, e a cascata |
+| **la nuova nella sua POSIZIONE** | **nessuno si sposta** |
+
+**E il prezzo è che la lista nuova eredita l'esadecimale della ritirata**: `#8B5400` /
+`#D99E00`. Non è una svista e non si può evitare — nel blocco lo **slot** determina il
+colore, e la tinta dichiarata non lo sposta: provate dodici posizioni fra 58° e 103°, tutte
+danno lo stesso valore.
+
+Perché è accettabile, e va saputo invece che dedotto: **le due liste non coesistono mai in
+un grafico.** `corre()` toglie la ritirata da `QUO` prima di ogni render, quindi non c'è
+emiciclo, legenda, pastiglia o sparkline in cui compaiano insieme — e la guardia sui colori
+duplicati, che gira su `QUO`, è corretta **per costruzione** e non per fortuna. L'unico
+posto in cui le due tinte si sarebbero viste accanto era il modulo di inserimento manuale,
+che elenca tutti gli `IDS`: adesso elenca **solo le liste che corrono**, che è anche la cosa
+giusta di per sé — una lista ritirata non può prendere seggi in un sondaggio di oggi.
+
+**Il rilascio è scritto in `COLORE.ORDINE` e non dedotto dal campo `fine`**, ed è la
+decisione che vale oltre il caso: un rilascio dedotto sarebbe automatico e silenzioso, e la
+prima lista che si ritira ripingerebbe tutte quelle che la seguono, perché l'assegnazione è
+per posizione. **E `unity_erdan` resta nell'ORDINE benché ritirata il 4 settembre: uno slot
+si riprende quando serve, non quando si libera.**
+
+### L'attesa di `regola.js` è cambiata, di proposito
+
+Pretendeva che l'insieme dell'anagrafica e quello di `COLORE.ORDINE` **coincidessero**. Ora
+la relazione è a un verso solo: **una lista può stare in anagrafica e non nella regola solo
+se dichiara `fine`.** Il verso opposto non si allenta di un carattere — una lista nella
+regola e non in pagina resta un errore — e la ragione originale resta coperta: il caso da
+cogliere è quello dell'8 settembre, una lista mappata a metà che nessuno ha messo in
+ORDINE. Più il verso che manca sempre: **la ritirata deve tenere i due colori con cui è
+stata pubblicata**, o la sua storia sparirebbe dall'archivio insieme al colore.
+
+### `Reserv.` resta su `casa_sionista`, e la ragione è un numero
+
+Tre grafie portano a quell'id: `zionist home`, `reserv.`, `reservists`. Misurato sulle
+tabelle della fonte:
+
+| grafia | era | con seggi | sotto soglia |
+|---|---|---|---|
+| `Zionist Home` | 8 lug → 4 set | **16** | 46 |
+| `Reserv.` | 1 gen → 6 lug | **0** | 60 |
+
+**Nessuna delle sedici righe con seggi viene da `Reserv.`**: in quell'era la lista era
+sempre sotto soglia. Spostarla su `reserv_nep` non farebbe entrare un seggio e
+**riscriverebbe il passato** — sessanta rilevazioni direbbero che una lista nata il 6
+settembre correva a gennaio. Questo modello non riscrive l'archivio.
+
+E **`NEP` da solo non si mappa**: non compare come colonna di lista in nessuna tabella. Una
+grafia mappata a vuoto toglie un nome dall'elenco di quelle ignote senza far entrare una
+riga — *spegne la guardia e non compra niente.* È la stessa forma della decisione su
+`Winter` nudo.
+
+### La tinta condivisa regge, e si è misurata invece di dedurla
+
+La domanda che decide se il rilascio dello slot sia lecito non è «`corre()` la toglie da
+QUO?» — quella guardia vale per i consumatori di QUO, e l'archivio e la tendenza leggono
+`SOND`, che è un'altra strada. La domanda è: **esiste una sede che le mostri insieme, con
+il colore?**
+
+Misurata sul DOM reso, con l'archivio **come sarà stanotte** — le 191 righe di oggi più la
+riga Kantar del 6 settembre — perché su quello di adesso `reserv_nep` non c'è e la risposta
+sarebbe verde per assenza del caso:
+
+| sede | mostra | porta la tinta |
+|---|---|---|
+| **`#k-tab`**, tutte e due le forme | **entrambe**, 25 elementi e 3 | **nessuna delle due** |
+| `#k-proj`, `#k-form-seggi` | solo `reserv_nep` | sì |
+| `#k-veti` | solo `casa_sionista` | no |
+| `#k-trend` | né l'una né l'altra: è per blocco | — |
+
+**L'unica sede che le mostra insieme è la tabella dell'archivio, e lì dal 31 agosto le cifre
+non portano più il colore della lista** — è la riparazione di «Due mestieri su un canale
+solo», che si è rivelata la condizione che rende possibile questa. Se quel colore fosse
+rimasto, il rilascio dello slot non si sarebbe potuto fare e si sarebbe tornati al §9.
+
+### Tre attese aggiornate, e ciascuna era fragile per una ragione sua
+
+Le tre erano rosse dopo la mappatura, e nessuna delle tre perché il modello fosse rotto.
+
+**1 · `blocchi.js` — la lista si cerca, non si nomina.** `const ENTRA = 'casa_sionista'`
+era la lista con cui la fixture fa entrare il quarto blocco in Knesset; ritirata, i quattro
+seggi non arrivavano più e cadevano sette asserzioni. La proprietà non era obsoleta: lo era
+la **lista scelta**. Adesso si cerca — blocco `incerto`, fuori da `IN_BILICO`, **e che
+corra** — e i vincoli si verificano **sull'insieme dei candidati**, non su quello scelto:
+con l'anagrafica di oggi il primo candidato li soddisfa comunque, quindi un mutante che ne
+toglie uno resterebbe vivo se si guardasse solo `ENTRA`. Più il verso che manca sempre:
+ciascuno dei tre deve **escludere davvero qualcuno**, o è dichiarato e inerte. E se la
+ricerca non trova niente la suite **fallisce dichiarandolo**, invece di dare 0/0 verde.
+
+**2 · `titolo.js` — una proprietà provata su due stringhe stampate.** L'attesa era
+`dd.P !== config`, cioè «i due numeri, arrotondati a un decimale, vengono diversi»: vera
+finché non coincidono per caso, e il 7 settembre hanno coinciso all'1,7% (all'1,4% al 23
+ottobre). *Un confronto fra due valori che possono coincidere non prova che vengano da due
+posti diversi: prova che oggi sono diversi.* La proprietà vera è **funzionale** — `[P]` si
+muove quando si muove la sorgente e resta fermo quando si azzera la configurazione — e si
+esercita doppiando `MC`, che `datiTitolo()` riceve come argomento.
+
+**E la sorgente non è sempre lo stallo**: `TIT_FONTE_P` la dichiara per cella, e `f5o3`
+prende `[P]` dallo **scenario arabo**. La prima stesura muoveva sempre `st` e falliva su
+quella cella **con il codice giusto** — «nel 79,9% → nel 79,9%», cioè `[P]` non si muoveva
+perché non doveva. La prova legge il campo da `TIT_FONTE_P` invece di darlo per scontato.
+
+**3 · `tema.js` — la clausola generale, non una voce in `ALTERNATIVE`.** Quello è l'elenco
+delle **fusioni**, contenitore e componenti che condividono lo slot per costruzione, e
+allungarlo con una coppia di natura diversa vorrebbe dire chiamare fusione un ritiro. La
+clausola nuova è: **due liste possono condividere la tinta se le loro vite non si
+sovrappongono.**
+
+**Il confronto è «non posteriore» e non «anteriore», e la differenza di un carattere decide
+il caso vero.** `fine` è **esclusiva** — `corre(i,al)` è `al < fine` — quindi il giorno
+nominato la lista già non corre, e due vite che si toccano in quel giorno non si
+sovrappongono. Casa Sionista finisce il 6 settembre e la prima riga di Riservisti · NEP è
+del 6 settembre: con il confronto stretto la clausola smetterebbe di applicarsi **proprio la
+notte in cui quella riga entra in archivio**.
+
+E il confronto è una **funzione pura su due date**, non una riga dentro il predicato, perché
+oggi quel ramo **non si esercita**: `reserv_nep` non ha ancora righe, `primaRilevazione()`
+risponde `null` e il confronto non viene mai percorso. Un mutante che lo stringe resterebbe
+vivo fino al giorno in cui comincia a contare. Separata, si prova su date costruite.
+
+Più le due che la rendono una guardia invece di una scusa: che la clausola sia
+**esercitata** — almeno una coppia la usa davvero, o cade e chiede di toglierla — e che
+sappia **dire di no**, cioè che due liste che corrono entrambe non siano assolte.
+
+### E due cose scritte, non dedotte
+
+**Il leader è vuoto.** Cercato nel markup: la voce dei Riservisti compare come collegamento
+e come colonna, e in nessun punto la pagina attribuisce loro un capolista. Hendel era il
+co-leader di Casa Sionista, e dedurre che sia passato di qua vorrebbe dire scrivere un nome
+proprio in una pagina pubblica sulla base di una somiglianza. Da cui una riparazione
+generale: **il separatore segue il leader invece di precederlo a vuoto**, o una lista senza
+capolista scriverebbe «Ago della bilancia · » col punto sospeso.
+
+**La condizione che riapre l'identità con `economico`**, nella forma usata il 2 settembre
+per RZP-Zehut. «NEP» sta per New Economic Party, e in anagrafica c'è già un Partito
+Economico. Misurato: `economico` ha **zero righe in tutto l'archivio** — mai un seggio, mai
+una quota sotto soglia — cioè la fonte non gli ha mai dedicato una colonna nel 2026, e le
+due letture sono **indistinguibili dai dati**. Si riapre il giorno in cui Wikipedia pubblica
+una colonna per il Partito Economico **accanto** a «Reserv.-NEP» (allora sono due liste), o
+una cella che copre tutte e due (allora serve `dentro`).
+
+### Verificato, non dedotto
+
+| | |
+|---|---|
+| la riga Kantar | somma **120**, «Gov.» 48 concorde, tabella da `ok=0/tot=1` a **`ok=1/tot=1`** |
+| `--prova` | +1 rilevazione (191 → 192), `archivioAl` **2026-09-06**, uscita **0** |
+| colori del blocco | `economico`, `unity_erdan`, `israel_first`, `amcha` **identici** |
+| avvisi | **zero**, prima e dopo |
+| blocchi | 49·55·12·4 → **50·54·12·4** |
+
+**Undici mutazioni, undici morte**, e una è servita a due cose: scritta male introduceva una
+costante usata prima della sua dichiarazione, la suite moriva a **zero** asserzioni e il
+banco l'ha dichiarata **esplosa e non morta** — la distinzione per cui quel rilevatore
+esiste. Riscritta autonoma, il mutante muore con due KO.
+
+**E il rilevatore stesso aveva un difetto della stessa famiglia**: cercava una riga finale
+`nome: n/m`, che `regola.js` **non stampa** — usa `process.exitCode` e basta. Su una suite
+verde rispondeva «NESSUN CONTEGGIO». Adesso conta le righe `OK` e `KO`, che è quello che fa
+`esegui.mjs`, e vale per ogni suite invece che per quelle che stampano il totale.
+
+---
+
 ## La prova di regia dell'8 settembre: quattro buchi, e il primo l'ha preso l'agente
 
 Eseguita il 30 agosto 2026 su un ramo usa-e-getta, senza committare nessuna mappatura. Il
