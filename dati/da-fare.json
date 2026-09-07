@@ -3,14 +3,48 @@
  "job": {
   "esito": "ok",
   "motivo": null,
-  "archivioAl": "2026-09-04",
-  "rilevazioniNuove": 0
+  "archivioAl": "2026-09-07",
+  "rilevazioniNuove": 3
  },
  "conto": {
   "blocca": 0,
-  "richiedono": 0,
+  "richiedono": 1,
   "informative": 0
  },
- "riga": "Niente da fare.",
- "voci": []
+ "riga": "1 cosa richiede te",
+ "voci": [
+  {
+   "id": "eventi-da-tradurre",
+   "categoria": "eventi",
+   "urgenza": "richiede",
+   "titolo": "4 voci-evento da tradurre",
+   "quanti": 4,
+   "dettaglio": {
+    "voci": [
+     {
+      "chiave": "2026-09-08|submission-of-candidate-lists-to-the-central-elections-committee-opens-a",
+      "data": "2026-09-08",
+      "testo": "Submission of candidate lists to the Central Elections Committee opens at 4 PM IST and closes at 10 PM IST"
+     },
+     {
+      "chiave": "2026-09-07|submission-of-candidate-lists-to-the-central-elections-committee-opens-a",
+      "data": "2026-09-07",
+      "testo": "Submission of candidate lists to the Central Elections Committee opens at 1 PM IST and closes at 5 PM"
+     },
+     {
+      "chiave": "2026-09-06|zionist-home-leader-hili-tropper-announces-he-is-running-with-yashar-dis",
+      "data": "2026-09-06",
+      "testo": "Zionist Home leader Hili Tropper announces he is running with Yashar, dissolving his alliance with The Reservists, which then merges with the New Economic Party"
+     },
+     {
+      "chiave": "2026-09-04|unity-withdraws-from-the-election",
+      "data": "2026-09-04",
+      "testo": "Unity withdraws from the election"
+     }
+    ]
+   },
+   "chiude": "Apri `dati/eventi-grezzi.json`, cerca `\"stato\": \"nuovo\"`. Per ognuna: o la traduci — riga italiana in `EVENTI` dentro index.html, e la voce passa a `\"tradotto\"` — o la scarti portandola a `\"scartato\"`. GIUDIZIO: se la voce meriti la cronologia lo decide una persona; la data NON si tocca, sposta il marcatore sull'asse.",
+   "procedura": "docs/tradurre-una-voce-evento.md"
+  }
+ ]
 }
