@@ -1,40 +1,16 @@
 {
- "generato": "2026-09-08",
+ "generato": "2026-09-09",
  "job": {
   "esito": "ok",
   "motivo": null,
-  "archivioAl": "2026-09-07",
-  "rilevazioniNuove": 0
+  "archivioAl": "2026-09-08",
+  "rilevazioniNuove": 1
  },
  "conto": {
   "blocca": 0,
-  "richiedono": 1,
+  "richiedono": 0,
   "informative": 0
  },
- "riga": "1 cosa richiede te",
- "voci": [
-  {
-   "id": "eventi-da-tradurre",
-   "categoria": "eventi",
-   "urgenza": "richiede",
-   "titolo": "2 voci-evento da tradurre",
-   "quanti": 2,
-   "dettaglio": {
-    "voci": [
-     {
-      "chiave": "2026-09-08|final-day-of-submission-of-candidate-lists-to-the-central-elections-comm",
-      "data": "2026-09-08",
-      "testo": "Final day of submission of candidate lists to the Central Elections Committee, which opens at 4 PM IST and closes at 10 PM IST"
-     },
-     {
-      "chiave": "2026-09-07|first-day-of-submission-of-candidate-lists-to-the-central-elections-comm",
-      "data": "2026-09-07",
-      "testo": "First day of submission of candidate lists to the Central Elections Committee, which opens at 1 PM IST and closes at 5 PM"
-     }
-    ]
-   },
-   "chiude": "Apri `dati/eventi-grezzi.json`, cerca `\"stato\": \"nuovo\"`. Per ognuna: o la traduci — riga italiana in `EVENTI` dentro index.html, e la voce passa a `\"tradotto\"` — o la scarti portandola a `\"scartato\"`. GIUDIZIO: se la voce meriti la cronologia lo decide una persona; la data NON si tocca, sposta il marcatore sull'asse.",
-   "procedura": "docs/tradurre-una-voce-evento.md"
-  }
- ]
+ "riga": "Niente da fare.",
+ "voci": []
 }
