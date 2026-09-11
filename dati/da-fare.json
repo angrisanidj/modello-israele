@@ -1,16 +1,40 @@
 {
- "generato": "2026-09-10",
+ "generato": "2026-09-11",
  "job": {
   "esito": "ok",
   "motivo": null,
   "archivioAl": "2026-09-09",
-  "rilevazioniNuove": 3
+  "rilevazioniNuove": 1
  },
  "conto": {
   "blocca": 0,
-  "richiedono": 0,
+  "richiedono": 1,
   "informative": 0
  },
- "riga": "Niente da fare.",
- "voci": []
+ "riga": "1 cosa richiede te",
+ "voci": [
+  {
+   "id": "eventi-da-tradurre",
+   "categoria": "eventi",
+   "urgenza": "richiede",
+   "titolo": "2 voci-evento da tradurre",
+   "quanti": 2,
+   "dettaglio": {
+    "voci": [
+     {
+      "chiave": "2026-09-10|together-and-yisrael-beiteinu-sign-a-surplus-vote-agreement",
+      "data": "2026-09-10",
+      "testo": "Together and Yisrael Beiteinu sign a surplus-vote agreement"
+     },
+     {
+      "chiave": "2026-09-10|yashar-and-the-democrats-sign-a-surplus-vote-agreement",
+      "data": "2026-09-10",
+      "testo": "Yashar and The Democrats sign a surplus-vote agreement"
+     }
+    ]
+   },
+   "chiude": "Apri `dati/eventi-grezzi.json`, cerca `\"stato\": \"nuovo\"`. Per ognuna: o la traduci — riga italiana in `EVENTI` dentro index.html, e la voce passa a `\"tradotto\"` — o la scarti portandola a `\"scartato\"`. GIUDIZIO: se la voce meriti la cronologia lo decide una persona; la data NON si tocca, sposta il marcatore sull'asse.",
+   "procedura": "docs/tradurre-una-voce-evento.md"
+  }
+ ]
 }
