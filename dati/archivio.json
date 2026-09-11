@@ -5754,5 +5754,45 @@
    "amcha": 3.603872142405824
   },
   "_qk": "92@"
+ },
+ {
+  "data": "2026-09-07",
+  "istituto": "S.M.L.T.",
+  "testata": "—N/a",
+  "campione": 2185,
+  "casa": 0,
+  "seggi": {
+   "likud": 25,
+   "byachad": 9,
+   "rzp_zehut": 8,
+   "otzma": 9,
+   "blue_white": 4,
+   "shas": 10,
+   "utj": 7,
+   "beitenu": 7,
+   "raam": 5,
+   "lista_araba": 7,
+   "democratici": 9,
+   "yashar": 20
+  },
+  "sotto": {
+   "reserv_nep": 1.79,
+   "amcha": 2.08
+  },
+  "_q": {
+   "likud": 18.72437805393862,
+   "byachad": 6.7253599900496965,
+   "rzp_zehut": 6.143986904638274,
+   "otzma": 6.885667389368389,
+   "blue_white": 3.6832779025895466,
+   "shas": 7.62451870088242,
+   "utj": 5.255946229005563,
+   "beitenu": 5.420511516265225,
+   "raam": 4.176250091492213,
+   "lista_araba": 5.4205115162652255,
+   "democratici": 6.885667389368389,
+   "yashar": 15.053924316136435
+  },
+  "_qk": "92@"
  }
 ]
