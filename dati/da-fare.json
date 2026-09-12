@@ -8,10 +8,10 @@
  },
  "conto": {
   "blocca": 2,
-  "richiedono": 2,
+  "richiedono": 3,
   "informative": 0
  },
- "riga": "2 cose richiedono te — 2 BLOCCANO la pubblicazione",
+ "riga": "3 cose richiedono te — 2 BLOCCANO la pubblicazione",
  "voci": [
   {
    "id": "colonne-ignote",
@@ -40,6 +40,24 @@
    },
    "chiude": "Il motivo è: colonne di lista non riconosciute: Haredi Public. L'archivio pubblicato resta fermo al 2026-09-10 finché la causa non è tolta.",
    "procedura": null
+  },
+  {
+   "id": "eventi-da-tradurre",
+   "categoria": "eventi",
+   "urgenza": "richiede",
+   "titolo": "1 voce-evento da tradurre",
+   "quanti": 1,
+   "dettaglio": {
+    "voci": [
+     {
+      "chiave": "2026-09-12|joint-list-and-united-arab-list-sign-a-surplus-vote-agreement",
+      "data": "2026-09-12",
+      "testo": "Joint List and United Arab List sign a surplus-vote agreement"
+     }
+    ]
+   },
+   "chiude": "Apri `dati/eventi-grezzi.json`, cerca `\"stato\": \"nuovo\"`. Per ognuna: o la traduci — riga italiana in `EVENTI` dentro index.html, e la voce passa a `\"tradotto\"` — o la scarti portandola a `\"scartato\"`. GIUDIZIO: se la voce meriti la cronologia lo decide una persona; la data NON si tocca, sposta il marcatore sull'asse.",
+   "procedura": "docs/tradurre-una-voce-evento.md"
   }
  ]
 }
