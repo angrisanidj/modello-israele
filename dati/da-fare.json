@@ -1,40 +1,45 @@
 {
- "generato": "2026-09-11",
+ "generato": "2026-09-12",
  "job": {
-  "esito": "ok",
-  "motivo": null,
-  "archivioAl": "2026-09-09",
-  "rilevazioniNuove": 1
+  "esito": "fermo",
+  "motivo": "colonne di lista non riconosciute: Haredi Public",
+  "archivioAl": "2026-09-10",
+  "rilevazioniNuove": 2
  },
  "conto": {
-  "blocca": 0,
-  "richiedono": 1,
+  "blocca": 2,
+  "richiedono": 2,
   "informative": 0
  },
- "riga": "1 cosa richiede te",
+ "riga": "2 cose richiedono te — 2 BLOCCANO la pubblicazione",
  "voci": [
   {
-   "id": "eventi-da-tradurre",
-   "categoria": "eventi",
-   "urgenza": "richiede",
-   "titolo": "2 voci-evento da tradurre",
-   "quanti": 2,
+   "id": "colonne-ignote",
+   "categoria": "liste",
+   "urgenza": "blocca",
+   "titolo": "Una colonna di lista non riconosciuta",
+   "quanti": 1,
    "dettaglio": {
-    "voci": [
-     {
-      "chiave": "2026-09-10|together-and-yisrael-beiteinu-sign-a-surplus-vote-agreement",
-      "data": "2026-09-10",
-      "testo": "Together and Yisrael Beiteinu sign a surplus-vote agreement"
-     },
-     {
-      "chiave": "2026-09-10|yashar-and-the-democrats-sign-a-surplus-vote-agreement",
-      "data": "2026-09-10",
-      "testo": "Yashar and The Democrats sign a surplus-vote agreement"
-     }
+    "colonne": [
+     "Haredi Public"
     ]
    },
-   "chiude": "Apri `dati/eventi-grezzi.json`, cerca `\"stato\": \"nuovo\"`. Per ognuna: o la traduci — riga italiana in `EVENTI` dentro index.html, e la voce passa a `\"tradotto\"` — o la scarti portandola a `\"scartato\"`. GIUDIZIO: se la voce meriti la cronologia lo decide una persona; la data NON si tocca, sposta il marcatore sull'asse.",
-   "procedura": "docs/tradurre-una-voce-evento.md"
+   "chiude": "Mappa le colonne in `W_LISTA` e le liste in `P{}` dentro index.html — con `dentro` se sono componenti di una fusione. Poi il job riprende da solo la notte successiva. GIUDIZIO: quale id dare a un nome inglese lo decide una persona.",
+   "procedura": "docs/mappare-una-lista-nuova.md"
+  },
+  {
+   "id": "job-fermo",
+   "categoria": "job",
+   "urgenza": "blocca",
+   "titolo": "Il lavoro notturno si è fermato",
+   "quanti": 1,
+   "dettaglio": {
+    "motivo": "colonne di lista non riconosciute: Haredi Public",
+    "esecuzioni": 1,
+    "archivioAl": "2026-09-10"
+   },
+   "chiude": "Il motivo è: colonne di lista non riconosciute: Haredi Public. L'archivio pubblicato resta fermo al 2026-09-10 finché la causa non è tolta.",
+   "procedura": null
   }
  ]
 }
