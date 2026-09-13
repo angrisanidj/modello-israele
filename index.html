@@ -1743,8 +1743,10 @@
         stato: «Apparentamenti proposti» diceva la cosa, non l'azione, e soprattutto non
         diceva a chi lo premeva se stesse guardando un fatto o un'ipotesi. Il testo qui è
         il ripiego per chi apre il file senza JavaScript, e per questo non afferma nessun
-        numero: sarebbe vero solo il giorno in cui è stato scritto. -->
-   <button class="btn g xs" id="k-app" data-par="apparentamenti">Aggiungi gli accordi annunciati</button>
+        numero: sarebbe vero solo il giorno in cui è stato scritto. La parola dello stato
+        invece la dice, e deve essere quella di parolaProposto(): il markup non può chiamarla,
+        quindi le due sono legate da una prova in apparentamenti.js. -->
+   <button class="btn g xs" id="k-app" data-par="apparentamenti">Aggiungi gli accordi firmati</button>
    <!-- Come sopra: il nome lo scrive rBilico(), con quante liste sposta. Il testo qui e' il
         ripiego per chi apre il file senza JavaScript, e non afferma nessun numero. -->
    <button class="btn g xs" id="k-bilico" data-par="inbilico">Conta le liste in bilico nei due campi</button>
@@ -1807,7 +1809,7 @@
       notaApparentamenti() rimanda qui invece di ripetere, e test/suite/apparentamenti.js
       verifica che la nota NON contenga questa frase: è l'idioma degli altri controlli
       sulle strade doppie, applicato a una definizione invece che a un colore. -->
- <div><b>Apparentamenti annunciati</b><span>In Israele due liste possono accordarsi prima del voto per mettere insieme i voti che avanzano: quelli che ciascuna ha raccolto ma che non bastano a eleggere un altro deputato. Sommati, quei resti possono valere un seggio in più, che va alla lista con il resto maggiore fra le due. È un meccanismo che nel 2022 ha pesato sull’esito: i partiti arabi non firmarono alcun accordo, e i loro voti in eccedenza andarono persi. Due liste apparentate si presentano al riparto come una lista sola e si dividono poi i seggi fra loro: è l&rsquo;accordo di eccedenza previsto da Bader-Ofer, e sposta uno o due seggi. La soglia del 3,25% resta individuale. Gli accordi <i>depositati</i> entrano sempre; questo pulsante aggiunge quelli soltanto <i>annunciati</i>, che diventano vincolanti solo con il deposito delle liste.</span></div>
+ <div><b>Apparentamenti annunciati</b><span>In Israele due liste possono accordarsi prima del voto per mettere insieme i voti che avanzano: quelli che ciascuna ha raccolto ma che non bastano a eleggere un altro deputato. Sommati, quei resti possono valere un seggio in più, che va alla lista con il resto maggiore fra le due. È un meccanismo che nel 2022 ha pesato sull’esito: i partiti arabi non firmarono alcun accordo, e i loro voti in eccedenza andarono persi. Due liste apparentate si presentano al riparto come una lista sola e si dividono poi i seggi fra loro: è l&rsquo;accordo di eccedenza previsto da Bader-Ofer, e sposta uno o due seggi. La soglia del 3,25% resta individuale. Gli accordi <i>depositati</i> entrano sempre; questo pulsante aggiunge quelli soltanto <i>firmati</i>, che diventano vincolanti solo quando vengono depositati.</span></div>
  <div><b>Lista Unita araba</b><span>Attivo per impostazione predefinita: il 19 agosto Hadash, Ta'al e Balad hanno firmato l'accordo per correre insieme, mentre Ra'am resta separata. Il modello somma le loro quote di voto rilevazione per rilevazione, così i voti di Balad — sotto soglia da soli — smettono di disperdersi. Disattivandolo si vede il controfattuale: quanto costerebbe loro correre divisi.</span></div></div></div></details>
 
 <!-- L'ARCHIVIO E' UNA LINGUETTA, NON UN PULSANTE CON UN PANNELLO ALTROVE.
@@ -2889,9 +2891,35 @@ function gauss(){if(_g!==null){var v=_g;_g=null;return v;}
    nella stessa direzione, quella dei blocchi le cui coppie sono state annotate. Un errore
    casuale si dichiara nell'intervallo, uno sistematico no. Se all'8 settembre la mappa è
    incompleta, si pubblica senza e lo si dichiara. */
+/* LE TRE RIGHE DEL 10 E DEL 12 SETTEMBRE 2026: LA FONTE DICE FIRMATO, NON DEPOSITATO.
+   La cronologia di Wikipedia scrive per tutte e tre «sign a surplus-vote agreement» — il
+   campo `fonte` porta la frase originale, verbatim, perché è quella che si verifica. Non
+   dice «filed», e il deposito presso la Commissione elettorale è un atto diverso con un
+   termine suo: il 16 ottobre, non l'8 settembre.
+   `proposto` NON È UN'APPROSSIMAZIONE, ed è scritto qui perché fra un mese sembrerebbe
+   tale: è il valore che descrive il COMPORTAMENTO di un accordo firmato e non depositato —
+   entra nel riparto solo con la leva accesa, e muore al termine se non diventa
+   `depositato`. APP_STATI resta di tre valori: una firma non è un quarto stato del
+   modello, è la ragione per cui questo stato è popolato. Al lettore la pagina dice
+   «firmato» — parolaProposto() qui sotto — e una prova lega quella parola alle fonti.
+   LA RIGA DEL 22 AGOSTO È STATA SOSTITUITA, NON AFFIANCATA. Diceva la stessa coppia —
+   «Mansour Abbas propone alla Lista Unita un accordo di cooperazione e di condivisione dei
+   voti in eccesso», un'offerta — e tenerle tutte e due avrebbe fatto scartare la seconda da
+   filtraRiparto() con «Lista Unita araba è già in un altro accordo», cioè una ragione falsa
+   scritta al lettore. Il prezzo è dichiarato: a leva accesa la serie storica non conta più
+   la coppia fra il 22 agosto e l'11 settembre, perché la data che la governa è quella della
+   firma — misurato il 13 settembre 2026 sull'archivio pubblicato, cambiano 3 punti su 96,
+   il 23 agosto e l'8 e il 9 settembre, e in tutti e tre i partiti arabi passano da 13 a 12.
+   A leva spenta non cambia nessun punto, ed è la prima cosa che apparentamenti.js prova.
+   L'ORDINE DEI MEMBRI è quello della fonte, e non conta per il riparto: la coppia è una
+   lista virtuale con la somma delle quote, e divisori() la divide in modo simmetrico. */
 var APPARENTAMENTI=[
- {a:'raam', b:'lista_araba', data:'2026-08-22', stato:'proposto',
-  fonte:"Mansour Abbas propone alla Lista Unita un accordo di cooperazione e di condivisione dei voti in eccesso"}
+ {a:'lista_araba', b:'raam',        data:'2026-09-12', stato:'proposto',
+  fonte:"Joint List and Ra'am sign a surplus-vote agreement"},
+ {a:'byachad',     b:'beitenu',     data:'2026-09-10', stato:'proposto',
+  fonte:"Together and Yisrael Beiteinu sign a surplus-vote agreement"},
+ {a:'yashar',      b:'democratici', data:'2026-09-10', stato:'proposto',
+  fonte:"Yashar and The Democrats sign a surplus-vote agreement"}
 ];
 /* IL TERMINE, RICAVATO DAL VOTO E NON SCRITTO A MANO. È l'undicesimo giorno prima delle
    urne — vedi il blocco qui sopra per i tre cicli su cui è verificato — quindi esce da
@@ -2944,6 +2972,19 @@ function oggiISO(){return new Date(giornoUTC(new Date())).toISOString().slice(0,
    saturazione e fallisce con un errore esplicito dal secondo: qui non c'è un primo caso
    tollerabile, quindi si fallisce e basta. */
 var APP_STATI=['proposto','depositato','ritirato'];
+/* LA PAROLA PER IL LETTORE DELLO STATO `proposto`, UNA STRADA SOLA.
+   Era «annunciato», in sette sedi, ciascuna scritta a mano: la riga di esito, la nota del
+   simulatore, la nota della tendenza, la nota metodologica, la frase che va ai servizi
+   terzi, il ripiego del pulsante, la guida. Il 13 settembre 2026 la fonte dice per tutti e
+   tre gli accordi in tabella «sign», e sette copie da correggere erano sette posti in cui
+   una sarebbe rimasta indietro. Adesso le sedi generate chiamano questa funzione, e le due
+   statiche — il ripiego del pulsante e la guida, dove il markup non può chiamare niente —
+   sono legate a lei da una prova.
+   LA PAROLA È VERA FINCHÉ OGNI RIGA `proposto` È FIRMATA, e non lo si dà per scontato:
+   apparentamenti.js pretende che la fonte di ogni riga `proposto` dica «sign». Il giorno in
+   cui entra un'offerta non firmata — com'era la riga del 22 agosto — quella prova cade, ed
+   è il segnale giusto: allora la parola va ridecisa, non indovinata. */
+function parolaProposto(n){return acc(n,'firmato','firmati');}
 /* Gli errori di UNA riga, in italiano e con il campo che li causa. Vuoto se la riga è
    buona. È l'unica implementazione: la filtra coppieAl(), la elenca la fascia rossa e la
    prova la legge da qui — tre strade per lo stesso giudizio sarebbero tre giudizi. */
@@ -5213,7 +5254,7 @@ function statoLeve(){
  if(AFF) v.push('con l\'affluenza araba a '+f(AFF_BASE+AFF)+'%');
  if(PAR.recenti!==PAR_DEF.recenti) v.push('sui soli sondaggi degli ultimi sette giorni');
  if(PAR.listaunita!==PAR_DEF.listaunita) v.push('con le liste arabe separate invece che unite');
- if(PAR.apparentamenti!==PAR_DEF.apparentamenti) v.push('con gli apparentamenti annunciati applicati al riparto');
+ if(PAR.apparentamenti!==PAR_DEF.apparentamenti) v.push('con gli apparentamenti '+parolaProposto(2)+' e non ancora depositati applicati al riparto');
  /* Questa si dichiara quando è ACCESA, perché il predefinito è spento — ed è già stata
     scritta nell'altro verso, il 27 agosto 2026, quando il predefinito era l'opposto. Il
     confronto è con PAR_DEF e non con lo zero, quindi il RAMO segue il difetto da sé; la
@@ -7602,9 +7643,9 @@ function rigaApp(c){
   t=c.dep
    ? 'Il termine per gli accordi di eccedenza è passato il <b>'+dl(c.termine)+'</b>: '+
      '<b>'+f(c.dep)+' '+acc(c.dep,'accordo depositato','accordi depositati')+'</b>, e '+
-     acc(c.dep,'è','sono')+' nel riparto. Gli accordi annunciati e mai depositati non contano più.'
+     acc(c.dep,'è','sono')+' nel riparto. Gli accordi '+parolaProposto(2)+' e mai depositati non contano più.'
    : 'Il termine per gli accordi di eccedenza è passato il <b>'+dl(c.termine)+'</b> e non ne risulta '+
-     'depositato nessuno: il riparto non ne applica. Quelli annunciati e mai depositati non contano più.';
+     'depositato nessuno: il riparto non ne applica. Quelli '+parolaProposto(2)+' e mai depositati non contano più.';
   return t;
  }
  t=c.dep
@@ -7612,7 +7653,7 @@ function rigaApp(c){
     coppieAl(null,false).map(nomi).join('; ')+'. '
   : 'Nessun accordo di eccedenza è ancora depositato: il riparto non ne applica nessuno. ';
  if(!c.ann){
-  t+='Non ce n\'è nessuno annunciato in attesa di deposito. Il termine è il <b>'+dl(c.termine)+'</b>.';
+  t+='Non ce n\'è nessuno '+parolaProposto(1)+' in attesa di deposito. Il termine è il <b>'+dl(c.termine)+'</b>.';
  } else if(PAR.apparentamenti){
   /* L'effetto si misura chiedendo lo STESSO riparto senza gli annunciati: due chiamate a
      dhondt() con coppie diverse, non un secondo modo di contare i seggi. */
@@ -7621,19 +7662,28 @@ function rigaApp(c){
   CHIAVI_BLOCCO.forEach(function(z){
    if(bs[z]!==bc[z]) dett.push(BL[z].n+' <b>'+f(bs[z])+' → '+f(bc[z])+'</b>');
   });
-  t+='<b>'+f(c.ann)+' '+acc(c.ann,'accordo annunciato','accordi annunciati')+' e non '+
+  /* L'EFFETTO È CONGIUNTO PER COSTRUZIONE, e con più accordi va detto. `senza` e `SEG` sono
+     DUE riparti — tutti gli accordi fuori, tutti dentro — non tre effetti sommati. E la
+     somma sarebbe un numero falso, non un'approssimazione: il 13 settembre 2026, sulle
+     quote pubblicate, i tre accordi valevano un seggio ciascuno e due insieme, perché si
+     contendono lo stesso 120° seggio — con una qualsiasi delle due coppie dell'opposizione
+     attiva, quella araba vale zero. Da qui «Insieme valgono»: con un accordo solo non c'è
+     niente da congiungere, con tre il lettore deve sapere che il numero non si divide. */
+  t+='<b>'+f(c.ann)+' '+acc(c.ann,'accordo','accordi')+' '+parolaProposto(c.ann)+' e non '+
    acc(c.ann,'depositato','depositati')+'</b>, '+acc(c.ann,'applicato','applicati')+' per ipotesi: '+
-   ann.map(nomi).join('; ')+'. '+(mossi
+   ann.map(function(x){return nomi(x)+', '+dl(x.data);}).join('; ')+'. '+(mossi
     /* La frase riparte qui, e non prosegue l'elenco: «Ra'am e Lista Unita araba vale un
        seggio» faceva concordare il verbo con l'ACCORDO mentre il lettore aveva appena
-       letto due nomi di lista. */
-    ? acc(c.ann,'Vale','Valgono')+' <b>'+seg(mossi)+'</b>'+
-      (dett.length?', e '+acc(mossi,'lo sposta','li sposta')+' fra i blocchi: '+dett.join(' · ')
+       letto due nomi di lista.
+       E I DUE ACCORDI DELLA FRASE SONO DUE: il pronome concorda coi SEGGI, il verbo con gli
+       ACCORDI. Era «Valgono 2 seggi, e li sposta», che con un accordo solo non si vedeva. */
+    ? (c.ann>1?'Insieme valgono':'Vale')+' <b>'+seg(mossi)+'</b>'+
+      (dett.length?', e '+acc(mossi,'lo','li')+' '+acc(c.ann,'sposta','spostano')+' fra i blocchi: '+dett.join(' · ')
                   :', dentro lo stesso blocco')
     : 'Non '+acc(c.ann,'sposta','spostano')+' nessun seggio')+
    '. È un\'ipotesi, non un fatto.';
  } else {
-  t+='<b>'+f(c.ann)+' '+acc(c.ann,'annunciato','annunciati')+'</b> e non ancora '+
+  t+='<b>'+f(c.ann)+' '+parolaProposto(c.ann)+'</b> e non ancora '+
    acc(c.ann,'depositato','depositati')+', quindi fuori dal riparto: '+
    ann.map(function(x){return nomi(x)+', '+dl(x.data);}).join('; ')+
    '. Il pulsante '+acc(c.ann,'lo aggiunge','li aggiunge')+' e mostra quanto '+
@@ -8622,7 +8672,7 @@ function rChips(){
  /* S7 — se un accordo annunciato e' nel riparto, i seggi di queste pastiglie sono quelli di
     QUELLO scenario: citarli senza dirlo sarebbe un totale senza la sua ipotesi. */
  if(tot&&PAR.apparentamenti&&contoApp(sopraSoglia()).ann)
-  t+=' I totali tengono conto '+(contoApp(sopraSoglia()).ann>1?'degli accordi di eccedenza annunciati e non ancora depositati':'dell\'accordo di eccedenza annunciato e non ancora depositato')+'.';
+  t+=' I totali tengono conto '+(contoApp(sopraSoglia()).ann>1?'degli accordi di eccedenza '+parolaProposto(2)+' e non ancora depositati':'dell\'accordo di eccedenza '+parolaProposto(1)+' e non ancora depositato')+'.';
  $('k-gnote').innerHTML=t;
 }
 /* quanti istituti conosce l'house effect: serve all'annuncio del ricalcolo, che vive nel
@@ -8855,7 +8905,7 @@ function notaSerie(S){
  e.innerHTML='L\'ultimo punto della linea è del <b>'+dl(ult.d)+'</b>, e non comprende '+
   acc(cp.length,'l\'accordo di eccedenza','gli accordi di eccedenza')+' in vigore: la linea dice '+
   'che cosa il modello avrebbe detto ogni giorno, con gli accordi noti a quel giorno, e '+
-  acc(cp.length,'questo è stato annunciato','questi sono stati annunciati')+' dopo l\'ultima rilevazione. '+
+  acc(cp.length,'questo è stato ','questi sono stati ')+parolaProposto(cp.length)+' dopo l\'ultima rilevazione. '+
   'Da qui la differenza con la proiezione in cima alla pagina: '+diff.join(' · ')+'.';
 }
 function rTrend(){
@@ -9665,15 +9715,17 @@ function notaApparentamenti(){
  else t+='Nessun accordo risulta ancora depositato. ';
  if(c.oltre){
   t+=morti.length
-   ? 'Gli accordi annunciati e mai depositati — '+morti.map(nomi).join('; ')+' — non entrano più nel riparto: '+
+   ? 'Gli accordi '+parolaProposto(2)+' e mai depositati — '+morti.map(nomi).join('; ')+' — non entrano più nel riparto: '+
      'dopo il termine non sono un\'ipotesi, sono una cosa che non è successa.'
-   : 'Non ne risulta annunciato nessuno.';
+   : 'Non ne risulta '+parolaProposto(1)+' nessuno.';
  } else if(ann.length){
-  t+='Annunciati ma non ancora depositati: '+ann.map(function(x){return nomi(x)+', '+dl(x.data);}).join('; ')+'. '+
+  var pp=parolaProposto(ann.length);
+  t+=pp.charAt(0).toUpperCase()+pp.slice(1)+' ma non ancora '+acc(ann.length,'depositato','depositati')+': '+
+   ann.map(function(x){return nomi(x)+', '+dl(x.data);}).join('; ')+'. '+
    (PAR.apparentamenti
     ? 'Il pulsante in cima è acceso, quindi entrano nel riparto: quello che si legge è un controfattuale, non un dato.'
     : 'Non entrano nel riparto: il pulsante in cima li aggiunge, per mostrare quanto peserebbero.');
- } else t+='Non ne risulta annunciato nessuno.';
+ } else t+='Non ne risulta '+parolaProposto(1)+' nessuno.';
  if(c.scarti.length) t+=' '+f(c.scarti.length)+' '+acc(c.scarti.length,'accordo non entra','accordi non entrano')+
   ' comunque: '+c.scarti.map(function(s){return nomi(s.x)+', perché '+s.perche;}).join('; ')+'.';
  /* La ragione per cui una mappa incompleta è peggio di nessuna mappa va detta al lettore,

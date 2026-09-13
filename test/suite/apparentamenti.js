@@ -42,6 +42,15 @@
  * Scritto «vale un seggio» sarebbe caduto alla prima rilevazione nuova, dicendo «difetto»
  * dove c'era un sondaggio in più.
  */
+/* IL FUSO SI IMPONE QUI, PRIMA DI QUALUNQUE Date, come in giorni.js, date.js e deposito.js.
+   esegui.mjs lancia le suite con l'ambiente ereditato e non ne fissa nessuno: il lavoro
+   notturno gira su GitHub in UTC, e la macchina su cui questa riga è stata scritta sta in
+   Europe/Berlin. In UTC la vigilia calcolata da una mezzanotte locale coincide con quella
+   UTC, cioè il difetto che il §5 esiste per cogliere NON SI MANIFESTA — e la sezione sarebbe
+   verde nel solo posto in cui conta, il cancello del job. Il §5 verifica che l'imposizione
+   abbia avuto effetto, invece di darla per scontata. */
+process.env.TZ = 'Europe/Rome';
+
 const {JSDOM} = require('jsdom');
 const fs = require('fs');
 
@@ -82,7 +91,9 @@ src = src.replace('carica().then(render,render)',
   'parTutto:function(){return PAR;},' +
   'setApp:function(v){APPARENTAMENTI.length=0;v.forEach(function(x){APPARENTAMENTI.push(x);});},' +
   'stato:function(){return{QUO:QUO,SEG:SEG,MC:MC};},' +
-  'sim:function(v){SIM=v;},sig:function(v){SIG=v;},montecarlo:montecarlo};carica().then(render,render)');
+  'sim:function(v){SIM=v;},sig:function(v){SIG=v;},montecarlo:montecarlo,' +
+  'parola:parolaProposto,setQS:function(q,s){QUO=q;SEG=s;},' +
+  'statoLeve:(typeof statoLeve===\'function\'?statoLeve:null)};carica().then(render,render)');
 eval(src);
 try { A.render(); } catch(e) { console.log('KO il render non è partito — ' + (e && e.message)); }
 
@@ -271,21 +282,77 @@ A.par('apparentamenti', 0);
   A.par('apparentamenti', 0);
 }
 
-/* ══ 5 · GLI ACCORDI NON RETROAGISCONO ══════════════════════════════════════ */
+/* ══ 5 · GLI ACCORDI NON RETROAGISCONO ══════════════════════════════════════
+ * RISCRITTA IL 13 SETTEMBRE 2026: le due asserzioni di prima erano verdi per coincidenza,
+ * e per DUE coincidenze diverse.
+ * La prima: prendevano ORIG[0] e contavano TUTTA la tabella — `=== 0` alla vigilia,
+ * `=== 1` il giorno dell'annuncio. Finché la tabella aveva una riga sola, «nella tabella
+ * non c'è niente» e «quell'accordo non c'è» erano la stessa frase. Con le tre righe del 10
+ * e del 12 settembre non lo sono più: alla vigilia dell'accordo arabo esistono già i due
+ * dell'opposizione.
+ * La seconda sta sotto, ed è la trappola già registrata per giornoUTC(): `prima` partiva da
+ * una mezzanotte LOCALE letta con toISOString(), che a Roma sta nel giorno precedente. La
+ * vigilia usciva DUE giorni prima invece di uno — per l'accordo del 12 stampava il 10 — e
+ * con la data del 22 agosto dava il 20, cioè comunque prima, e passava.
+ *
+ * Adesso tre cose, e ciascuna chiude una delle due coincidenze o la terza che le teneva
+ * nascoste:
+ * · l'accordo si cerca PER COPPIA DI ID, e se non si trova la sezione CADE dicendolo — mai
+ *   un'asserzione su un undefined, mai uno zero su zero che si legge verde;
+ * · si esercitano TUTTE le righe, e si pretende che coprano date diverse: la proprietà è
+ *   «nessun accordo retroagisce», non «il primo non retroagisce»;
+ * · la vigilia si calcola in UTC, e una prova dice che è UN giorno prima. È quella la prova
+ *   che coglie il ritorno alla mezzanotte locale: la presenza da sola non basta, perché due
+ *   giorni prima l'accordo non c'è comunque.
+ * E QUEST'ULTIMA VALE SOLO A ROMA, di proposito: con TZ=UTC mezzanotte locale e mezzanotte
+ * UTC coincidono e il difetto non esiste. Il banco impone TZ=Europe/Rome; qui lo si
+ * verifica, perché una prova che gira nel fuso sbagliato è verde senza provare niente. */
 
 {
+  const zona = Intl.DateTimeFormat().resolvedOptions().timeZone;
+  esito(zona === 'Europe/Rome',
+    'la suite gira con TZ=Europe/Rome: in UTC il difetto della mezzanotte locale non si manifesta', zona);
+
   A.par('apparentamenti', 1);
-  const dataAccordo = ORIG[0].data;
-  const prima = new Date(new Date(dataAccordo + 'T00:00:00').getTime() - 864e5).toISOString().slice(0, 10);
-  esito(A.coppieRiparto(null, prima).length === 0,
-    'alla vigilia dell\'annuncio l\'accordo non esiste ancora: la serie storica non lo fa retroagire',
-    prima);
-  esito(A.coppieRiparto(null, dataAccordo).length === 1,
-    'e dal giorno dell\'annuncio sì', dataAccordo);
-  const q = quoteCasuali(9), ids = Object.keys(q), q4 = {};
-  ids.forEach((k, j) => { q4[j === 0 ? 'raam' : (j === 1 ? 'lista_araba' : k)] = q[k]; });
-  esito(ugual(A.dhondt(q4, prima), A.ripartoSoglia(q4)),
-    'e a quella data il riparto è quello senza accordi');
+  /* LE TRE COPPIE SONO I FATTI CHE QUESTA SEZIONE PROVA, e stanno scritte qui apposta: la data
+     no — si legge dalla riga trovata — perché è la cosa che la proprietà interroga. Se un
+     giorno una delle tre esce dalla tabella, la sezione cade e chiede di aggiornare l'elenco
+     invece di provare di meno in silenzio. */
+  const COPPIE = [['lista_araba', 'raam'], ['byachad', 'beitenu'], ['yashar', 'democratici']];
+  const stessa = (x, a, b) => (x.a === a && x.b === b) || (x.a === b && x.b === a);
+  const cerca = (a, b) => ORIG.find(x => stessa(x, a, b));
+  const giorno = iso => Date.parse(iso + 'T00:00:00Z');
+  const esercitati = [];
+
+  COPPIE.forEach(([a, b]) => {
+    const acc = cerca(a, b);
+    esito(!!acc, 'l\'accordo ' + a + ' + ' + b + ' è in tabella',
+      'NON TROVATO: la sezione non può provarlo, e cade invece di saltarlo');
+    if (!acc) return;
+    esercitati.push(acc);
+
+    const prima = new Date(giorno(acc.data) - 864e5).toISOString().slice(0, 10);
+    esito((giorno(acc.data) - giorno(prima)) / 864e5 === 1,
+      '  la vigilia di ' + a + ' + ' + b + ' è UN giorno prima, non due',
+      prima + ' → ' + acc.data);
+
+    const presente = al => A.coppieRiparto(null, al).some(x => stessa(x, a, b));
+    esito(!presente(prima),
+      '  alla vigilia dell\'annuncio ' + a + ' + ' + b + ' non esiste ancora: la serie storica non lo fa retroagire',
+      prima);
+    esito(presente(acc.data), '  e dal giorno dell\'annuncio sì', acc.data);
+
+    const q = quoteCasuali(9), ids = Object.keys(q), q4 = {};
+    ids.forEach((k, j) => { q4[j === 0 ? a : (j === 1 ? b : k)] = q[k]; });
+    esito(ugual(A.dhondt(q4, prima), A.ripartoSoglia(q4)),
+      '  e a quella data il riparto è quello senza accordi');
+  });
+
+  esito(esercitati.length === COPPIE.length,
+    'tutte e ' + COPPIE.length + ' le righe sono state esercitate', esercitati.length + ' su ' + COPPIE.length);
+  esito(new Set(esercitati.map(x => x.data)).size >= 2,
+    'e coprono date diverse: la proprietà vale per ogni accordo, non per il primo',
+    esercitati.map(x => x.data).join(', '));
   A.par('apparentamenti', 0);
 }
 
@@ -469,6 +536,170 @@ congela(PRIMA);
 A.render();
 esito(!!Object.keys(A.stato().SEG).length,
   'col l\'orologio alla vigilia del termine il modello calcola ancora: la finestra dei 60 giorni si àncora alla rilevazione più recente, non a oggi');
+
+/* ══ 9b · LE TRE RIGHE DEL 10 E DEL 12 SETTEMBRE 2026 ═══════════════════════
+ * Stanno qui, dopo congela(PRIMA), e non in testa al file: due di queste prove accendono la
+ * leva, e dopo il 16 ottobre la leva non ha niente da applicare — eseguite con l'orologio
+ * vero, `npm run spazzola` le troverebbe mute. Il confronto a leva spenta vale a qualunque
+ * data, ma sta con loro perché è la stessa tabella. */
+
+/* ── 1 · A LEVA SPENTA OGNI NUMERO IN PAGINA È IDENTICO A PRIMA ───────────────
+ * Il file lo impone dalla prima riga e fino a oggi lo provava sul RIPARTO, non sulla
+ * pagina: SEG uguale non dice che il Monte Carlo, le probabilità, i totali delle pastiglie
+ * e la tendenza siano uguali. Qui si rende la pagina due volte — con i soli depositati, e
+ * con la tabella vera — e si confrontano tutti i numeri che la pagina scrive.
+ * Il Monte Carlo usa Math.random, quindi i due render hanno lo STESSO seme: senza, due
+ * pagine identiche differirebbero per rumore e la prova non potrebbe mai essere verde a
+ * ragione. Il seme si prova per primo, o un confronto verde non vorrebbe dire niente.
+ * E il verso che manca sempre: a leva ACCESA almeno un numero si muove, o il confronto
+ * sarebbe cieco. Misurato il 13 settembre 2026 sul seme: 0 numeri diversi su 4537 a leva
+ * spenta, 19 a leva accesa — si muove il Monte Carlo, non la proiezione centrale. */
+{
+  const veroRandom = Math.random;
+  function semina(){
+    let s = 987654321;
+    Math.random = function(){ s = (s * 1103515245 + 12345) & 0x7fffffff; return s / 0x7fffffff; };
+  }
+  /* LE SEDI CHE DESCRIVONO LA TABELLA cambiano per forza, e sono dichiarate con la ragione:
+     tutto il resto della pagina deve restare identico al numero */
+  const SEDI_DELLA_TABELLA = {
+    'k-app':     'il pulsante esiste e dice quanti accordi aggiunge solo se in tabella ce ne sono',
+    'k-appriga': 'la riga di esito elenca gli accordi con nomi e data',
+  };
+  const PARAGRAFO_DELLA_NOTA = /heskem odafim/;   /* la nota metodologica elenca gli accordi con la data */
+  function numeri(){
+    const r = D.getElementById('kn26').cloneNode(true);
+    Object.keys(SEDI_DELLA_TABELLA).forEach(id => { const e = r.querySelector('#' + id); if (e) e.remove(); });
+    const foot = r.querySelector('#k-foot');
+    if (foot) [...foot.querySelectorAll('p')].forEach(p => { if (PARAGRAFO_DELLA_NOTA.test(p.textContent)) p.remove(); });
+    return r.textContent.match(/-?\d+(?:[.,]\d+)?/g) || [];
+  }
+  function giro(tabella, leva){
+    A.setApp(tabella); A.par('apparentamenti', leva); semina(); A.render();
+    const S = A.stato();
+    return {n: numeri(), seg: JSON.stringify(S.SEG), quo: JSON.stringify(S.QUO)};
+  }
+  const diversi = (a, b) => { let d = 0; for (let i = 0; i < Math.max(a.length, b.length); i++) if (a[i] !== b[i]) d++; return d; };
+  const DEP = ORIG.filter(x => x.stato === 'depositato');
+
+  const s1 = giro(DEP, 0), s2 = giro(DEP, 0);
+  esito(diversi(s1.n, s2.n) === 0,
+    'il seme è riproducibile: due render identici scrivono gli stessi numeri, quindi un confronto verde vuol dire qualcosa',
+    diversi(s1.n, s2.n) + ' diversi');
+
+  esito(ORIG.some(x => x.stato !== 'depositato'),
+    'la tabella pubblicata porta accordi non depositati: senza, l\'identità si proverebbe a vuoto');
+  const prima = giro(DEP, 0), dopo = giro(ORIG, 0), accesa = giro(ORIG, 1);
+  Math.random = veroRandom;
+  A.setApp(ORIG); A.par('apparentamenti', 0); A.render();
+
+  esito(prima.seg === dopo.seg && prima.quo === dopo.quo,
+    'a leva SPENTA le tre righe non muovono né un seggio né una quota');
+  esito(prima.n.length === dopo.n.length && diversi(prima.n, dopo.n) === 0,
+    'a leva SPENTA ogni numero in pagina è identico a prima — tolte le sedi che descrivono la tabella',
+    prima.n.length + ' contro ' + dopo.n.length + ' numeri, ' + diversi(prima.n, dopo.n) + ' diversi');
+  esito(diversi(prima.n, accesa.n) > 0,
+    'e il confronto non è cieco: a leva ACCESA almeno un numero si muove',
+    diversi(prima.n, accesa.n) + ' diversi');
+}
+
+/* ── 2 · LA PAGINA DICE QUELLO CHE DICE LA FONTE: FIRMATO ─────────────────────
+ * La parola per lo stato `proposto` è una sola — parolaProposto() — e le due proprietà che
+ * la rendono vera si provano qui. La prima è sui DATI: ogni riga `proposto` ha una fonte
+ * che dice «sign». Il giorno in cui entra un'offerta non firmata cade, ed è il segnale giusto
+ * — la parola va ridecisa, non indovinata. La seconda è sulle STRADE: il markup non può
+ * chiamare la funzione, quindi il ripiego del pulsante e la guida si legano a lei qui. */
+{
+  const proposti = ORIG.filter(x => x.stato === 'proposto');
+  const senzaFirma = proposti.filter(x => !/\bsign(s|ed)?\b/i.test(x.fonte || ''));
+  esito(senzaFirma.length === 0,
+    'ogni accordo «proposto» in tabella ha una fonte che dice «sign»: è la condizione per cui la pagina lo chiama firmato',
+    senzaFirma.map(x => x.a + '+' + x.b + ': «' + (x.fonte || '') + '»').join(' · '));
+  esito(A.parola(1) === 'firmato' && A.parola(2) === 'firmati',
+    'e la parola per il lettore è «firmato», al singolare e al plurale', A.parola(1) + ' / ' + A.parola(2));
+
+  const bottone = (html.match(/<button[^>]*id="k-app"[^>]*>([^<]*)<\/button>/) || ['', ''])[1];
+  esito(new RegExp('\\b' + A.parola(2) + '\\b').test(bottone),
+    'il ripiego del pulsante nel markup usa la stessa parola: senza JavaScript direbbe altrimenti un\'altra cosa', bottone);
+  const voce = (html.match(/Apparentamenti annunciati<\/b><span>([\s\S]*?)<\/span>/) || ['', ''])[1];
+  esito(new RegExp('soltanto <i>' + A.parola(2) + '</i>').test(voce),
+    'e la guida anche, nella frase che dice quali accordi il pulsante aggiunge', voce.slice(-160));
+
+  /* IL VERSO CHE CONTA: nessuna delle sedi che descrivono gli accordi dice più «annunciato».
+     Si guardano le SEDI e non tutta la pagina — «annunciato» ha altri sensi, e il titolo della
+     voce della guida resta «Apparentamenti annunciati» perché è un nome di sezione a cui la
+     nota metodologica rimanda. E si pretende che la parola nuova CI SIA, o una sede vuota
+     passerebbe per corretta. */
+  function sedi(){
+    const t = id => ((D.getElementById(id) || {}).textContent || '').replace(/\s+/g, ' ');
+    const p = [...D.getElementById('k-foot').querySelectorAll('p')].filter(x => /heskem odafim/.test(x.textContent))
+      .map(x => x.textContent).join(' ');
+    return {riga: t('k-appriga'), nota: p, simulatore: t('k-gnote'), tendenza: t('k-trendnota'),
+            pulsante: (D.getElementById('k-app').getAttribute('aria-label') || ''),
+            terzi: A.statoLeve ? String(A.statoLeve() || '') : ''};
+  }
+  [0, 1].forEach(leva => {
+    A.setApp(ORIG); A.par('apparentamenti', leva); A.render(); A.rFoot();
+    const s = sedi();
+    const vecchie = Object.keys(s).filter(k => /annunciat/i.test(s[k].replace(/Apparentamenti annunciati/g, '')));
+    esito(vecchie.length === 0,
+      'a leva ' + (leva ? 'accesa' : 'spenta') + ' nessuna sede degli accordi dice più «annunciato»',
+      vecchie.map(k => k + ': ' + (s[k].match(/.{0,50}annunciat.{0,30}/i) || [''])[0]).join(' · '));
+    /* senza distinzione di maiuscole: la nota apre la frase con la parola — «Firmati ma non
+       ancora depositati» — e la prima stesura, che la cercava minuscola, cadeva su una
+       maiuscola invece che su un difetto */
+    esito(new RegExp(A.parola(2).slice(0, 6), 'i').test(s.riga) && new RegExp(A.parola(2).slice(0, 6), 'i').test(s.nota),
+      '  e la riga di esito e la nota metodologica dicono «firmat…»', s.riga.slice(0, 120));
+  });
+  A.par('apparentamenti', 0); A.render();
+}
+
+/* ── 3 · LE TRE SI CONTENDONO UN SOLO SEGGIO: LA RIGA DICE IL CONGIUNTO ────────
+ * Il 13 settembre 2026, sulle quote pubblicate, ciascun accordo valeva un seggio e tutti e
+ * tre insieme DUE: con una qualsiasi delle due coppie dell'opposizione attiva, quella araba
+ * vale zero. Una frase che sommasse direbbe tre, cioè un numero falso.
+ * Sul seme di prova il caso c'è già — da sola una coppia vale 1, insieme 0 — ma la prova
+ * CERCA un vettore in cui insieme valgono più di zero e meno della somma, perché è quello
+ * che esercita «Insieme valgono N» e la concordanza del verbo. Misurato: con le quote del
+ * seme perturbate del ±30% il caso capita in 99 tentativi su 400, il primo al sesto. */
+{
+  const TRE = ORIG.filter(x => x.stato !== 'depositato');
+  const S0 = A.stato();
+  const ids = Object.keys(S0.QUO);
+  let s = 4242; const rnd2 = () => { s = (s * 1103515245 + 12345) & 0x7fffffff; return s / 0x7fffffff; };
+  const mossi = (q, cp) => {
+    const base = A.dhondt(q, null, []), r = A.dhondt(q, null, cp); let m = 0;
+    Object.keys(r).forEach(k => { if (r[k] > (base[k] || 0)) m += r[k] - (base[k] || 0); });
+    return m;
+  };
+  let caso = null;
+  for (let t = 0; t < 400 && !caso; t++) {
+    const q = {}; let tot = 0;
+    ids.forEach(k => { q[k] = S0.QUO[k] * (0.7 + 0.6 * rnd2()); tot += q[k]; });
+    ids.forEach(k => { q[k] = q[k] * 99 / tot; });
+    if (!TRE.every(c => q[c.a] >= SOGLIA && q[c.b] >= SOGLIA)) continue;
+    const som = TRE.reduce((a, c) => a + mossi(q, [c]), 0), cong = mossi(q, TRE);
+    if (cong > 0 && som > cong) caso = {q: q, som: som, cong: cong};
+  }
+  esito(TRE.length >= 2, 'in tabella ci sono almeno due accordi non depositati, o non c\'è niente da congiungere', String(TRE.length));
+  esito(!!caso, 'esiste un vettore di quote in cui gli accordi valgono insieme meno della loro somma',
+    caso ? 'somma ' + caso.som + ', insieme ' + caso.cong : 'nessuno in 400 tentativi');
+  if (caso) {
+    A.setApp(ORIG); A.par('apparentamenti', 1);
+    A.setQS(caso.q, A.dhondt(caso.q, null, TRE));
+    A.rApp();
+    const riga = String(D.getElementById('k-appriga').textContent || '').replace(/\s+/g, ' ');
+    esito(new RegExp('Insieme valgono ' + caso.cong + ' segg').test(riga),
+      'la riga di esito dice l\'effetto CONGIUNTO, e dice che è congiunto', caso.cong + ' · ' + riga);
+    esito(riga.indexOf(' ' + caso.som + ' segg') < 0,
+      'e non la somma dei singoli, che sarebbe un numero falso', caso.som + ' · ' + riga);
+    esito(!/fra i blocchi/.test(riga) || new RegExp('(lo|li) spostano fra i blocchi').test(riga),
+      'e il verbo concorda con gli accordi, non con i seggi', riga);
+    esito(TRE.every(x => riga.indexOf(String(+x.data.slice(8, 10))) >= 0),
+      'ciascun accordo con la sua data, anche a leva accesa', riga);
+  }
+  A.par('apparentamenti', 0); A.setApp(ORIG); A.render();
+}
 
 /* ══ 10 · QUELLO CHE LA PAGINA DICE, E QUANTO VALE OGGI ═════════════════════ */
 
@@ -755,8 +986,12 @@ esito(!!Object.keys(A.stato().SEG).length,
     'e dice il termine vero, contro quello che il lettore darebbe per scontato', spenta);
   {
     const vivi = A.coppieAl(null, true).filter(x => x.stato !== 'depositato');
-    esito(spenta.indexOf(vivi.length + ' annunciat') >= 0,
-      'dice quanti sono gli annunciati', vivi.length + ' · ' + spenta);
+    /* L'ATTESA È CAMBIATA IL 13 SETTEMBRE 2026, di proposito: la parola dello stato
+       `proposto` era «annunciato» e la fonte dei tre accordi in tabella dice «sign». La
+       prova non scrive la parola nuova: la chiede a parolaProposto(), che è la sola strada,
+       così un ritocco della parola non fa cadere una prova che guarda il numero. */
+    esito(spenta.indexOf(vivi.length + ' ' + A.parola(vivi.length)) >= 0,
+      'dice quanti sono, con la parola dello stato', vivi.length + ' · ' + spenta);
     esito(vivi.every(x => spenta.indexOf(A.nm(x.a)) >= 0 && spenta.indexOf(A.nm(x.b)) >= 0),
       'e li nomina tutti', spenta);
     esito(vivi.every(x => spenta.indexOf(String(+x.data.slice(8, 10))) >= 0),
@@ -914,7 +1149,8 @@ esito(!!Object.keys(A.stato().SEG).length,
 
   A.rFoot();
   const nota = String(D.getElementById('k-foot').innerHTML || '').replace(/<[^>]+>/g,' ').replace(/\s+/g,' ').trim();
-  esito(/Gli accordi annunciati e mai depositati/.test(nota),
+  /* attesa cambiata il 13 settembre 2026 con la parola dello stato: vedi il §15 */
+  esito(new RegExp('Gli accordi ' + A.parola(2) + ' e mai depositati').test(nota),
     'e la nota metodologica cambia ramo con lei', nota.slice(-320));
   A.par('apparentamenti', 0);
   A.setApp(VERE18);
