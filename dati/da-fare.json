@@ -1,5 +1,5 @@
 {
- "generato": "2026-09-12",
+ "generato": "2026-09-13",
  "job": {
   "esito": "fermo",
   "motivo": "colonne di lista non riconosciute: Haredi Public",
@@ -31,11 +31,11 @@
    "id": "job-fermo",
    "categoria": "job",
    "urgenza": "blocca",
-   "titolo": "Il lavoro notturno si è fermato",
-   "quanti": 1,
+   "titolo": "Il lavoro notturno si è fermato da 2 esecuzioni",
+   "quanti": 2,
    "dettaglio": {
     "motivo": "colonne di lista non riconosciute: Haredi Public",
-    "esecuzioni": 1,
+    "esecuzioni": 2,
     "archivioAl": "2026-09-10"
    },
    "chiude": "Il motivo è: colonne di lista non riconosciute: Haredi Public. L'archivio pubblicato resta fermo al 2026-09-10 finché la causa non è tolta.",
@@ -50,9 +50,9 @@
    "dettaglio": {
     "voci": [
      {
-      "chiave": "2026-09-12|joint-list-and-united-arab-list-sign-a-surplus-vote-agreement",
+      "chiave": "2026-09-12|joint-list-and-ra-am-sign-a-surplus-vote-agreement",
       "data": "2026-09-12",
-      "testo": "Joint List and United Arab List sign a surplus-vote agreement"
+      "testo": "Joint List and Ra'am sign a surplus-vote agreement"
      }
     ]
    },
