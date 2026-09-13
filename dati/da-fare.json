@@ -31,11 +31,11 @@
    "id": "job-fermo",
    "categoria": "job",
    "urgenza": "blocca",
-   "titolo": "Il lavoro notturno si è fermato da 2 esecuzioni",
-   "quanti": 2,
+   "titolo": "Il lavoro notturno si è fermato da 3 esecuzioni",
+   "quanti": 3,
    "dettaglio": {
     "motivo": "colonne di lista non riconosciute: Haredi Public",
-    "esecuzioni": 2,
+    "esecuzioni": 3,
     "archivioAl": "2026-09-10"
    },
    "chiude": "Il motivo è: colonne di lista non riconosciute: Haredi Public. L'archivio pubblicato resta fermo al 2026-09-10 finché la causa non è tolta.",
