@@ -3665,7 +3665,13 @@ function montecarlo(base,N,giorni,al){
  /* Le liste vicine alla soglia sono più volatili delle grandi: il loro esito è quasi
     binario e il riparto le tratta a scatti. Il fattore vale 1 sopra il 6% e sale
     fino a 1,46 alla soglia. Tarato sul banco di prova storico: senza, il risultato
-    vero cadeva nell'intervallo dell'80% nel 67% dei casi invece che nell'80%. */
+    vero cade nell'intervallo dell'80% nel 64,6% dei casi invece che nell'80%, con nel
+    67,1% — la correzione vale due liste su settantanove.
+    I DUE NUMERI SONO STATI RIMISURATI IL 13 SETTEMBRE 2026, e prima dicevano 67% e 73%:
+    sono scesi tutti e due di circa sei punti, e nessuno se n'era accorto perché lo
+    strumento che li produce — dati/report.js sopra dati/backtest.js — non girava dal 23
+    agosto. Vanno tenuti insieme: il primo da solo, aggiornato, coinciderebbe col secondo
+    di prima e farebbe sembrare inutile la correzione che invece morde. */
  var vol=new Float64Array(n);
  for(i=0;i<n;i++) vol[i]=1+Math.max(0,(6-bs[i])/6);
  /* Scosse accoppiate. Per ogni coppia si estrae una perturbazione che spinge le due
@@ -9752,11 +9758,19 @@ function rFoot(){
  'nel 2021 il Sionismo Religioso era sotto soglia in cinque sondaggi su sei e tre settimane dopo si fuse '+
  'con Otzma prendendo sei seggi; nel 2022 la Lista Unita era intera nei sondaggi di metà settembre e si '+
  'spaccò il giorno del deposito, lasciando Balad al 2,90% e i suoi voti nel nulla. '+DEP_FONTE()+'</p>'+
+ /* IL 67% È UNA MISURA CON UNA DATA, e la data sta scritta perché il numero non è ricavabile
+    dalla pagina: esce da dati/report.js sul banco storico, 53 liste su 79. Ha detto 73%
+    fino al 13 settembre 2026, e in mezzo c'era un intervallo in cui nessuno poteva
+    verificarlo — dal 23 agosto lo strumento che lo produce non girava più, perché
+    l'estrazione interrogava funzioni rinominate. Chi lo rimisura aggiorna anche la data,
+    E RIMISURA ANCHE L'ALTRO: il gemello senza la correzione della volatilità sta nel
+    commento di montecarlo(), vale 64,6%, ed è sceso degli stessi sei punti. */
  '<p><b>Un limite dichiarato.</b> Sulle singole liste gli intervalli sono ottimistici: nel banco di prova '+
- 'il risultato vero cade nell\'intervallo dell\'80% nel <b>73%</b> dei casi, non nell\'80%. La correzione '+
+ 'il risultato vero cade nell\'intervallo dell\'80% nel <b>67%</b> dei casi, non nell\'80% '+
+ '(misurato il 13 settembre 2026 sulle sette istantanee). La correzione '+
  'per la volatilità delle liste in zona soglia recupera parte dello scarto e poi si ferma: il residuo non '+
  'è ampiezza dell\'intervallo ma movimento reale della campagna, che nessun allargamento può catturare. '+
- 'Va letto così: quando questa pagina scrive «8 casi su 10», la lettura prudente è «7 su 10».</p>'+
+ 'Va letto così: quando questa pagina scrive «8 casi su 10», la lettura prudente è «poco meno di 7 su 10».</p>'+
  '<p>Un\'ultima nota di onestà: sul totale di blocco il modello è <i>leggermente peggiore</i> della semplice '+
  'media dei sondaggi (1,7 seggi di errore contro 1,4 nell\'ultima settimana), mentre è leggermente migliore '+
  'sulle singole liste. Scambia precisione sul blocco per precisione sulle liste, ed è una scelta, non un caso.</p>'+

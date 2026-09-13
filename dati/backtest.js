@@ -1,15 +1,42 @@
-/* BANCO DI PROVA — riusa le funzioni reali del modello (dhondt, invD) estratte da app.js
-   e ne replica la pipeline: quote per sondaggio → media pesata → riparto → Monte Carlo. */
-const fs=require('fs'), app=fs.readFileSync('app.js','utf8');
+/* BANCO DI PROVA — riusa le funzioni reali del modello estratte da index.html e ne replica
+   la pipeline: quote per sondaggio → media pesata → riparto → Monte Carlo.
+
+   IL SORGENTE SI LEGGE DA index.html, E IL PERCORSO È RISOLTO SU __dirname.
+   Prima leggeva `app.js` con un percorso relativo alla CARTELLA CORRENTE: quel file è un
+   PRODOTTO di test/estrai.mjs, in dati/ non esiste affatto, e dove esiste può essere vecchio.
+   Sono i due modi in cui uno strumento di misura tace — non gira, oppure gira su un codice
+   che non è quello pubblicato — e questo progetto li ha pagati tutti e due: `--prova` che
+   interrogava il parser di ieri, e sei suite verdi su un test/app.js rimasto indietro.
+   Leggere la sorgente vera toglie il prodotto intermedio, e __dirname toglie la cartella
+   corrente, che è la trappola a orologeria di ogni script di banco. */
+const fs=require('fs'), path=require('path');
+const HTML=fs.readFileSync(path.join(__dirname,'..','index.html'),'utf8');
+const _blocchi=[...HTML.matchAll(/<script>([\s\S]*?)<\/script>/g)].map(m=>m[1]);
+if(!_blocchi.length) throw new Error('nessun blocco <script> in index.html');
+const app=_blocchi[_blocchi.length-1];
 const SOGLIA=3.25, DISP=8;
-/* estrazione letterale delle due funzioni dal modello in produzione */
+/* LE FUNZIONI ESTRATTE SONO UN ELENCO DICHIARATO, E LA CHIUSURA DEVE ESSERE COMPLETA.
+   Fino al 23 agosto 2026 qui c'erano `dhondt` e `invD` e bastavano. Poi gli apparentamenti
+   hanno messo `invD` sotto `ripartoSoglia` → `divisori` e `dhondt` sotto `coppieRiparto`, e
+   questo banco ha smesso di girare — per ventuno giorni, senza che nessuna prova lo dicesse,
+   perché nessuna prova lo eseguiva. L'ordine conta: una funzione va estratta prima di chi la
+   chiama. Chi aggiunge una dipendenza al riparto aggiunge una riga qui, e se non lo fa la
+   prova `banco.js` cade nominando la funzione che manca. */
+const ESTRATTE=['divisori','ripartoSoglia','dhondt','invD'];
+/* e l'estrazione FALLISCE FORTE se non trova: con indexOf a -1 restituiva l'ultimo carattere
+   del file, cioè un frammento che `eval` accetta in silenzio. Un estrattore che non trova
+   deve dirlo, o il difetto si sposta di trenta righe e diventa illeggibile. */
 function estrai(nome){
   const i=app.indexOf('function '+nome+'(');
+  if(i<0) throw new Error('backtest: funzione «'+nome+'» non trovata in index.html — è stata rinominata?');
   let d=0,j=app.indexOf('{',i);
   for(let k=j;k<app.length;k++){ if(app[k]==='{')d++; else if(app[k]==='}'){d--; if(!d){j=k;break;}} }
   return app.slice(i,j+1);
 }
-eval(estrai('dhondt')); eval(estrai('invD'));
+/* IL CICLO È `for`, NON `forEach`: `eval` diretto dentro una funzione freccia dichiarerebbe
+   le funzioni nello scope della freccia, che muore alla riga dopo. Qui lo scope è il modulo,
+   che è dove servono. */
+for(const n of ESTRATTE) eval(estrai(n));
 const gg=(a,b)=>Math.round((b-a)/864e5);
 let _g=null;
 function gauss(){ if(_g!==null){const v=_g;_g=null;return v;}
@@ -47,7 +74,13 @@ function proietta(caso, SIM=20000, acc=false){ ACC=acc;
   const QUO={}; let T=0;
   for(const k in avg) if(avg[k]>0.05){ QUO[k]=avg[k]; T+=avg[k]; }
   for(const k in QUO) QUO[k]*=99/T;
-  const SEG=dhondt(QUO);
+  /* LE COPPIE SI PASSANO VUOTE, e non è un dettaglio: senza il terzo argomento `dhondt`
+     chiama `coppieRiparto()`, che leggerebbe APPARENTAMENTI — cioè gli accordi del 2026 —
+     dentro un riparto del 2020. Oggi verrebbero scartati perché gli id storici sono altri,
+     ma è una salvezza per coincidenza: basterebbe una coppia che nomina `likud` perché un
+     accordo di oggi entrasse in un'elezione di sei anni fa. Un array vuoto vale «nessun
+     accordo» ed è legittimo: `if(!cp)` non lo confonde con «non passato». */
+  const SEG=dhondt(QUO,null,[]);
   /* 5 · Monte Carlo, stessi parametri del modello */
   const ids=Object.keys(QUO), bl=new Set(caso.blocco);
   /* stesse coppie del modello, mappate sui nomi delle liste storiche */
@@ -70,7 +103,7 @@ function proietta(caso, SIM=20000, acc=false){ ACC=acc;
       const f=1+Math.max(0,(6-QUO[k])/6);
       sim[k]=QUO[k]*Math.exp(eps[k]*sg*f+dir*sw); tot+=sim[k]; });
     ids.forEach(k=>sim[k]*=99/tot);
-    const seg=dhondt(sim); let b=0;
+    const seg=dhondt(sim,null,[]); let b=0;   /* idem: nessun accordo nel banco storico */
     ids.forEach(k=>{ const v=seg[k]||0; dist[k].push(v); if(bl.has(k)) b+=v; });
     blocDist.push(b);
   }
