@@ -126,7 +126,18 @@ var COLORE = (function () {
        E unity_erdan RESTA benche' ritirata il 4 settembre: uno slot si riprende quando
        serve, non quando si libera. Riprenderli tutti e due adesso ripingerebbe le due
        liste vive che li seguono in cambio di niente. */
-    incerto    : ['reserv_nep','economico','unity_erdan','israel_first','amcha']
+    /* `haredi_pubblico` VA IN CODA E OLTRE LA SATURAZIONE, DI PROPOSITO: il blocco è pieno
+       in tutti e due i temi, quindi la regola avvisa e restituisce --ink2. È il
+       comportamento per cui l'avviso è stato riparato il 30 agosto 2026, e qui è la
+       risposta giusta invece di un ripiego — la scala del §9 ripingerebbe TRE liste su
+       cinque di questo blocco, e le ripingerebbe per una lista che non si vede: porta zero
+       seggi in tutte le rilevazioni che la nominano, quindi non compare in nessuna sede
+       colorata. Non ha nemmeno una posizione in TINTA_ASSEGNATA, e non le serve: oltre la
+       saturazione il dominio è vuoto e la tinta dichiarata non sposta niente.
+       PRENDE UNA TINTA IL GIORNO IN CUI PRENDE SEGGI NUDI, e quel giorno c'è un sondaggio
+       che lo annuncia: allora il blocco va guardato daccapo, e allora la scala del §9 vale
+       il suo prezzo perché la lista si vede davvero. */
+    incerto    : ['reserv_nep','economico','unity_erdan','israel_first','amcha','haredi_pubblico']
   };
   /* TINTA_ASSEGNATA: la posizione di tinta di ogni lista dentro il
      settore del suo blocco. E' un PARAMETRO DELLA REGOLA, uno per

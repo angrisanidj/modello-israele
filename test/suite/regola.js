@@ -29,6 +29,32 @@ function esito(cond, desc, dettaglio){
 const ATTESE = Object.keys(COLORE.ORDINE)
   .reduce((a, b) => a.concat(COLORE.ORDINE[b]), []);
 
+/* L'INVENTARIO DELLE LISTE CHE SATURANO PER SCELTA, con la ragione scritta — l'idioma
+   delle due esenzioni di opacita.js. Sta in cima perché lo leggono QUATTRO asserzioni
+   diverse: la saturazione si manifesta da quattro angoli — il colore che si legge grigio,
+   gli slot liberi che vanno sotto zero, capienza() dell'ago della bilancia, e gli avvisi —
+   e sono lo stesso fatto visto da quattro parti, non quattro fatti.
+   NESSUNA PRETESA È ABBASSATA: ogni asserzione toglie le esentate e resta identica per
+   tutte le altre, quindi una lista nuova che saturasse un blocco la farebbe cadere come
+   prima. E ogni voce porta il verso che a un inventario manca sempre — deve saturare
+   DAVVERO, o è una scusa rimasta in piedi dopo che il caso è passato. */
+const SATURA_PER_SCELTA = {
+  haredi_pubblico:
+    'mappata l\'8 settembre 2026 per far ripartire il lavoro notturno. Il blocco «incerto» è ' +
+    'saturo in tutti e due i temi e la lista prende --ink2, che è il comportamento per cui ' +
+    'l\'avviso è stato riparato il 30 agosto 2026. La scala del §9 non si applica: ' +
+    'ripingerebbe tre liste su cinque per una lista che non compare in nessuna sede colorata, ' +
+    'perché porta zero seggi in tutte le rilevazioni che la nominano — i valori della fonte ' +
+    'sono tutti fra parentesi. Prende una tinta il giorno in cui prende seggi nudi, e quel ' +
+    'giorno c\'è un sondaggio che lo annuncia.'
+};
+const ESENTI = Object.keys(SATURA_PER_SCELTA);
+/* quante esentate per blocco: è di quanto «liberi» può legittimamente scendere sotto zero */
+const ESENTI_PER_BLOCCO = {};
+Object.keys(COLORE.ORDINE).forEach(b => {
+  ESENTI_PER_BLOCCO[b] = COLORE.ORDINE[b].filter(id => SATURA_PER_SCELTA[id]).length;
+});
+
 /* ── colori chiari: dall'anagrafica P{} ── */
 const blocco = html.match(/var P=\{([\s\S]*?)\n\};/);
 esito(!!blocco, 'l\'anagrafica P{} è leggibile in index.html');
@@ -196,7 +222,11 @@ for (const id of ATTESE) {
 {
   const RIPIEGO = {chiaro:'#626D7E', scuro:'#7D8A9B'};
   const smorti = [];
-  for (const id of ATTESE) for (const tema of ['chiaro', 'scuro']) {
+  /* le esentate sono fuori: prendono --ink2, che è quasi acromatico (croma 0,035) e quindi
+     questa prova lo leggerebbe come «grigio». Non è il grigio di RIPIEGO — quello è --mute,
+     e la differenza è la riparazione del 30 agosto 2026 — ed è dichiarato, non subito. Che
+     ciascuna prenda --ink2 e non --mute lo asserisce l'inventario più sotto. */
+  for (const id of ATTESE.filter(x => !SATURA_PER_SCELTA[x])) for (const tema of ['chiaro', 'scuro']) {
     const h = (COLORE.diLista(id, tema) || '').toUpperCase();
     if (h === RIPIEGO[tema].toUpperCase()) smorti.push(id + '/' + tema);
     else if (COLORE.misuraColore(h).C < 0.04) smorti.push(id + '/' + tema + ' croma ' + COLORE.misuraColore(h).C.toFixed(3));
@@ -220,13 +250,18 @@ for (const id of ATTESE) {
   esito(cap.chiaro.opposizione.saturazione > 7,
     'la capienza è la saturazione, non il tetto chiesto: l\'opposizione va oltre sette',
     'satura a ' + cap.chiaro.opposizione.saturazione + ' in chiaro');
-  esito(cap.chiaro.incerto.liberi === 0,
-    'e l\'ago della bilancia in chiaro è il blocco davvero pieno: zero slot liberi',
+  esito(cap.chiaro.incerto.liberi <= 0,
+    'e l\'ago della bilancia in chiaro è il blocco pieno: nessuno slot libero',
     'satura a ' + cap.chiaro.incerto.saturazione + ' con ' + cap.chiaro.incerto.in_anagrafica + ' liste');
+  /* «liberi» PUÒ scendere sotto zero, ma solo di quante liste quel blocco ha nell'inventario:
+     una in più non dichiarata fa cadere l'asserzione, che è la proprietà di prima. Era
+     `>= 0`, e l'attesa è diventata obsoleta di proposito l'8 settembre 2026, quando una
+     lista è stata mappata SAPENDO che satura — vedi SATURA_PER_SCELTA in cima. */
   for (const tema of ['chiaro', 'scuro']) for (const b of COLORE.BLOCCHI)
-    esito(cap[tema][b].liberi >= 0,
-      'ogni lista in anagrafica ha uno slot: ' + b + ' / ' + tema,
-      'satura a ' + cap[tema][b].saturazione + ', in anagrafica ' + cap[tema][b].in_anagrafica);
+    esito(cap[tema][b].liberi >= -(ESENTI_PER_BLOCCO[b] || 0),
+      'ogni lista in anagrafica ha uno slot, tolte quelle che saturano per scelta: ' + b + ' / ' + tema,
+      'satura a ' + cap[tema][b].saturazione + ', in anagrafica ' + cap[tema][b].in_anagrafica +
+      ', esentate ' + (ESENTI_PER_BLOCCO[b] || 0));
   /* il rimedio si trova dal punto in cui la regola fallisce, non cercandolo */
   esito(/§9/.test(cap.ripiego || ''),
     'e capienza() dice dove andare quando un blocco è pieno', cap.ripiego);
@@ -245,16 +280,40 @@ for (const id of ATTESE) {
  * Questa asserzione è quella strada: se una lista in più satura un blocco, «npm run
  * verifica» cade e dice quale. */
 {
-  COLORE.azzeraAvvisi();
   const BLOCCHI_VERI = Object.keys(COLORE.ORDINE);
+  const esenti = ESENTI;
+
+  /* 1 · la pretesa, sull'anagrafica senza le esentate */
+  const salvate = {};
+  BLOCCHI_VERI.forEach(b => { salvate[b] = COLORE.ORDINE[b].slice();
+    COLORE.ORDINE[b] = COLORE.ORDINE[b].filter(id => !SATURA_PER_SCELTA[id]); });
+  COLORE.azzeraAvvisi();
   BLOCCHI_VERI.forEach(b => COLORE.ORDINE[b].forEach(id => {
     ['chiaro','scuro'].forEach(t => { try { COLORE.diLista(id, t); } catch(e){ /* lo dice l'asserzione */ } });
   }));
   const veri = COLORE.avvisi();
+  const quante = BLOCCHI_VERI.reduce((n,b) => n + COLORE.ORDINE[b].length, 0);
+  BLOCCHI_VERI.forEach(b => { COLORE.ORDINE[b] = salvate[b]; });
   esito(veri.length === 0,
-    'l\'anagrafica com\'è adesso non manda nessun blocco oltre la saturazione',
-    veri.length ? veri.join(' | ') : 'zero avvisi su ' +
-      BLOCCHI_VERI.reduce((n,b) => n + COLORE.ORDINE[b].length, 0) + ' liste × 2 temi');
+    'l\'anagrafica, tolte le liste che saturano per scelta, non manda nessun blocco oltre la saturazione',
+    veri.length ? veri.join(' | ') : 'zero avvisi su ' + quante + ' liste × 2 temi');
+
+  /* 2 · e ogni voce dell'inventario è ESERCITATA: se non avvisa più, va tolta */
+  esenti.forEach(id => {
+    COLORE.azzeraAvvisi();
+    ['chiaro','scuro'].forEach(t => { try { COLORE.diLista(id, t); } catch(e){} });
+    esito(COLORE.avvisi().length > 0,
+      'la voce «' + id + '» dell\'inventario satura davvero un blocco',
+      'non avvisa più: va tolta dall\'inventario invece di restare come scusa');
+    esito(SATURA_PER_SCELTA[id].length > 80, 'e porta una ragione scritta',
+      'lunga ' + SATURA_PER_SCELTA[id].length + ' caratteri');
+    /* e il colore che le tocca è --ink2, non --mute: è la riparazione del 30 agosto 2026,
+       e chi trovasse la pastiglia slate poco espressiva rimetterebbe --mute in dieci secondi */
+    COLORE.azzeraAvvisi();
+    esito(COLORE.diLista(id,'chiaro') === '#33435A' && COLORE.diLista(id,'scuro') === '#A3B3C8',
+      'e prende --ink2 nei due temi, non --mute',
+      COLORE.diLista(id,'chiaro') + ' / ' + COLORE.diLista(id,'scuro'));
+  });
   COLORE.azzeraAvvisi();
 }
 

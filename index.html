@@ -2166,6 +2166,35 @@ var P={
  reserv_nep  :{n:"Riservisti · NEP",   l:"",                  c:"#8B5400", b:"incerto",     o:9.5, gov:1, r22:null, ab:"Riserv"},
  israel_first:{n:"Israel First",       l:"Sharren Haskel",     c:"#674F00", b:"incerto",     o:12, gov:1, r22:null},
  amcha       :{n:"Popolo d'Israele",   l:"Ofer Winter",        c:"#955A00", b:"incerto",     o:12.5, gov:1, r22:null},
+ /* NASCE IL 19 LUGLIO 2026 e deposita la lista l'8 settembre. È la colonna che ha fermato
+    il lavoro notturno per quattro esecuzioni — «GUARDIA: colonne di lista non riconosciute:
+    Haredi Public» — e la guardia ha fatto il suo mestiere: meglio un archivio fermo che una
+    lista contata come un'altra.
+
+    PORTA ZERO SEGGI IN TUTTE LE RILEVAZIONI CHE LA NOMINANO. I valori della fonte sono
+    tutti fra parentesi — da (0,1%) a (1,1%) — cioè sotto soglia, quindi le righe sommavano
+    120 anche senza di lei ed erano valide: a fermare il job non era un dato mancante, era
+    l'avviso che una lista nuova esiste. È MAPPATA PER FAR RIPARTIRE IL JOB, e a leve ferme
+    non sposta un numero. LA CONDIZIONE CHE RIAPRE LA LETTURA: il giorno in cui la fonte le
+    dà un seggio NUDO, fuori dalle parentesi, entra nel riparto e va riguardata — a partire
+    dal blocco.
+
+    IL BLOCCO È `incerto`, E NON È UN RIPIEGO. La fonte non dichiara né il campo né una
+    raccomandazione per il premier, e la lista si presenta come alternativa a Shas e UTJ:
+    metterla in coalizione per analogia religiosa sarebbe un'inferenza su un nome, cioè
+    esattamente quello che il confine vieta — e sarebbe la stessa mossa che per Amcha
+    avrebbe fatto respingere sei righe valide ogni notte. «Ago della bilancia» dice quello
+    che la fonte dice: non si sa con chi sta. SI RILEGGE il giorno in cui dichiara una
+    raccomandazione, e allora la strada è IN_BILICO come per Winter, non l'anagrafica.
+
+    IL COLORE È `--ink2`, ED È LA REGOLA CHE LO DICE. Il blocco è saturo in tutti e due i
+    temi: COLORE.avvisi() ne emette due e diLista() restituisce #33435A / #A3B3C8, che è il
+    comportamento per cui l'avviso è stato riparato il 30 agosto 2026. Non si applica la
+    scala del §9 — ripingerebbe tre liste su cinque per una lista che non compare in nessuna
+    sede colorata, perché non ha seggi. Prende una tinta il giorno in cui prende seggi nudi.
+    L'esenzione è dichiarata in regola.js con questa stessa ragione, e la pretesa generale
+    di zero avvisi NON è stata abbassata. */
+ haredi_pubblico:{n:"Pubblico Haredi", l:"Moti Leitner",       c:"#33435A", b:"incerto",     o:12.7, gov:1, r22:null, ab:"Haredi"},
  beitenu     :{n:"Yisrael Beitenu",    l:"Avigdor Lieberman",  c:"#720055", b:"opposizione", o:13, gov:1, r22:6},
  likud       :{n:"Likud",              l:"Benjamin Netanyahu", c:"#0061B4", b:"coalizione",  o:14, gov:1, r22:32},
  shas        :{n:"Shas",               l:"Aryeh Deri",         c:"#0092BB", b:"coalizione",  o:15, gov:1, r22:11},
@@ -2640,6 +2669,11 @@ function schiarisci(hex,q){
    COPIA: la sorgente è dati/colore-liste.js, e test/suite/regola.js verifica che non
    divergano. Rigenerarla, non ritoccarla a mano. */
 var PAL_SCURO={
+ /* L'OTTAVO POSTO DEL CONTRATTO. Senza questa coppia la lista non ha colore nel tema scuro
+    e schiarisci() ne inventa uno che la regola non conosce: un posto dimenticato non lascia
+    un buco, produce un colore. Qui i due valori sono --ink2 nei due temi, perché il blocco
+    è saturo e la regola lo dichiara — non una tinta scelta. */
+ "#33435A":"#A3B3C8",
  "#955A00":"#EEBA00",
  "#5E30F0":"#95BFFF",
  "#5800CA":"#009ADC",
@@ -2726,7 +2760,11 @@ function dl(s){var m=['gennaio','febbraio','marzo','aprile','maggio','giugno','l
 function E(s){return String(s).replace(/[&<>"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});}
 function nm(i){return P[i]?P[i].n:i;}
 /* alcune liste vogliono l'articolo: "il Likud", "davanti al Likud", "di fronte ai Democratici" */
-var ART={likud:'il',sionismo_rel:'il',utj:'il',democratici:'i'};
+/* «il Pubblico Haredi», come «il Sionismo Religioso»: il nome è un sintagma che in italiano
+   regge l'articolo, e senza uscirebbe «i seggi di Pubblico Haredi». Non tutte le liste lo
+   vogliono — «Partito Economico» e «Israel First» stanno bene nude — quindi la voce si
+   aggiunge per il nome che la chiede, non per abitudine. */
+var ART={likud:'il',sionismo_rel:'il',utj:'il',democratici:'i',haredi_pubblico:'il'};
 /* Le preposizioni articolate per i due soli articoli che l'anagrafica usa. Mancarne una
    non produce un errore di stile: produce «da il Likud», che nessuno scrive. */
 var CONTR={'di il':'del','a il':'al','da il':'dal','in il':'nel','su il':'sul','con il':'col',
@@ -9972,6 +10010,11 @@ var W_LISTA={
     nessuna tabella, e una grafia mappata a vuoto toglie un nome dall'elenco di quelle
     ignote senza far entrare una riga: spegne la guardia e non compra niente. */
  'reserv.-nep':'reserv_nep',
+ /* La colonna nuova dell'8 settembre 2026, che ha fermato il lavoro notturno per quattro
+    esecuzioni. UNA GRAFIA SOLA: la fonte scrive «Haredi Public» e basta — le varianti si
+    aggiungono quando compaiono, non per previsione, o si mappa a vuoto e si spegne la
+    guardia senza comprare una riga. */
+ 'haredi public':'haredi_pubblico',
  'unity':'unity_erdan',
  'amcha israel':'amcha','amcha yisrael':'amcha','amcha':'amcha',
  'party of ofer winter':'amcha','people of israel':'amcha',
