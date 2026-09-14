@@ -17,7 +17,7 @@
 import {readFileSync, writeFileSync, existsSync} from 'node:fs';
 import {fileURLToPath} from 'node:url';
 import {dirname, join} from 'node:path';
-import {conSpazzolata, conEsito, markdown} from './dafare.mjs';
+import {conSpazzolata, conEsito, conPendenti, markdown} from './dafare.mjs';
 
 const RADICE = join(dirname(fileURLToPath(import.meta.url)), '..', '..');
 const P = join(RADICE, 'dati', 'da-fare.json');
@@ -40,6 +40,14 @@ if (process.env.SPAZZOLA_CADUTA === '1' && existsSync(sp)){
 /* L'ESITO DEL JOB ENTRA NEL RIEPILOGO, e viene dal workflow perché nei file non c'è: una
    notte bloccata non committa niente, quindi non lascia traccia nel repository. */
 f = conEsito(f, process.env.ESITO_JOB, process.env.ESECUZIONI_FERME);
+
+/* IL REGISTRO SI GUARDA PRIMA DI SCRIVERE IL CONTO, perché il conto decide se il workflow
+   commenta «Non resta niente da fare: chiudo». Con voci «nuovo» nel registro quella frase
+   sarebbe falsa, e fino al 14 settembre 2026 lo è stata quattro volte su quattro. Un registro
+   che non si legge fa morire il passo invece di valere «nessuna voce»: meglio una issue che
+   resta aperta di una che si chiude affermando il falso. */
+const R = join(RADICE, 'dati', 'eventi-grezzi.json');
+f = conPendenti(f, existsSync(R) ? JSON.parse(readFileSync(R, 'utf8')) : []);
 
 writeFileSync(join(RADICE, 'corpo-dafare.md'), markdown(f));
 writeFileSync(join(RADICE, 'conto.txt'), String(f.conto.richiedono + f.conto.informative));

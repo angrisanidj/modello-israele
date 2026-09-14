@@ -24,7 +24,7 @@ import {readFileSync, writeFileSync, existsSync} from 'node:fs';
 import {fileURLToPath, pathToFileURL} from 'node:url';
 import {dirname, join} from 'node:path';
 import {JSDOM} from 'jsdom';
-import {componi} from './dafare.mjs';
+import {componi, vociDaTradurre} from './dafare.mjs';
 
 const QUI = dirname(fileURLToPath(import.meta.url));
 const RADICE = join(QUI, '..', '..');
@@ -397,10 +397,12 @@ async function main(){
    * è un dato del modello: è il referto, e va scritto PROPRIO nelle notti in cui il job
    * si ferma — quelle in cui c'è qualcosa da fare. Scritto dopo, mancherebbe quando serve.
    *
-   * Le voci-evento che il riepilogo elenca sono quelle che ENTREREBBERO: il registro su
-   * disco non è ancora stato toccato, e non lo sarà se una guardia ferma tutto. È l'unica
-   * differenza fra quello che il file annuncia e quello che il repository contiene, e va
-   * saputa: il riepilogo dice «da tradurre», non «già nel registro».
+   * Le voci-evento che il riepilogo elenca sono TUTTE quelle in stato «nuovo», comprese
+   * quelle che ENTREREBBERO: il registro su disco non è ancora stato toccato, e non lo sarà
+   * se una guardia ferma tutto. È l'unica differenza fra quello che il file annuncia e
+   * quello che il repository contiene, e va saputa: il riepilogo dice «da tradurre», non
+   * «già nel registro». Fino al 14 settembre 2026 elencava solo quelle viste stanotte: vedi
+   * vociDaTradurre() in dafare.mjs.
    *
    * `esecuzioni` viene da fuori, dal workflow, che sa contare le esecuzioni fallite di fila:
    * una notte bloccata non committa niente, quindi da qui dentro non è ricavabile. */
@@ -421,7 +423,7 @@ async function main(){
     ambigue, ambigueIeri: stato.ambigue,
     esempiAmbigui: out.scartate.filter(x => x.tipo === 'ambigua')
       .map(x => ({data: x.data, istituto: x.istituto, motivo: x.motivo})),
-    eventiNuovi: reg.registro.filter(r => r.stato === 'nuovo' && r.visto === oggi),
+    eventiNuovi: vociDaTradurre(reg.registro),
     quiete: archivioAl
       ? Math.round((Date.parse(oggi) - Date.parse(archivioAl)) / 864e5) : 0,
     gapSondaggi: A.GAP_SONDAGGI()

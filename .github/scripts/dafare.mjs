@@ -222,6 +222,47 @@ export function markdown(f){
   return r.join('\n');
 }
 
+/* ══ LE VOCI DA TRADURRE SONO TUTTE QUELLE IN STATO «nuovo», NON QUELLE VISTE STANOTTE ══
+ * Fino al 14 settembre 2026 aggiorna.mjs filtrava anche su `visto === oggi`: ogni voce
+ * compariva nel riepilogo una notte sola — quella in cui entrava nel registro — e dalla
+ * notte dopo spariva dall'elenco E dal conto, perché il conto nasce dalle voci. Il 14
+ * settembre erano in sospeso quattordici voci, invisibili da una a tredici notti, e il
+ * riepilogo diceva «Niente da fare.».
+ * Una voce non smette di essere da fare perché è vecchia: smette quando una persona la porta
+ * a «tradotto» o a «scartato». E l'elenco non ha un limite, di proposito: è il conto a dire
+ * quante sono, e un troncamento sarebbe lo stesso difetto con un numero diverso.
+ * Sta QUI e non in aggiorna.mjs perché ha due chiamanti — il parser e la consegna del
+ * riepilogo — e due copie dello stesso filtro divergerebbero alla prima correzione. */
+export function vociDaTradurre(registro){
+  return (registro || []).filter(r => r && r.stato === 'nuovo');
+}
+
+/* ══ IL CONTO NON PUÒ ESSERE ZERO CON VOCI «nuovo» NEL REGISTRO ══
+ * conto.txt decide la chiusura della issue, e la chiusura non è un silenzio: è
+ * un'AFFERMAZIONE, «Non resta niente da fare: chiudo». Fino al 14 settembre 2026 il workflow
+ * l'ha fatta quattro volte su quattro con voci in sospeso — la issue #3 con tre, la #4 con
+ * cinque, la #5 con undici, la #6 con quattordici.
+ * Tolto il filtro, dal parser non succede più. Ma il file che arriva alla consegna può non
+ * essere quello scritto dal parser stanotte — assente, o rimasto quello di ieri — e una
+ * garanzia che dipende da quale strada ha scritto il file è una garanzia dedotta. Quindi il
+ * registro si guarda anche qui, subito prima di scrivere il conto.
+ * La voce la costruisce voci(), come per la spazzolata: nessuna seconda formulazione. E se il
+ * file la porta già non si tocca: in una notte fermata da una guardia il parser conosce anche
+ * le voci che ENTREREBBERO, che su disco non ci sono ancora, e sostituirla le toglierebbe. */
+export function conPendenti(file, registro){
+  const pendenti = vociDaTradurre(registro);
+  if (!pendenti.length) return file;
+  if ((file.voci || []).some(x => x.id === 'eventi-da-tradurre')) return file;
+  const s = Object.assign({}, file);
+  s.voci = (s.voci || []).concat(voci({eventiNuovi: pendenti}));
+  const conta = u => s.voci.filter(x => x.urgenza === u).length;
+  s.conto = {blocca: conta('blocca'),
+             richiedono: conta('blocca') + conta('richiede'),
+             informative: conta('informativa')};
+  s.riga = riassunto(s.conto.blocca, s.conto.richiedono, s.conto.informative);
+  return s;
+}
+
 /* La spazzolata arriva dopo il push, quaranta minuti più tardi: si aggiunge al file già
    scritto invece di ricomporlo, perché ricomporlo vorrebbe dire rieseguire il parser. */
 export function conSpazzolata(file, uscita){

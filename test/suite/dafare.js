@@ -28,7 +28,7 @@ function esito(cond, desc, dettaglio){
 }
 
 (async function(){
-  const {componi, voci, markdown, conSpazzolata, conEsito, riassunto} =
+  const {componi, voci, markdown, conSpazzolata, conEsito, riassunto, vociDaTradurre, conPendenti} =
     await import('file:///' + (__dirname + '/../../.github/scripts/dafare.mjs').replace(/\\/g, '/'));
   const fs = require('fs');
 
@@ -294,6 +294,112 @@ function esito(cond, desc, dettaglio){
           || f.voci.length === f.conto.richiedono + f.conto.informative,
       'il conto e le voci dicono lo stesso numero',
       f.voci.length + ' voci · ' + JSON.stringify(f.conto));
+  }
+
+  /* ══ 8 · UNA VOCE «nuovo» DI IERI È ANCORA DA FARE OGGI ══════════════════
+     Fino al 14 settembre 2026 aggiorna.mjs passava a componi() le sole voci con
+     `visto === oggi`: ognuna compariva una notte e poi spariva dall'elenco e dal conto.
+     Quattordici voci erano in sospeso, il riepilogo diceva «Niente da fare.», e il workflow
+     ha chiuso la issue affermando «Non resta niente da fare» quattro volte su quattro.
+     Nessuna prova leggeva quella riga; queste la leggono in tre modi — la funzione, la
+     composizione, e il sorgente che le lega — perché ciascuno da solo lascia un mutante vivo.
+     Le date sono ricavate da oggi (invariante 10): «ieri» è il fatto che si prova, non agosto. */
+  {
+    const gg = k => new Date(Date.now() - k * 864e5).toISOString().slice(0, 10);
+    const oggi = gg(0), ieri = gg(1);
+    const voce = (k, stato, testo) => ({chiave: gg(k) + '|' + testo.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
+                                        data: gg(k + 1), testo, visto: gg(k), stato});
+    const registro = [
+      voce(1, 'nuovo', 'Joint List and Ra\'am sign a surplus-vote agreement'),
+      voce(13, 'nuovo', 'Unity withdraws from the election'),
+      voce(0, 'nuovo', 'Yashar and The Democrats sign a surplus-vote agreement'),
+      voce(5, 'tradotto', 'Ra\'am conducts a primary'),
+      voce(2, 'scartato', 'Something that does not belong in the chronology')
+    ];
+
+    /* la funzione: lo stato decide, la data in cui la voce è stata vista no */
+    const d = vociDaTradurre(registro);
+    esito(d.length === 3 && d.every(r => r.stato === 'nuovo'),
+      'vociDaTradurre() prende tutte le voci «nuovo» e nessun\'altra', JSON.stringify(d.map(r => r.visto + '/' + r.stato)));
+    esito(d.some(r => r.visto === ieri) && d.some(r => r.visto === gg(13)),
+      '  · comprese quelle viste ieri e tredici notti fa', JSON.stringify(d.map(r => r.visto)));
+
+    /* la composizione: una voce di ieri, SOLA, nel riepilogo di oggi. Sola perché con una
+       voce di oggi accanto il riepilogo non sarebbe vuoto nemmeno col filtro rimesso */
+    const s = buona(); s.oggi = oggi;
+    s.eventiNuovi = vociDaTradurre([registro[0]]);
+    const f = componi(s);
+    const ev = f.voci.filter(x => x.id === 'eventi-da-tradurre')[0];
+    esito(!!ev && ev.dettaglio.voci.some(e => e.chiave === registro[0].chiave),
+      'una voce «nuovo» vista IERI compare nel riepilogo di oggi', JSON.stringify(f.voci.map(x => x.id)));
+    esito(f.conto.richiedono === 1 && f.riga !== 'Niente da fare.',
+      '  · e il conto in testa la conta: il riepilogo non dice «Niente da fare.»', f.riga);
+    esito(markdown(f).indexOf(registro[0].testo) >= 0,
+      '  · e il corpo della issue porta il suo testo');
+
+    /* il numero nel titolo e nel JSON è quello delle voci in sospeso, non di quelle di oggi */
+    const s3 = buona(); s3.oggi = oggi; s3.eventiNuovi = d;
+    const e3 = componi(s3).voci.filter(x => x.id === 'eventi-da-tradurre')[0] || {dettaglio: {voci: []}};
+    esito(e3.quanti === 3 && e3.dettaglio.voci.length === 3 && /^3 voci-evento/.test(e3.titolo || ''),
+      'titolo, quanti e dettaglio contano tutte e tre le voci in sospeso', e3.titolo + ' · ' + e3.quanti);
+
+    /* NESSUN LIMITE: un elenco troncato sarebbe lo stesso difetto con un numero diverso */
+    const molte = Array.from({length: 60}, (_, i) => voce(1 + (i % 30), 'nuovo', 'Event number ' + i + ' happened'));
+    const s60 = buona(); s60.oggi = oggi; s60.eventiNuovi = vociDaTradurre(molte);
+    const f60 = componi(s60), m60 = markdown(f60);
+    const e60 = f60.voci.filter(x => x.id === 'eventi-da-tradurre')[0] || {dettaglio: {voci: []}};
+    esito(e60.quanti === 60 && e60.dettaglio.voci.length === 60 && molte.every(r => m60.indexOf(r.testo + '\n') >= 0 || m60.endsWith(r.testo)),
+      'sessanta voci in sospeso sono sessanta nel JSON e sessanta nel corpo: nessun troncamento',
+      e60.quanti + ' / ' + e60.dettaglio.voci.length);
+
+    /* IL SORGENTE: la riga di aggiorna.mjs che una volta filtrava su `visto`. La funzione e la
+       composizione restano verdi il giorno in cui qualcuno rimette il filtro in quella riga */
+    const src = fs.readFileSync(__dirname + '/../../.github/scripts/aggiorna.mjs', 'utf8');
+    const righe = src.split('\n').filter(r => /^\s*eventiNuovi\s*:/.test(r));
+    esito(righe.length === 1 && righe[0].trim() === 'eventiNuovi: vociDaTradurre(reg.registro),',
+      'aggiorna.mjs passa al riepilogo vociDaTradurre(reg.registro), e nient\'altro', JSON.stringify(righe));
+    esito(src.indexOf("stato === 'nuovo'") < 0,
+      '  · e non ha un filtro suo sulle voci «nuovo»: il filtro sta in un posto solo');
+
+    /* LA CHIUSURA DELLA ISSUE È UN'AFFERMAZIONE, e dipende da conto.txt. Un file di ieri col
+       conto a zero e un registro con voci «nuovo» non devono produrre zero. */
+    const vuoto = {voci: [], conto: {blocca: 0, richiedono: 0, informative: 0}, riga: 'Niente da fare.',
+                   generato: ieri, job: {esito: 'ok', archivioAl: ieri}};
+    const p = conPendenti(vuoto, registro);
+    esito(p.conto.richiedono + p.conto.informative > 0 && p.riga !== 'Niente da fare.',
+      'con voci «nuovo» nel registro il conto che decide la chiusura non è zero', JSON.stringify(p.conto));
+    const pe = p.voci.filter(x => x.id === 'eventi-da-tradurre')[0] || {dettaglio: {voci: []}};
+    esito(pe.dettaglio.voci.length === 3, '  · e la voce le elenca tutte e tre', String(pe.dettaglio.voci.length));
+    esito(vuoto.voci.length === 0 && vuoto.conto.richiedono === 0, '  · senza toccare il file di partenza');
+    const tuttiChiusi = registro.map(r => Object.assign({}, r, {stato: 'tradotto'}));
+    esito(conPendenti(vuoto, tuttiChiusi) === vuoto,
+      'con tutte le voci tradotte o scartate il file resta quello: lo zero torna a essere vero');
+    /* il parser conosce anche le voci che ENTREREBBERO e che su disco non ci sono ancora:
+       se la voce c'è già non si sostituisce, o in una notte fermata le perderebbe */
+    const conDue = componi(Object.assign(buona(), {oggi, eventiNuovi: [registro[0],
+      {chiave: 'solo-in-memoria', data: oggi, testo: 'Arrives tonight, not yet on disk'}]}));
+    esito(conPendenti(conDue, [registro[0]]) === conDue,
+      'se il file porta già la voce degli eventi, conPendenti() non la sostituisce');
+
+    const rsrc = fs.readFileSync(__dirname + '/../../.github/scripts/riepilogo.mjs', 'utf8');
+    const iP = rsrc.indexOf('conPendenti(f,'), iC = rsrc.indexOf("'conto.txt'");
+    esito(iP > 0 && iC > iP,
+      'riepilogo.mjs applica conPendenti() PRIMA di scrivere conto.txt', iP + ' / ' + iC);
+    /* E OGNI FUNZIONE CHE CHIAMA DEVE ESSERE IMPORTATA. La prima stesura chiamava
+       conPendenti() senza importarla: l'asserzione qui sopra era verde, e il passo sarebbe
+       morto con ReferenceError alla prima notte. L'ha trovato la prova sul file vero, non
+       questa. La proprietà non nomina nessuna funzione: vale per quella aggiunta domani. */
+    const imp = (rsrc.match(/import\s*\{([^}]*)\}\s*from\s*'\.\/dafare\.mjs'/) || [, ''])[1]
+      .split(',').map(x => x.trim()).filter(Boolean);
+    const esportate = Object.keys(await import('file:///' + (__dirname + '/../../.github/scripts/dafare.mjs').replace(/\\/g, '/')));
+    const chiamate = [...new Set((rsrc.replace(/\/\*[\s\S]*?\*\//g, '').match(/\b([A-Za-z_]\w*)\s*\(/g) || [])
+      .map(x => x.replace(/\s*\($/, '')))].filter(n => esportate.indexOf(n) >= 0);
+    esito(chiamate.length > 0 && chiamate.every(n => imp.indexOf(n) >= 0),
+      'riepilogo.mjs importa ogni funzione di dafare.mjs che chiama', 'chiamate ' + JSON.stringify(chiamate) + ' · importate ' + JSON.stringify(imp));
+    const yml = fs.readFileSync(__dirname + '/../../.github/workflows/aggiorna.yml', 'utf8');
+    const iZero = yml.indexOf('"$(cat conto.txt)" = "0"'), iFrase = yml.indexOf('Non resta niente da fare');
+    esito(iZero > 0 && iFrase > iZero && yml.split('Non resta niente da fare').length === 2,
+      'e il workflow scrive «Non resta niente da fare» una volta sola, dentro il ramo del conto a zero');
   }
 
   console.log('\ndafare: ' + ok + '/' + (ok + ko));
