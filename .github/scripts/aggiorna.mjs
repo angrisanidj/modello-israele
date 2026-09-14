@@ -319,7 +319,7 @@ async function main(){
     'global.A={parseWiki:parseWiki,unisci:unisci,calcola:calcola,blocchi:blocchi,' +
     'chiaveEvento:chiaveEvento,SEG:function(){return SEG;},SOND:function(){return SOND;},' +
     'validaApparentamenti:validaApparentamenti,GAP_SONDAGGI:function(){return GAP_SONDAGGI;},' +
-    'titoloCortoOra:titoloCortoOra,ipotesiNeiNumeri:ipotesiNeiNumeri,' +
+    'titoloCortoOra:titoloCortoOra,ipotesiNeiNumeri:ipotesiNeiNumeri,ripartoDepositati:ripartoDepositati,' +
     'setSOND:function(v){SOND=v;},sim:function(v){SIM=v;}};carica().then(render,render)');
   eval(src);
   await new Promise(res => setTimeout(res, 2500));
@@ -365,8 +365,15 @@ async function main(){
      SCARTATA L'ALTERNATIVA DEI DUE CONTEGGI — «blocchi» della fonte piu' «blocchiModello»
      con l'ipotesi — e la ragione e' quella di sempre: sono due serie che divergono, e il
      primo che legge quella sbagliata non se ne accorge. Una serie sola piu' una frase che
-     dice che cosa c'e' dentro non ha un modo sbagliato di essere letta. */
-  const blocchi = A.blocchi(A.SEG(), true);
+     dice che cosa c'e' dentro non ha un modo sbagliato di essere letta.
+
+     3 · E I SEGGI SONO QUELLI SENZA GLI ACCORDI NON DEPOSITATI, dal 14 settembre 2026. Quel
+     giorno la leva degli apparentamenti e' nata accesa, e A.SEG() li conteneva: la prima
+     notte il registro avrebbe scritto Netanyahu 51 → 50 e opposizione 53 → 54 per una
+     decisione, non per un sondaggio. Che lo scarto stia sotto DELTA_BLOCCO non c'entra: e'
+     la ragione 1 applicata ai seggi invece che ai campi. La riga «ipotesi» continua a dire
+     che cosa c'e' nei numeri della PAGINA, accordi compresi. */
+  const blocchi = A.blocchi(A.ripartoDepositati(), true);
   const ipotesi = A.ipotesiNeiNumeri() || '';
   const ambigue = out.scartate.filter(x => x.tipo === 'ambigua').length;
 

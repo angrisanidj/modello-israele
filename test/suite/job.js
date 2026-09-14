@@ -186,6 +186,11 @@ function esito(cond, desc, dettaglio){
     esito(riga.indexOf('true') > 0,
       'i blocchi registrati sono quelli della FONTE: la guardia e sui dati, e non deve poter ' +
       'scattare perche qualcuno ha cambiato una leva', riga.trim());
+    /* E I SEGGI SONO QUELLI SENZA GLI ACCORDI NON DEPOSITATI, dal 14 settembre 2026: la leva
+       degli accordi nasce accesa, e A.SEG() li conterrebbe. Stessa ragione, ai seggi invece che
+       ai campi. */
+    esito(riga.indexOf('A.ripartoDepositati()') > 0 && riga.indexOf('A.SEG()') < 0,
+      'e sono i seggi del riparto senza gli accordi non depositati, non quelli della proiezione', riga.trim());
     const rigaIp = src.split('\n').find(l => l.indexOf('const ipotesi =') >= 0) || '';
     esito(rigaIp.indexOf('ipotesiNeiNumeri(') > 0,
       'e l ipotesi che li accompagna e la STESSA stringa che esce dalla pagina: sesto ' +

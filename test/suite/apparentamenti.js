@@ -93,6 +93,8 @@ src = src.replace('carica().then(render,render)',
   'stato:function(){return{QUO:QUO,SEG:SEG,MC:MC};},' +
   'sim:function(v){SIM=v;},sig:function(v){SIG=v;},montecarlo:montecarlo,' +
   'parola:parolaProposto,setQS:function(q,s){QUO=q;SEG=s;},' +
+  'filtraRiparto:filtraRiparto,effettoApp:effettoApp,ripartoDepositati:ripartoDepositati,' +
+  'ipotesiNeiNumeri:ipotesiNeiNumeri,testoCondivisione:testoCondivisione,promptAI:promptAI,' +
   'statoLeve:(typeof statoLeve===\'function\'?statoLeve:null)};carica().then(render,render)');
 eval(src);
 try { A.render(); } catch(e) { console.log('KO il render non è partito — ' + (e && e.message)); }
@@ -152,8 +154,11 @@ function quoteCasuali(n){
 
 /* ══ 1 · SENZA COPPIE, IL RIPARTO È QUELLO DI PRIMA ═════════════════════════ */
 
-esito(A.par('apparentamenti') === 0,
-  'la leva degli apparentamenti proposti nasce spenta', String(A.par('apparentamenti')));
+/* L'ATTESA È CAMBIATA IL 14 SETTEMBRE 2026, DI PROPOSITO: la leva nasce accesa, per decisione
+   dell'autore e a termine fino al 16 ottobre. Quello che si prova qui resta la stessa cosa —
+   la pagina parte dal predefinito dichiarato — e la ragione del valore sta nel §22. */
+esito(A.par('apparentamenti') === A.PAR_DEF.apparentamenti && A.PAR_DEF.apparentamenti === 1,
+  'la leva degli apparentamenti firmati nasce accesa, dal predefinito', String(A.par('apparentamenti')));
 /* LE ATTESE SI CALCOLANO DALLA TABELLA, non dal suo contenuto di oggi. Il 16 ottobre ne
    arriveranno quattro insieme, e una riga in più non deve far diventare rosso il banco:
    davanti a un rosso un agente farebbe la cosa peggiore, cioè aggiustare la prova. */
@@ -168,9 +173,13 @@ esito(A.valida().length === 0,
   esito(A.coppieRiparto(null, null).length === 0,
     'con la tabella vuota nessun accordo entra nel riparto', JSON.stringify(A.coppieRiparto(null, null)));
   A.setApp(vere);
+  /* LA LEVA SI SPEGNE QUI, invece di darla per spenta: fino al 14 settembre 2026 lo era per
+     difetto, e l'asserzione diceva «a leva spenta» affidandosi al predefinito */
+  A.par('apparentamenti', 0);
   esito(A.coppieRiparto(null, null).length === A.APP.filter(x => x.stato === 'depositato').length,
     'e con la tabella vera, a leva spenta, entrano esattamente i depositati',
     A.coppieRiparto(null, null).length + ' contro ' + A.APP.filter(x => x.stato === 'depositato').length + ' depositati');
+  A.par('apparentamenti', A.PAR_DEF.apparentamenti);
 }
 
 {
@@ -1326,6 +1335,153 @@ A.render();
   esito(/simulati dal modello/i.test(nota),
     'e dice quello che la guida non dice: che il meccanismo è simulato dal modello',
     nota.slice(0, 160));
+}
+
+/* ══ 22 · IL PREDEFINITO È ACCESO: DAL 14 SETTEMBRE 2026, FINO AL 16 OTTOBRE ════════════
+ * Un predefinito che è un'ipotesi fa tacere statoLeve(), perché nessuno ha cambiato niente:
+ * è la trappola già pagata con `inbilico`. Qui si prova che non succeda con gli accordi, e
+ * nessuna attesa scrive un numero misurato — i 50 · 54 · 12 · 4 del 14 settembre stanno nel
+ * commento accanto a PAR_DEF, con la data. Il riparto si RIFÀ con le coppie e senza. */
+{
+  const VERE22 = A.APP.map(x => Object.assign({}, x));
+  const txt = id => String((D.getElementById(id) || {}).innerHTML || '').replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
+  const alDifetto = () => A.par('apparentamenti', A.PAR_DEF.apparentamenti);
+
+  /* 1 · il predefinito, e la data accanto alla riga */
+  esito(A.PAR_DEF.apparentamenti === 1, 'la leva degli apparentamenti nasce ACCESA', String(A.PAR_DEF.apparentamenti));
+  const iDef = html.indexOf('var PAR_DEF=');
+  const commento = html.slice(html.lastIndexOf('/*', iDef), iDef);
+  /* LA DATA STA NELLA PRIMA RIGA, accanto al valore, come per l'esperimento del cron: cercata
+     in tutto il commento, un mutante che la toglieva dalla testata restava vivo, perché
+     «14 settembre 2026» e «16 ottobre» compaiono anche più sotto, nella ragione */
+  const testata = commento.split('\n')[0];
+  esito(/14 SETTEMBRE 2026/i.test(testata) && /16 OTTOBRE/i.test(testata) && /A TERMINE/i.test(testata),
+    'e la prima riga del commento accanto al valore dice la data della decisione e il termine', testata);
+  esito(/un campo solo/i.test(commento),
+    'e il commento dice la ragione del termine: oggi la leva applica accordi di un campo solo', commento.slice(0, 120));
+
+  congela(PRIMA);
+  A.setApp(VERE22); alDifetto(); A.render();
+  const sopra = A.sopraSoglia();
+
+  /* 2 · IL CASO SI CERCA PRIMA DELLE GEMELLE, e la ragione è un mutante. Sulla tabella
+     pubblicata, sul seme di prova, i tre accordi NON SPOSTANO NESSUN SEGGIO: il riparto con e
+     quello senza coincidono, quindi «a leva accesa è il riparto con» e «il registro è il
+     riparto senza» erano vere per costruzione, e il mutante che fa registrare al lavoro
+     notturno il riparto CON gli accordi restava vivo. Le gemelle si provano su coppie che
+     spostano seggi, e una guardia pretende che i due riparti differiscano.
+     E L'EFFETTO CONGIUNTO NON È LA SOMMA DELLE COPPIE: si cercano due coppie che valgono
+     qualcosa da sole e insieme meno della somma. In più la PRIMA delle due, da sola, deve
+     spostare blocchi diversi da quelli dell'insieme: senza, il mutante che fa contare alla
+     riga di esito una coppia sola restava vivo, perché da sola valeva quanto le due insieme. */
+  const Q = A.stato().QUO, ids = Object.keys(sopra);
+  const cp = (a, b) => ({a, b, data: gMeno(5), stato: 'proposto'});
+  const tutte = [];
+  for (let i = 0; i < ids.length; i++) for (let j = i + 1; j < ids.length; j++) tutte.push(cp(ids[i], ids[j]));
+  const da1 = new Map(tutte.map(x => [x, A.effettoApp(Q, [x], [])]));
+  let caso = null;
+  for (let i = 0; i < tutte.length && !caso; i++) for (let j = i + 1; j < tutte.length && !caso; j++) {
+    const x = tutte[i], y = tutte[j];
+    if (x.a === y.a || x.a === y.b || x.b === y.a || x.b === y.b) continue;
+    const ex = da1.get(x), ey = da1.get(y);
+    if (!ex.mossi || !ey.mossi) continue;
+    const ej = A.effettoApp(Q, [x, y], []);
+    if (!(ej.mossi > 0 && ej.mossi < ex.mossi + ey.mossi)) continue;
+    const diversa = e => JSON.stringify(e.a) !== JSON.stringify(ej.a);
+    if (diversa(ex)) caso = {t: [x, y], somma: ex.mossi + ey.mossi, insieme: ej.mossi, j: ej};
+    else if (diversa(ey)) caso = {t: [y, x], somma: ex.mossi + ey.mossi, insieme: ej.mossi, j: ej};
+  }
+  esito(!!caso, 'sulle quote di prova esistono due coppie che si contendono lo stesso seggio: il caso si esercita',
+    caso ? caso.t.map(x => x.a + '+' + x.b).join(' · ') + ' — somma ' + caso.somma + ', insieme ' + caso.insieme : 'nessuna');
+  if (caso) {
+    A.setApp(caso.t); alDifetto(); A.render();
+    const sopraC = A.sopraSoglia();
+    const conCp = A.filtraRiparto(A.coppieAl(null, true), sopraC), senzaCp = A.filtraRiparto(A.coppieAl(null, false), sopraC);
+    const rCon = JSON.stringify(A.dhondt(Q, null, conCp)), rSenza = JSON.stringify(A.dhondt(Q, null, senzaCp));
+    esito(rCon !== rSenza, 'con queste coppie il riparto con e quello senza differiscono: le gemelle non si provano a vuoto');
+
+    /* LE DUE GEMELLE: senza numeri fissi, il riparto si rifà */
+    esito(JSON.stringify(A.stato().SEG) === rCon,
+      'a leva ACCESA la proiezione è il riparto con gli accordi, rifatto e non scritto');
+    const rdAccesa = JSON.stringify(A.ripartoDepositati());
+    esito(rdAccesa === rSenza,
+      'e il riparto che il lavoro notturno registra è quello SENZA gli accordi non depositati, anche a leva accesa');
+    A.par('apparentamenti', 0); A.render();
+    esito(JSON.stringify(A.stato().SEG) === rSenza, 'a leva SPENTA la proiezione è il riparto senza');
+    esito(JSON.stringify(A.ripartoDepositati()) === rdAccesa,
+      'e il riparto registrato non cambia con la leva: la guardia sui dati non scatta per una decisione');
+
+    alDifetto(); A.render();
+    const riga = txt('k-appriga'), ip = A.ipotesiNeiNumeri();
+    esito(new RegExp('valgono ' + caso.insieme + ' segg', 'i').test(riga) && caso.insieme !== caso.somma,
+      'la riga di esito dice l\'effetto CONGIUNTO, non la somma delle coppie', caso.insieme + ' contro ' + caso.somma + ' · ' + riga);
+    const NOMI = {coalizione: 'Blocco Netanyahu', opposizione: 'Opposizione sionista', arabo: 'Partiti arabi', incerto: 'Ago della bilancia'};
+    const detti = [...riga.matchAll(/(Blocco Netanyahu|Opposizione sionista|Partiti arabi|Ago della bilancia) (\d+) → (\d+)/g)]
+      .map(m => m[1] + ' ' + m[2] + '→' + m[3]).sort().join(' · ');
+    const attesi = Object.keys(NOMI).filter(z => caso.j.da[z] !== caso.j.a[z])
+      .map(z => NOMI[z] + ' ' + caso.j.da[z] + '→' + caso.j.a[z]).sort().join(' · ');
+    esito(detti === attesi,
+      'e i blocchi che nomina sono quelli che si muovono con TUTTE le coppie insieme, non con la prima da sola',
+      'detti ' + detti + ' · attesi ' + attesi);
+    esito(new RegExp('valgono ' + caso.insieme + ' segg').test(ip),
+      'e ipotesiNeiNumeri() dice lo stesso numero', ip);
+
+    /* 4 · L'IPOTESI ESCE DALLA PAGINA IN TUTTE LE SEDI */
+    /* «non un fatto» o «non fatti»: la chiusura va al plurale solo quando parlano tutte e due
+       le ipotesi, e sul seme quella delle liste in bilico può tacere */
+    esito(/accordi di eccedenza/.test(ip) && /non (un )?fatt/.test(ip),
+      'a leva al predefinito ipotesiNeiNumeri() dichiara gli accordi: è il caso in cui statoLeve() tace', ip);
+    esito(!/apparentament/.test(A.statoLeve() || ''),
+      'e statoLeve() tace davvero sugli accordi, perché nessuno ha cambiato niente', A.statoLeve());
+    esito(A.testoCondivisione(false).indexOf(ip) >= 0 && A.testoCondivisione(true).indexOf(ip) >= 0,
+      'il testo di condivisione la porta, nelle due forme');
+    esito(A.promptAI().indexOf(ip) >= 0, 'e il prompt che va al servizio terzo la porta');
+    const corta = A.ipotesiNeiNumeri(true);
+    esito(/^Ipotesi del modello/.test(corta) && /2 apparentamenti firmati e non depositati nel riparto/.test(corta),
+      'e la forma corta, quella della targa, la dice per intero', corta);
+
+    /* 5 · STATOLEVE SEGUE LO STATO, NEI DUE VERSI: è la riparazione di `inbilico` del 30 agosto */
+    A.par('apparentamenti', 0); A.render();
+    const tolti = A.statoLeve() || '';
+    esito(/senza gli apparentamenti/.test(tolti) && !/applicati al riparto/.test(tolti),
+      'chi SPEGNE la leva viene descritto come chi li ha tolti, non come chi li ha applicati', tolti);
+    esito(!/accordi? di eccedenza/.test(A.ipotesiNeiNumeri()),
+      'e ipotesiNeiNumeri() non li dichiara più: nei numeri non ci sono', A.ipotesiNeiNumeri());
+    A.PAR_DEF.apparentamenti = 0; A.par('apparentamenti', 1); A.render();
+    esito(/applicati al riparto/.test(A.statoLeve() || ''),
+      'col predefinito spento e la leva accesa, statoLeve() dice che li ha applicati', A.statoLeve());
+    esito(A.ipotesiNeiNumeri() === ip,
+      'e ipotesiNeiNumeri() dice la STESSA cosa: non consulta PAR_DEF', A.ipotesiNeiNumeri());
+    A.PAR_DEF.apparentamenti = 1;
+  }
+
+  /* 6 · IL VERBO E LA RIGA IN TUTTI GLI STATI, A LEVA AL PREDEFINITO */
+  const TRE = [cp(ids[0], ids[1]), cp(ids[2], ids[3]), cp(ids[4], ids[5])];
+  [['nessuno', []], ['uno', TRE.slice(0, 1)], ['tre', TRE]].forEach(function(s){
+    A.setApp(s[1]); alDifetto(); A.render();
+    const B = D.getElementById('k-app'), c = A.contoApp(A.sopraSoglia()), r = txt('k-appriga');
+    if (!s[1].length) {
+      esito(B.hidden, 'con nessun accordo in tabella il comando non c\'è: non esiste un «Togli 0»', B.textContent);
+      esito(/Non ce n'è nessuno firmato in attesa di deposito/.test(r),
+        '  · e la riga dice che non c\'è niente da togliere', r);
+      esito(!/accord/.test(A.ipotesiNeiNumeri()), '  · e ipotesiNeiNumeri() non dichiara accordi', A.ipotesiNeiNumeri());
+    } else {
+      esito(!B.hidden && c.ann === s[1].length && B.textContent === 'Togli ' + c.ann + ' ' + (c.ann === 1 ? 'apparentamento' : 'apparentamenti'),
+        'con ' + s[0] + ' in tabella, al predefinito il verbo è «Togli» e il numero è quello del riparto', B.textContent);
+      esito(new RegExp(c.ann + ' accord[oi] ' + A.parola(c.ann) + ' e non depositat[oi]').test(r) && /per ipotesi/.test(r),
+        '  · e la riga dice che sono applicati per ipotesi', r);
+    }
+  });
+
+  /* 7 · IL GIORNO DOPO IL TERMINE: la leva resta accesa e non ha più niente da applicare */
+  congela(DOPO);
+  A.setApp(TRE); alDifetto(); A.render();
+  esito(D.getElementById('k-app').hidden, 'il giorno dopo il 16 ottobre il comando sparisce anche con la leva accesa per difetto');
+  esito(/termine per gli accordi di eccedenza è passato/.test(txt('k-appriga')), '  · e la riga lo dichiara', txt('k-appriga'));
+  esito(!/accord/.test(A.ipotesiNeiNumeri()) && !/apparentament/.test(A.statoLeve() || ''),
+    '  · e nessuna sede che esce dalla pagina parla più di accordi', A.ipotesiNeiNumeri() + ' | ' + A.statoLeve());
+  scongela();
+  A.setApp(ORIG); alDifetto(); A.render();
 }
 
 console.log('\napparentamenti: ' + ok + '/' + (ok + ko));

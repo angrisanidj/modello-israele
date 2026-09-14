@@ -2533,8 +2533,9 @@ var EMIMODE='blocchi', EMIFILT=null, TRENDPTS=[], TRENDGEO=null, FILTRI={ist:'',
    numero che non esiste da nessun'altra parte: chi confronta il nostro 53 col 49 della fonte
    non trova la spiegazione nel numero, la trova in una riga di prosa sotto un pulsante. Un
    modello può fare un'ipotesi — deve poterla fare — ma la fa a partire dal fatto, non al posto
-   suo, ed è la stessa regola per cui gli apparentamenti annunciati e i soli ultimi sette giorni
-   partono spenti. E non è un caso di scuola: misurato il 27 agosto, con la leva accesa il
+   suo, ed è la stessa regola per cui i soli ultimi sette giorni partono spenti (gli
+   apparentamenti partivano spenti anche loro fino al 14 settembre 2026: vedi qui sotto).
+   E non è un caso di scuola: misurato il 27 agosto, con la leva accesa il
    blocco Netanyahu esce 53 e con la leva spenta 49 — quattro seggi, cioè più dell'errore che il
    banco dichiara nell'ultima settimana di campagna.
    LA RAGIONE PER CUI ERA STATA ACCESA RESTA VERA A METÀ, e va lasciata scritta perché è
@@ -2556,7 +2557,28 @@ var EMIMODE='blocchi', EMIFILT=null, TRENDPTS=[], TRENDGEO=null, FILTRI={ist:'',
    sarebbe ipotesiNeiNumeri() a doverlo sapere, non statoLeve().
    L'anagrafica non si tocca né in un verso né nell'altro: in P{} queste liste restano dove la
    fonte le mette, e la guardia «Gov.» del parser notturno continua a leggere quella. */
-var PAR_DEF={recenti:0,listaunita:1,apparentamenti:0,inbilico:1};
+/* `apparentamenti` NASCE ACCESA DAL 14 SETTEMBRE 2026 — DECISIONE A TERMINE, FINO AL 16 OTTOBRE.
+   PERCHÉ. In tabella ci sono tre fatti pubblicati con data e fonte: tre accordi FIRMATI — Lista
+   Unita araba e Ra'am il 12 settembre, B'Yachad e Yisrael Beitenu e Yashar e I Democratici il
+   10. Restano `proposto` e non `depositato`: cambia il predefinito, non lo stato, e il deposito
+   è un atto diverso con un termine suo.
+   QUANTO VALE, misurato il 14 settembre 2026 sull'archivio pubblicato: col conteggio della
+   fonte i blocchi passano da 51 · 53 · 12 · 4 a 50 · 54 · 12 · 4, cioè +1 all'opposizione e
+   −1 a Netanyahu. NON È LA SOMMA DELLE COPPIE: da sole Lista Unita + Ra'am vale un seggio
+   (Netanyahu −1, arabi +1), Yashar + I Democratici un altro (Netanyahu −1, opposizione +1),
+   B'Yachad + Beitenu niente — ma le due che valgono qualcosa si contendono lo stesso 120°
+   seggio, e insieme ne spostano uno. È un numero con una data, non una costante: le prove
+   rifanno il riparto con e senza, e non lo scrivono.
+   E OGGI LA LEVA APPLICA ACCORDI DI UN CAMPO SOLO: i tre sono dell'opposizione e dei partiti
+   arabi, perché il blocco Netanyahu non ne ha firmati. È la ragione per cui la decisione ha un
+   termine: al 16 ottobre gli accordi non depositati smettono di esistere — coppieAl() non li
+   restituisce più, la leva non ha niente da applicare e il comando sparisce — e da lì la
+   lettura cambia comunque. Se prima del termine ne firma uno anche l'altro campo, o uno dei tre
+   viene ritirato, questa riga va riletta, non lasciata.
+   UN PREDEFINITO CHE È UN'IPOTESI fa tacere statoLeve() — nessuno ha cambiato niente — ed è la
+   trappola già pagata con `inbilico`: quindi ipotesiNeiNumeri() dichiara anche gli accordi, e
+   statoLeve() ha la frase che segue lo STATO nei due versi. */
+var PAR_DEF={recenti:0,listaunita:1,apparentamenti:1,inbilico:1};
 var SOND=BASE.slice(), PAR=Object.assign({},PAR_DEF), DISP=8, SW=0, SIG=1, SIM=20000, COAL={};
 
 /* ══════════ 2b · DIAGNOSTICA DI AVVIO ══════════ */
@@ -3081,6 +3103,22 @@ function contoApp(sopra){
          senza:senza,con:con,scarti:scarti,
          oltre:oggiISO()>termineApp(),termine:termineApp()};
 }
+/* L'EFFETTO DEGLI ACCORDI, UNA STRADA SOLA: due riparti sulle stesse quote — con le coppie
+   `con` e con le coppie `senza` — e i seggi che passano dall'uno all'altro. Lo chiedono la
+   riga di esito e ipotesiNeiNumeri(), e scriverlo in tutte e due sarebbe il secondo modo di
+   contare lo stesso seggio. È CONGIUNTO PER COSTRUZIONE: non esiste un effetto per coppia da
+   sommare, perché due coppie possono contendersi lo stesso 120° seggio — il 14 settembre 2026
+   due su tre valevano un seggio ciascuna da sole, e uno insieme. */
+function effettoApp(quo,con,senza){
+ var a=dhondt(quo,null,senza), b=dhondt(quo,null,con), mossi=0, k;
+ for(k in b) if(b[k]>(a[k]||0)) mossi+=b[k]-(a[k]||0);
+ return {senza:a, con:b, da:blocchi(a), a:blocchi(b), mossi:mossi};
+}
+/* IL RIPARTO SENZA GLI ACCORDI NON DEPOSITATI, a leva accesa o spenta. Serve al registro del
+   lavoro notturno, dati/stato-job.json, che è un registro di DATI: la sua guardia sui blocchi
+   non deve poter scattare perché qualcuno ha acceso o spento una leva. È la scelta del 31
+   agosto 2026 per `inbilico`, applicata ai seggi invece che ai campi. */
+function ripartoDepositati(){return dhondt(QUO,null,contoApp(sopraSoglia()).senza);}
 /* riparto d'Hondt puro: `seggi` seggi fra le quote date, senza soglia e senza accordi */
 function divisori(sh,seggi){
  var ids=Object.keys(sh),out={},dv={},i,n=ids.length;
@@ -5225,25 +5263,55 @@ var AI_MOTORI=[
    lunghi — quello che sopravvive al taglio dev'essere la parte che avverte, non quella che
    dettaglia. È la stessa scelta della riga di esito, che dichiara l'ipotesi nel primo
    periodo perché quella frase la legge chi non ha toccato niente. */
+/* DAL 14 SETTEMBRE 2026 LE IPOTESI SONO DUE, e questa funzione deve saperle tutte e due: è la
+   regola scritta per `inbilico` — il giorno in cui un altro predefinito diventa un'ipotesi,
+   è ipotesiNeiNumeri() a doverlo sapere — applicata agli apparentamenti, che nascono accesi.
+   Ciascuna parla SOLO QUANDO SPOSTA SEGGI, per la stessa ragione: gli accordi a leva accesa
+   che non muovono niente, o dopo il termine del 16 ottobre, non si dichiarano.
+   LE FRASI DI OGGI NON CAMBIANO DI UNA VIRGOLA quando parla una sola delle due, e la chiusura
+   passa al plurale quando parlano insieme. La forma corta tiene INTERE tutte e due le
+   clausole, «dove la fonte non li mette» compresa: è la parte che rende la riga un'ipotesi, e
+   dove lo spazio non basta si decide la geometria della targa, non si accorcia la frase. */
+/* IL SEPARATORE DELLE CLAUSOLE DELLA FORMA CORTA, UNA COSTANTE SOLA. Lo usa ipotesiNeiNumeri()
+   per unirle e la targa dell'anteprima per andare a capo — la riceve dalla spia del job, non
+   la riscrive. Scritto in due posti, il giorno in cui la frase cambia punteggiatura la targa
+   tornerebbe a mettere tutto su una riga, e la riga uscirebbe tagliata. */
+var SEP_IPOTESI='; ';
 function ipotesiNeiNumeri(corta){
- if(!PAR.inbilico) return '';
- var c=contoBilico();
+ var cb=PAR.inbilico?contoBilico():null;
  /* BASTA `ok.length`, e il `!c.mossi` che c'era accanto era irraggiungibile: filtraBilico()
     scarta già le righe la cui lista non ha seggi nella proiezione, quindi una riga che
     entra ne ha per definizione, e con la leva accesa quei seggi cambiano campo — mossi non
     può essere zero. Una guardia che nessuna mutazione fa cadere è codice che nessuna prova
     esercita, e l'ha trovata il banco delle mutazioni, non l'attenzione. */
- if(!c.ok.length) return '';
+ var bil=cb&&cb.ok.length?cb:null;
+ /* l'effetto degli accordi è CONGIUNTO, e viene dalla stessa funzione della riga di esito */
+ var ca=PAR.apparentamenti?contoApp(sopraSoglia()):null,
+     ea=ca&&ca.ann?effettoApp(QUO,ca.con,ca.senza):null,
+     app=ea&&ea.mossi?{n:ca.ann,mossi:ea.mossi}:null;
+ if(!bil&&!app) return '';
  if(corta){
-  var versi=c.ok.map(function(x){return BL[x.verso].n;})
-    .filter(function(v,i,a){return a.indexOf(v)===i;}).join(' e ');
-  return 'Ipotesi del modello: '+seg(c.mossi)+' '+acc(c.mossi,'contato','contati')+
-   ' con '+versi+', dove la fonte non '+acc(c.mossi,'lo mette','li mette')+'.';
+  var p=[];
+  if(bil){
+   var versi=bil.ok.map(function(x){return BL[x.verso].n;})
+     .filter(function(v,i,a){return a.indexOf(v)===i;}).join(' e ');
+   p.push(seg(bil.mossi)+' '+acc(bil.mossi,'contato','contati')+
+    ' con '+versi+', dove la fonte non '+acc(bil.mossi,'lo mette','li mette'));
+  }
+  if(app) p.push(f(app.n)+' '+acc(app.n,'apparentamento','apparentamenti')+' '+parolaProposto(app.n)+
+   ' e non '+acc(app.n,'depositato','depositati')+' nel riparto');
+  return 'Ipotesi del modello: '+p.join(SEP_IPOTESI)+'.';
  }
- var quali=c.ok.map(function(x){return nm(x.id)+' con '+BL[x.verso].n;}).join('; ');
- return acc(c.mossi,'Un seggio è contato','Sono contati '+f(c.mossi)+' seggi')+
-  ' in un blocco in cui la fonte non '+acc(c.mossi,'lo mette','li mette')+': '+quali+
-  '. È un’ipotesi del modello, non un fatto.';
+ var t=[];
+ if(bil){
+  var quali=bil.ok.map(function(x){return nm(x.id)+' con '+BL[x.verso].n;}).join('; ');
+  t.push(acc(bil.mossi,'Un seggio è contato','Sono contati '+f(bil.mossi)+' seggi')+
+   ' in un blocco in cui la fonte non '+acc(bil.mossi,'lo mette','li mette')+': '+quali+'.');
+ }
+ if(app) t.push(acc(app.n,'Un accordo di eccedenza '+parolaProposto(1)+' e non ancora depositato è applicato',
+   'Sono applicati '+f(app.n)+' accordi di eccedenza '+parolaProposto(2)+' e non ancora depositati')+
+  ' al riparto: '+(app.n>1?'insieme valgono ':'vale ')+seg(app.mossi)+'.');
+ return t.join(' ')+(t.length>1?' Sono ipotesi del modello, non fatti.':' È un’ipotesi del modello, non un fatto.');
 }
 function statoLeve(){
  var v=[];
@@ -5254,7 +5322,13 @@ function statoLeve(){
  if(AFF) v.push('con l\'affluenza araba a '+f(AFF_BASE+AFF)+'%');
  if(PAR.recenti!==PAR_DEF.recenti) v.push('sui soli sondaggi degli ultimi sette giorni');
  if(PAR.listaunita!==PAR_DEF.listaunita) v.push('con le liste arabe separate invece che unite');
- if(PAR.apparentamenti!==PAR_DEF.apparentamenti) v.push('con gli apparentamenti '+parolaProposto(2)+' e non ancora depositati applicati al riparto');
+ /* LA FRASE SEGUE LO STATO, come per `inbilico` qui sotto, e per la stessa ragione: dal 14
+    settembre 2026 il predefinito è ACCESO, quindi «differisce» vuol dire «spenta» — e la
+    stringa di prima avrebbe descritto chi SPEGNE gli accordi come chi li ha applicati, a un
+    servizio terzo che non può verificarlo. */
+ if(PAR.apparentamenti!==PAR_DEF.apparentamenti) v.push(PAR.apparentamenti
+  ? 'con gli apparentamenti '+parolaProposto(2)+' e non ancora depositati applicati al riparto'
+  : 'senza gli apparentamenti '+parolaProposto(2)+' e non ancora depositati, che il modello applica per difetto');
  /* Questa si dichiara quando è ACCESA, perché il predefinito è spento — ed è già stata
     scritta nell'altro verso, il 27 agosto 2026, quando il predefinito era l'opposto. Il
     confronto è con PAR_DEF e non con lo zero, quindi il RAMO segue il difetto da sé; la
@@ -7657,8 +7731,7 @@ function rigaApp(c){
  } else if(PAR.apparentamenti){
   /* L'effetto si misura chiedendo lo STESSO riparto senza gli annunciati: due chiamate a
      dhondt() con coppie diverse, non un secondo modo di contare i seggi. */
-  var senza=dhondt(QUO,null,c.senza), bs=blocchi(senza), bc=blocchi(SEG), mossi=0, dett=[], k;
-  for(k in SEG) if(SEG[k]>(senza[k]||0)) mossi+=SEG[k]-(senza[k]||0);
+  var ef=effettoApp(QUO,c.con,c.senza), bs=ef.da, bc=ef.a, mossi=ef.mossi, dett=[];
   CHIAVI_BLOCCO.forEach(function(z){
    if(bs[z]!==bc[z]) dett.push(BL[z].n+' <b>'+f(bs[z])+' → '+f(bc[z])+'</b>');
   });

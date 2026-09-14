@@ -48,7 +48,7 @@ global.FileReader = function(){}; global.fetch = () => Promise.reject(0);
 
 let src = fs.readFileSync(__dirname + '/../app.js','utf8');
 src = src.replace('carica().then(render,render)',
-  'global.A={dhondt:dhondt,ripartoVeloce:ripartoVeloce,P:P,IDS:IDS};carica().then(render,render)');
+  'global.A={dhondt:dhondt,ripartoVeloce:ripartoVeloce,strutturaApp:strutturaApp,P:P,IDS:IDS};carica().then(render,render)');
 eval(src);
 
 const P = A.P;
@@ -185,7 +185,12 @@ esito(Object.keys(OGGI).some(k => blocco(k) === 'coalizione') &&
   const sh = ids.map(k => ch12[k]);
   const out = new Array(ids.length).fill(0);
   let errore = null;
-  try { A.ripartoVeloce(sh.slice(), ids.length, out); }
+  /* LA STRADA VELOCE RICEVE GLI STESSI ACCORDI DELLA LENTA, come nel Monte Carlo. Fino al 14
+     settembre 2026 la si chiamava senza struttura, e reggeva perché la leva degli accordi
+     nasceva spenta: dhondt() senza coppie e ripartoVeloce() senza struttura erano la stessa
+     domanda per coincidenza. Accesa per difetto, dhondt() applica gli accordi e il confronto
+     misurava due scenari diversi — Likud 32 contro 33, Democratici 8 contro 7. */
+  try { A.ripartoVeloce(sh.slice(), ids.length, out, A.strutturaApp(ids, null)); }
   catch (e) { errore = e && e.message; }
   if (errore !== null) {
     /* non si dichiara provato quello che non si è esercitato: se la firma cambia, la riga

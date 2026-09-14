@@ -60,7 +60,7 @@ export const USCITA = join(RADICE, 'dati', 'anteprima.png');
 /* 1200×630 è lo standard delle anteprime. La testata e il piede sono margini della tela,
    non del disegno: il disegno si scala in quello che resta, e non paga la cornice coi dati.
    È la stessa scelta delle due fasce degli istogrammi. */
-export const W = 1200, H = 630, TESTA = 96, PIEDE = 40, LATO = 40;
+export const W = 1200, H = 630, TESTA = 119, PIEDE = 40, LATO = 40;
 
 /* L'INCHIOSTRO, MISURATO E NON IL viewBox. L'emiciclo occupa 386,7 × 217 dentro un viewBox
    da 430 × 232: è GIÀ centrato in orizzontale (21,6 unità vuote a sinistra e 21,7 a destra)
@@ -99,11 +99,12 @@ export function inchiostro(svg, W2, H2){
 
 /* Compone la targa attorno al disegno. Pura: entra l'SVG dell'emiciclo e i dati della
    testata, esce il testo dell'SVG da rasterizzare. Si prova senza rasterizzatore. */
-/* LA TERZA RIGA È GRATIS, ED È MISURATA. La banda della testata vale 96 unità e ne usa 63
-   — il titolo a corpo 30 con la linea di base a y=56 arriva a ~63 con la discendente. Una
-   seconda riga a corpo 18 con la base a y=84 occupa da 71 a 88,5: ci sta con 7,5 unità di
-   margine, e non tocca il disegno, perché la banda è un MARGINE della tela e non del
-   disegno — è la stessa scelta delle due fasce degli istogrammi.
+/* LA RIGA DELL'IPOTESI STA NELLA TESTATA, CHE È UN MARGINE DELLA TELA. Fino al 14 settembre
+   2026 la banda valeva 96 unità e ne usava 63 — il titolo a corpo 30 con la linea di base a
+   y=56 arriva a ~63 con la discendente — e una riga a corpo 18 con la base a y=84 ci stava con
+   7,5 unità di margine. Da quel giorno le righe sono due e la banda vale 119: vedi le costanti
+   qui sotto. Non tocca il disegno, perché la banda è un MARGINE della tela e non del disegno —
+   è la stessa scelta delle due fasce degli istogrammi.
    NON VA NEL PIEDE: quello a corpo 18 regge 113 caratteri e ne usa già 82 con la firma,
    l'indirizzo e la data. La dichiarazione ne vale una sessantina, e 147 su 113 sforerebbe.
    Misurato, non dedotto.
@@ -115,35 +116,81 @@ export function inchiostro(svg, W2, H2){
    L'ALTERNATIVA ERA CHE IL JOB SCRIVESSE I TOTALI SENZA LA LEVA, ed è stata scartata: la
    card direbbe numeri DIVERSI da quelli che si trovano cliccando, cioè una terza lettura
    degli stessi dati. L'anteprima deve dire quello che la pagina dice. */
-export const Y_IP = 84, FS_IP = 18;
-/* IL TAGLIO, PER ECCESSO E ALL'ULTIMO SPAZIO. Qui non c'è nessun modo di misurare una
-   stringa — jsdom non fa layout e resvg si vede solo il risultato — quindi si stima con lo
-   stesso 0,62 em per carattere che usa inchiostro(), che è una stima ALTA: al massimo si
-   taglia un po' prima del necessario, mai troppo tardi. È l'argomento di ETIW.
-   E si taglia in CODA, che è il verso giusto solo perché la frase mette l'essenziale
-   davanti: «Ipotesi del modello: …» sopravvive al taglio, il dettaglio no. Se un giorno la
-   frase cambiasse ordine, questo taglio diventerebbe una censura dell'avvertimento. */
-export function taglia(t, fs, largo){
- const perChar = 0.62 * fs;
- const max = Math.floor(largo / perChar);
- if (t.length <= max) return t;
- const tagliato = t.slice(0, max - 1);
- const sp = tagliato.lastIndexOf(' ');
- return (sp > max / 2 ? tagliato.slice(0, sp) : tagliato) + '…';
+/* DUE RIGHE, DAL 14 SETTEMBRE 2026. Quel giorno la forma corta ha preso la seconda ipotesi —
+   gli accordi di eccedenza, accesi per difetto — ed è arrivata a 141 caratteri e 1173 unità di
+   larghezza vera a corpo 18, contro 1120 disponibili: col taglio di prima usciva «…dove la
+   fonte non li mette; 3…», cioè la seconda ipotesi spariva senza che niente lo dicesse.
+   IL CORPO NON SCENDE, ed è la scelta. A una riga sola servirebbe corpo 17,19: 5,73px su
+   un'anteprima larga 400, sotto i 6 che il piede ha già, e con margine zero — la prima lista
+   con un nome più lungo lo sfonda. A due righe la testata cresce da 96 a 119 unità, la seconda
+   riga ha la stessa aria che la prima aveva (7,5) e il disegno, limitato dall'altezza, perde il
+   4,7% lineare: da 494 a 471 unità. Si paga una volta.
+   TESTA SI RICAVA DA QUESTE QUATTRO COSTANTI, e targa.js lo pretende: ceil(Y_IP + (RIGHE_IP-1)
+   · INTERLINEA_IP + 0,25 · FS_IP + ARIA_IP) = 119. */
+export const Y_IP = 84, FS_IP = 18, INTERLINEA_IP = 22.5, RIGHE_IP = 2, ARIA_IP = 7.5;
+const ESC = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const RESVG = {font: {loadSystemFonts: false, fontFiles: FONT, defaultFontFamily: 'Inter'}};
+/* LA LARGHEZZA VERA, DAL RASTERIZZATORE CHE DISEGNA L'IMMAGINE. Fino al 14 settembre 2026 qui
+   c'era una stima a 0,62 em per carattere, perché «non c'è nessun modo di misurare una
+   stringa»: c'era, ed è resvg con gli stessi TTF di genera(). Sulla riga di quel giorno la
+   stima diceva 1573,6 unità e la resa 1173,0 — il 34% di scarto, cioè due strade per la
+   stessa grandezza. Adesso ce n'è una. */
+export function larghezza(t, fs){
+ if (!t) return 0;
+ const lw = Math.ceil(Math.max(4 * W, 2 * fs * String(t).length)), lh = Math.ceil(4 * fs);
+ const svg = '<svg xmlns="http://www.w3.org/2000/svg" width="' + lw + '" height="' + lh +
+  '" viewBox="0 0 ' + lw + ' ' + lh + '" font-family="Inter"><text x="0" y="' + (2 * fs) +
+  '" font-size="' + fs + '">' + ESC(t) + '</text></svg>';
+ const b = new Resvg(svg, RESVG).getBBox();
+ return b ? b.width : 0;
 }
-export function targa(interno, ink, vb, testata, piede, col, ipotesi){
+/* IL TAGLIO, ALL'ULTIMO SPAZIO E SULLA LARGHEZZA VERA. Resta per il caso di una clausola sola
+   più larga della riga, che oggi non esiste. E si taglia in CODA, che è il verso giusto solo
+   perché la frase mette l'essenziale davanti: «Ipotesi del modello: …» sopravvive al taglio,
+   il dettaglio no. Se un giorno la frase cambiasse ordine, questo taglio diventerebbe una
+   censura dell'avvertimento. */
+export function taglia(t, fs, largo){
+ if (larghezza(t, fs) <= largo) return t;
+ let s = String(t);
+ while (s.length){
+  const sp = s.lastIndexOf(' ');
+  s = (sp > 0 ? s.slice(0, sp) : s.slice(0, -1)).replace(/[\s;,:]+$/, '');
+  if (larghezza(s + '…', fs) <= largo) return s + '…';
+ }
+ return '…';
+}
+/* L'A CAPO SUL SEPARATORE DELLE CLAUSOLE, QUALUNQUE SIA. La frase è generata, e domani le
+   clausole possono essere una o tre: il separatore arriva dalla pagina (SEP_IPOTESI) e qui non
+   è scritto. La punteggiatura del separatore resta in coda alla riga che chiude, così le righe
+   rimesse insieme sono la frase. */
+export function righeIpotesi(t, sep){
+ if (!t) return [];
+ if (!sep) return [String(t)];
+ const parti = String(t).split(sep), coda = sep.replace(/\s+$/, '');
+ return parti.map((p, i) => i < parti.length - 1 ? p + coda : p);
+}
+export function targa(interno, ink, vb, testata, piede, col, ipotesi, sep){
  const dispW = W - 2 * LATO, dispH = H - TESTA - PIEDE;
  const k = Math.min(dispW / ink.w, dispH / ink.h);
  const ox = (W - ink.w * k) / 2 - ink.x * k;
  const oy = TESTA + (dispH - ink.h * k) / 2 - ink.y * k;
- const E = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+ const E = ESC;
+ const righe = righeIpotesi(ipotesi, sep);
+ /* PIÙ CLAUSOLE DI QUANTE LA TESTATA NE REGGE: SI FALLISCE, E LO SI DICE. Una terza riga a
+    y = 129 cadrebbe dentro il disegno, che comincia a 119: scriverla sopra i seggi o tagliarla
+    in silenzio sono i due difetti che questa targa esiste per non avere. genera() non scrive
+    niente, il job dice perché, e l'og:image resta quello di ieri — che è vero. */
+ if (righe.length > RIGHE_IP)
+  throw new Error('l\'ipotesi ha ' + righe.length + ' clausole e la testata della targa ne regge ' +
+   RIGHE_IP + ': va rifatta la geometria, non tagliata la frase');
  return '<svg xmlns="http://www.w3.org/2000/svg" width="' + W + '" height="' + H +
   '" viewBox="0 0 ' + W + ' ' + H + '" font-family="Inter">' +
   '<rect width="' + W + '" height="' + H + '" fill="' + col.paper + '"/>' +
   '<text x="' + LATO + '" y="56" font-size="30" font-weight="600" fill="' + col.ink + '">' +
     E(testata) + '</text>' +
   (ipotesi ? '<text x="' + LATO + '" y="' + Y_IP + '" font-size="' + FS_IP + '" fill="' + col.mute + '">' +
-    E(taglia(ipotesi, FS_IP, W - 2 * LATO)) + '</text>' : '') +
+    righe.map((r, i) => '<tspan x="' + LATO + '" y="' + (Y_IP + i * INTERLINEA_IP) + '">' +
+      E(taglia(r, FS_IP, dispW)) + '</tspan>').join('') + '</text>' : '') +
   '<text x="' + LATO + '" y="' + (H - 24) + '" font-size="18" fill="' + col.mute + '">' +
     E(piede) + '</text>' +
   '<g transform="translate(' + ox.toFixed(2) + ',' + oy.toFixed(2) + ') scale(' + k.toFixed(4) + ')">' +
@@ -217,7 +264,7 @@ export async function componi(){
     l'archivio — la card e la pagina hanno cominciato a dire due cose diverse. */
  eval(app.replace('carica().then(render,render)',
    'Object.assign(spia,{C:C,SEG:SEG,dl:dl,SOND:SOND,applicaTema:applicaTema,' +
-   'titoloCortoOra:titoloCortoOra,ipotesiNeiNumeri:ipotesiNeiNumeri});carica().then(render,render)'));
+   'titoloCortoOra:titoloCortoOra,ipotesiNeiNumeri:ipotesiNeiNumeri,SEP_IPOTESI:SEP_IPOTESI});carica().then(render,render)'));
  /* IL TEMA SI SCEGLIE, NON SI EREDITA. Senza questa riga l'anteprima usciva in chiaro lo
     stesso — ma per il default di matchMedia in jsdom, cioè per caso, e un giorno un banco
     diverso l'avrebbe fatta uscire scura senza che nessuno l'avesse deciso.
@@ -254,7 +301,10 @@ export async function componi(){
       cosa diversa al primo ritocco. È l'idioma con cui la data passa da dl(). */
    /* LA FORMA CORTA, e la scelta è misurata: la riga a corpo 18 regge 113 caratteri e la
       forma lunga ne vale 142. */
-   (spia.ipotesiNeiNumeri ? spia.ipotesiNeiNumeri(true) : ''));
+   (spia.ipotesiNeiNumeri ? spia.ipotesiNeiNumeri(true) : ''),
+   /* il separatore delle clausole, dalla pagina: senza, la targa non saprebbe dove andare a
+      capo e rimetterebbe tutto su una riga tagliata — quindi se manca ci si ferma */
+   (function(){ if (!spia.SEP_IPOTESI) throw new Error('SEP_IPOTESI non è arrivato dalla pagina'); return spia.SEP_IPOTESI; })());
 }
 
 export async function genera(){

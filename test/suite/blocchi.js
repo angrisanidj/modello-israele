@@ -842,12 +842,12 @@ function seggiOra(){ return A.IDS.filter(i => A.SEG[i]).map(i => i + ':' + A.SEG
   esito(piede.length + ip.length > regge,
     'e il piede non poteva portarla: a corpo 18 regge ' + regge + ' caratteri e ne usa gia ' +
     piede.length + ', la dichiarazione ne vale ' + ip.length);
-  /* LA FORMA CORTA CI STA, ed è la ragione per cui esiste. */
+  /* CHE LA FORMA CORTA CI STIA SI MISURA IN test/suite/targa.js, con la larghezza vera resa
+     da resvg. Qui c'era un conto a 0,62 em per carattere: la seconda strada per la stessa
+     grandezza, che sulla riga del 14 settembre 2026 diceva 1573,6 unità dove la resa ne
+     misura 1173,0. Tolto quel giorno, insieme al taglio che lo usava. */
   const corta = A.ipotesiNeiNumeri(true);
-  const reggeIp = Math.floor((W - 2 * LATO) / (0.62 * fsIp));
-  esito(corta.length > 0 && corta.length <= reggeIp,
-    'e la forma corta ci sta nella riga della testata senza essere tagliata',
-    corta.length + ' caratteri su ' + reggeIp + ': «' + corta + '»');
+  esito(corta.length > 0, 'la forma corta esiste', corta);
   esito(/^Ipotesi del modello/.test(corta),
     'e mette l essenziale DAVANTI: se un giorno andasse tagliata, a sopravvivere e ' +
     'l avvertimento e non il dettaglio', corta);
