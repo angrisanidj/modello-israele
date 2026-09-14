@@ -905,6 +905,46 @@ await (async function(){
     "ipotesiNeiNumeri()",
     trovato && condMeta.indexOf('guardia.outputs')<0);
  }
+ /* ══ E LE RIGENERA SUL FATTO, NON SU UN ELENCO DI ESITI ══
+    Dal 5 al 15 settembre 2026 il job delle meta aveva un passo «Si procede?» che andava
+    avanti solo se il job dell'archivio era «success», o fermo su colonne ignote. L'asserzione
+    qui sopra era verde — il job non era guardato — e le meta si fermavano lo stesso, un passo
+    più in giù: il caso che l'elenco non conteneva, l'archivio SALTATO, le bloccava a ogni
+    push. Misurato su 30 giorni: 13 esecuzioni senza meta, una con un'impronta diversa da
+    pubblicare.
+    La condizione è il FATTO: il generatore gira sempre e dice lui se l'impronta e il titolo
+    sono diversi da quelli pubblicati. Quindi quattro cose, e nessuna nomina un esito: nessun
+    passo del job guarda un altro job; il job può solo ESCLUDERE un esito, mai richiederne
+    uno; il passo che genera non ha condizioni e nessuno prima di lui produce un'uscita che
+    possa fargli da cancello; e tutto quello che viene dopo dipende solo dalla sua uscita. */
+ {
+  const doc=load(readFileSync(join(qui,'..','.github','workflows','aggiorna.yml'),'utf8'));
+  const base=srcGen.split(String.fromCharCode(92)).join('/').split('/').pop();
+  const invoca=x=>typeof (x&&x.run)==='string'&&x.run.indexOf('scripts/'+base)>=0;
+  let job=null;
+  for(const [nome,j] of Object.entries((doc&&doc.jobs)||{})){
+   if(srcGen&&((j&&j.steps)||[]).some(invoca)) job={nome,j,passi:j.steps};
+  }
+  const passi=job?job.passi:[];
+  const genera=passi.find(invoca), iGen=passi.indexOf(genera);
+  const testoDi=x=>String(x.if||'')+NL+(typeof x.run==='string'?x.run:'');
+  const suAltri=passi.filter(x=>/needs\./.test(testoDi(x))).map(x=>x.name||'(senza nome)');
+  p("e le rigenera sul FATTO: nessun passo del job delle meta guarda l'esito o le uscite di " +
+    "un altro job — un elenco di esiti ammessi lascia fuori il prossimo"+(suAltri.length?' ('+suAltri.join(', ')+')':''),
+    !!job && suAltri.length===0);
+  const condJob=String((job&&job.j.if)||'');
+  p("e la condizione del job un esito lo puo' solo ESCLUDERE, mai richiedere ("+condJob+")",
+    !!job && !/needs\.[\w-]+\.result\s*==/.test(condJob) && !/needs\.[\w-]+\.outputs/.test(condJob));
+  const cancelli=passi.slice(0,Math.max(iGen,0)).filter(x=>x.id||(typeof x.run==='string'&&x.run.indexOf('GITHUB_OUTPUT')>=0));
+  p("il passo che genera l'anteprima non ha condizioni, e nessun passo prima di lui produce " +
+    "un'uscita che possa fargli da cancello: gira a ogni esecuzione e il fatto lo calcola lui",
+    !!genera && !genera.if && cancelli.length===0);
+  const dopo=passi.slice(iGen+1), idGen=genera&&genera.id;
+  p("e quello che viene dopo dipende SOLO dalla sua uscita, che vale «cambiato» quando " +
+    "l'impronta o il titolo sono diversi da quelli pubblicati e «niente» con l'uscita 3",
+    !!idGen && dopo.length>0 && dopo.every(x=>String(x.if||'').indexOf('steps.'+idGen+'.outputs.')>=0) &&
+    (genera.run||'').indexOf('"$E" = "3"')>=0);
+ }
  /* 3 · E IL SUO PUNTO D'INGRESSO FUNZIONA SUL RUNNER, NON SOLO SU CHI LO SCRIVE.
     Il 28 agosto 2026 il passo e' andato VERDE stampando ZERO righe. La guardia «sono il
     modulo principale» componeva l'indirizzo a mano concatenando «file:///» con argv[1]:

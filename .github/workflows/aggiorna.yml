@@ -208,6 +208,9 @@ jobs:
     # fallito: passa da dati/da-fare.json, che il passo del riepilogo committa con
     # «if: always()» anche quando una guardia ha fermato tutto. E' LA STESSA FONTE CHE
     # LEGGE LA PAGINA, quindi og:title e il titolo non possono divergere per costruzione.
+    # E NON PASSA NEMMENO DALL'ESITO DEL JOB DELL'ARCHIVIO: la condizione qui sotto ESCLUDE
+    # soltanto l'esecuzione annullata, e dentro il job nessun passo guarda che cosa ha fatto
+    # un altro. Vedi il passo che genera, e test/struttura.mjs.
     if: always() && needs.aggiorna.result != 'cancelled'
     runs-on: ubuntu-latest
     steps:
@@ -218,24 +221,22 @@ jobs:
       - run: npm install
       # anteprima.mjs importa test/estrai.mjs da se', come aggiorna.mjs: il parser che legge
       # dev'essere quello di questo index.html, non quello dell'ultima esecuzione locale.
-      - name: Si procede?
-        id: procedi
-        run: |
-          # Si procede se l'archivio e' andato bene, oppure se una guardia lo ha fermato su
-          # colonne che l'anagrafica non conosce — che e' esattamente lo stato in cui la
-          # pagina smette di affermare, e in cui og:title deve smettere con lei. Qualunque
-          # altro esito e' un guasto, e li' le meta non si toccano.
-          if [ "${{ needs.aggiorna.result }}" = "success" ]; then
-            echo "si=1" >> "$GITHUB_OUTPUT"
-          elif node .github/scripts/colonne-ignote.mjs; then
-            echo "si=1" >> "$GITHUB_OUTPUT"
-            echo "guardia sulle colonne non riconosciute: le meta passano alla forma neutra"
-          else
-            echo "si=0" >> "$GITHUB_OUTPUT"
-            echo "esito ${{ needs.aggiorna.result }} senza colonne ignote: le meta non si toccano"
-          fi
+      # IL GENERATORE GIRA SEMPRE, E LA CONDIZIONE E' IL FATTO CHE CALCOLA LUI.
+      # Dal 5 al 15 settembre 2026 qui c'era un passo «Si procede?» che andava avanti solo se
+      # il job dell'archivio era «success», oppure fermo su colonne che l'anagrafica non
+      # conosce: un ELENCO CABLATO DI ESITI AMMESSI. Il caso che non conteneva — archivio
+      # SALTATO perche' la notte era gia' andata — fermava le meta a ogni push. Misurato su 30
+      # giorni: 13 esecuzioni senza meta, 12 in cui il render coincideva comunque e una no, il
+      # push della targa a due righe, rimasto fuori dall'anteprima fino al giro dopo. Il
+      # prossimo esito nuovo l'elenco lo avrebbe lasciato fuori allo stesso modo.
+      # Adesso non si chiede a nessun altro job che cosa ha fatto. Il checkout e' ref: main,
+      # cioe' esattamente quello che la pagina pubblica — archivio andato, saltato, fermato o
+      # rotto che sia — e anteprima.mjs confronta l'impronta e il titolo che produrrebbe con
+      # quelli scritti in pagina: 0 se sono diversi, 3 se coincidono. Se coincidono non si
+      # committa niente, che e' l'idempotenza che il passo aveva gia'.
+      # Costo, misurato il 15 settembre 2026: il passo dura 10-11 secondi in CI anche quando
+      # non cambia niente, perche' il render si fa comunque — una volta per esecuzione.
       - name: Le due meta, dallo stesso render
-        if: steps.procedi.outputs.si == '1'
         id: meta
         run: |
           # IL ROMPI-ANELLO E' IL CODICE D'USCITA, NON L'IDEMPOTENZA.
