@@ -743,17 +743,31 @@ function seggiOra(){ return A.IDS.filter(i => A.SEG[i]).map(i => i + ':' + A.SEG
  * l'ipotesi è applicata. Le due funzioni devono restare due, e queste asserzioni sono
  * quelle che lo tengono. */
 {
+  /* LA PROVA GUARDA LA CLAUSOLA DELLA LEVA IN BILICO, NON L'INTERA FRASE. Fino al 15 settembre
+     2026 misurava ipotesiNeiNumeri() === '', che tace solo se tacciono TUTTE le leve: vero
+     finche' sul seme gli accordi di eccedenza non spostavano niente. Dal 14 settembre la leva
+     degli accordi nasce accesa, e il giorno in cui sul seme un accordo vale un seggio la frase
+     lo dichiara — giustamente — e l'asserzione cadeva senza che la leva in bilico avesse detto
+     una parola. Adesso si cerca il pezzo che solo quella leva scrive, nelle due forme, e un
+     controllo piu' sotto prova che quel pezzo compare davvero quando la leva sposta seggi: senza,
+     una riscrittura della frase renderebbe queste due asserzioni vere a vuoto. */
+  const CLAUSOLA_LUNGA = /in un blocco in cui la fonte non (lo|li) mette/;
+  const CLAUSOLA_CORTA = /dove la fonte non (lo|li) mette/;
   conBilico(0, 1);
-  esito(A.ipotesiNeiNumeri() === '',
-    'senza seggi da spostare non si dichiara niente, nemmeno a leva accesa: un ipotesi che ' +
-    'non muove un numero e rumore, e insegna a saltare la riga prima del giorno in cui conta');
-  esito(A.testoCondivisione(false).indexOf('ipotesi') < 0,
-    'e la frase di condivisione non ne parla');
+  esito(!CLAUSOLA_LUNGA.test(A.ipotesiNeiNumeri()) && !CLAUSOLA_CORTA.test(A.ipotesiNeiNumeri(true)),
+    'senza seggi da spostare la leva in bilico non dichiara niente, nemmeno accesa: un ipotesi che ' +
+    'non muove un numero e rumore, e insegna a saltare la riga prima del giorno in cui conta',
+    '«' + A.ipotesiNeiNumeri() + '»');
+  esito(!CLAUSOLA_LUNGA.test(A.testoCondivisione(false)),
+    'e la frase di condivisione non ne parla', A.testoCondivisione(false).slice(0, 160));
 
   conBilico(4, 1);
   const ip = A.ipotesiNeiNumeri();
   esito(ip.length > 0 && /ipotesi/.test(ip) && /non un fatto/.test(ip),
     'con la lista in Knesset e la leva accesa la dichiarazione c e, e dice che e un ipotesi', ip);
+  esito(CLAUSOLA_LUNGA.test(ip) && CLAUSOLA_CORTA.test(A.ipotesiNeiNumeri(true)),
+    'e porta la clausola della leva in bilico nelle due forme: e il controllo che rende vere a ' +
+    'ragione le due asserzioni sopra, che la cercano e non la trovano', ip + ' | ' + A.ipotesiNeiNumeri(true));
   /* LE DUE FUNZIONI RESTANO DUE, E ADESSO LA PROVA NON DIPENDE DA DOVE PUNTA IL DIFETTO.
      Fino al 27 agosto 2026 qui c'era: «ipotesiNeiNumeri parla mentre statoLeve tace». Era
      vero perche' il predefinito era ACCESO — cioe' l'asserzione provava la regola sfruttando
