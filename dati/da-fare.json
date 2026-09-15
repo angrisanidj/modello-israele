@@ -1,16 +1,114 @@
 {
- "generato": "2026-09-14",
+ "generato": "2026-09-15",
  "job": {
-  "esito": "ok",
-  "motivo": null,
-  "archivioAl": "2026-09-10",
-  "rilevazioniNuove": 0
+  "esito": "fermo",
+  "motivo": "troppe rilevazioni nuove in una notte: 71",
+  "archivioAl": "2026-09-14",
+  "rilevazioniNuove": 71
  },
  "conto": {
-  "blocca": 0,
-  "richiedono": 0,
+  "blocca": 1,
+  "richiedono": 2,
   "informative": 0
  },
- "riga": "Niente da fare.",
- "voci": []
+ "riga": "2 cose richiedono te — una BLOCCA la pubblicazione",
+ "voci": [
+  {
+   "id": "job-fermo",
+   "categoria": "job",
+   "urgenza": "blocca",
+   "titolo": "Il lavoro notturno si è fermato",
+   "quanti": 1,
+   "dettaglio": {
+    "motivo": "troppe rilevazioni nuove in una notte: 71",
+    "esecuzioni": 1,
+    "archivioAl": "2026-09-14"
+   },
+   "chiude": "Il motivo è: troppe rilevazioni nuove in una notte: 71. L'archivio pubblicato resta fermo al 2026-09-14 finché la causa non è tolta.",
+   "procedura": null
+  },
+  {
+   "id": "eventi-da-tradurre",
+   "categoria": "eventi",
+   "urgenza": "richiede",
+   "titolo": "14 voci-evento da tradurre",
+   "quanti": 14,
+   "dettaglio": {
+    "voci": [
+     {
+      "chiave": "2026-08-31|former-yesh-atid-mk-yoav-segalovitz-to-run-with-the-united-arab-list-ra-",
+      "data": "2026-08-31",
+      "testo": "Former Yesh Atid MK Yoav Segalovitz to run with the United Arab List (Ra'am)"
+     },
+     {
+      "chiave": "2026-08-25|ofer-winter-forms-a-new-political-party-called-amcha-yisrael",
+      "data": "2026-08-25",
+      "testo": "Ofer Winter forms a new political party, called \"Amcha Yisrael\""
+     },
+     {
+      "chiave": "2026-08-31|former-yesh-atid-mk-yoav-segalovitz-announces-he-will-run-with-the-unite",
+      "data": "2026-08-31",
+      "testo": "Former Yesh Atid MK Yoav Segalovitz announces he will run with the United Arab List (Ra'am) as a technical bloc"
+     },
+     {
+      "chiave": "2026-09-03|likud-mk-tally-gotliv-announces-she-is-running-with-otzma-yehudit",
+      "data": "2026-09-03",
+      "testo": "Likud MK Tally Gotliv announces she is running with Otzma Yehudit"
+     },
+     {
+      "chiave": "2026-09-01|the-religious-zionist-party-and-zehut-agree-to-run-together-as-a-technic",
+      "data": "2026-09-01",
+      "testo": "The Religious Zionist Party and Zehut agree to run together as a technical bloc"
+     },
+     {
+      "chiave": "2026-09-08|submission-of-candidate-lists-to-the-central-elections-committee-opens-a",
+      "data": "2026-09-08",
+      "testo": "Submission of candidate lists to the Central Elections Committee opens at 4 PM IST and closes at 10 PM IST"
+     },
+     {
+      "chiave": "2026-09-07|submission-of-candidate-lists-to-the-central-elections-committee-opens-a",
+      "data": "2026-09-07",
+      "testo": "Submission of candidate lists to the Central Elections Committee opens at 1 PM IST and closes at 5 PM"
+     },
+     {
+      "chiave": "2026-09-06|zionist-home-leader-hili-tropper-announces-he-is-running-with-yashar-dis",
+      "data": "2026-09-06",
+      "testo": "Zionist Home leader Hili Tropper announces he is running with Yashar, dissolving his alliance with The Reservists, which then merges with the New Economic Party"
+     },
+     {
+      "chiave": "2026-09-04|unity-withdraws-from-the-election",
+      "data": "2026-09-04",
+      "testo": "Unity withdraws from the election"
+     },
+     {
+      "chiave": "2026-09-08|final-day-of-submission-of-candidate-lists-to-the-central-elections-comm",
+      "data": "2026-09-08",
+      "testo": "Final day of submission of candidate lists to the Central Elections Committee, which opens at 4 PM IST and closes at 10 PM IST"
+     },
+     {
+      "chiave": "2026-09-07|first-day-of-submission-of-candidate-lists-to-the-central-elections-comm",
+      "data": "2026-09-07",
+      "testo": "First day of submission of candidate lists to the Central Elections Committee, which opens at 1 PM IST and closes at 5 PM"
+     },
+     {
+      "chiave": "2026-09-10|together-and-yisrael-beiteinu-sign-a-surplus-vote-agreement",
+      "data": "2026-09-10",
+      "testo": "Together and Yisrael Beiteinu sign a surplus-vote agreement"
+     },
+     {
+      "chiave": "2026-09-10|yashar-and-the-democrats-sign-a-surplus-vote-agreement",
+      "data": "2026-09-10",
+      "testo": "Yashar and The Democrats sign a surplus-vote agreement"
+     },
+     {
+      "chiave": "2026-09-12|joint-list-and-ra-am-sign-a-surplus-vote-agreement",
+      "data": "2026-09-12",
+      "testo": "Joint List and Ra'am sign a surplus-vote agreement"
+     }
+    ]
+   },
+   "chiude": "Apri `dati/eventi-grezzi.json`, cerca `\"stato\": \"nuovo\"`. Per ognuna: o la traduci — riga italiana in `EVENTI` dentro index.html, e la voce passa a `\"tradotto\"` — o la scarti portandola a `\"scartato\"`. GIUDIZIO: se la voce meriti la cronologia lo decide una persona; la data NON si tocca, sposta il marcatore sull'asse.",
+   "procedura": "docs/tradurre-una-voce-evento.md"
+  }
+ ]
 }
