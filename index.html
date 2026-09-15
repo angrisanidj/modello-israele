@@ -10163,7 +10163,20 @@ var W_LISTA={
 };
 var W_IST={'filber':'Direct Polls','direct':'Direct Polls','lazar':'Lazar · Panel4All','midgam':'Midgam',
  'hamidgam':'Hamidgam Project','maagar':'Maagar Mochot','kantar':'Kantar','yossi':'Yossi Taktika',
- 'camil':'Camil Fuchs','panels':'Panels Politics','trendzone':'TrendZone','stat':'Stat-Net'};
+ 'camil':'Camil Fuchs','panels':'Panels Politics','trendzone':'TrendZone','stat':'Stat-Net',
+ /* LE SIGLE, dal 15 settembre 2026, MAPPATE INTERE e non sulla prima parola: una sigla intera
+    e' specifica quanto un nome esteso, «mp» da solo no. La chiave e' la sigla in minuscolo
+    senza nient'altro che lettere, cifre e «+», cosi' l'apice del refuso «MP+TM+SN+A`» cade.
+    SONO RICAVATE, NON DICHIARATE: la fonte le ha introdotte il 14 settembre 2026 (rev
+    1374888861, «New pollsters/publishers») e la sua legenda elenca i nomi estesi, non le
+    sigle. Ogni riga dice da dove viene e quando va riaperta. */
+ 'lri+p4a':'Lazar · Panel4All',  /* legenda «Lazar Research Institute, Panel4All», stesso colore #F86B61 delle righe che dicevano «Lazar». Riapre: se la voce di legenda cambia composizione o la sigla compare con un altro colore */
+ 'sf+nd':'Direct Polls',         /* legenda «Shlomo Filber, NEXT DATA» (DarkOrange, Canale 14 dal 7 maggio 2026); Canale 14 in archivio e' «Direct Polls», come «filber». Riapre: se Canale 14 cambia istituto o si decide di separare Filber da Direct Polls */
+ 'sf+dp':'Direct Polls',         /* legenda «Shlomo Filber, Direct Polls» (Gold, fino al 5 giugno 2025); oggi solo in una tabella di scenari, che il parser esclude. Riapre: se compare in una tabella di seggi del 2026 */
+ 'mm+sn':'Maagar Mochot',        /* legenda «Maagar Mochot, Stat-Net» (#BAD1E6, Canale 13 fino al 25 maggio 2026). Riapre: se Stat-Net va contato come istituto a se' */
+ 'mp+tm+sn+a':'Hamidgam Project', /* legenda «Midgam Project, The Madad, Stat-Net, Askaria» (mediumseagreen, Canale 13 dal 17 giugno 2026). LA SCELTA VIENE DALLA RETE, NON DAL NOME: in archivio «Hamidgam Project» sono le 8 righe di Canale 13 e «Midgam» le 31 di Canale 12, la nota metodologica li dichiara due istituti, e house effect e grappolo contano per nome — con «Midgam» 43 righe di due reti finirebbero sotto un istituto solo. Con questa mappatura rientrano le tre rilevazioni di Canale 13 mai entrate (26 agosto, 2 e 9 settembre 2026), che il nome «Midgam» faceva assorbire da Canale 12. Riapre: se Canale 13 cambia istituto, o se la fonte chiama Midgam R&C anche questo */
+ 'smlt':'S.M.L.T.'               /* NON e' una sigla della fonte: e' il nome con cui l'unica rilevazione S.M.L.T. (7 settembre 2026) e' gia' in archivio, e senza questa voce la guardia sugli istituti non riconosciuti fermerebbe il lavoro notturno ogni notte. Riapre: se l'istituto torna con un altro nome */
+};
 var W_TEST={'hahadashot 12':'Canale 12','channel 13':'Canale 13','channel 14':'Canale 14',
  'channel 16':'Canale 16','i24 news':'i24NEWS','kan 11':'Kan 11','israel hayom':'Israel Hayom',
  'zman yisrael':'Zman Israel','zman israel':'Zman Israel','maariv':'Maariv','walla':'Walla',
@@ -10242,7 +10255,7 @@ function wContenitore(ids){
  return P[uno]?uno:null;
 }
 function parseWikiTabella(tab,anno,out){
- var loc={ok:[],ko:[],ignote:[],eventi:[]};
+ var loc={ok:[],ko:[],ignote:[],eventi:[],istitutiIgnoti:[]};
  var g=wGriglia(tab);
  if(!g.length) return;
  /* le prime righe interamente di intestazione definiscono le colonne;
@@ -10361,13 +10374,24 @@ function parseWikiTabella(tab,anno,out){
   /* Il tipo serve al messaggio: «somma» e «blocco» sono incoerenze della fonte, e
      respingerle è giusto; «ambigua» e «illeggibile» sono limiti nostri, e vanno
      distinti da quelle o il lettore crede che Wikipedia sia sbagliata. */
+  /* UN ISTITUTO CHE W_IST NON CONOSCE NON ENTRA IN SILENZIO. Fino al 15 settembre 2026 il
+     ripiego era il nome grezzo, cioe' un istituto NUOVO: il 14 settembre la fonte ha
+     ribattezzato gli istituti in sigle e 65 rilevazioni gia' in archivio sono tornate come
+     nuove, fermate solo dal tetto delle nuove. Adesso la sigla intera si cerca per prima, poi
+     la prima parola dei nomi estesi; se nessuna delle due risponde la riga va fra le scartate
+     col suo nome, e il nome in out.istitutiIgnoti, che ferma il lavoro notturno.
+     Il nome si raccoglie da OGNI riga che ne ha uno, anche da quelle che cadono per altro: una
+     ribattezzatura di tutti gli istituti farebbe cadere intere le tabelle, e la guardia deve
+     poter dire il nome anche allora. */
+  var kIst=wKey(ist), kSig=kIst.replace(/[^a-z0-9+]/g,''), nist=W_IST[kSig]||W_IST[kIst.split(/[^a-z0-9]/)[0]]||null;
+  if(!nist) loc.istitutiIgnoti.push(ist);   /* la deduplicazione e' una sola, quando i nomi passano a out */
   var motivo=null,tipo=null;
   if(ambigua){motivo='cella su più liste senza contenitore comune ('+ambigua+')';tipo='ambigua';}
   else if(tot!==120){motivo='somma '+tot;tipo='somma';}
   else if(gov!==null&&gcalc!==gov){motivo='blocco governo '+gcalc+' invece di '+gov;tipo='blocco';}
   else if(!ok){motivo='valore non interpretabile';tipo='illeggibile';}
+  else if(!nist){motivo='istituto non riconosciuto ('+ist+')';tipo='istituto';}
   if(motivo){loc.ko.push({data:data,istituto:ist,testata:pub,motivo:motivo,tipo:tipo});continue;}
-  var nist=W_IST[wKey(ist).split(/[^a-z0-9]/)[0]]||wClean(ist);
   var npub=W_TEST[wKey(pub)]||wClean(pub);
   var o={data:data,istituto:nist,testata:npub,seggi:seggi};
   if(Object.keys(sotto).length) o.sotto=sotto;
@@ -10383,7 +10407,7 @@ function parseWikiTabella(tab,anno,out){
 }
 function parseWiki(html,anni){
  var doc=new DOMParser().parseFromString(html,'text/html');
- var out={sondaggi:[],eventi:[],scartate:[],ignote:[],ignorate:[]};
+ var out={sondaggi:[],eventi:[],scartate:[],ignote:[],ignorate:[],istitutiIgnoti:[]};
  var anno=null,escl=false;
  var nodi=doc.querySelectorAll('h2,h3,h4,table');
  for(var i=0;i<nodi.length;i++){
@@ -10401,6 +10425,12 @@ function parseWiki(html,anni){
   var loc=null;
   try{loc=parseWikiTabella(n,anno,out);}catch(e){loc=null;}
   if(!loc) continue;
+  /* gli istituti ignoti si raccolgono PRIMA di decidere se la tabella si accetta: una tabella
+     scartata perche' tutti i suoi istituti sono ignoti e' proprio il caso da nominare */
+  loc.istitutiIgnoti.forEach(function(x){
+   var kx=wKey(x).replace(/[^a-z0-9+]/g,'');
+   if(!out.istitutiIgnoti.some(function(n){return wKey(n).replace(/[^a-z0-9+]/g,'')===kx;})) out.istitutiIgnoti.push(x);
+  });
   var tot=loc.ok.length+loc.ko.length;
   /* Una tabella si accetta solo se la maggioranza delle sue righe supera la
      validazione. Se quasi tutte falliscono non sono righe sbagliate: è la tabella
@@ -10686,6 +10716,8 @@ function msgAggiorna(out,nuove,ev){
     'a tutte le liste arabe, Ra\'am compreso: serve mapparle a mano');contate+=per.ambigua;}
   if(per.illeggibile){voci.push('<b>'+per.illeggibile+'</b> con valori non interpretabili');
     contate+=per.illeggibile;}
+  if(per.istituto){voci.push('<b>'+per.istituto+'</b> con un istituto che l\'anagrafica non conosce ('+
+    (out.istitutiIgnoti||[]).map(E).join(', ')+'): va mappato a mano in W_IST');contate+=per.istituto;}
   if(per.altro){voci.push('<b>'+per.altro+'</b> per altri motivi');contate+=per.altro;}
   var resto=out.scartate.length-contate;
   if(resto>0) voci.push('<b>'+resto+'</b> per motivi che il messaggio non sa ancora nominare');

@@ -59,6 +59,20 @@ function esito(cond, desc, dettaglio){
   esito(/ambigue in crescita/.test(ga.stop || ''), 'una configurazione ambigua nuova ferma il job');
   esito(!!ga.issue, 'e anche lei produce una issue: è una decisione umana');
 
+  /* ── gli istituti che W_IST non conosce ── */
+  p = buono(); p.istitutiIgnoti = ['MP+TM+SN+A'];
+  const gs = valuta(p);
+  esito(/istituti non riconosciuti/.test(gs.stop || '') && /MP\+TM\+SN\+A/.test(gs.stop || ''),
+    'un istituto che W_IST non conosce ferma il job, e lo nomina', gs.stop);
+  esito(/W_IST/.test((gs.issue || {}).corpo || '') && /legenda/.test((gs.issue || {}).corpo || ''),
+    'e la issue dice dove mapparlo e con che cosa espandere la sigla', JSON.stringify(gs.issue));
+  p = buono(); p.istitutiIgnoti = [];
+  esito(valuta(p).ok === true, 'un elenco vuoto di istituti ignoti non ferma niente', JSON.stringify(valuta(p)));
+  p = buono(); p.istitutiIgnoti = ['LRI+P4A']; p.valide = 0; p.nuove = SOGLIE.MASSIMO_NUOVE + 61;
+  esito(/istituti non riconosciuti/.test(valuta(p).stop || ''),
+    'e viene PRIMA del crollo e del tetto delle nuove: il 15 settembre la notte si e fermata sul tetto, col nome sbagliato',
+    valuta(p).stop);
+
   p = buono(); p.valide = 154 - SOGLIE.CALO_VALIDE - 1;
   esito(/crollo/.test(valuta(p).stop || ''), 'un crollo delle righe valide ferma il job');
   p = buono(); p.valide = 154 - SOGLIE.CALO_VALIDE;
@@ -120,6 +134,9 @@ function esito(cond, desc, dettaglio){
   esito(/ignorate:\s*out\.ignorate/.test(chiamata),
     'e il job passa DAVVERO out.ignorate a valuta(): senza, la guardia sarebbe irraggiungibile',
     chiamata.split('\n').slice(0, 7).join(' ').replace(/\s+/g, ' ').slice(0, 120));
+  esito(/istitutiIgnoti:\s*out\.istitutiIgnoti/.test(chiamata),
+    'e passa DAVVERO out.istitutiIgnoti: senza, la guardia sugli istituti sarebbe irraggiungibile',
+    chiamata.split('\n').slice(0, 7).join(' ').replace(/\s+/g, ' ').slice(0, 160));
 
   p = buono(); p.nuove = SOGLIE.MASSIMO_NUOVE + 1;
   esito(/troppe/.test(valuta(p).stop || ''), 'troppe rilevazioni in una notte fermano il job');

@@ -45,7 +45,7 @@ global.fetch = () => Promise.reject(0);
 let src = fs.readFileSync(__dirname + '/../app.js','utf8');
 src = src.replace('carica().then(render,render)',
   'global.A={parseWiki:parseWiki,wTesto:wTesto,wContenitore:wContenitore,' +
-  'msgAggiorna:msgAggiorna,ed:ed,' +
+  'msgAggiorna:msgAggiorna,ed:ed,W_IST:function(){return W_IST;},' +
   'P:function(){return P;}};carica().then(render,render)');
 eval(src);
 
@@ -97,6 +97,47 @@ setTimeout(function(){
   esito(amb.length === 1 && /raam/.test(amb[0].motivo),
     'la cella che copre Ra\'am con le altre due viene respinta, non attribuita a caso',
     JSON.stringify(amb.map(x => x.motivo)));
+
+  /* ══ 1-bis · gli istituti: le sigle della fonte, e quello che nessuno ha mappato ══
+   * Il 14 settembre 2026 la fonte ha ribattezzato gli istituti in sigle, e il ripiego sul nome
+   * grezzo le faceva entrare come istituti nuovi. Si prova sulla fixture sostituendo il nome
+   * della riga Kantar/Kan 11 da 558 intervistati: ogni sigla dichiarata in W_IST ci arriva col
+   * nome canonico, e una che non c'e' non entra e viene nominata. */
+  {
+    const W_IST = A.W_IST();
+    const fx = require('../../dati/fixture.js');
+    const r558 = o => o.sondaggi.find(s => s.testata === 'Kan 11' && s.campione === 558);
+    const conIst = n => A.parseWiki(fx.replace('<td>Kantar</td>', '<td>' + n + '</td>'), ['2026']);
+    esito(!!r558(out) && r558(out).istituto === 'Kantar',
+      'la riga di prova e Kantar per Kan 11, campione 558', r558(out) && r558(out).istituto);
+    esito(Array.isArray(out.istitutiIgnoti) && out.istitutiIgnoti.length === 0,
+      'sulla fixture ogni istituto ha il suo nome canonico: la guardia tace sul caso buono', JSON.stringify(out.istitutiIgnoti));
+    const sigle = Object.keys(W_IST).filter(k => k.indexOf('+') >= 0);
+    esito(sigle.length >= 4, 'W_IST dichiara le sigle della fonte', sigle.join(', '));
+    sigle.forEach(k => {
+      const r = r558(conIst(k.toUpperCase()));
+      esito(!!r && r.istituto === W_IST[k], 'la sigla «' + k.toUpperCase() + '» entra come «' + W_IST[k] + '»', r ? r.istituto : 'riga persa');
+    });
+    esito(sigle.every(k => { const r = r558(conIst(k.toUpperCase() + '`')); return r && r.istituto === W_IST[k]; }),
+      'e anche col refuso della fonte, l apice in coda: cade con i caratteri che non sono lettere, cifre o «+»');
+    esito(['lri', 'mp', 'sf', 'mm', 'tm', 'sn', 'nd', 'dp', 'p4a'].every(k => W_IST[k] === undefined),
+      'le sigle sono mappate INTERE: nessun pezzo di sigla fa da chiave');
+    /* la sigla ignota su TUTTE le righe Kantar della fixture, in piu' tabelle, e sulla prima col
+       refuso dell'apice: il nome deve arrivare una volta sola, o la deduplicazione non e' provata */
+    const ignota = A.parseWiki(fx.replace('<td>Kantar</td>', '<td>Xq+Zw`</td>').split('<td>Kantar</td>').join('<td>XQ+ZW</td>'), ['2026']);
+    esito(!r558(ignota) && !ignota.sondaggi.some(s => /xq\+zw/i.test(s.istituto)),
+      'una sigla che W_IST non conosce NON entra fra le valide come istituto nuovo',
+      JSON.stringify(ignota.sondaggi.filter(s => /xq/i.test(s.istituto)).map(s => s.istituto)));
+    esito(ignota.scartate.some(x => x.tipo === 'istituto' && /XQ\+ZW/i.test(x.motivo)),
+      'va fra le scartate, col suo nome nel motivo', JSON.stringify(ignota.scartate.filter(x => x.tipo === 'istituto')));
+    esito(ignota.istitutiIgnoti.length === 1 && /^xq\+zw`?$/i.test(ignota.istitutiIgnoti[0]),
+      'e arriva in out.istitutiIgnoti UNA VOLTA SOLA, da piu righe e col refuso: e la lista che ferma il lavoro notturno',
+      JSON.stringify(ignota.istitutiIgnoti));
+    esito(/XQ\+ZW/i.test(A.msgAggiorna(ignota, 0, 0)), 'e il messaggio del pulsante la nomina');
+    const esteso = conIst('Istituto Nuovo');
+    esito(!r558(esteso) && esteso.istitutiIgnoti.indexOf('Istituto Nuovo') >= 0,
+      'lo stesso per un nome esteso che nessuno ha mappato: il ripiego sul nome grezzo non esiste piu');
+  }
 
   /* ══ 2 · celle senza cifre e percentuali ══ */
   const sotto = per('2026-08-15')[0];

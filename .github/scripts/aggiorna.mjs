@@ -103,6 +103,22 @@ export function valuta(p){
                            'a mano in `W_LISTA` e in `P{}` — con `dentro` per le fusioni — dentro ' +
                            'index.html. Fatto quello, il job riprende da solo la notte successiva.\n' +
                            'L\'archivio pubblicato resta fermo all\'ultimo giorno buono.'}};
+  /* UN ISTITUTO CHE W_IST NON CONOSCE FERMA LA NOTTE, e prima del crollo e del tetto delle
+     nuove. Il 15 settembre 2026 la fonte ha ribattezzato gli istituti in sigle: 65 rilevazioni
+     gia' in archivio sono tornate come nuove, e a fermarle e' stato soltanto MASSIMO_NUOVE,
+     con un messaggio che parlava d'altro. Messa dopo, questa guardia direbbe il nome sbagliato
+     proprio la notte in cui serve quello giusto. */
+  if (p.istitutiIgnoti && p.istitutiIgnoti.length)
+    return {stop: 'istituti non riconosciuti: ' + p.istitutiIgnoti.join(', '),
+            issue: {titolo: 'Il parser ha trovato istituti che W_IST non conosce',
+                    corpo: 'L\'aggiornamento notturno si è fermato: la tabella di Wikipedia nomina ' +
+                           'istituti che non hanno un nome canonico.\n\n' +
+                           p.istitutiIgnoti.map(c => '- `' + c + '`').join('\n') +
+                           '\n\nSe è una sigla, si espande con la legenda «Pollsters and publishers» ' +
+                           '(stesso colore della cella) e si mappa INTERA in `W_IST` dentro index.html, ' +
+                           'con la ragione e la condizione che la riapre. Senza, le rilevazioni già in ' +
+                           'archivio tornerebbero come nuove.\nL\'archivio pubblicato resta fermo ' +
+                           'all\'ultimo giorno buono.'}};
   if (p.ambigue > p.ambigueIeri)
     return {stop: 'configurazioni ambigue in crescita: ' + p.ambigue + ' contro ' + p.ambigueIeri,
             issue: {titolo: 'Il parser ha trovato nuove celle su più liste senza contenitore',
@@ -388,7 +404,7 @@ async function main(){
   const esito = valuta({
     httpOk, byte: testo.length,
     valide: out.sondaggi.length, valideIeri: stato.valide,
-    nuove, ignote: out.ignote || [], ignorate: out.ignorate || [],
+    nuove, ignote: out.ignote || [], ignorate: out.ignorate || [], istitutiIgnoti: out.istitutiIgnoti || [],
     ambigue, ambigueIeri: stato.ambigue,
     colonnePerse: perse, archivioAl,
     blocchi, blocchiIeri: stato.blocchi
