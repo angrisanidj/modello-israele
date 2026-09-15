@@ -9996,6 +9996,9 @@ function render(){
 }
 function renderInterno(){
  leggiTema();
+ /* subito dopo leggiTema() e prima di calcola(): il modulo non dipende dai dati, e cosi' si
+    ricostruisce anche nel ramo senza rilevazioni attive, che esce presto */
+ rModuloSeggi();
  calcola();
  /* ══ SENZA RILEVAZIONI ATTIVE NON SI TACE: SI DICHIARA ════════════════════════════
     Qui c'era «return» e basta, e non lasciava la pagina vuota — la lasciava COM'ERA.
@@ -10726,6 +10729,35 @@ $('k-refresh').addEventListener('click',function(){
   }).then(function(){b.disabled=false;b.textContent='↻ Aggiorna i sondaggi';});
 });
 
+/* IL MODULO DEI SEGGI SI COSTRUISCE DOPO CHE IL TEMA E' STATO LETTO, E SI RICOSTRUISCE QUANDO
+   CAMBIA. Fino al 15 settembre 2026 le etichette nascevano dentro il modulo manuale qui sotto,
+   che gira al caricamento dello script: in quel momento SCURO vale ancora false — leggiTema()
+   la aggiorna solo dentro renderInterno() — e nessun cambio di tema le ricostruiva. Il codice
+   chiamava cp(), cioe' voleva la tavolozza del tema, e riceveva sempre quella chiara: aprendo la
+   pagina in scuro 13 etichette su 23 stavano sotto 3 di contrasto e 18 sotto 4,5, con un
+   minimo di 1,57. La prova e' test/suite/modulo.js, e misura il contrasto reso.
+   SI RICOSTRUISCE SOLO QUANDO SERVE, e tenendo i numeri gia' scritti: render() gira a ogni
+   leva, e rifare gli input a ogni render cancellerebbe una rilevazione a meta' inserimento.
+   La chiave e' il tema piu' l'elenco delle liste che corrono, che sono le due cose che le
+   etichette dicono. */
+var MODULO_CHIAVE='';
+function rModuloSeggi(){
+ var el=$('k-form-seggi'); if(!el) return;
+ var ids=IDS.filter(function(i){return corre(i);}), chiave=(SCURO?'scuro':'chiaro')+'|'+ids.join(',');
+ if(chiave===MODULO_CHIAVE&&el.children.length) return;
+ var scritti={};
+ Array.prototype.forEach.call(el.querySelectorAll('.i-s'),function(x){if(x.value!=='')scritti[x.dataset.p]=x.value;});
+ /* SOLO LE LISTE CHE CORRONO. Il modulo serve alle rilevazioni troppo fresche per essere
+    gia' su Wikipedia, cioe' a sondaggi di oggi: una lista ritirata non puo' prendere seggi
+    in un sondaggio di oggi, e offrirla e' un invito a scrivere una riga che non esiste.
+    Ed e' l'unico posto in cui il colore di una ritirata compare accanto a quello della
+    lista che ne ha ereditato lo slot: qui la coincidenza si vedrebbe. */
+ el.innerHTML=ids.map(function(i){
+  return '<div><label style="color:'+cp(P[i].c)+'">'+E(nm(i).slice(0,16))+'</label>'+
+   '<input class="i-s" type="number" min="0" max="120" data-p="'+i+'" placeholder="0"></div>';}).join('');
+ Array.prototype.forEach.call(el.querySelectorAll('.i-s'),function(x){if(scritti[x.dataset.p]!==undefined)x.value=scritti[x.dataset.p];});
+ MODULO_CHIAVE=chiave;
+}
 /* modulo manuale */
 (function(){
  $('k-form-meta').innerHTML=
@@ -10733,14 +10765,7 @@ $('k-refresh').addEventListener('click',function(){
   '<div><label>Istituto</label><input id="i-i" placeholder="Lazar"></div>'+
   '<div><label>Testata</label><input id="i-t" placeholder="Maariv"></div>'+
   '<div><label>Campione</label><input type="number" id="i-c" placeholder="500"></div>';
- /* SOLO LE LISTE CHE CORRONO. Il modulo serve alle rilevazioni troppo fresche per essere
-    gia' su Wikipedia, cioe' a sondaggi di oggi: una lista ritirata non puo' prendere seggi
-    in un sondaggio di oggi, e offrirla e' un invito a scrivere una riga che non esiste.
-    Ed e' l'unico posto in cui il colore di una ritirata compare accanto a quello della
-    lista che ne ha ereditato lo slot: qui la coincidenza si vedrebbe. */
- $('k-form-seggi').innerHTML=IDS.filter(function(i){return corre(i);}).map(function(i){
-  return '<div><label style="color:'+cp(P[i].c)+'">'+E(nm(i).slice(0,16))+'</label>'+
-   '<input class="i-s" type="number" min="0" max="120" data-p="'+i+'" placeholder="0"></div>';}).join('');
+ /* le etichette dei seggi le costruisce rModuloSeggi(), dal render: vedi il commento li' */
  function somma(){var t=0;
   Array.prototype.forEach.call(R.querySelectorAll('.i-s'),function(x){t+=(+x.value||0);});
   $('k-sum').textContent='Totale '+t+' / 120';
