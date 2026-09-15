@@ -17,11 +17,11 @@
    "id": "job-fermo",
    "categoria": "job",
    "urgenza": "blocca",
-   "titolo": "Il lavoro notturno si è fermato",
-   "quanti": 1,
+   "titolo": "Il lavoro notturno si è fermato da 2 esecuzioni",
+   "quanti": 2,
    "dettaglio": {
     "motivo": "troppe rilevazioni nuove in una notte: 71",
-    "esecuzioni": 1,
+    "esecuzioni": 2,
     "archivioAl": "2026-09-14"
    },
    "chiude": "Il motivo è: troppe rilevazioni nuove in una notte: 71. L'archivio pubblicato resta fermo al 2026-09-14 finché la causa non è tolta.",
