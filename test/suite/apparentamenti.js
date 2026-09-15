@@ -184,9 +184,24 @@ esito(A.valida().length === 0,
 
 {
   const S = A.stato();
-  esito(ugual(A.dhondt(S.QUO), A.ripartoSoglia(S.QUO)),
-    'sulle quote vere il riparto con gli accordi coincide con quello senza',
-    JSON.stringify(A.dhondt(S.QUO)) + ' contro ' + JSON.stringify(A.ripartoSoglia(S.QUO)));
+  /* IL FATTO E' DEL SEME, NON DELL'ARCHIVIO. Qui S.QUO sono le quote del seme BASE, perche' in
+     jsdom il fetch fallisce. Fino al 15 settembre 2026 l'attesa era «il riparto con gli accordi
+     coincide con quello senza»: portava dentro un fatto dei dati, vero finche' sul seme gli
+     accordi firmati non spostavano niente. La correzione della riga Direct Polls del 18 agosto
+     2026 (Ra'am 5→6, Hadash–Ta'al 6→5, come l'ha corretta la fonte il 20) fa valere un seggio
+     all'accordo Ra'am + Lista Unita araba, da Yashar ai partiti arabi; sull'archivio pubblicato
+     lo stesso accordo non cambia valore. La proprieta' del titolo della sezione — senza coppie il
+     riparto e' quello di prima — la prova l'asserzione qui sopra che svuota la tabella, e non
+     dipende dai dati. Se il seme cambia, questa attesa si rifa' sul fatto nuovo: non si aggiusta. */
+  const conAcc = A.dhondt(S.QUO), senzaAcc = A.ripartoSoglia(S.QUO);
+  const scarto = Object.keys(Object.assign({}, conAcc, senzaAcc))
+    .filter(k => (conAcc[k] || 0) !== (senzaAcc[k] || 0))
+    .map(k => { const d = (conAcc[k] || 0) - (senzaAcc[k] || 0); return k + ' ' + (d > 0 ? '+' : '') + d; })
+    .sort().join(', ');
+  esito(scarto === 'lista_araba +1, yashar -1',
+    'sul SEME, non sull archivio, gli accordi firmati spostano un seggio da Yashar alla Lista Unita ' +
+    'araba: e il fatto dopo la correzione della riga del 18 agosto',
+    scarto || 'nessuno scarto: gli accordi non spostano niente');
   esito(somma(A.dhondt(S.QUO)) === 120, 'e fa 120', String(somma(A.dhondt(S.QUO))));
 
   const diversi = [];

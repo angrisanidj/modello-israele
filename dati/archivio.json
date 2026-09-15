@@ -4424,13 +4424,13 @@
   "seggi": {
    "likud": 32,
    "byachad": 6,
-   "sionismo_rel": 8,
-   "otzma": 6,
+   "sionismo_rel": 6,
+   "otzma": 8,
    "shas": 10,
    "utj": 7,
    "beitenu": 7,
-   "raam": 5,
-   "hadash_taal": 6,
+   "raam": 6,
+   "hadash_taal": 5,
    "democratici": 9,
    "yashar": 24
   },
@@ -4441,21 +4441,7 @@
    "unity_erdan": 0.1
   },
   "campione": 636,
-  "casa": 1,
-  "_q": {
-   "likud": 24.175964434381278,
-   "byachad": 4.665346277556831,
-   "sionismo_rel": 6.160057426626559,
-   "otzma": 4.665346277556831,
-   "shas": 7.6568102143893135,
-   "utj": 5.412323942323123,
-   "beitenu": 5.412323942323123,
-   "raam": 4.112797855871221,
-   "hadash_taal": 4.665346277556831,
-   "democratici": 6.908271517261499,
-   "yashar": 18.165411834153396
-  },
-  "_qk": "92@"
+  "casa": 1
  },
  {
   "data": "2026-08-19",
