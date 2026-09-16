@@ -4441,7 +4441,21 @@
    "unity_erdan": 0.1
   },
   "campione": 636,
-  "casa": 1
+  "casa": 1,
+  "_q": {
+   "likud": 24.175964434381275,
+   "byachad": 4.665346277556831,
+   "sionismo_rel": 4.665346277556831,
+   "otzma": 6.160057426626559,
+   "shas": 7.6568102143893135,
+   "utj": 5.412323942323122,
+   "beitenu": 5.412323942323122,
+   "raam": 4.665346277556831,
+   "hadash_taal": 4.112797855871221,
+   "democratici": 6.9082715172614995,
+   "yashar": 18.165411834153396
+  },
+  "_qk": "92@"
  },
  {
   "data": "2026-08-19",
@@ -6019,6 +6033,46 @@
    "lista_araba": 7.676684422419691,
    "democratici": 8.424444540370192,
    "yashar": 18.123760003319948
+  },
+  "_qk": "92@"
+ },
+ {
+  "data": "2026-09-15",
+  "istituto": "Direct Polls",
+  "testata": "Canale 14",
+  "campione": 483,
+  "casa": 1,
+  "seggi": {
+   "likud": 30,
+   "byachad": 8,
+   "rzp_zehut": 8,
+   "otzma": 8,
+   "shas": 10,
+   "utj": 8,
+   "beitenu": 6,
+   "raam": 5,
+   "lista_araba": 7,
+   "democratici": 9,
+   "yashar": 21
+  },
+  "sotto": {
+   "blue_white": 0.4,
+   "reserv_nep": 2.1,
+   "amcha": 2.3,
+   "haredi_pubblico": 0.2
+  },
+  "_q": {
+   "likud": 22.680314973604823,
+   "byachad": 6.160455046634507,
+   "rzp_zehut": 6.160455046634506,
+   "otzma": 6.160455046634506,
+   "shas": 7.657304446947137,
+   "utj": 6.160455046634507,
+   "beitenu": 4.665647416798803,
+   "raam": 4.113063329161952,
+   "lista_araba": 5.412673297554725,
+   "democratici": 6.908717433068018,
+   "yashar": 15.92045891632649
   },
   "_qk": "92@"
  }
