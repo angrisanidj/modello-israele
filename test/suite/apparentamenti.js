@@ -193,7 +193,12 @@ esito(A.valida().length === 0,
      lo stesso accordo non cambia valore. La proprieta' del titolo della sezione — senza coppie il
      riparto e' quello di prima — la prova l'asserzione qui sopra che svuota la tabella, e non
      dipende dai dati. Se il seme cambia, questa attesa si rifa' sul fatto nuovo: non si aggiusta. */
-  const conAcc = A.dhondt(S.QUO), senzaAcc = A.ripartoSoglia(S.QUO);
+  /* LA DATA E' IL FATTO, NON «ADESSO». dhondt() senza data valuta gli accordi a oggi, e dopo
+     il 16 ottobre gli annunciati e mai depositati non contano piu': con l'orologio al 23
+     ottobre lo scarto era vuoto e questa attesa cadeva, avendo ragione il codice. Il fatto
+     che si prova e' quello misurato il 15 settembre 2026, quindi la data e' quella: e' la
+     data letterale legittima dell'invariante 10, non un modo di dire «oggi». */
+  const conAcc = A.dhondt(S.QUO, '2026-09-15'), senzaAcc = A.ripartoSoglia(S.QUO);
   const scarto = Object.keys(Object.assign({}, conAcc, senzaAcc))
     .filter(k => (conAcc[k] || 0) !== (senzaAcc[k] || 0))
     .map(k => { const d = (conAcc[k] || 0) - (senzaAcc[k] || 0); return k + ' ' + (d > 0 ? '+' : '') + d; })
