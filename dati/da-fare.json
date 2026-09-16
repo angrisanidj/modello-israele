@@ -1,24 +1,24 @@
 {
- "generato": "2026-09-15",
+ "generato": "2026-09-16",
  "job": {
   "esito": "ok",
   "motivo": null,
-  "archivioAl": "2026-09-14",
-  "rilevazioniNuove": 4
+  "archivioAl": "2026-09-15",
+  "rilevazioniNuove": 1
  },
  "conto": {
   "blocca": 0,
-  "richiedono": 1,
+  "richiedono": 2,
   "informative": 0
  },
- "riga": "1 cosa richiede te",
+ "riga": "2 cose richiedono te",
  "voci": [
   {
    "id": "eventi-da-tradurre",
    "categoria": "eventi",
    "urgenza": "richiede",
-   "titolo": "14 voci-evento da tradurre",
-   "quanti": 14,
+   "titolo": "16 voci-evento da tradurre",
+   "quanti": 16,
    "dettaglio": {
     "voci": [
      {
@@ -90,11 +90,33 @@
       "chiave": "2026-09-12|joint-list-and-ra-am-sign-a-surplus-vote-agreement",
       "data": "2026-09-12",
       "testo": "Joint List and Ra'am sign a surplus-vote agreement"
+     },
+     {
+      "chiave": "2026-09-27|deadline-for-publication-of-central-elections-committee-decisions-regard",
+      "data": "2026-09-27",
+      "testo": "Deadline for publication of Central Elections Committee decisions regarding list disqualification"
+     },
+     {
+      "chiave": "2026-09-15|deadline-for-submission-of-requests-to-the-central-elections-committee-f",
+      "data": "2026-09-15",
+      "testo": "Deadline for submission of requests to the Central Elections Committee for list disqualification"
      }
     ]
    },
    "chiude": "Apri `dati/eventi-grezzi.json`, cerca `\"stato\": \"nuovo\"`. Per ognuna: o la traduci — riga italiana in `EVENTI` dentro index.html, e la voce passa a `\"tradotto\"` — o la scarti portandola a `\"scartato\"`. GIUDIZIO: se la voce meriti la cronologia lo decide una persona; la data NON si tocca, sposta il marcatore sull'asse.",
    "procedura": "docs/tradurre-una-voce-evento.md"
+  },
+  {
+   "id": "spazzolata-caduta",
+   "categoria": "prove",
+   "urgenza": "richiede",
+   "titolo": "Prove che scadono con l'orologio portato avanti",
+   "quanti": 1,
+   "dettaglio": {
+    "uscita": "\n> modello-israele@1.0.0 spazzola\n> node test/spazzola.mjs\n\napp.js estratto · 648 KB\n\n══ OROLOGIO AL 2026-10-23 ══\n  apparentamenti  291/292  KO sul SEME, non sull archivio, gli accordi firmati spostano un seggio da Yashar alla Lista Unita araba: e il fatto dopo la correzione della riga del \n\n1 date su 1 con prove che cadono\n"
+   },
+   "chiude": "Riproduci con `npm run spazzola`. Non è un guasto di oggi: è una prova che dà per scontato un archivio fresco e che cadrà da sola il giorno in cui l'archivio smette di esserlo. Da lì `npm run verifica` è rosso e questo job smette di pubblicare.",
+   "procedura": null
   }
  ]
 }
