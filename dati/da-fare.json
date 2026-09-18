@@ -1,31 +1,16 @@
 {
- "generato": "2026-09-17",
+ "generato": "2026-09-18",
  "job": {
-  "esito": "fermo",
-  "motivo": "istituti non riconosciuti: MP, M, SN, A",
-  "archivioAl": "2026-09-15",
-  "rilevazioniNuove": 1
+  "esito": "ok",
+  "motivo": null,
+  "archivioAl": "2026-09-17",
+  "rilevazioniNuove": 5
  },
  "conto": {
-  "blocca": 1,
-  "richiedono": 1,
+  "blocca": 0,
+  "richiedono": 0,
   "informative": 0
  },
- "riga": "1 cosa richiede te — una BLOCCA la pubblicazione",
- "voci": [
-  {
-   "id": "job-fermo",
-   "categoria": "job",
-   "urgenza": "blocca",
-   "titolo": "Il lavoro notturno si è fermato",
-   "quanti": 1,
-   "dettaglio": {
-    "motivo": "istituti non riconosciuti: MP, M, SN, A",
-    "esecuzioni": 1,
-    "archivioAl": "2026-09-15"
-   },
-   "chiude": "Il motivo è: istituti non riconosciuti: MP, M, SN, A. L'archivio pubblicato resta fermo al 2026-09-15 finché la causa non è tolta.",
-   "procedura": null
-  }
- ]
+ "riga": "Niente da fare.",
+ "voci": []
 }
