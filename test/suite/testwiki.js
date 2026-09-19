@@ -134,6 +134,26 @@ setTimeout(function(){
       'e arriva in out.istitutiIgnoti UNA VOLTA SOLA, da piu righe e col refuso: e la lista che ferma il lavoro notturno',
       JSON.stringify(ignota.istitutiIgnoti));
     esito(/XQ\+ZW/i.test(A.msgAggiorna(ignota, 0, 0)), 'e il messaggio del pulsante la nomina');
+    /* LE DUE GRAFIE DELLO STESSO ISTITUTO. Il 17 settembre 2026 la fonte ha scritto «MP, M, SN,
+       A» dove scriveva «MP+TM+SN+A», e il lavoro notturno si e' fermato due volte sulla guardia
+       degli istituti non riconosciuti. Le due chiavi devono portare allo STESSO nome canonico —
+       una sola di esse non basta: e' il caso in cui l archivio si spezza in due istituti che
+       sono lo stesso — e una terza grafia, che nessuno ha mappato, non deve entrare in
+       silenzio. La terza e' «MP, M, SN», un membro in meno: «MP / M / SN / A» darebbe la stessa
+       chiave ripulita della seconda, e proverebbe il contrario di quello che sembra. */
+    const CANON = 'Hamidgam Project';
+    ['MP+TM+SN+A', 'MP, M, SN, A'].forEach(g => {
+      const r = r558(conIst(g));
+      esito(!!r && r.istituto === CANON,
+        'la grafia «' + g + '» entra come «' + CANON + '»', r ? r.istituto : 'riga persa');
+    });
+    esito(W_IST['mp+tm+sn+a'] === CANON && W_IST['mpmsna'] === CANON,
+      'e le due chiavi stanno in W_IST con lo stesso nome canonico, non con due nomi vicini',
+      W_IST['mp+tm+sn+a'] + ' · ' + W_IST['mpmsna']);
+    const terza = conIst('MP, M, SN');
+    esito(!r558(terza) && terza.istitutiIgnoti.indexOf('MP, M, SN') >= 0,
+      'una terza grafia non mappata non entra in silenzio: va fra gli istituti ignoti, e ferma il lavoro notturno',
+      JSON.stringify(terza.istitutiIgnoti));
     const esteso = conIst('Istituto Nuovo');
     esito(!r558(esteso) && esteso.istitutiIgnoti.indexOf('Istituto Nuovo') >= 0,
       'lo stesso per un nome esteso che nessuno ha mappato: il ripiego sul nome grezzo non esiste piu');

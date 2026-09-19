@@ -60,8 +60,15 @@ const html = fs.readFileSync('../../index.html','utf8');
   esito(/sessanta giorni/.test(nota) && /ultimi sette giorni/.test(nota),
     'e nomina TUTTE E DUE le finestre: sette giorni contro sessanta',
     'sessanta ' + /sessanta giorni/.test(nota) + ' · sette ' + /ultimi sette giorni/.test(nota));
-  esito(/comandi in alto muovono soltanto la proiezione/.test(nota),
-    'e dichiara che i comandi muovono solo la proiezione: il difetto e dichiarato, non taciuto');
+  /* ATTESA RISCRITTA IL 17 SETTEMBRE 2026, DI PROPOSITO. Diceva «i comandi in alto muovono
+     soltanto la proiezione», cioe dichiarava il difetto: da quando finestra() rispetta le
+     esclusioni quella frase e falsa per un comando su tre. Adesso la nota dice le due meta,
+     e la prova le pretende tutte e due: senza la seconda, una nota che tace sulle esclusioni
+     passerebbe. */
+  esito(/Swing e affluenza muovono soltanto la proiezione/.test(nota),
+    'e dichiara che swing e affluenza muovono solo la proiezione, non questa colonna');
+  esito(/un istituto escluso, invece, esce anche da qui/.test(nota) && !/ed esclusioni non toccano/.test(nota),
+    'e che un istituto escluso esce anche da qui: la frase vecchia, che lo negava, non c e piu');
   /* E NON RIPETE QUELLO CHE #k-direz GIA DICE. Il riquadro dice che la tabella mostra i
      sondaggi «grezzo»; la nota non deve dirlo una seconda volta con altre parole, o sono
      due copie che divergono alla prima riscrittura. Si guarda che la parola stia in un
@@ -99,7 +106,7 @@ let src = fs.readFileSync(__dirname + '/../app.js','utf8');
 src = src.replace('carica().then(render,render)',
   'global.A={rAnalisi:rAnalisi,sciolte:sciolteDalloScenario,nm:nm,' +
   'setSOND:function(v){SOND=v;},setSEG:function(v){SEG=v;},setPAR:function(k,v){PAR[k]=v;},' +
-  'sim:function(v){SIM=v;}};carica().then(render,render)');
+  'sim:function(v){SIM=v;},inCorsa:inCorsa,ESCL_set:function(i){ESCL[i]=1;},ESCL_reset:function(){ESCL={};}};carica().then(render,render)');
 eval(src);
 
 /* Archivio sintetico: cinque rilevazioni in cinque giorni, tutte dentro la finestra dei
@@ -294,6 +301,109 @@ setTimeout(function(){
   esito(cellaSeggi('Likud') === '22' && !/–/.test(cellaSeggi('Likud')),
     'finestra dispari: il valore singolo, senza trattini',
     '"' + cellaSeggi('Likud') + '"');
+
+  /* ══ 5 · LE ESCLUSIONI ARRIVANO ALLA FINESTRA DEI SETTE GIORNI ══
+   *
+   * Il difetto trovato il 17 settembre 2026 sulla pagina vera: escluso Direct Polls, la riga
+   * del Likud in «Liste che si muovono» restava «20–30», e il 30 era proprio Direct Polls.
+   * La fixture ne e la forma ridotta: due istituti nella settimana, uno che da al Likud 30 e
+   * uno 20, piu una rilevazione della settimana prima per il delta di blocco. Le date nascono
+   * da oggi, come le altre di questa suite. */
+  A.setPAR('listaunita', 1);
+  A.ESCL_reset();
+  A.setSOND([
+    {data:giorniFa(0), istituto:'Alto',  campione:600, seggi:Object.assign({}, SEGGI, {likud:30})},
+    {data:giorniFa(1), istituto:'Basso', campione:600, seggi:Object.assign({}, SEGGI, {likud:20})},
+    {data:giorniFa(9), istituto:'Basso', campione:600, seggi:Object.assign({}, SEGGI, {likud:21})}]);
+  A.rAnalisi();
+  const conTutti = {seggi: cellaSeggi('Likud'), meta: D.getElementById('k-anmeta').textContent,
+                    testo: testoAnalisi()};
+  esito(conTutti.seggi === '20–30',
+    'con tutti gli istituti la riga del Likud copre le due rilevazioni della settimana',
+    '"' + conTutti.seggi + '"');
+  A.ESCL_set('Alto');
+  A.rAnalisi();
+  const senzaAlto = {seggi: cellaSeggi('Likud'), meta: D.getElementById('k-anmeta').textContent,
+                     testo: testoAnalisi()};
+  esito(senzaAlto.seggi !== conTutti.seggi && senzaAlto.seggi === '20',
+    'escludendo un istituto la riga del Likud SI MUOVE: resta la sola rilevazione inclusa',
+    '"' + conTutti.seggi + '" → "' + senzaAlto.seggi + '"');
+  esito(/^1 rilevazione utilizzabile negli ultimi 7 giorni, 1 esclusa$/.test(senzaAlto.meta),
+    'e il sottotitolo conta le due: in testa quella utilizzabile, dopo quella che l esclusione ha tolto',
+    '"' + senzaAlto.meta + '"');
+  esito(/guadagna 9 seggi/.test(conTutti.testo) && /perde 1 seggio/.test(senzaAlto.testo),
+    'e segue il comando anche il delta di blocco della frase, che legge la stessa finestra',
+    (conTutti.testo.match(/blocco di Netanyahu [^.]*/)||[''])[0] + ' → ' +
+    (senzaAlto.testo.match(/blocco di Netanyahu [^.]*/)||[''])[0]);
+  esito(/calcolata su 1 rilevazione/.test(senzaAlto.testo),
+    'e la frase dice su quante rilevazioni e calcolata la mediana, dopo l esclusione',
+    senzaAlto.testo.slice(-120));
+
+  /* IL CASO LIMITE: esclusi gli istituti della settimana la finestra si svuota MENTRE le
+     rilevazioni esistono. La pagina non deve dire che non ne sono state pubblicate — e il
+     ramo dell archivio fermo, un altro fatto — ma che le ha escluse il lettore, e come
+     tornare indietro. */
+  A.ESCL_set('Basso');
+  A.rAnalisi();
+  const vuota = {meta: D.getElementById('k-anmeta').textContent, testo: testoAnalisi(),
+                 righe: D.getElementById('k-movers').querySelectorAll('.pr').length};
+  esito(vuota.righe === 0,
+    'finestra svuotata dalle esclusioni: nessuna riga di mediana su rilevazioni escluse', String(vuota.righe));
+  esito(!/non è stata pubblicata nessuna/.test(vuota.testo) && /hai escluso/.test(vuota.testo),
+    'e non dice che non e stato pubblicato niente: dice che le ha escluse il lettore',
+    vuota.testo.slice(0, 160));
+  esito(/reinseriscine uno/.test(vuota.testo),
+    'e da la via d uscita, perche lo stato l ha prodotto un comando', vuota.testo.slice(0, 220));
+  esito(/^nessuna rilevazione utilizzabile negli ultimi 7 giorni, 2 escluse$/.test(vuota.meta),
+    'e il sottotitolo dice che nessuna e utilizzabile e che due sono escluse', '"' + vuota.meta + '"');
+
+  /* IL NUMERO IN TESTA E LA STESSA GRANDEZZA IN TUTTI I RAMI: le rilevazioni utilizzabili.
+     La prima stesura metteva in testa le rimaste in un ramo e il totale nell altro. Si legge
+     il primo numero di ogni sottotitolo — «nessuna» vale zero — e lo si confronta con quante
+     rilevazioni della fixture cadono nella settimana e NON sono escluse: tre stati, un conto
+     fatto fuori dalla pagina. */
+  const testa = t => /^nessuna\b/.test(t) ? 0 : +((t.match(/^(\d+)/) || [])[1]);
+  const utilizzabili = esclusi => [giorniFa(0), giorniFa(1)]
+    .filter((d, k) => esclusi.indexOf(k === 0 ? 'Alto' : 'Basso') < 0).length;
+  esito(testa(conTutti.meta) === utilizzabili([]) &&
+        testa(senzaAlto.meta) === utilizzabili(['Alto']) &&
+        testa(vuota.meta) === utilizzabili(['Alto', 'Basso']),
+    'il numero in testa al sottotitolo e sempre quello delle rilevazioni utilizzabili, in tutti e tre i rami',
+    [conTutti.meta, senzaAlto.meta, vuota.meta].map(t => '"' + t + '"').join(' · '));
+  A.ESCL_reset();
+  A.rAnalisi();
+  esito(cellaSeggi('Likud') === conTutti.seggi,
+    'e reinserendo gli istituti la riga torna quella di prima', '"' + cellaSeggi('Likud') + '"');
+
+  /* ══ 6 · IL QUARTO CONSUMATORE: inCorsa() ══
+   *
+   * Dei quattro consumatori di finestra() riparati il 17 settembre 2026, tre sono legati dalle
+   * prove qui sopra; inCorsa() no, e restava verde il giorno in cui qualcuno lo scollegasse.
+   * Decide se una lista e «in corsa» — presente in almeno meta delle rilevazioni delle ultime
+   * due settimane — e aRischio() la affianca a MC.sotto, che le esclusioni le rispetta: se
+   * inCorsa() contasse anche gli istituti esclusi, la condizione mescolerebbe due insiemi di
+   * rilevazioni. La fixture: una lista con seggi solo nella rilevazione dell istituto che si
+   * esclude. */
+  A.ESCL_reset();
+  A.setSOND([
+    {data:giorniFa(0), istituto:'Alto',  campione:600, seggi:Object.assign({}, SEGGI, {zehut:4})},
+    {data:giorniFa(1), istituto:'Basso', campione:600, seggi:Object.assign({}, SEGGI, {zehut:0})}]);
+  const corsaTutti = A.inCorsa('zehut');
+  A.ESCL_set('Alto');
+  const corsaSenza = A.inCorsa('zehut');
+  A.ESCL_reset();
+  esito(corsaTutti === true && corsaSenza === false,
+    'inCorsa() segue le esclusioni: la lista che ha seggi solo nell istituto escluso non e piu in corsa',
+    'con tutti ' + corsaTutti + ' · senza Alto ' + corsaSenza);
+
+  /* E NEL SORGENTE: la chiamata che ignora le esclusioni esiste per contare quante ne ha tolte
+     il comando, e deve restare quella sola. Una seconda chiamata con «true» sarebbe un
+     consumatore scollegato di nuovo, qualunque esso sia. */
+  const srcApp = fs.readFileSync('../app.js', 'utf8');
+  const chiamateTutte = srcApp.split('\n').filter(r => /finestra\([^)]*,\s*true\s*\)/.test(r));
+  esito(chiamateTutte.length === 1 && /esc0:/.test(chiamateTutte[0]),
+    'finestra(...,true) compare una volta sola, nel conto delle esclusioni, e in nessun consumatore',
+    chiamateTutte.map(r => r.trim().slice(0, 90)).join(' | '));
 
   console.log('\nmediana: ' + ok + '/' + (ok + ko));
   if (ko) process.exit(1);

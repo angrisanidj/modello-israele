@@ -1878,7 +1878,7 @@
   <div class="prh mv"><span>Lista</span><span>Seggi</span><span>Ultimi 7 giorni</span><span>7 gg</span><span>30 gg</span></div>
   <div id="k-movers"></div>
  </div>
- <p class="fn">I dati indicano la mediana dei seggi assegnati a ciascuna lista dai sondaggi compresi nelle diverse finestre temporali: in questo modo una singola rilevazione anomala non altera il risultato. Con un numero pari di rilevazioni la mediana cade fra i due valori centrali, e la colonna «Seggi» mostra l'intervallo: «22–23» significa che metà dei sondaggi dà 22 o meno, metà 23 o più. Le variazioni inferiori a un seggio vanno considerate rumore statistico. Questa colonna non è la proiezione della sezione qui sotto: là il modello pesa sessanta giorni di rilevazioni per recenza, numerosità del campione e istituto, e riparte i seggi da capo; qui c'è la mediana grezza dei seggi che gli istituti hanno già assegnato negli ultimi sette giorni. Le due possono differire di un seggio o due sulla stessa lista, e quando succede non è un errore di nessuna delle due: è la distanza fra una settimana di sondaggi e due mesi. E i comandi in alto muovono soltanto la proiezione: swing, affluenza ed esclusioni non toccano questa colonna, che resta quella che gli istituti hanno pubblicato.<span id="k-movscio"></span></p>
+ <p class="fn">I dati indicano la mediana dei seggi assegnati a ciascuna lista dai sondaggi compresi nelle diverse finestre temporali: in questo modo una singola rilevazione anomala non altera il risultato. Con un numero pari di rilevazioni la mediana cade fra i due valori centrali, e la colonna «Seggi» mostra l'intervallo: «22–23» significa che metà dei sondaggi dà 22 o meno, metà 23 o più. Le variazioni inferiori a un seggio vanno considerate rumore statistico. Questa colonna non è la proiezione della sezione qui sotto: là il modello pesa sessanta giorni di rilevazioni per recenza, numerosità del campione e istituto, e riparte i seggi da capo; qui c'è la mediana grezza dei seggi che gli istituti hanno già assegnato negli ultimi sette giorni. Le due possono differire di un seggio o due sulla stessa lista, e quando succede non è un errore di nessuna delle due: è la distanza fra una settimana di sondaggi e due mesi. Swing e affluenza muovono soltanto la proiezione e non toccano questa colonna, che resta quella che gli istituti hanno pubblicato; un istituto escluso, invece, esce anche da qui.<span id="k-movscio"></span></p>
 </section>
 
 <section>
@@ -6528,8 +6528,19 @@ function rProj(){
    Il taglio passa da ggCal come il conto alla rovescia, e la data d'archivio si legge
    come mezzanotte LOCALE: una new Date('AAAA-MM-GG') nuda è mezzanotte UTC e a ovest di
    Greenwich varrebbe il giorno prima. */
-function finestra(a,b){
- var l=SOND.filter(function(s){return !s.pre;}).sort(function(x,y){return x.data<y.data?1:-1;});
+/* LA FINESTRA RISPETTA LE ESCLUSIONI, dal 17 settembre 2026. Prima leggeva SOND intero, e
+   i suoi quattro consumatori — movimenti() e med() per «Liste che si muovono» e la tabella
+   dell analisi, il delta di blocco della frase in rAnalisi(), inCorsa() dentro aRischio() —
+   ignoravano il comando: escluso Direct Polls, il Likud restava «20–30» perche il 30 era
+   proprio la rilevazione Direct Polls del 15 settembre, una delle due della settimana.
+   Tutti e quattro devono seguirlo: le mediane e il delta sono la lettura dei sondaggi che il
+   lettore sta usando, e aRischio() accoppia inCorsa() a MC.sotto, che le esclusioni le
+   rispetta gia — lasciarne fuori meta metteva nella stessa condizione due insiemi di
+   rilevazioni diversi.
+   `tutte` serve a una cosa sola: contare quante rilevazioni l esclusione ha tolto, perche il
+   sottotitolo e il ramo vuoto lo dicano. Non si usa per calcolare niente. */
+function finestra(a,b,tutte){
+ var l=SOND.filter(function(s){return !s.pre&&(tutte||!ESCL[s.istituto]);}).sort(function(x,y){return x.data<y.data?1:-1;});
  if(!l.length) return [];
  var oggi=new Date();
  return l.filter(function(s){var d=ggCal(new Date(s.data+'T00:00:00'),oggi);return d>=a&&d<=b;});
@@ -6586,7 +6597,7 @@ function movimenti(){
   r.push({id:i,ora:a,lo:ce.lo,hi:ce.hi,d7:b===null?null:a-b,d30:c===null?null:a-c,n:w0.length});
  });
  r.sort(function(x,y){return y.ora-x.ora;});
- return {r:r,omesse:omesse,n0:w0.length,n1:w1.length,n2:w2.length,
+ return {r:r,omesse:omesse,n0:w0.length,esc0:finestra(0,6,true).length-w0.length,n1:w1.length,n2:w2.length,
    da:w0.length?w0[w0.length-1].data:null,a:w0.length?w0[0].data:null};
 }
 /* una lista è "in corsa" se compare in almeno metà delle rilevazioni recenti:
@@ -7138,6 +7149,24 @@ function rAnalisi(){
     lasciava k-anmeta con il testo del render precedente: il conteggio di ieri presentato
     come di oggi, che è precisamente il difetto che l'ancora nuova chiude. */
  var ult=SOND.map(function(s){return s.data;}).sort().pop();
+ /* E PUO ESSERE VUOTA ANCHE PER UN COMANDO, dal 17 settembre 2026: escludendo gli istituti
+    della settimana le rilevazioni ci sono ma non si usano. Dire allora «non è stata
+    pubblicata nessuna rilevazione» sarebbe falso, e toglierebbe al lettore la via d uscita:
+    lo stato l ha prodotto un comando, e un comando lo disfa. Il ramo guarda M.esc0 e non
+    ESCL, perche un istituto escluso che in settimana non ha pubblicato niente non c entra. */
+ /* IL NUMERO IN TESTA AL SOTTOTITOLO E SEMPRE LO STESSO: le rilevazioni UTILIZZABILI, quelle
+    su cui la tabella e calcolata. Le escluse vengono dopo, e solo se ce ne sono. La prima
+    stesura del 17 settembre 2026 metteva in testa le rimaste in un ramo e il totale
+    nell altro — «1 ... e 1 esclusa» contro «2 ..., tutte escluse» — cioe due grandezze
+    nella stessa posizione. Nel caso vuoto le utilizzabili sono zero, e si dice «nessuna». */
+ if(!r.length&&M.esc0){
+  $('k-anmeta').textContent='nessuna rilevazione utilizzabile negli ultimi 7 giorni, '+
+   f(M.esc0)+' '+acc(M.esc0,'esclusa','escluse');
+  $('k-analisi').innerHTML=(M.esc0===1?'L\'unica rilevazione pubblicata':'Le '+f(M.esc0)+' rilevazioni pubblicate')+
+   ' negli ultimi 7 giorni '+acc(M.esc0,'viene da un istituto','vengono da istituti')+' che hai escluso, '+
+   'quindi questa tabella non ha mediane da confrontare: reinseriscine uno dalla tabella dell\'house effect, '+
+   'o premi «Azzera». La proiezione in cima alla pagina continua invece a esserci, perché usa una finestra di 60 giorni.';
+  $('k-movers').innerHTML='';return;}
  if(!r.length){
   $('k-anmeta').textContent='nessuna rilevazione negli ultimi 7 giorni';
   $('k-analisi').innerHTML='Negli ultimi 7 giorni non è stata pubblicata nessuna rilevazione, '+
@@ -7145,8 +7174,13 @@ function rAnalisi(){
    (ult?': l\'ultima in archivio è del <b>'+dl(ult)+'</b>.':'.')+
    ' La proiezione in cima alla pagina continua invece a esserci, perché usa una finestra di 60 giorni.';
   $('k-movers').innerHTML='';return;}
- $('k-anmeta').textContent=f(M.n0)+' '+acc(M.n0,'rilevazione pubblicata','rilevazioni pubblicate')+
-  ' negli ultimi 7 giorni';
+ /* I due numeri del sottotitolo sommano le rilevazioni pubblicate: in testa quelle
+    utilizzabili, dopo quelle che l esclusione ha tolto. Senza il secondo, il primo direbbe
+    il falso su una settimana che ne ha avute di piu. Senza esclusioni utilizzabili e
+    pubblicate coincidono, e la parola resta quella di sempre. */
+ $('k-anmeta').textContent=f(M.n0)+' '+(M.esc0?acc(M.n0,'rilevazione utilizzabile','rilevazioni utilizzabili'):
+  acc(M.n0,'rilevazione pubblicata','rilevazioni pubblicate'))+
+  ' negli ultimi 7 giorni'+(M.esc0?', '+f(M.esc0)+' '+acc(M.esc0,'esclusa','escluse'):'');
  var mx=Math.max.apply(null,r.map(function(x){return x.ora;}))||1,hh='';
  r.forEach(function(x){
   var P0=P[x.id];
@@ -10186,6 +10220,7 @@ var W_IST={'filber':'Direct Polls','direct':'Direct Polls','lazar':'Lazar · Pan
  'sf+dp':'Direct Polls',         /* legenda «Shlomo Filber, Direct Polls» (Gold, fino al 5 giugno 2025); oggi solo in una tabella di scenari, che il parser esclude. Riapre: se compare in una tabella di seggi del 2026 */
  'mm+sn':'Maagar Mochot',        /* legenda «Maagar Mochot, Stat-Net» (#BAD1E6, Canale 13 fino al 25 maggio 2026). Riapre: se Stat-Net va contato come istituto a se' */
  'mp+tm+sn+a':'Hamidgam Project', /* legenda «Midgam Project, The Madad, Stat-Net, Askaria» (mediumseagreen, Canale 13 dal 17 giugno 2026). LA SCELTA VIENE DALLA RETE, NON DAL NOME: in archivio «Hamidgam Project» sono le 8 righe di Canale 13 e «Midgam» le 31 di Canale 12, la nota metodologica li dichiara due istituti, e house effect e grappolo contano per nome — con «Midgam» 43 righe di due reti finirebbero sotto un istituto solo. Con questa mappatura rientrano le tre rilevazioni di Canale 13 mai entrate (26 agosto, 2 e 9 settembre 2026), che il nome «Midgam» faceva assorbire da Canale 12. Riapre: se Canale 13 cambia istituto, o se la fonte chiama Midgam R&C anche questo */
+ 'mpmsna':'Hamidgam Project',    /* LA SECONDA GRAFIA DELLO STESSO ISTITUTO IN UNA SETTIMANA. Il 17 settembre 2026 la riga del 15 settembre per Canale 13, 886 intervistati, portava «MP, M, SN, A» invece di «MP+TM+SN+A»: virgole al posto dei «+» e «M» al posto di «TM». Stessa testata e stesso fondo mediumseagreen della legenda «Midgam Project, The Madad, Stat-Net, Askaria», cioe' la rete su cui si era scelto il nome canonico. La chiave e' la sigla intera ripulita, e le virgole cadono con gli altri caratteri che non sono lettere, cifre o «+». MAPPATA IL 19 SETTEMBRE, DOPO CHE LA FONTE ERA GIA' TORNATA a «MP+TM+SN+A»: oggi questa chiave non serve a nessuna riga in pagina, e non trovarla nell'archivio NON e' un errore. Riapre: se il Canale 13 cambia consorzio, o se «M» risulta un istituto diverso da «TM» invece di un'abbreviazione. */
  'smlt':'S.M.L.T.'               /* NON e' una sigla della fonte: e' il nome con cui l'unica rilevazione S.M.L.T. (7 settembre 2026) e' gia' in archivio, e senza questa voce la guardia sugli istituti non riconosciuti fermerebbe il lavoro notturno ogni notte. Riapre: se l'istituto torna con un altro nome */
 };
 var W_TEST={'hahadashot 12':'Canale 12','channel 13':'Canale 13','channel 14':'Canale 14',
