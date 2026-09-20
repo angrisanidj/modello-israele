@@ -6279,5 +6279,43 @@
    "amcha": 3.5495313503569985
   },
   "_qk": "92@"
+ },
+ {
+  "data": "2026-09-17",
+  "istituto": "Lazar · Panel4All",
+  "testata": "Maariv",
+  "campione": 600,
+  "casa": 0,
+  "seggi": {
+   "likud": 18,
+   "byachad": 13,
+   "rzp_zehut": 6,
+   "otzma": 8,
+   "shas": 7,
+   "utj": 7,
+   "beitenu": 9,
+   "raam": 5,
+   "lista_araba": 7,
+   "democratici": 9,
+   "yashar": 23,
+   "reserv_nep": 4,
+   "amcha": 4
+  },
+  "_q": {
+   "likud": 13.408290992165274,
+   "byachad": 9.708245218036916,
+   "rzp_zehut": 4.566335674462127,
+   "otzma": 6.1711344691077565,
+   "shas": 5.289465748116613,
+   "utj": 5.289465748116613,
+   "beitenu": 6.889758596861892,
+   "raam": 4.124007900842569,
+   "lista_araba": 5.289465748116613,
+   "democratici": 6.889758596861892,
+   "yashar": 17.24995023374277,
+   "reserv_nep": 3.579439750718907,
+   "amcha": 3.544681322850057
+  },
+  "_qk": "92@"
  }
 ]
