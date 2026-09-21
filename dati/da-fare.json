@@ -1,10 +1,10 @@
 {
- "generato": "2026-09-20",
+ "generato": "2026-09-21",
  "job": {
   "esito": "ok",
   "motivo": null,
   "archivioAl": "2026-09-17",
-  "rilevazioniNuove": 1
+  "rilevazioniNuove": 0
  },
  "conto": {
   "blocca": 0,
