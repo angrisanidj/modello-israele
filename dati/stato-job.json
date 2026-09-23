@@ -1,6 +1,6 @@
 {
- "data": "2026-09-22",
- "valide": 197,
+ "data": "2026-09-23",
+ "valide": 198,
  "ambigue": 24,
  "blocchi": {
   "coalizione": 51,
@@ -8,5 +8,5 @@
   "arabo": 12,
   "incerto": 4
  },
- "ipotesi": "Sono contati 4 seggi in un blocco in cui la fonte non li mette: Popolo d'Israele con Blocco Netanyahu. Sono applicati 3 accordi di eccedenza firmati e non ancora depositati al riparto: insieme valgono 1 seggio. Sono ipotesi del modello, non fatti."
+ "ipotesi": "Sono contati 4 seggi in un blocco in cui la fonte non li mette: Popolo d'Israele con Blocco Netanyahu. Sono applicati 3 accordi di eccedenza firmati e non ancora depositati al riparto: insieme valgono 2 seggi. Sono ipotesi del modello, non fatti."
 }

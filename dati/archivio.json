@@ -6317,5 +6317,47 @@
    "amcha": 3.544681322850057
   },
   "_qk": "92@"
+ },
+ {
+  "data": "2026-09-22",
+  "istituto": "Midgam",
+  "testata": "Canale 12",
+  "campione": 501,
+  "casa": 0,
+  "seggi": {
+   "likud": 20,
+   "byachad": 13,
+   "rzp_zehut": 5,
+   "otzma": 6,
+   "shas": 7,
+   "utj": 8,
+   "beitenu": 9,
+   "raam": 5,
+   "lista_araba": 7,
+   "democratici": 9,
+   "yashar": 23,
+   "reserv_nep": 4,
+   "amcha": 4
+  },
+  "sotto": {
+   "blue_white": 0.7,
+   "haredi_pubblico": 0.3
+  },
+  "_q": {
+   "likud": 14.733361266429347,
+   "byachad": 9.688396919611465,
+   "rzp_zehut": 4.1341158388040125,
+   "otzma": 4.663195491888601,
+   "shas": 5.371316045228547,
+   "utj": 6.0672044057157954,
+   "beitenu": 6.776237531779556,
+   "raam": 4.1341158388040125,
+   "lista_araba": 5.371316045228547,
+   "democratici": 6.906645386155426,
+   "yashar": 17.121450135810015,
+   "reserv_nep": 3.4792757624167603,
+   "amcha": 3.55336933212791
+  },
+  "_qk": "92@"
  }
 ]
