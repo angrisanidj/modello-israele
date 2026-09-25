@@ -1,5 +1,5 @@
 {
- "generato": "2026-09-24",
+ "generato": "2026-09-25",
  "job": {
   "esito": "ok",
   "motivo": null,
@@ -17,8 +17,8 @@
    "id": "eventi-da-tradurre",
    "categoria": "eventi",
    "urgenza": "richiede",
-   "titolo": "5 voci-evento da tradurre",
-   "quanti": 5,
+   "titolo": "8 voci-evento da tradurre",
+   "quanti": 8,
    "dettaglio": {
     "voci": [
      {
@@ -45,6 +45,21 @@
       "chiave": "2026-09-23|ra-am-and-joint-list-alongside-its-candidates-ofer-cassif-and-sami-abu-s",
       "data": "2026-09-23",
       "testo": "Ra'am and Joint List (alongside its candidates Ofer Cassif and Sami Abu Shehadeh) were preliminarily disqualified by the Central Elections Committee, pending reviews by the Supreme Court of Israel"
+     },
+     {
+      "chiave": "2026-10-16|deadline-for-submission-of-surplus-vote-agreements-to-the-central-electi",
+      "data": "2026-10-16",
+      "testo": "Deadline for submission of surplus-vote agreements to the Central Elections Committee"
+     },
+     {
+      "chiave": "2026-10-04|deadline-for-the-supreme-court-s-decisions-regarding-list-and-candidate-",
+      "data": "2026-10-04",
+      "testo": "Deadline for the Supreme Court's decisions regarding list and candidate disqualification"
+     },
+     {
+      "chiave": "2026-09-24|the-central-elections-committee-heard-disqualification-cases-for-the-dem",
+      "data": "2026-09-24",
+      "testo": "The Central Elections Committee heard disqualification cases for The Democrats, Otzma Yehudit and Religious Zionism and did not disqualify any of them"
      }
     ]
    },
