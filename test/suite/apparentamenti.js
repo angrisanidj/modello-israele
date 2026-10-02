@@ -93,7 +93,7 @@ src = src.replace('carica().then(render,render)',
   'stato:function(){return{QUO:QUO,SEG:SEG,MC:MC};},' +
   'sim:function(v){SIM=v;},sig:function(v){SIG=v;},montecarlo:montecarlo,' +
   'parola:parolaProposto,setQS:function(q,s){QUO=q;SEG=s;},' +
-  'filtraRiparto:filtraRiparto,effettoApp:effettoApp,ripartoDepositati:ripartoDepositati,' +
+  'P:P,corre:corre,percheFuori:percheFuori,filtraRiparto:filtraRiparto,effettoApp:effettoApp,ripartoDepositati:ripartoDepositati,' +
   'ipotesiNeiNumeri:ipotesiNeiNumeri,testoCondivisione:testoCondivisione,promptAI:promptAI,' +
   'statoLeve:(typeof statoLeve===\'function\'?statoLeve:null)};carica().then(render,render)');
 eval(src);
@@ -818,6 +818,28 @@ esito(!!Object.keys(A.stato().SEG).length,
   const distanza = Math.round((Date.parse(T) - Date.parse(dep8.d)) / 864e5);
   esito(distanza === 38, 'e fra le due passano 38 giorni', String(distanza));
 
+  /* LA TAPPA DELLE SQUALIFICHE, dal 27 settembre 2026. La data e un termine dichiarato dalla
+     fonte — la Corte suprema decide entro il 4 ottobre sui ricorsi contro le esclusioni — e non
+     e ricavabile da nient altro: e quindi una data letterale legittima, il fatto che si prova.
+     Si prova che ci sia una volta sola, che cada dove deve, e che il calendario resti in ordine
+     di data: l ordine e la proprieta, il posto nell elenco no. */
+  const sq = A.TAPPE.filter(x => /squalifich/i.test(x.t));
+  esito(sq.length === 1, 'il calendario ha la riga delle squalifiche, e una sola', String(sq.length));
+  esito(sq.length === 1 && sq[0].d === '2026-10-04',
+    'e la sua data e il 4 ottobre 2026, il termine entro cui decide la Corte suprema', sq.length ? sq[0].d : '—');
+  esito(sq.length === 1 && /Corte suprema/.test(sq[0].s) && /liste e candidati/.test(sq[0].s),
+    '  · e la scheda dice chi decide e su che cosa', sq.length ? sq[0].s.slice(0, 90) : '—');
+  esito(sq.length === 1 && sq[0].d < T && sq[0].d > A.TAPPE.filter(x => x.t === 'Deposito delle liste')[0].d,
+    'cade fra il deposito delle liste e il termine degli accordi', sq.length ? sq[0].d : '—');
+  const date = A.TAPPE.map(x => x.d);
+  esito(date.every((d, i) => i === 0 || date[i - 1] <= d),
+    'e il calendario resta in ordine di data, tappa nuova compresa', date.join(' '));
+  /* il 27 settembre NON c e, ed e una decisione: e l adempimento della pubblicazione delle
+     decisioni della Commissione, non una cosa che il lettore deve attendere. */
+  esito(!A.TAPPE.some(x => x.d === '2026-09-27'),
+    'il termine di pubblicazione del 27 settembre resta fuori dal calendario: e un adempimento',
+    A.TAPPE.map(x => x.d).join(' '));
+
   const sil = A.TAPPE.filter(x => x.t === 'Scatta il silenzio demoscopico')[0];
   const q = Math.round((Date.parse(sil.d) - Date.parse(T)) / 864e5);
   esito(q === 7,
@@ -1502,6 +1524,66 @@ A.render();
     '  · e nessuna sede che esce dalla pagina parla più di accordi', A.ipotesiNeiNumeri() + ' | ' + A.statoLeve());
   scongela();
   A.setApp(ORIG); alDifetto(); A.render();
+}
+
+/* ══ 8 · LA RAGIONE DELLO SCARTO DICE IL FATTO VERO ═══════════════════════════════
+ *
+ * Fino al 27 settembre 2026 filtraRiparto() aveva una ragione sola, «non è sopra la soglia»,
+ * e reggeva perché l unico modo di non essere fra le liste in gioco era stare sotto il 3,25%.
+ * Da quando una lista puo smettere di correre non regge piu: corre() la toglie da QUO, quindi
+ * manca da «sopra» come una lista sotto soglia, e la riga di esito avrebbe detto che la Lista
+ * Unita araba non e sopra la soglia mentre la sua quota era 5,9 — cioe una frase falsa, il
+ * giorno in cui una squalifica diventa definitiva. Le tre ragioni si provano una per una, e
+ * ciascuna deve ESCLUDERE le altre due: una ragione che vale sempre non e una diagnosi. */
+{
+  const QUOTE = {likud: 22, yashar: 21, lista_araba: 5.9, raam: 4.4, shas: 8, utj: 7, byachad: 12,
+                 democratici: 9, beitenu: 8, otzma: 7, sionismo_rel: 5, amcha: 3.9};
+  const SOTTO = Object.assign({}, QUOTE, {raam: 1.2});          /* Ra am sotto il 3,25% */
+  const COPPIA = [{a: 'lista_araba', b: 'raam', data: '2026-09-12', stato: 'proposto'}];
+  const fine0 = A.P.lista_araba.fine;
+
+  function scartiCon(quote){
+    A.setQS(quote, A.dhondt(quote, null, []));
+    const sopra = {}; for (const k in quote) if (quote[k] >= SOGLIA) sopra[k] = quote[k];
+    const sc = []; A.filtraRiparto(COPPIA, sopra, sc);
+    return sc.map(x => x.perche).join(' | ');
+  }
+
+  /* (a) la lista non corre piu: e il caso che la frase vecchia raccontava male. Le quote non
+     la contengono, perche nel modello e corre() a togliere da QUO chi ha smesso: una fixture
+     che la lasciasse dentro non arriverebbe nemmeno al filtro. */
+  const senzaAraba = {}; for (const k in QUOTE) if (k !== 'lista_araba') senzaAraba[k] = QUOTE[k];
+  A.P.lista_araba.fine = '2026-09-01';
+  const nonCorre = scartiCon(senzaAraba);
+  A.P.lista_araba.fine = fine0;
+  /* mutazione della fixture stessa: SENZA fine, la stessa assenza dalle quote dà l altra
+     ragione — cosi si vede che a distinguere e il campo, non il fatto di mancare. */
+  const senzaFine = scartiCon(senzaAraba);
+  esito(/non corre più/.test(nonCorre) && !/soglia/.test(nonCorre),
+    'una lista che non corre piu viene scartata PER QUELLO, e la soglia non c entra', nonCorre);
+  esito(!/non corre/.test(senzaFine) && /non è fra le liste che il modello proietta/.test(senzaFine),
+    '  · e senza fine la stessa assenza dalle quote da l altra ragione: distingue il campo, non l assenza',
+    senzaFine);
+  esito(/Lista Unita araba/.test(nonCorre),
+    '  · e la ragione nomina la lista che e uscita, non l altra', nonCorre);
+
+  /* (b) la lista corre ed e sotto soglia: la ragione di sempre, che deve restare */
+  const sottoSoglia = scartiCon(SOTTO);
+  esito(/non è sopra la soglia/.test(sottoSoglia) && /Ra'am/.test(sottoSoglia) && !/non corre/.test(sottoSoglia),
+    'una lista sotto soglia porta ancora la sua ragione, e non diventa «non corre»', sottoSoglia);
+
+  /* (c) la lista corre, e delle quote non c e affatto: non e ne l uno ne l altro */
+  const senzaQuota = {}; for (const k in QUOTE) if (k !== 'raam') senzaQuota[k] = QUOTE[k];
+  const assente = scartiCon(senzaQuota);
+  esito(/non è fra le liste che il modello proietta/.test(assente) && /Ra'am/.test(assente),
+    'una lista che non compare nelle quote lo dice, invece di essere dichiarata sotto soglia', assente);
+
+  /* e la funzione si prova anche da sola, perche e lei che tiene le tre strade separate */
+  esito(typeof A.percheFuori === 'function' && A.corre('likud') === true,
+    'la ragione nasce in una funzione sola, percheFuori(), e corre() risponde per una lista che corre');
+  /* si rimette il mondo come stava: la tabella di partenza, la leva al predefinito e un
+     render, che ricalcola QUO e SEG dopo le quote finte di questa sezione. */
+  A.setApp(ORIG); A.par('apparentamenti', A.PAR_DEF.apparentamenti); A.render();
 }
 
 console.log('\napparentamenti: ' + ok + '/' + (ok + ko));

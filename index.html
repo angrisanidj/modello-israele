@@ -3093,11 +3093,25 @@ function coppieAttive(al){return coppieAl(al,!!PAR.apparentamenti);}
    lettore, e nasce qui invece che da un secondo giro di controlli: sarebbe la strada
    doppia di sempre, con l'aggravante che direbbe al lettore una cosa e al riparto
    un'altra. */
+/* LA RAGIONE DELLO SCARTO NASCE QUI, E DEVE DIRE QUELLA VERA. Fino al 27 settembre 2026 era
+   una sola — «non è sopra la soglia» — perché l'unico modo di non essere fra le liste in gioco
+   era stare sotto il 3,25%. Non è più vero da quando una lista può smettere di correre:
+   `corre()` la toglie da QUO, quindi manca da `sopra` esattamente come una lista sotto soglia,
+   e la riga di esito avrebbe detto che la Lista Unita araba «non è sopra la soglia» mentre la
+   sua quota era 5,9 — falso, e falso nel giorno in cui quella frase conta di più. Le ragioni
+   sono tre perché i fatti sono tre: non corre, non compare nelle quote, non passa la soglia.
+   La data non serve: gli scarti si raccolgono solo per la riga di esito, che parla di adesso;
+   la serie storica chiede il filtro senza `scarti` e con la sua data. */
+function percheFuori(id){
+ if(!corre(id)) return nm(id)+' non corre più';
+ if(typeof QUO==='object'&&QUO&&QUO[id]===undefined) return nm(id)+' non è fra le liste che il modello proietta';
+ return nm(id)+' non è sopra la soglia';
+}
 function filtraRiparto(cp,sopra,scarti){
  var visti={},out=[];
  cp.forEach(function(x){
   if(sopra&&(sopra[x.a]===undefined||sopra[x.b]===undefined)){
-   if(scarti) scarti.push({x:x,perche:nm(sopra[x.a]===undefined?x.a:x.b)+' non è sopra la soglia'});
+   if(scarti) scarti.push({x:x,perche:percheFuori(sopra[x.a]===undefined?x.a:x.b)});
    return;}
   if(visti[x.a]||visti[x.b]){
    if(scarti) scarti.push({x:x,perche:nm(visti[x.a]?x.a:x.b)+' è già in un altro accordo'});
@@ -7509,6 +7523,16 @@ function rEvSel(){
    nell'altro, nello stesso schermo. */
 var TAPPE=[
   {d:'2026-09-08',t:'Deposito delle liste',s:'Termine per consegnare alla Commissione elettorale centrale le liste di candidati. Da quel momento fusioni e scissioni non sono più possibili: la mappa dei partiti si chiude.'},
+  /* LA TAPPA CHE DECIDE SE UN BLOCCO ESISTE, aggiunta il 27 settembre 2026. Il 23 settembre la
+     Commissione elettorale ha squalificato Ra'am e la Lista Unita araba, in attesa della Corte
+     Suprema: se la squalifica regge, tredici seggi escono dal riparto e nessun blocco arriva a
+     61. La data e un TERMINE dichiarato dalla fonte, non un'udienza — e per questo sta nel
+     calendario, che conta i giorni a quello che deve ancora succedere, e non in cronologia, che
+     registra i fatti avvenuti. Il termine del 27 settembre per la pubblicazione delle decisioni
+     della Commissione resta fuori da tutti e due: e un adempimento, e se cambia qualcosa lo
+     dira una voce-evento. */
+  {d:'2026-10-04',t:'Termine per le decisioni sulle squalifiche',
+   s:'Ultimo giorno utile per le decisioni della Corte suprema sui ricorsi contro l\'esclusione di liste e candidati.'},
   {d:'2026-10-06',t:'Comincia la campagna televisiva',s:'Si apre il periodo di 21 giorni in cui la legge consente la trasmissione degli spot elettorali.'},
   /* Il termine degli accordi di eccedenza NON è scritto qui: è termineApp(), cioè VOTO
      meno undici giorni, la stessa espressione da cui escono la leva e la nota. Ed è la
