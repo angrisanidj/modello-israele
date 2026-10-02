@@ -827,7 +827,7 @@ esito(!!Object.keys(A.stato().SEG).length,
   esito(sq.length === 1, 'il calendario ha la riga delle squalifiche, e una sola', String(sq.length));
   esito(sq.length === 1 && sq[0].d === '2026-10-04',
     'e la sua data e il 4 ottobre 2026, il termine entro cui decide la Corte suprema', sq.length ? sq[0].d : '—');
-  esito(sq.length === 1 && /Corte suprema/.test(sq[0].s) && /liste e candidati/.test(sq[0].s),
+  esito(sq.length === 1 && /Corte Suprema/.test(sq[0].s) && /liste e candidati/.test(sq[0].s),
     '  · e la scheda dice chi decide e su che cosa', sq.length ? sq[0].s.slice(0, 90) : '—');
   esito(sq.length === 1 && sq[0].d < T && sq[0].d > A.TAPPE.filter(x => x.t === 'Deposito delle liste')[0].d,
     'cade fra il deposito delle liste e il termine degli accordi', sq.length ? sq[0].d : '—');
