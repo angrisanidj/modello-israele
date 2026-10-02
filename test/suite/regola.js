@@ -38,16 +38,13 @@ const ATTESE = Object.keys(COLORE.ORDINE)
    tutte le altre, quindi una lista nuova che saturasse un blocco la farebbe cadere come
    prima. E ogni voce porta il verso che a un inventario manca sempre — deve saturare
    DAVVERO, o è una scusa rimasta in piedi dopo che il caso è passato. */
-const SATURA_PER_SCELTA = {
-  haredi_pubblico:
-    'mappata l\'8 settembre 2026 per far ripartire il lavoro notturno. Il blocco «incerto» è ' +
-    'saturo in tutti e due i temi e la lista prende --ink2, che è il comportamento per cui ' +
-    'l\'avviso è stato riparato il 30 agosto 2026. La scala del §9 non si applica: ' +
-    'ripingerebbe tre liste su cinque per una lista che non compare in nessuna sede colorata, ' +
-    'perché porta zero seggi in tutte le rilevazioni che la nominano — i valori della fonte ' +
-    'sono tutti fra parentesi. Prende una tinta il giorno in cui prende seggi nudi, e quel ' +
-    'giorno c\'è un sondaggio che lo annuncia.'
-};
+/* SVUOTATO IL 2 OTTOBRE 2026, DI PROPOSITO. Conteneva il Pubblico Haredi, e la decisione che
+   lo teneva senza tinta stava scritta solo qui, mentre il --ink2 discendeva dalla saturazione
+   del blocco, vera nei due temi per caso. Togliendo unity_erdan dalla sequenza il caso è
+   finito, e la decisione è passata nel modulo come COLORE.SENZA_TINTA, che diLista() legge
+   prima di ORDINE. Le quattro asserzioni che leggono questo inventario restano, e con
+   l'inventario vuoto tornano a pretendere che NESSUNA lista saturi un blocco. */
+const SATURA_PER_SCELTA = {};
 const ESENTI = Object.keys(SATURA_PER_SCELTA);
 /* quante esentate per blocco: è di quanto «liberi» può legittimamente scendere sotto zero */
 const ESENTI_PER_BLOCCO = {};
@@ -113,10 +110,11 @@ esito(RITIRATE.length > 0,
 
 const soloPagina = Object.keys(chiaro).filter(i => ATTESE.indexOf(i) < 0);
 const soloRegola = ATTESE.filter(i => !chiaro[i]);
-const orfane = soloPagina.filter(i => RITIRATE.indexOf(i) < 0);
+const orfane = soloPagina.filter(i => RITIRATE.indexOf(i) < 0 && !COLORE.SENZA_TINTA[i]);
 esito(orfane.length === 0 && soloRegola.length === 0,
-  'e ogni lista dell\'anagrafica che la regola non conosce dichiara `fine`: senza quel ' +
-  'campo sarebbe una lista mappata a meta\u0300, che l\'8 settembre resta senza colore',
+  'e ogni lista dell\'anagrafica che la regola non conosce dichiara `fine` o è esente: senza ' +
+  'nessuno dei due ' +
+  'sarebbe una lista mappata a meta\u0300, che l\'8 settembre resta senza colore',
   'orfane: ' + (orfane.join(', ') || '—') +
   ' · solo nella regola: ' + (soloRegola.join(', ') || '—'));
 
@@ -298,21 +296,28 @@ for (const id of ATTESE) {
     'l\'anagrafica, tolte le liste che saturano per scelta, non manda nessun blocco oltre la saturazione',
     veri.length ? veri.join(' | ') : 'zero avvisi su ' + quante + ' liste × 2 temi');
 
-  /* 2 · e ogni voce dell'inventario è ESERCITATA: se non avvisa più, va tolta */
-  esenti.forEach(id => {
-    COLORE.azzeraAvvisi();
-    ['chiaro','scuro'].forEach(t => { try { COLORE.diLista(id, t); } catch(e){} });
-    esito(COLORE.avvisi().length > 0,
-      'la voce «' + id + '» dell\'inventario satura davvero un blocco',
-      'non avvisa più: va tolta dall\'inventario invece di restare come scusa');
-    esito(SATURA_PER_SCELTA[id].length > 80, 'e porta una ragione scritta',
-      'lunga ' + SATURA_PER_SCELTA[id].length + ' caratteri');
-    /* e il colore che le tocca è --ink2, non --mute: è la riparazione del 30 agosto 2026,
-       e chi trovasse la pastiglia slate poco espressiva rimetterebbe --mute in dieci secondi */
-    COLORE.azzeraAvvisi();
-    esito(COLORE.diLista(id,'chiaro') === '#33435A' && COLORE.diLista(id,'scuro') === '#A3B3C8',
-      'e prende --ink2 nei due temi, non --mute',
-      COLORE.diLista(id,'chiaro') + ' / ' + COLORE.diLista(id,'scuro'));
+  /* 2 · L'ESENZIONE DICHIARATA, dal 2 ottobre 2026. Ogni lista in COLORE.SENZA_TINTA è esente,
+     non sta in ORDINE — quindi non occupa uno slot — prende --ink2 nei due temi, nella regola E
+     nella pagina, e porta la ragione e la condizione che la riapre. Che la condizione scada
+     davvero lo prova scenari.js, sulla proiezione. */
+  const ESENTI_DICH = Object.keys(COLORE.SENZA_TINTA || {});
+  esito(ESENTI_DICH.length > 0,
+    'il modulo dichiara almeno una lista esente: senza, le asserzioni qui sotto sono vere a vuoto',
+    ESENTI_DICH.join(', ') || 'nessuna');
+  ESENTI_DICH.forEach(id => {
+    const v = COLORE.SENZA_TINTA[id];
+    esito(!Object.keys(COLORE.ORDINE).some(b => COLORE.ORDINE[b].indexOf(id) >= 0),
+      'la lista esente «' + id + '» non sta in ORDINE, quindi non occupa uno slot');
+    esito(COLORE.diLista(id, 'chiaro') === '#33435A' && COLORE.diLista(id, 'scuro') === '#A3B3C8',
+      '  · e la regola le dà --ink2 nei due temi, non --mute',
+      COLORE.diLista(id, 'chiaro') + ' / ' + COLORE.diLista(id, 'scuro'));
+    esito(!!chiaro[id] && chiaro[id].c === '#33435A' && scuroDa['#33435A'] === '#A3B3C8',
+      '  · e la pagina la dipinge allo stesso modo: due strade per lo stesso colore, d\'accordo',
+      chiaro[id] ? chiaro[id].c + ' → ' + scuroDa[chiaro[id].c] : 'assente dall\'anagrafica');
+    esito(!!v && typeof v.perche === 'string' && v.perche.length > 80,
+      '  · e porta la ragione scritta', v && v.perche ? 'lunga ' + v.perche.length + ' caratteri' : 'assente');
+    esito(!!v && typeof v.riapre === 'string' && v.riapre.length > 40,
+      '  · e la condizione che la riapre', v && v.riapre ? 'lunga ' + v.riapre.length + ' caratteri' : 'assente');
   });
   COLORE.azzeraAvvisi();
 }
@@ -366,7 +371,7 @@ for (const id of ATTESE) {
     'supplementare ' + supp + ', atteso ' + INK2.chiaro);
   {
     COLORE.azzeraAvvisi();
-    const suppScuro = COLORE.di('incerto', sat, 'scuro');
+    const suppScuro = COLORE.di('incerto', COLORE.capienza().scuro.incerto.saturazione, 'scuro');
     esito(String(suppScuro).toUpperCase() === INK2.scuro,
       'e vale nei due temi, o in uno dei due resterebbe il grigio di prima',
       'supplementare scuro ' + suppScuro + ', atteso ' + INK2.scuro);

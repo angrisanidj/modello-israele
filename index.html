@@ -2130,7 +2130,7 @@ var P={
     resta scritto perche' e' quello con cui la lista e' stata pubblicata per due mesi, e
     perche' il modulo dell'archivio deve poterla ancora nominare. */
  casa_sionista:{n:"Casa Sionista",     l:"Tropper · Hendel", fine:"2026-09-06", c:"#8B5400", b:"incerto",     o:9,  gov:1, r22:null},
- economico   :{n:"Partito Economico",  l:"Yaron Zelekha",      c:"#413B00", b:"incerto",     o:10, gov:1, r22:null},
+ economico   :{n:"Partito Economico",  l:"Yaron Zelekha",      c:"#716000", b:"incerto",     o:10, gov:1, r22:null},
  /* SI E RITIRATA IL 4 SETTEMBRE 2026, dalla fonte. Il campo `fine` e la stessa forma di
     quello degli apparentamenti ritirati: una data da cui la lista non concorre piu.
     NON SI TOGLIE DALL ANAGRAFICA — cancellerebbe le 32 rilevazioni in cui era candidata,
@@ -2165,9 +2165,9 @@ var P={
     confermata) oppure una cella che copre tutte e due (allora il contenitore esiste
     davvero e serve `dentro`). Finche' nessuna delle due compare, non c'e' niente da
     decidere e non si decide. */
- reserv_nep  :{n:"Riservisti · NEP",   l:"",                  c:"#8B5400", b:"incerto",     o:9.5, gov:1, r22:null, ab:"Riserv"},
- israel_first:{n:"Israel First",       l:"Sharren Haskel",     c:"#674F00", b:"incerto",     o:12, gov:1, r22:null},
- amcha       :{n:"Popolo d'Israele",   l:"Ofer Winter",        c:"#955A00", b:"incerto",     o:12.5, gov:1, r22:null},
+ reserv_nep  :{n:"Riservisti · NEP",   l:"",                  c:"#583000", b:"incerto",     o:9.5, gov:1, r22:null, ab:"Riserv"},
+ israel_first:{n:"Israel First",       l:"Sharren Haskel",     c:"#4E4400", b:"incerto",     o:12, gov:1, r22:null},
+ amcha       :{n:"Popolo d'Israele",   l:"Ofer Winter",        c:"#774D00", b:"incerto",     o:12.5, gov:1, r22:null},
  /* NASCE IL 19 LUGLIO 2026 e deposita la lista l'8 settembre. È la colonna che ha fermato
     il lavoro notturno per quattro esecuzioni — «GUARDIA: colonne di lista non riconosciute:
     Haredi Public» — e la guardia ha fatto il suo mestiere: meglio un archivio fermo che una
@@ -2189,13 +2189,14 @@ var P={
     che la fonte dice: non si sa con chi sta. SI RILEGGE il giorno in cui dichiara una
     raccomandazione, e allora la strada è IN_BILICO come per Winter, non l'anagrafica.
 
-    IL COLORE È `--ink2`, ED È LA REGOLA CHE LO DICE. Il blocco è saturo in tutti e due i
-    temi: COLORE.avvisi() ne emette due e diLista() restituisce #33435A / #A3B3C8, che è il
-    comportamento per cui l'avviso è stato riparato il 30 agosto 2026. Non si applica la
-    scala del §9 — ripingerebbe tre liste su cinque per una lista che non compare in nessuna
-    sede colorata, perché non ha seggi. Prende una tinta il giorno in cui prende seggi nudi.
-    L'esenzione è dichiarata in regola.js con questa stessa ragione, e la pretesa generale
-    di zero avvisi NON è stata abbassata. */
+    IL COLORE È `--ink2`, PER DECISIONE DICHIARATA NEL MODULO. Fino al 2 ottobre 2026
+    discendeva dalla saturazione — il blocco era pieno a cinque nei due temi e questa lista
+    ne occupava l'ultimo slot — cioè era vero per caso: togliendo Unità dalla sequenza, in
+    tema scuro si liberava un posto e la lista avrebbe preso una tinta. Adesso sta in
+    COLORE.SENZA_TINTA, che diLista() legge prima di ORDINE: non occupa uno slot, prende
+    #33435A / #A3B3C8 nei due temi, e porta la ragione e la condizione che la riapre — il
+    giorno in cui prende seggi nella proiezione. Quella condizione è verificata da
+    scenari.js, e la pretesa generale di zero avvisi NON è stata abbassata. */
  haredi_pubblico:{n:"Pubblico Haredi", l:"Moti Leitner",       c:"#33435A", b:"incerto",     o:12.7, gov:1, r22:null, ab:"Haredi"},
  beitenu     :{n:"Yisrael Beitenu",    l:"Avigdor Lieberman",  c:"#720055", b:"opposizione", o:13, gov:1, r22:6},
  likud       :{n:"Likud",              l:"Benjamin Netanyahu", c:"#0061B4", b:"coalizione",  o:14, gov:1, r22:32},
@@ -2726,7 +2727,7 @@ var PAL_SCURO={
     un buco, produce un colore. Qui i due valori sono --ink2 nei due temi, perché il blocco
     è saturo e la regola lo dichiara — non una tinta scelta. */
  "#33435A":"#A3B3C8",
- "#955A00":"#EEBA00",
+ "#774D00":"#FFC69B",
  "#5E30F0":"#95BFFF",
  "#5800CA":"#009ADC",
  "#004329":"#00E6D2",
@@ -2738,15 +2739,15 @@ var PAL_SCURO={
  "#109900":"#00905D",
  "#143EDB":"#77A7FF",
  "#3284FF":"#BCD2FF",
- "#413B00":"#E7D400",
+ "#716000":"#BAAA00",
  "#590092":"#AE59FF",
- "#674F00":"#AD9900",
+ "#4E4400":"#FDCC00",
  "#6D3B00":"#FFC69B",
  "#720055":"#E31CB7",
  "#78002D":"#FF5084",
  "#790028":"#FFB4D0",
  "#8649FF":"#9689FF",
- "#8B5400":"#D99E00",
+ "#8B5400":"#D99E00","#583000":"#D67A00",
  "#B57600":"#FFB035",
  "#C2003D":"#FF8198",
  "#C30094":"#F40076",

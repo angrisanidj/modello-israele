@@ -237,5 +237,64 @@ if (ko) process.exit(1);
     '«' + txt('k-sintriga').slice(0,60) + '»');
 }
 
+/* ══ 7 · L'ESENZIONE DAL COLORE DEVE SAPER SCADERE ═══════════════════════════════════
+ * Dal 2 ottobre 2026 dati/colore-liste.js dichiara in SENZA_TINTA le liste che non hanno tinta
+ * in nessun tema, per decisione: oggi il Pubblico Haredi, che porta zero seggi. La condizione
+ * che la riapre — «il giorno in cui prende seggi nella proiezione» — scritta solo come testo
+ * sarebbe una decisione a termine che scade in silenzio, ed è la forma dell'esperimento del
+ * cron: il giorno in cui scade, la pagina dipinge «senza colore» una lista in Knesset.
+ * Questa prova la fa scadere ad alta voce. Si guarda la PROIEZIONE, non le rilevazioni,
+ * perché è la proiezione che decide se una lista compare in una sede colorata.
+ * SULL'ARCHIVIO PUBBLICATO, non sul seme: è l'archivio che il lavoro notturno aggiorna, e il
+ * cancello di quel lavoro è questa verifica — quindi la notte in cui la lista prende seggi il
+ * job si ferma e lo dice, invece di pubblicare una pastiglia grigia. */
+{
+  const COLORE = require(__dirname + '/../../dati/colore-liste.js');
+  const ESENTI = Object.keys(COLORE.SENZA_TINTA || {});
+  const esentiInAula = () => ESENTI.filter(id => (A.SEG[id] || 0) > 0);
+  const ARCH = (function(){
+    try { const a = JSON.parse(fs.readFileSync(__dirname + '/../../dati/archivio.json', 'utf8'));
+          return Array.isArray(a) ? a : Object.values(a).find(Array.isArray); }
+    catch (e) { return null; }
+  })();
+  esito(ESENTI.length > 0 && !!ARCH && ARCH.length > 0,
+    'ci sono liste esenti, e l archivio pubblicato si legge: senza, la prova qui sotto sarebbe vera a vuoto',
+    'esenti ' + ESENTI.join(', ') + ' · righe ' + (ARCH ? ARCH.length : 'illeggibile'));
+
+  /* sull'archivio di oggi nessuna lista esente prende seggi */
+  azzera(); A.SOND = ARCH.map(r => JSON.parse(JSON.stringify(r))); A.render();
+  esito(esentiInAula().length === 0,
+    'sull archivio pubblicato nessuna lista senza tinta ha seggi nella proiezione: l esenzione regge',
+    esentiInAula().map(id => id + ' ' + A.SEG[id]).join(', ') || 'nessuna');
+
+  /* LA FIXTURE: la lista esente prende cinque seggi in TUTTE le rilevazioni, tolti al
+     Likud perché ogni riga chiuda ancora a 120. La cache dell'inversione va tolta dalle righe
+     toccate, o quoteDa() userebbe le quote di prima e la fixture non cambierebbe niente — è la
+     trappola già pagata il 15 settembre correggendo a mano la riga del 18 agosto. */
+  const bersaglio = ESENTI[0];
+  /* in TUTTE e non nelle più recenti: la proiezione è una media pesata su sessanta giorni, e
+     cinque seggi in dodici rilevazioni su quarantacinque fanno una quota sotto la soglia — la
+     prima stesura lo provava, e la fixture non entrava. */
+  const finte = ARCH.map(r => {
+    const o = JSON.parse(JSON.stringify(r));
+    if (!o.pre && o.seggi && (o.seggi.likud || 0) >= 5) {
+      o.seggi[bersaglio] = 5; o.seggi.likud -= 5; delete o._q; delete o._qk;
+    }
+    return o;
+  });
+  azzera(); A.SOND = finte; A.render();
+  esito((A.SEG[bersaglio] || 0) > 0,
+    'la fixture funziona: con cinque seggi in ogni rilevazione la lista esente entra nella proiezione',
+    bersaglio + ' ' + (A.SEG[bersaglio] || 0));
+  esito(esentiInAula().indexOf(bersaglio) >= 0,
+    'e il rilevatore la trova: il giorno in cui una lista esente prende seggi, questa prova cade',
+    esentiInAula().join(', ') || 'non la trova');
+  esito((function(){
+      const somma = Object.keys(A.SEG).reduce((n, k) => n + (A.SEG[k] || 0), 0);
+      return somma === 120; })(),
+    'e la fixture lascia il riparto intero: i seggi fanno ancora 120');
+  azzera(); A.render();
+}
+
 console.log('\nscenari: ' + ok + '/' + (ok + ko));
 if (ko) process.exit(1);

@@ -126,18 +126,28 @@ var COLORE = (function () {
        E unity_erdan RESTA benche' ritirata il 4 settembre: uno slot si riprende quando
        serve, non quando si libera. Riprenderli tutti e due adesso ripingerebbe le due
        liste vive che li seguono in cambio di niente. */
-    /* `haredi_pubblico` VA IN CODA E OLTRE LA SATURAZIONE, DI PROPOSITO: il blocco è pieno
-       in tutti e due i temi, quindi la regola avvisa e restituisce --ink2. È il
-       comportamento per cui l'avviso è stato riparato il 30 agosto 2026, e qui è la
-       risposta giusta invece di un ripiego — la scala del §9 ripingerebbe TRE liste su
-       cinque di questo blocco, e le ripingerebbe per una lista che non si vede: porta zero
-       seggi in tutte le rilevazioni che la nominano, quindi non compare in nessuna sede
-       colorata. Non ha nemmeno una posizione in TINTA_ASSEGNATA, e non le serve: oltre la
-       saturazione il dominio è vuoto e la tinta dichiarata non sposta niente.
-       PRENDE UNA TINTA IL GIORNO IN CUI PRENDE SEGGI NUDI, e quel giorno c'è un sondaggio
-       che lo annuncia: allora il blocco va guardato daccapo, e allora la scala del §9 vale
-       il suo prezzo perché la lista si vede davvero. */
-    incerto    : ['reserv_nep','economico','unity_erdan','israel_first','amcha','haredi_pubblico']
+    /* LA SEQUENZA DELL'AGO E' STATA RIFATTA IL 2 OTTOBRE 2026, per un difetto che si e VISTO.
+       Nello slot rilasciato da casa_sionista reserv_nep usciva #8B5400 e Popolo d'Israele
+       #955A00: ΔE 2,73 in chiaro, lo stesso ocra per un occhio. Due volte in pagina insieme —
+       Casa Sionista e Popolo d'Israele dal 24 agosto al 6 settembre, Riservisti · NEP e Popolo
+       d'Israele il 29 settembre — e la guardia di tema.js taceva, perche cercava solo
+       l'uguaglianza esatta dell'esadecimale.
+       DUE LISTE ESCONO DALLA SEQUENZA, per due ragioni diverse:
+         · unity_erdan, ritirata il 4 settembre, come casa_sionista il 7: tiene i colori con
+           cui e stata pubblicata, e regola.js la salta perche dichiara `fine`. Che fosse
+           invisibile non era una ragione per tenerla dentro;
+         · haredi_pubblico, che e ESENTE: vedi SENZA_TINTA qui sotto.
+       E reserv_nep va in SECONDA posizione. Misurato il 2 ottobre su un modulo ricaricato da
+       zero per ogni variante — l'assegnazione e sequenziale e il modulo la tiene, quindi due
+       misure di fila leggono la seconda nello stato della prima — e su TUTTA la tavolozza,
+       non sul solo blocco:
+         · posizione 1, questa ........ minimo dell'ago 10,72 chiaro · 13,22 scuro; cambiano
+           quattro liste, TUTTE dell'ago; nessun colore toccato altrove, Yashar compreso
+         · scambio con unity_erdan .... 8,81 · 8,91, ma ridipinge Yashar in scuro — il primo
+           partito, per separare due liste dell'ago — e due componenti di B'Yachad
+       Il prezzo: in chiaro il blocco resta pieno, quattro slot per quattro liste. La prossima
+       lista dell'ago che prende seggi trova la porta chiusa come oggi. */
+    incerto    : ['economico','reserv_nep','israel_first','amcha']
   };
   /* TINTA_ASSEGNATA: la posizione di tinta di ogni lista dentro il
      settore del suo blocco. E' un PARAMETRO DELLA REGOLA, uno per
@@ -150,6 +160,26 @@ var COLORE = (function () {
      quelle liste e' un grigio o ha una tinta che appartiene all'arco di
      un altro blocco. L'elenco con la ragione di ciascuna, misurata,
      sta in tinta-storica.md. La regola non finge di poterle tenere. */
+  /* NESSUNA TINTA IN NESSUN TEMA, PER DECISIONE. Fino al 2 ottobre 2026 il --ink2 del Pubblico
+     Haredi discendeva dalla SATURAZIONE: stava nell'ultimo slot di un blocco che si riempiva a
+     cinque nei due temi, ed era vero per caso. Togliendo unity_erdan dalla sequenza il caso e
+     finito — in tema scuro si liberava un posto e la lista prendeva una tinta, in chiaro no — e
+     la decisione del 14 settembre, che stava scritta solo in regola.js, e passata qui.
+     LA LISTA NON STA IN ORDINE, quindi esce dal conteggio degli slot per costruzione, e
+     diLista() legge questo elenco PRIMA di cercare in ORDINE. Ogni voce porta la ragione e la
+     condizione che la riapre, e la condizione e verificata: scenari.js cade se una lista
+     esente ha seggi nella proiezione, perche quel giorno la pagina dipingerebbe «senza
+     colore» una lista in Knesset. */
+  var SENZA_TINTA = {
+    haredi_pubblico: {
+      perche: 'mappata l\'8 settembre 2026 per far ripartire il lavoro notturno, porta zero seggi in ' +
+              'tutte le rilevazioni che la nominano — i valori della fonte sono tutti fra parentesi — ' +
+              'quindi non compare in nessuna sede colorata, e dargli una tinta ripingerebbe le liste ' +
+              'del suo blocco per una lista che non si vede',
+      riapre: 'il giorno in cui prende seggi nella proiezione: allora prende una tinta, esce da ' +
+              'questo elenco ed entra in ORDINE, e il blocco dell\'ago va rimisurato daccapo'
+    }
+  };
   var TINTA_ASSEGNATA = {
     likud       : 258,  /* STORICA · #1b4a8f H 258,4 C 0,125 */
     shas        : 240,
@@ -450,6 +480,7 @@ var COLORE = (function () {
       'si scende la scala di ripiego di docs/regola-colore.md §9, un parametro per volta.');
   }
   function diLista(id,tema){
+    if(SENZA_TINTA[id]) return tema==='scuro'?'#A3B3C8':'#33435A';   /* --ink2, per decisione */
     var b,i;
     for(b in ORDINE){ i=ORDINE[b].indexOf(id); if(i>=0) return di(b,i,tema); }
     return null;
@@ -595,7 +626,7 @@ var COLORE = (function () {
            dominio:dominio, dE:dE, viste:viste, minDic:minDic,
            contrasto:contrasto, Y:Y, daHex:daHex, misuraColore:misuraColore,
            SETTORE:SETTORE, FINESTRA:FINESTRA, VINCOLI:V,
-           ORDINE:ORDINE, TINTA_ASSEGNATA:TINTA_ASSEGNATA,
+           ORDINE:ORDINE, SENZA_TINTA:SENZA_TINTA, TINTA_ASSEGNATA:TINTA_ASSEGNATA,
            TINTA_STORICA:TINTA_STORICA, SUPERFICI:SUP,
            BLOCCHI:BLOCCHI, avvisi:avvisi, azzeraAvvisi:azzeraAvvisi };
 })();

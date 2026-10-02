@@ -130,40 +130,15 @@ esito(liste.length>=15,'la tavolozza delle liste è stata letta ('+liste.length+
    Hadash-Ta'al e Balad. È corretto finché non coesistono — e non coesistono mai —
    quindi la distinzione si verifica solo fra liste che possono comparire insieme.
    Che coesistano davvero è compito della guardia in index.html, non di questa prova. */
-/* ══ DUE LISTE POSSONO CONDIVIDERE LA TINTA SE LE LORO VITE NON SI SOVRAPPONGONO ═══════
- * Clausola generale, aggiunta il 7 settembre 2026. NON e' una voce in ALTERNATIVE: quello
- * e' l'elenco delle FUSIONI — contenitore e componenti, che condividono lo slot per
- * costruzione — e allungarlo con una coppia di natura diversa vorrebbe dire chiamare
- * fusione un ritiro. Qui la ragione e' un'altra: una lista si e' ritirata e il suo slot e'
- * stato ripreso, quindi la tinta e' la stessa e le due non compaiono mai nello stesso
- * momento perche' non esistono nello stesso momento.
- *
- * IL CONFRONTO E' «fine» CONTRO LA PRIMA RILEVAZIONE DELL'ALTRA, e va letto sapendo che
- * `fine` e' ESCLUSIVA: corre(i,al) e' «al < fine», cioe' il giorno nominato la lista gia'
- * non corre piu'. Quindi «non si sovrappongono» e' «fine NON POSTERIORE alla prima
- * rilevazione dell'altra», e la differenza di un carattere decide il caso vero: Casa
- * Sionista finisce il 6 settembre e la prima rilevazione di Riservisti · NEP e' del 6
- * settembre. Con il confronto stretto la clausola non si applicherebbe proprio la notte in
- * cui quella riga entra in archivio.
- *
- * E UNA LISTA SENZA RILEVAZIONI NON HA ANCORA COMINCIATO: la sua vita non puo' sovrapporsi
- * a niente. E' il caso di oggi — la riga del 6 settembre entra stanotte — ed e' dichiarato
- * invece di essere lasciato passare per distrazione.
- *
- * MISURATO SUL DOM RESO, e non dedotto: con l'archivio come sara' stanotte, l'unica sede
- * che mostra le due liste INSIEME e' la tabella dell'archivio, dove dal 31 agosto le cifre
- * non portano piu' il colore della lista. Le sedi che portano la tinta condivisa — k-proj
- * e il modulo di inserimento — mostrano solo quella che corre. */
-const ARCHIVIO = (function(){
-  try { return JSON.parse(require('fs').readFileSync('../../dati/archivio.json','utf8')); }
-  catch(e){ return []; }
-})();
-function primaRilevazione(id){
-  const d = ARCHIVIO.filter(s => (s.seggi && s.seggi[id] !== undefined) ||
-                                 (s.sotto && s.sotto[id] !== undefined))
-    .map(s => s.data).sort();
-  return d[0] || null;
-}
+/* ══ LA CLAUSOLA DELLE VITE DISGIUNTE E' STATA TOLTA IL 2 OTTOBRE 2026 ══════════════════
+ * Era nata il 7 settembre per una coppia sola: Riservisti · NEP aveva ripreso lo slot di Casa
+ * Sionista, ritirata, e ne ereditava l'esadecimale. Il suo stesso commento diceva che il giorno
+ * in cui nessuna coppia avesse più condiviso la tinta per ritiro, la prova che la pretendeva
+ * esercitata sarebbe caduta e avrebbe chiesto di togliere la clausola invece di lasciarla lì a
+ * coprire un caso che non c'è più. È successo: dal 2 ottobre i Riservisti stanno nello slot di
+ * unity_erdan con un colore loro, e nessuna lista condivide più un esadecimale.
+ * ALTERNATIVE RESTA: è l'elenco delle FUSIONI, che lo slot lo condividono per costruzione.
+ * FINE RESTA: il pavimento qui sotto vale per le liste che corrono, cioè senza `fine`. */
 const FINE = (function(){
   const o = {};
   for (const riga of blocco.split('\n')){
@@ -173,23 +148,6 @@ const FINE = (function(){
   }
   return o;
 })();
-/* vero se A si e' ritirata prima che B cominciasse, in un verso o nell'altro */
-function viteDisgiunte(a,b){
-  return finePrimaDi(a,b) || finePrimaDi(b,a);
-}
-/* IL CONFRONTO E' UNA FUNZIONE PURA SU DUE DATE, e non una riga dentro finePrimaDi(),
-   perche' la distinzione fra «<=» e «<» oggi NON SI ESERCITA: Riservisti · NEP non ha
-   ancora nessuna riga in archivio — la sua prima entra stanotte — quindi primaRilevazione()
-   risponde null e il ramo del confronto non viene mai percorso. Un mutante che stringe il
-   confronto resterebbe vivo fino a domani, cioe' fino al giorno in cui comincia a contare.
-   Separata, la si prova su date costruite e il verdetto non dipende dall'archivio. */
-function nonPosteriore(fineA, primaB){
-  return primaB === null || fineA <= primaB;
-}
-function finePrimaDi(a,b){
-  if (!FINE[a]) return false;
-  return nonPosteriore(FINE[a], primaRilevazione(b));
-}
 
 const ALTERNATIVE=[['byachad',['yesh_atid','bennett26']],['lista_araba',['hadash_taal','balad']]];
 function coesistono(a,b){
@@ -205,46 +163,64 @@ const PAL_SCURO=(function(){const o={};const m=html.match(/var PAL_SCURO=\{([\s\
 function schiarisci(c,q){const t=rgb(c);return 'rgb('+t.map(x=>Math.round(x+(255-x)*q)).join(',')+')';}
 function scuroDi(c){return PAL_SCURO[c.toUpperCase()]||schiarisci(c,0.40);}
 [['chiaro',c=>c],['scuro',scuroDi]].forEach(([nome,tr])=>{
+ /* LA GUARDIA PARLA DEL PRESENTE, come il pavimento qui sotto: dal 2 ottobre 2026 guarda
+    solo le liste che corrono. Una ritirata tiene i colori con cui e stata pubblicata, e
+    che uno di quei colori torni a una lista viva non e una sovrapposizione: non esistono
+    nello stesso momento. */
  const visti={},doppi=[];
  for(const L of liste){
+  if(FINE[L.id]) continue;
   const chiave=String(rgb(tr(L.c)));
-  if(visti[chiave]){ if(coesistono(visti[chiave],L.id) && !viteDisgiunte(visti[chiave],L.id))
+  if(visti[chiave]){ if(coesistono(visti[chiave],L.id))
     doppi.push(visti[chiave]+' e '+L.id+' → '+tr(L.c)); }
   else visti[chiave]=L.id;
  }
  esito(doppi.length===0,'tema '+nome+': i colori delle liste sono tutti distinti fra loro',
        doppi.join(' | '));
-
-/* LA CLAUSOLA DEV ESSERE ESERCITATA, o e' vera a vuoto e il giorno in cui smette di valere
-   nessuno se ne accorge: e' l'inventario di opacita.js applicato ai colori. Se un giorno
-   nessuna coppia condivide piu' la tinta per ritiro, questa riga cade e chiede di togliere
-   la clausola invece di lasciarla li' a coprire un caso che non c'e' piu'. */
-{
- const cond=[];
- for(let a=0;a<liste.length;a++) for(let b=a+1;b<liste.length;b++){
-  if(String(rgb(liste[a].c))!==String(rgb(liste[b].c))) continue;
-  if(!coesistono(liste[a].id,liste[b].id)) continue;
-  if(viteDisgiunte(liste[a].id,liste[b].id)) cond.push(liste[a].id+' e '+liste[b].id);
- }
- esito(cond.length>0,
-  'e almeno una coppia condivide la tinta perche le vite non si sovrappongono: la clausola '+
-  'e esercitata, non vera a vuoto', cond.join(' · ')||'nessuna coppia la esercita');
- /* e il rilevatore sa dire di no: due liste vive con la stessa tinta restano un difetto */
- esito(!viteDisgiunte('likud','shas'),
-  'e due liste che corrono entrambe NON sono disgiunte: la clausola non assolve tutti');
- /* LE DATE COSTRUITE, perche' il caso vero non c'e' ancora. «fine» e' ESCLUSIVA — corre()
-    e' «al < fine» — quindi il giorno nominato la lista gia' non corre, e due vite che si
-    toccano in quel giorno NON si sovrappongono. E' esattamente il caso che arriva stanotte:
-    Casa Sionista finisce il 6 settembre, la prima riga di Riservisti · NEP e' del 6
-    settembre. Con il confronto stretto la clausola smetterebbe di applicarsi proprio
-    quando serve. */
- esito(nonPosteriore('2026-09-06','2026-09-06'),
-  'e due vite che si toccano nello stesso giorno non si sovrappongono: fine e ESCLUSIVA');
- esito(!nonPosteriore('2026-09-07','2026-09-06'),
-  'e una che finisce DOPO l inizio dell altra si sovrappone: il confronto sa dire di no');
- esito(nonPosteriore('2026-09-06',null),
-  'e una lista senza rilevazioni non ha ancora cominciato, quindi non si sovrappone a niente');
-}
 });
+
+/* ══ IL PAVIMENTO DI 5 FRA LE LISTE CHE CORRONO, dal 2 ottobre 2026 ═══════════════════════
+ * L'UGUAGLIANZA ESATTA NON BASTA, E IL 29 SETTEMBRE LO DIMOSTRA. Quel giorno la proiezione
+ * datata ha dato quattro seggi ai Riservisti · NEP accanto ai quattro di Popolo d'Israele, e le
+ * due pastiglie stavano in «Proiezione per lista» una accanto all'altra con #8B5400 e #955A00:
+ * due esadecimali diversi, quindi la guardia qui sopra taceva, e ΔE 2,73, cioè lo stesso ocra
+ * per un occhio. Ed era il SECONDO caso: Casa Sionista e Popolo d'Israele, con gli stessi due
+ * colori, sono state due pastiglie indistinguibili dal 24 agosto al 6 settembre.
+ * VALE PER LE LISTE CHE CORRONO, cioè senza `fine`: la guardia parla del presente, e una
+ * ritirata tiene i colori con cui è stata pubblicata — la vicinanza di Casa Sionista e Popolo
+ * d'Israele è un fatto registrato, non un rosso permanente.
+ * La distanza si chiede al modulo della regola, che è la sorgente della tavolozza: rifarla qui
+ * sarebbe una seconda strada per lo stesso numero. */
+{
+ const C = require('../../dati/colore-liste.js');
+ const PAV = 5;
+ const esa = c => /^#/.test(c) ? c : '#' + rgb(c).map(x => ('0' + x.toString(16)).slice(-2)).join('');
+ const dist = (x, y) => C.dE(C.viste(C.daHex(esa(x))).nominale, C.viste(C.daHex(esa(y))).nominale);
+ const corre = L => !FINE[L.id];
+ const coppie = [];
+ for (let a = 0; a < liste.length; a++) for (let b = a + 1; b < liste.length; b++)
+  if (corre(liste[a]) && corre(liste[b]) && coesistono(liste[a].id, liste[b].id)) coppie.push([liste[a], liste[b]]);
+ const vicine = [];
+ let minimo = Infinity;
+ [['chiaro', c => c], ['scuro', scuroDi]].forEach(([nome, tr]) => {
+  coppie.forEach(([A2, B2]) => {
+   const d = dist(tr(A2.c), tr(B2.c));
+   if (d < minimo) minimo = d;
+   if (d < PAV) vicine.push(nome + ': ' + A2.id + ' e ' + B2.id + ' a ΔE ' + d.toFixed(2));
+  });
+ });
+ esito(vicine.length === 0,
+  'due liste che CORRONO stanno a ΔE ' + PAV + ' o più, nei due temi: l uguaglianza esatta non basta',
+  vicine.join(' | ') || 'minimo ' + minimo.toFixed(2));
+ /* il rilevatore sa accendersi: i due colori del 29 settembre stavano sotto */
+ const prima = dist('#8B5400', '#955A00');
+ esito(prima < PAV,
+  'e il pavimento morde: i due colori del 29 settembre stavano a ΔE ' + prima.toFixed(2), prima.toFixed(2));
+ /* non è vero a vuoto: le coppie misurate sono tante, e le ritirate ne restano fuori */
+ esito(coppie.length > 0 && coppie.every(([x, y]) => !FINE[x.id] && !FINE[y.id]),
+  'e il pavimento guarda ' + coppie.length + ' coppie di liste che corrono, e nessuna ritirata', String(coppie.length));
+ esito(Object.keys(FINE).length > 0,
+  'e le ritirate esistono, quindi la restrizione ai vivi esclude davvero qualcuno', Object.keys(FINE).join(', '));
+}
 
 if(ko) process.exitCode=1;
