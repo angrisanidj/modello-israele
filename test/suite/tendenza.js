@@ -250,10 +250,17 @@ esito(stretto.elementi < largo.elementi,
 /* LA DIFFERENZA FRA LE DUE LARGHEZZE SI E RISTRETTA, ed e la conseguenza voluta: da
    quando il passo e lo stesso, sopra e sotto i 660 l'asse porta le STESSE tacche, e a
    diradarsi restano solo i mesi. Prima erano venti elementi di scarto, poi ventidue col
-   dominio allargato, adesso quattro: e i quattro sono i mesi. */
-esito(largo.elementi - stretto.elementi === 4,
-  'quattro in meno sotto i 660, e sono i mesi: l\'asse ormai e lo stesso alle due larghezze',
-  String(largo.elementi - stretto.elementi));
+   dominio allargato, poi i soli mesi.
+   IL NUMERO SI RICAVA DAI MESI, NON SI SCRIVE — dal 3 ottobre 2026. Diceva «=== 4», che era
+   il numero di etichette diradate con l asse da gennaio a settembre: la voce del 2 ottobre,
+   primo evento di ottobre, ha portato l asse a dieci mesi e lo scarto a cinque. E la stessa
+   classe di «i mesi sono otto» del 2 settembre, e senza questa riga sarebbe caduta di nuovo
+   a novembre. La proprieta e che lo scarto sia FATTO SOLO DI MESI: se una tacca, un numero
+   d asse o una linea della griglia cambiasse fra le due larghezze, i due conti divergono. */
+const mesiDiradati = largo.mesi.length - stretto.mesi.length;
+esito(mesiDiradati > 0 && largo.elementi - stretto.elementi === mesiDiradati,
+  'sotto i 660 mancano solo i mesi diradati: l\'asse ormai e lo stesso alle due larghezze',
+  (largo.elementi - stretto.elementi) + ' elementi in meno, ' + mesiDiradati + ' mesi diradati');
 /* e la nuvola dei sondaggi NON è stata toccata: dice la dispersione delle rilevazioni,
    ed è l'unica cosa nel grafico che mostra il dato grezzo invece della proiezione */
 const punti = f => f.elementi;
