@@ -1,10 +1,10 @@
 {
- "generato": "2026-10-02",
+ "generato": "2026-10-03",
  "job": {
   "esito": "ok",
   "motivo": null,
   "archivioAl": "2026-10-01",
-  "rilevazioniNuove": 3
+  "rilevazioniNuove": 0
  },
  "conto": {
   "blocca": 0,
@@ -17,24 +17,19 @@
    "id": "eventi-da-tradurre",
    "categoria": "eventi",
    "urgenza": "richiede",
-   "titolo": "3 voci-evento da tradurre",
-   "quanti": 3,
+   "titolo": "2 voci-evento da tradurre",
+   "quanti": 2,
    "dettaglio": {
     "voci": [
      {
-      "chiave": "2026-09-24|the-central-elections-committee-decides-not-to-disqualify-the-democrats-",
-      "data": "2026-09-24",
-      "testo": "The Central Elections Committee decides not to disqualify The Democrats, Otzma Yehudit and Religious Zionism"
+      "chiave": "2026-10-02|the-supreme-court-overturns-the-decision-to-disqualify-joint-list-ra-am-",
+      "data": "2026-10-02",
+      "testo": "The Supreme Court overturns the decision to disqualify Joint List, Ra'am and Ofer Cassif"
      },
      {
-      "chiave": "2026-09-23|the-central-elections-committee-disqualifies-ra-am-and-joint-list-alongs",
-      "data": "2026-09-23",
-      "testo": "The Central Elections Committee disqualifies Ra'am and Joint List (alongside its candidates Ofer Cassif and Sami Abu Shehadeh), pending review by the Supreme Court"
-     },
-     {
-      "chiave": "2026-09-10|the-following-pairs-of-parties-sign-surplus-vote-agreements-yashar-and-t",
-      "data": "2026-09-10",
-      "testo": "The following pairs of parties sign surplus-vote agreements: Yashar and The Democrats, Together and Yisrael Beiteinu"
+      "chiave": "2026-10-02|sami-abu-shehadeh-submits-his-withdrawal-to-the-central-elections-commit",
+      "data": "2026-10-02",
+      "testo": "Sami Abu Shehadeh submits his withdrawal to the Central Elections Committee after being advised to do so by the Supreme Court"
      }
     ]
    },
