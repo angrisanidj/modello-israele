@@ -58,7 +58,7 @@ W.Element.prototype.scrollIntoView = function(){};
 
 let src = fs.readFileSync(__dirname + '/../app.js','utf8');
 src = src.replace('carica().then(render,render)',
-  'global.A={render:render,EVENTI:function(){return EVENTI;},EVSEL:function(){return EVSEL;},' +
+  'global.A={render:render,EVENTI:function(){return EVENTI;},EVSEL:function(){return EVSEL;},chiaveEv:chiaveEv,' +
   'serieModello:serieModello,serieAl:serieAl,finestraEv:finestraEv,' +
   'TRATTO:function(){return TRATTO;},MIN:function(){return TRATTO_MIN;},' +
   'aggiungiEvento:function(e){EVENTI.push(e);},togliEvento:function(){EVENTI.pop();}};carica().then(render,render)');
@@ -169,7 +169,9 @@ setTimeout(function(){
    * token di blocco, spostata dal colore all'etichetta. */
   const dcT = d => { const p = d.split('-'); return p[2] + '.' + p[1]; };
   const soloCifre = t => t !== '' && String(+t) === t;
-  const perData = {}; A.EVENTI().forEach(e => { perData[e.data] = e; });
+  /* PER CHIAVE E NON PER DATA, dal 2 ottobre 2026: il marcatore porta in data-ev la chiave
+     data|testo, e con due eventi lo stesso giorno un indice per data ne perderebbe uno. */
+  const perData = {}; A.EVENTI().forEach(e => { perData[A.chiaveEv(e)] = e; });
   esito(marcatori().every(b => (b.getAttribute('aria-label') || '').trim().length > 3),
     'ogni bersaglio dei marcatori ha un aria-label, e non è il solo numero',
     marcatori()[0] && marcatori()[0].getAttribute('aria-label'));
@@ -235,7 +237,7 @@ setTimeout(function(){
   const EV = A.EVENTI().slice().sort((a,b)=>a.data<b.data?-1:1);
   const scelto = EV[5];                       /* 26.04, la fusione di B'Yachad */
   click(voci()[5]);
-  esito(A.EVSEL() === scelto.data, 'il clic isola quel fatto', A.EVSEL());
+  esito(A.EVSEL() === A.chiaveEv(scelto), 'il clic isola quel fatto', A.EVSEL());
   esito(/\biso\b/.test($('k-trend').className), 'il grafico entra in stato isolato');
   /* UN TRATTO PER LINEA, e non «tre»: dal 27 agosto 2026 le serie sono quante sono i
      blocchi con seggi, e l'ago della bilancia ne ha in quindici rilevazioni dell'archivio.
@@ -435,7 +437,7 @@ setTimeout(function(){
 
   /* terza via: Esc */
   click(marcatori()[7]);
-  esito(A.EVSEL() === EV[7].data, 'si entra anche dal marcatore sul grafico');
+  esito(A.EVSEL() === A.chiaveEv(EV[7]), 'si entra anche dal marcatore sul grafico');
   esito(D.activeElement === marcatori()[7], 'e il fuoco ci resta');
   esc();
   esito(A.EVSEL() === null && acc().length === 0, 'Esc esce dallo stato isolato');
@@ -448,6 +450,40 @@ setTimeout(function(){
   esc();
   esito(A.EVSEL() === null && $('k-trend').innerHTML.length === primaHtml,
     'e con nessuno stato attivo Esc non fa niente: non lo sottrae alla pagina che ci ospita');
+
+  /* ══ DUE FATTI NELLO STESSO GIORNO RESTANO DUE FATTI, dal 2 ottobre 2026 ══
+   * Fino ad allora la pagina riconosceva un evento dalla data: con due voci lo stesso giorno
+   * il riquadro mostrava il testo dell'altra e i due dischi si accendevano insieme. Il caso è
+   * VERO, non costruito: il 10 settembre 2026 ha due accordi di eccedenza, che dal 16
+   * settembre erano accorpati in una voce sola proprio per aggirare il difetto. */
+  {
+    const gemelle = voci().filter(b => {
+      const e = A.EVENTI().find(x => A.chiaveEv(x) === b.getAttribute('data-ev'));
+      return e && A.EVENTI().filter(y => y.data === e.data).length > 1;
+    });
+    esito(gemelle.length >= 2,
+      'la cronologia ha davvero due voci nello stesso giorno: senza, la prova sotto sarebbe vera a vuoto',
+      String(gemelle.length));
+    esito(new Set(gemelle.map(b => b.getAttribute('data-ev'))).size === gemelle.length,
+      'e ciascuna ha la sua identità: data-ev diversi anche a data uguale',
+      gemelle.map(b => b.getAttribute('data-ev').slice(0, 40)).join(' · '));
+    const seconda = gemelle[1];
+    const eSec = A.EVENTI().find(x => A.chiaveEv(x) === seconda.getAttribute('data-ev'));
+    const ePri = A.EVENTI().find(x => A.chiaveEv(x) === gemelle[0].getAttribute('data-ev'));
+    click(seconda);
+    esito(A.EVSEL() === A.chiaveEv(eSec),
+      'premendo la SECONDA delle due si isola la seconda, non la prima', A.EVSEL());
+    const riq = $('k-evsel').textContent;
+    esito(riq.indexOf(eSec.testo) >= 0 && riq.indexOf(ePri.testo) < 0,
+      'e il riquadro dice il SUO fatto, non quello dell altra voce dello stesso giorno', riq.slice(0, 120));
+    esito(D.querySelectorAll('#k-trend .evm.on').length === 1,
+      'e sul grafico si accende UN disco solo, non i due della stessa data',
+      String(D.querySelectorAll('#k-trend .evm.on').length));
+    esito(voci().filter(b => b.getAttribute('aria-pressed') === 'true').length === 1,
+      'e in cronologia una sola voce risulta premuta', String(voci().filter(b => b.getAttribute('aria-pressed') === 'true').length));
+    click(voci().find(b => b.getAttribute('data-ev') === A.chiaveEv(eSec)));
+    esito(A.EVSEL() === null, 'e ripremendola si esce, come per ogni altra voce');
+  }
 
   console.log('\nisola: ' + ok + '/' + (ok + ko));
   if (ko) process.exit(1);

@@ -110,8 +110,25 @@ setTimeout(function(){
   esito(reg.every(r => r.stato === 'nuovo' || r.stato === 'tradotto' || r.stato === 'scartato'),
     'ogni stato è nel vocabolario', JSON.stringify([...new Set(reg.map(r => r.stato))]));
   const dateIt = new Set(A.EVENTI().map(e => e.data));
-  esito(reg.filter(r => r.stato === 'tradotto').every(r => dateIt.has(r.data)),
-    'ogni voce marcata tradotta ha davvero una voce italiana in cronologia alla sua data');
+  /* CONTATE, NON SOLO PRESENTI — dal 2 ottobre 2026. Con l insieme delle date, due voci tradotte
+     e una riga sola passavano: e il modo in cui il 10 settembre accorpato e passato per due
+     settimane. Il legame resta a un verso solo: una riga in pagina senza voce nel registro e
+     ammessa, ed e la dichiarazione di Winter del 27 agosto, scritta dall autore. */
+  const conta = a => a.reduce((o, d) => (o[d] = (o[d] || 0) + 1, o), {});
+  const tradotte = conta(reg.filter(r => r.stato === 'tradotto').map(r => r.data));
+  const righe = conta(A.EVENTI().map(e => e.data));
+  /* UNA FUNZIONE SOLA per il conto vero e per il controllo che sa cadere: la prima stesura
+     rifaceva il conto due volte, e il mutante che riportava il legame all insieme delle date
+     restava vivo perche il controllo provava la sua copia, non il conto. */
+  const scoperteIn = t => Object.keys(t).filter(d => t[d] > (righe[d] || 0));
+  const scoperte = scoperteIn(tradotte);
+  esito(scoperte.length === 0,
+    'ogni voce marcata tradotta ha la SUA riga italiana in cronologia: tante righe quante voci, data per data',
+    scoperte.map(d => d + ' tradotte ' + tradotte[d] + ', righe ' + (righe[d] || 0)).join(' · '));
+  /* e il conteggio sa cadere: un registro con una tradotta in piu su una data la scopre */
+  const finte = conta(reg.filter(r => r.stato === 'tradotto').map(r => r.data).concat([A.EVENTI()[0].data]));
+  esito(scoperteIn(finte).length > 0,
+    'e il conteggio sa cadere: una voce tradotta in piu senza la sua riga viene scoperta');
   /* solo la SEMINA del 21 agosto: per le voci che il lavoro notturno aggiungerà dopo,
      una data coincidente con una voce italiana è legittima — due eventi veri possono
      cadere lo stesso giorno — e un'asserzione generale bloccherebbe il job a torto */

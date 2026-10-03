@@ -2495,21 +2495,14 @@ var EVENTI=[
     dalla finestra dei sessanta giorni. La cronologia registra il fatto; il modello no. */
  {data:"2026-09-04",testo:"Unity si ritira dalle elezioni"},
  {data:"2026-09-06",testo:"Hili Tropper lascia i Riservisti e corre con Yashar; i Riservisti confluiscono nel New Economic Party"},
- /* DUE ACCORDI IN UNA VOCE: E UN RIMEDIO PROVVISORIO, NON UNA SCELTA EDITORIALE. Il 10
-    settembre 2026 sono stati firmati due accordi di eccedenza distinti, e nel registro
-    restano due voci «tradotto» sulla stessa data. Stanno in una riga sola perche la pagina
-    identifica un evento per DATA — EVSEL, il data-ev dei marcatori e la ricerca che compone
-    il riquadro dell isolato, che prende l ultima voce con quella data — e con due voci lo
-    stesso giorno il riquadro mostrerebbe il testo dell altra e i due dischi si accenderebbero
-    insieme. Reggeva per coincidenza: le 23 voci precedenti hanno date tutte diverse. La
-    riparazione vera e in coda; quando c e, questa riga torna due.
-    IL 2 OTTOBRE 2026 LA FONTE E ARRIVATA ALLA STESSA FORMA — una riga sola per i due accordi
-    del 10 settembre — e la sua riscrittura e stata scartata perche la riga italiana c era gia.
-    LA COINCIDENZA NON E UNA CONFERMA: questa resta una voce accorpata per un difetto nostro,
-    non una scelta editoriale, e il giorno in cui due fatti NON accorpabili cadono nello stesso
-    giorno il rimedio non basta piu. Il 2 ottobre e il secondo caso in tre settimane: il ritiro
-    del candidato Abu Shehadeh e la decisione della Corte Suprema. */
- {data:"2026-09-10",testo:"B'Yachad e Yisrael Beitenu, Yashar e I Democratici firmano accordi di eccedenza"},
+ /* IL 10 SETTEMBRE SONO DUE VOCI, ed è tornato così il 2 ottobre 2026. Dal 16 settembre erano
+    accorpate in una sola come RIMEDIO PROVVISORIO: la pagina riconosceva un evento dalla data,
+    e con due voci lo stesso giorno il riquadro mostrava il testo dell'altra e i dischi si
+    accendevano insieme. Adesso l'identità è la chiave data|testo — vedi EVSEL — e due fatti
+    nello stesso giorno restano due fatti. La fonte, nel frattempo, li scrive in una riga sola:
+    la sua forma non decide la nostra. */
+ {data:"2026-09-10",testo:"B'Yachad e Yisrael Beitenu firmano un accordo di eccedenza"},
+ {data:"2026-09-10",testo:"Yashar e I Democratici firmano un accordo di eccedenza"},
  {data:"2026-09-12",testo:"Lista Unita araba e Ra'am firmano un accordo di eccedenza"},
  /* LE DUE VOCI DELLE SQUALIFICHE, e la prima non e una notizia di procedura: mette in
     discussione i 12 seggi del blocco arabo, cioe il conto su cui la pagina apre da mesi, e
@@ -7366,7 +7359,7 @@ function rCrono(){
  if(_e&&_c&&_e.parentNode===$('k-crono')) _c.parentNode.insertBefore(_e,_c);
  var l=EVENTI.slice().sort(function(a,b){return a.data<b.data?-1:1;});
  $('k-crono').innerHTML=l.map(function(e,i){
-  return '<button type="button" data-ev="'+E(e.data)+'" aria-pressed="'+(EVSEL===e.data)+'"><b>'+(i+1)+
+  return '<button type="button" data-ev="'+E(chiaveEv(e))+'" aria-pressed="'+(EVSEL===chiaveEv(e))+'"><b>'+(i+1)+
    '</b><span><em>'+dc(e.data)+'</em> '+E(e.testo)+'</span></button>';}).join('');
  rEvSel();
 }
@@ -7456,7 +7449,19 @@ function finestraEv(S,d){
    giorni successivi resta acceso, il resto si attenua, e il riquadro dà la terna a quella
    data più il movimento a fine finestra. Il movimento è un'OSSERVAZIONE, non un effetto:
    il modello misura i sondaggi, non le cause, e la pagina non deve suggerirle. */
+/* EVSEL È LA CHIAVE DELL'EVENTO ISOLATO, NON LA SUA DATA — dal 2 ottobre 2026. Fino ad allora
+   era la data, e reggeva perché le voci della cronologia avevano date tutte diverse: con due
+   fatti lo stesso giorno il riquadro mostrava il testo dell'altro e i due dischi si accendevano
+   insieme, e il 10 settembre i due accordi di eccedenza erano stati accorpati in una voce sola
+   per aggirarlo. La chiave è chiaveEvento(data, testo), la stessa che il registro usa per le
+   voci in inglese: nessuna anagrafica in più. Se il testo italiano di una voce viene riscritto
+   la chiave cambia, ed è innocuo — niente di questo stato sopravvive a un ricaricamento.
+   Chi ha bisogno della DATA — la serie al giorno dell'evento, la finestra dei trenta giorni —
+   la chiede a dataSel(). */
 var EVSEL=null;
+function chiaveEv(e){return chiaveEvento(e.data,e.testo);}
+function evDaChiave(k){var i;for(i=0;i<EVENTI.length;i++) if(chiaveEv(EVENTI[i])===k) return EVENTI[i];return null;}
+function dataSel(){var e=EVSEL?evDaChiave(EVSEL):null;return e?e.data:null;}
 /* Sotto una certa lunghezza il tratto acceso non è un segno: è un puntino. La soglia è in
    PIXEL REALI e si ricalcola a ogni render, perché la stessa finestra di 30 giorni vale
    lunghezze diverse alle tre larghezze e si accorcia da sola mentre l'asse si allunga
@@ -7470,10 +7475,10 @@ function rEvSel(){
  var el=$('k-evsel'); if(!el) return;
  if(!EVSEL){el.className='evsel';el.innerHTML='';collocaEvSel();return;}
  var S=serieModello(), ev=null, i;
- for(i=0;i<EVENTI.length;i++) if(EVENTI[i].data===EVSEL) ev=EVENTI[i];
- var p=serieAl(S,EVSEL);
+ ev=evDaChiave(EVSEL);
+ var p=ev?serieAl(S,ev.data):null;
  if(!p||!ev){el.className='evsel';el.innerHTML='';return;}
- var fin=finestraEv(S,EVSEL), q=serieAl(S,fin.a);
+ var fin=finestraEv(S,ev.data), q=serieAl(S,fin.a);
  /* Le soglie e i movimenti si calcolano sul numero ARROTONDATO, quello che il lettore
     vede: «52» che diventa «54» deve dire +2, non +1,6. È la stessa regola già applicata
     agli scarti dell'house effect. */
@@ -7506,14 +7511,14 @@ function rEvSel(){
      '<b>'+f(ar(p[x[2]]))+'</b></div>';}).join('')+
   '</div>'+(fin.gg>0?'<p class="em2">'+(fin.gg===1?'Nel giorno successivo':'Nei '+f(fin.gg)+' giorni successivi')+': '+
    righe.map(function(x){return E(x[1])+' '+mv(x[2]);}).join(' · ')+'.'+
-   (TRATTO&&TRATTO.da===EVSEL&&!TRATTO.mostrato?
+   (TRATTO&&TRATTO.k===EVSEL&&!TRATTO.mostrato?
      ' <span class="nt2">Sul grafico il tratto non è disegnato: dopo questa data l\'archivio '+
      /* la concordanza segue il numero: «un giorno solo, troppo poco» al singolare */
      'copre '+(fin.gg===1?'un giorno solo, troppo poco':'appena '+f(fin.gg)+' giorni, troppo pochi')+
      ' perché il segno si distingua.</span>':'')+'</p>':
    '<p class="em2">Dopo questa data l\'archivio non ha ancora rilevazioni: non c\'è movimento '+
    'da misurare, e sul grafico non c\'è tratto da accendere.</p>')+
-  '<p class="en">Proiezione del modello al '+dc(EVSEL)+', letta sulla linea fra i due '+
+  '<p class="en">Proiezione del modello al '+dc(ev.data)+', letta sulla linea fra i due '+
   'punti che circondano quella data; alla data erano disponibili '+f(p.n)+' rilevazioni. '+
   (fin.tronca?'La finestra si ferma all\'ultimo dato disponibile. ':'')+
   '<b>È quello che è successo dopo, non l\'effetto di questo fatto</b>: il modello misura '+
@@ -9236,14 +9241,14 @@ function rTrend(){
     sempre nell'SVG: l'area del grafico resta la stessa, cresce la cornice */
  var CRE=(corsie-1)*DYVB, T=T0+CRE, H=H0+CRE;
  function Y(v){return T+(H-T-B)*(1-(v-lo)/(hi-lo));}
- var ISO=EVSEL?finestraEv(S,EVSEL):null;
+ var EVD=dataSel(), ISO=EVD?finestraEv(S,EVD):null;
  /* quanto sarebbe lungo il tratto, in pixel reali, con la geometria di QUESTO render */
  TRATTO=null;
  if(ISO){
   var _lar=($('k-trend')&&$('k-trend').clientWidth)||(MOB?326:1070);
   var _q=(W-Lm-Rm)*(_lar/W)/((t1-t0)||1);
   var _px=(+new Date(ISO.a+'T00:00:00Z')-+new Date(ISO.da+'T00:00:00Z'))*_q;
-  TRATTO={da:ISO.da, px:+_px.toFixed(1), gg:ISO.gg, mostrato:_px>=TRATTO_MIN};
+  TRATTO={k:EVSEL, da:ISO.da, px:+_px.toFixed(1), gg:ISO.gg, mostrato:_px>=TRATTO_MIN};
  }
  var s='<svg viewBox="0 0 '+W+' '+H+'" role="img" aria-label="Proiezione del modello nel tempo">';
  /* le tacche partono da ZERO anche quando il pavimento sta sotto: meno di zero seggi non
@@ -9356,7 +9361,7 @@ function rTrend(){
   /* il tratteggio parte sotto la corsia più bassa, non sotto la prima */
   s+='<line x1="'+xe.toFixed(1)+'" y1="'+(T-2)+'" x2="'+xe.toFixed(1)+'" y2="'+(H-B)+
      '" stroke="'+C.inc+'" stroke-width="1" stroke-dasharray="2 3" opacity="'+
-     (ISO?(e.data===ISO.da?'.9':'.2'):'.55')+'"/>';
+     (ISO?(chiaveEv(e)===EVSEL?'.9':'.2'):'.55')+'"/>';
   /* il disco: sempre qui dentro, e la corsia 0 — quella che l'assegnazione riempie per
      prima, quindi la più popolata — è la PIÙ VICINA all'area, non la più lontana */
   var rr=MOB?10:8, cy=T-(rr+3)-e._c*DYVB;
@@ -9364,9 +9369,9 @@ function rTrend(){
      il title del bersaglio e il suo aria-label. Erano tre copie dello stesso testo, ed è
      esattamente la strada doppia che questo progetto paga sempre due volte. */
   var ETI=dc(e.data)+' · '+E(e.testo);
-  s+='<g class="evm'+(ISO&&e.data===ISO.da?' on':'')+'">'+
+  s+='<g class="evm'+(ISO&&chiaveEv(e)===EVSEL?' on':'')+'">'+
      '<circle cx="'+xe.toFixed(1)+'" cy="'+cy.toFixed(1)+'" r="'+rr+'" fill="'+
-     (ISO&&e.data===ISO.da?C.acc:C.ink2)+'"/>'+
+     (ISO&&chiaveEv(e)===EVSEL?C.acc:C.ink2)+'"/>'+
      '<text x="'+xe.toFixed(1)+'" y="'+(cy+(MOB?3.8:3.5)).toFixed(1)+'" text-anchor="middle" font-size="'+
      (MOB?13:10.5)+'" font-family="Georgia,serif" fill="'+C.paper+'">'+(ix+1)+
      '<title>'+ETI+'</title></text></g>';
@@ -9377,8 +9382,8 @@ function rTrend(){
      bastare. E il numero, che resta perché è la sola cosa che il bottone contiene, esce
      dall'albero di accessibilità: senza aria-hidden il nome diventerebbe la somma dei due
      e si sentirebbe «26.04 · … 6». */
-  if(STRATO) lay+='<button type="button" data-ev="'+E(e.data)+'" aria-pressed="'+
-    (!!ISO&&e.data===ISO.da)+'" style="left:'+(xe/W*100).toFixed(3)+'%;top:'+
+  if(STRATO) lay+='<button type="button" data-ev="'+E(chiaveEv(e))+'" aria-pressed="'+
+    (!!ISO&&chiaveEv(e)===EVSEL)+'" style="left:'+(xe/W*100).toFixed(3)+'%;top:'+
     (cy/H*100).toFixed(3)+'%" title="'+ETI+'" aria-label="'+ETI+'">'+
     '<span aria-hidden="true">'+(ix+1)+'</span></button>';
  });
