@@ -6846,5 +6846,85 @@
    "amcha": 4.149133735754405
   },
   "_qk": "92@"
+ },
+ {
+  "data": "2026-10-01",
+  "istituto": "Direct Polls",
+  "testata": "i24NEWS",
+  "campione": 504,
+  "casa": 1,
+  "seggi": {
+   "likud": 28,
+   "byachad": 9,
+   "rzp_zehut": 5,
+   "otzma": 8,
+   "shas": 7,
+   "utj": 8,
+   "beitenu": 7,
+   "raam": 5,
+   "lista_araba": 8,
+   "democratici": 9,
+   "yashar": 22,
+   "amcha": 4
+  },
+  "sotto": {
+   "reserv_nep": 1.81
+  },
+  "_q": {
+   "likud": 20.789869365741705,
+   "byachad": 6.91712917036138,
+   "rzp_zehut": 3.969523458354261,
+   "otzma": 6.053277598809467,
+   "shas": 5.490375575645506,
+   "utj": 6.053277598809467,
+   "beitenu": 5.490375575645506,
+   "raam": 4.150690732994112,
+   "lista_araba": 6.217116137474867,
+   "democratici": 6.91712917036138,
+   "yashar": 16.34863645502376,
+   "amcha": 3.6025991607785914
+  },
+  "_qk": "92@"
+ },
+ {
+  "data": "2026-10-01",
+  "istituto": "Yossi Taktika",
+  "testata": "Zman Israel",
+  "campione": 500,
+  "casa": 0,
+  "seggi": {
+   "likud": 21,
+   "byachad": 10,
+   "rzp_zehut": 5,
+   "otzma": 6,
+   "shas": 9,
+   "utj": 8,
+   "beitenu": 10,
+   "raam": 5,
+   "lista_araba": 8,
+   "democratici": 8,
+   "yashar": 21,
+   "reserv_nep": 5,
+   "amcha": 4
+  },
+  "sotto": {
+   "blue_white": 1.4
+  },
+  "_q": {
+   "likud": 15.625559288555296,
+   "byachad": 7.504976273827453,
+   "rzp_zehut": 3.988163749041526,
+   "otzma": 4.742438619074967,
+   "shas": 6.818391868881481,
+   "utj": 5.940112840845005,
+   "beitenu": 7.66479990400131,
+   "raam": 4.0914424535186456,
+   "lista_araba": 6.100888452315894,
+   "democratici": 6.100888452315894,
+   "yashar": 15.711379214466414,
+   "reserv_nep": 4.0914424535186456,
+   "amcha": 3.6195164296374727
+  },
+  "_qk": "92@"
  }
 ]
