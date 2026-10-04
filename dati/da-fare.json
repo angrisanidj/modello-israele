@@ -1,40 +1,16 @@
 {
- "generato": "2026-10-03",
+ "generato": "2026-10-04",
  "job": {
   "esito": "ok",
   "motivo": null,
   "archivioAl": "2026-10-01",
-  "rilevazioniNuove": 0
+  "rilevazioniNuove": 2
  },
  "conto": {
   "blocca": 0,
-  "richiedono": 1,
+  "richiedono": 0,
   "informative": 0
  },
- "riga": "1 cosa richiede te",
- "voci": [
-  {
-   "id": "eventi-da-tradurre",
-   "categoria": "eventi",
-   "urgenza": "richiede",
-   "titolo": "2 voci-evento da tradurre",
-   "quanti": 2,
-   "dettaglio": {
-    "voci": [
-     {
-      "chiave": "2026-10-02|the-supreme-court-overturns-the-decision-to-disqualify-joint-list-ra-am-",
-      "data": "2026-10-02",
-      "testo": "The Supreme Court overturns the decision to disqualify Joint List, Ra'am and Ofer Cassif"
-     },
-     {
-      "chiave": "2026-10-02|sami-abu-shehadeh-submits-his-withdrawal-to-the-central-elections-commit",
-      "data": "2026-10-02",
-      "testo": "Sami Abu Shehadeh submits his withdrawal to the Central Elections Committee after being advised to do so by the Supreme Court"
-     }
-    ]
-   },
-   "chiude": "Apri `dati/eventi-grezzi.json`, cerca `\"stato\": \"nuovo\"`. Per ognuna: o la traduci — riga italiana in `EVENTI` dentro index.html, e la voce passa a `\"tradotto\"` — o la scarti portandola a `\"scartato\"`. GIUDIZIO: se la voce meriti la cronologia lo decide una persona; la data NON si tocca, sposta il marcatore sull'asse.",
-   "procedura": "docs/tradurre-una-voce-evento.md"
-  }
- ]
+ "riga": "Niente da fare.",
+ "voci": []
 }
