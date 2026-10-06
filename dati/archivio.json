@@ -7007,5 +7007,46 @@
    "yashar": 15.920174001415779
   },
   "_qk": "92@"
+ },
+ {
+  "data": "2026-10-05",
+  "istituto": "Midgam",
+  "testata": "Canale 12",
+  "campione": null,
+  "casa": 0,
+  "seggi": {
+   "likud": 21,
+   "byachad": 13,
+   "rzp_zehut": 6,
+   "otzma": 7,
+   "shas": 7,
+   "utj": 8,
+   "beitenu": 9,
+   "raam": 5,
+   "lista_araba": 8,
+   "democratici": 9,
+   "yashar": 23,
+   "reserv_nep": 4
+  },
+  "sotto": {
+   "blue_white": 0.5,
+   "amcha": 1.5,
+   "haredi_pubblico": 0.6
+  },
+  "_q": {
+   "likud": 15.778458374260591,
+   "byachad": 9.809063275602673,
+   "rzp_zehut": 4.698582209593303,
+   "otzma": 5.420256476478496,
+   "shas": 5.420256476478496,
+   "utj": 6.000664453386194,
+   "beitenu": 6.885343412722049,
+   "raam": 4.1760535952889555,
+   "lista_araba": 6.000664453386194,
+   "democratici": 6.885343412722048,
+   "yashar": 17.242209258923975,
+   "reserv_nep": 3.683104601157029
+  },
+  "_qk": "92@"
  }
 ]
