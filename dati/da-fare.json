@@ -1,5 +1,5 @@
 {
- "generato": "2026-10-07",
+ "generato": "2026-10-08",
  "job": {
   "esito": "ok",
   "motivo": null,
@@ -8,9 +8,28 @@
  },
  "conto": {
   "blocca": 0,
-  "richiedono": 0,
+  "richiedono": 1,
   "informative": 0
  },
- "riga": "Niente da fare.",
- "voci": []
+ "riga": "1 cosa richiede te",
+ "voci": [
+  {
+   "id": "eventi-da-tradurre",
+   "categoria": "eventi",
+   "urgenza": "richiede",
+   "titolo": "1 voce-evento da tradurre",
+   "quanti": 1,
+   "dettaglio": {
+    "voci": [
+     {
+      "chiave": "2026-10-06|likud-and-rzp-zehut-sign-a-surplus-vote-agreement",
+      "data": "2026-10-06",
+      "testo": "Likud and RZP-Zehut sign a surplus-vote agreement"
+     }
+    ]
+   },
+   "chiude": "Apri `dati/eventi-grezzi.json`, cerca `\"stato\": \"nuovo\"`. Per ognuna: o la traduci — riga italiana in `EVENTI` dentro index.html, e la voce passa a `\"tradotto\"` — o la scarti portandola a `\"scartato\"`. GIUDIZIO: se la voce meriti la cronologia lo decide una persona; la data NON si tocca, sposta il marcatore sull'asse.",
+   "procedura": "docs/tradurre-una-voce-evento.md"
+  }
+ ]
 }
