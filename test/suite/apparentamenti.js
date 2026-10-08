@@ -692,9 +692,19 @@ esito(!!Object.keys(A.stato().SEG).length,
  * che esercita «Insieme valgono N» e la concordanza del verbo. Misurato: con le quote del
  * seme perturbate del ±30% il caso capita in 99 tentativi su 400, il primo al sesto. */
 {
-  const TRE = ORIG.filter(x => x.stato !== 'depositato');
+  const TUTTI = ORIG.filter(x => x.stato !== 'depositato');
   const S0 = A.stato();
   const ids = Object.keys(S0.QUO);
+  /* SOLO GLI ACCORDI CHE IL SEME CONOSCE — dall'8 ottobre 2026. Il seme BASE si ferma prima del
+     1º settembre, e una lista nata dopo — rzp_zehut, dell'accordo col Likud del 6 ottobre — non
+     ha quota: nessun vettore perturbato la porta sopra soglia, e la ricerca tornava vuota senza
+     che il modello avesse niente. Gli altri si dichiarano nell'uscita. E se ne restano meno di
+     due la prova CADE: non c'è niente da congiungere, e un verde senza aver cercato non prova
+     niente. */
+  const TRE = TUTTI.filter(c => S0.QUO[c.a] != null && S0.QUO[c.b] != null);
+  const FUORI = TUTTI.filter(c => TRE.indexOf(c) < 0);
+  const fuoriDetto = FUORI.length ? ' · fuori dal seme: ' + FUORI.map(c => c.a + '+' + c.b).join(', ') : '';
+  console.log('  accordi cercati sul seme: ' + TRE.length + ' su ' + TUTTI.length + fuoriDetto);
   let s = 4242; const rnd2 = () => { s = (s * 1103515245 + 12345) & 0x7fffffff; return s / 0x7fffffff; };
   const mossi = (q, cp) => {
     const base = A.dhondt(q, null, []), r = A.dhondt(q, null, cp); let m = 0;
@@ -710,7 +720,8 @@ esito(!!Object.keys(A.stato().SEG).length,
     const som = TRE.reduce((a, c) => a + mossi(q, [c]), 0), cong = mossi(q, TRE);
     if (cong > 0 && som > cong) caso = {q: q, som: som, cong: cong};
   }
-  esito(TRE.length >= 2, 'in tabella ci sono almeno due accordi non depositati, o non c\'è niente da congiungere', String(TRE.length));
+  esito(TRE.length >= 2, 'il seme conosce almeno due accordi non depositati, o non c\'è niente da congiungere',
+    TRE.length + ' su ' + TUTTI.length + fuoriDetto);
   esito(!!caso, 'esiste un vettore di quote in cui gli accordi valgono insieme meno della loro somma',
     caso ? 'somma ' + caso.som + ', insieme ' + caso.cong : 'nessuno in 400 tentativi');
   if (caso) {

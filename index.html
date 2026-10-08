@@ -2519,7 +2519,8 @@ var EVENTI=[
     Cassif, e la riga no, per la stessa ragione di quella del 23: la cronologia segue le liste,
     che sono quello che sposta i seggi. Il ritiro di Abu Shehadeh, lo stesso giorno, resta nel
     registro come scartato: è un candidato che si ritira, non una lista. */
- {data:"2026-10-02",testo:"La Corte Suprema annulla l'esclusione delle liste arabe decisa dalla Commissione"}
+ {data:"2026-10-02",testo:"La Corte Suprema annulla l'esclusione delle liste arabe decisa dalla Commissione"},
+ {data:"2026-10-06",testo:"Likud e Sionismo Religioso–Zehut firmano un accordo di eccedenza"}
 ];
 /* LE DUE SOGLIE DELLA DIVERGENZA FRA LE DATE.
    Non sono ricavabili dai dati: dipendono da come è impostato il lavoro notturno, che
@@ -2587,7 +2588,8 @@ var EMIMODE='blocchi', EMIFILT=null, TRENDPTS=[], TRENDGEO=null, FILTRI={ist:'',
 /* `apparentamenti` NASCE ACCESA DAL 14 SETTEMBRE 2026 — DECISIONE A TERMINE, FINO AL 16 OTTOBRE.
    PERCHÉ. In tabella ci sono tre fatti pubblicati con data e fonte: tre accordi FIRMATI — Lista
    Unita araba e Ra'am il 12 settembre, B'Yachad e Yisrael Beitenu e Yashar e I Democratici il
-   10. Restano `proposto` e non `depositato`: cambia il predefinito, non lo stato, e il deposito
+   10 — e dal 6 ottobre un quarto, Likud e Sionismo Religioso–Zehut. Restano `proposto` e
+   non `depositato`: cambia il predefinito, non lo stato, e il deposito
    è un atto diverso con un termine suo.
    QUANTO VALE, misurato il 14 settembre 2026 sull'archivio pubblicato: col conteggio della
    fonte i blocchi passano da 51 · 53 · 12 · 4 a 50 · 54 · 12 · 4, cioè +1 all'opposizione e
@@ -2596,12 +2598,19 @@ var EMIMODE='blocchi', EMIFILT=null, TRENDPTS=[], TRENDGEO=null, FILTRI={ist:'',
    B'Yachad + Beitenu niente — ma le due che valgono qualcosa si contendono lo stesso 120°
    seggio, e insieme ne spostano uno. È un numero con una data, non una costante: le prove
    rifanno il riparto con e senza, e non lo scrivono.
-   E OGGI LA LEVA APPLICA ACCORDI DI UN CAMPO SOLO: i tre sono dell'opposizione e dei partiti
-   arabi, perché il blocco Netanyahu non ne ha firmati. È la ragione per cui la decisione ha un
-   termine: al 16 ottobre gli accordi non depositati smettono di esistere — coppieAl() non li
-   restituisce più, la leva non ha niente da applicare e il comando sparisce — e da lì la
-   lettura cambia comunque. Se prima del termine ne firma uno anche l'altro campo, o uno dei tre
-   viene ritirato, questa riga va riletta, non lasciata.
+   FINO AL 6 OTTOBRE LA LEVA APPLICAVA ACCORDI DI UN CAMPO SOLO — i tre erano dell'opposizione
+   e dei partiti arabi — ed era la ragione per cui questa scelta era debole: un predefinito che
+   aggiunge ipotesi a un campo solo sposta il confronto in una direzione sola. Quella ragione è
+   venuta meno il 6 ottobre 2026, quando Likud e Sionismo Religioso–Zehut hanno firmato il
+   loro: adesso la leva applica accordi di tutti e due i campi.
+   QUANTO VALE, misurato l'8 ottobre 2026 sulla pagina servita con l'archivio pubblicato al 5
+   ottobre: QUATTRO ACCORDI, INSIEME 1 SEGGIO — Blocco Netanyahu 53 → 52, partiti arabi 12 → 13
+   — e la coppia nuova NON SPOSTA NIENTE IN AGGIUNTA: con tre accordi il congiunto era lo
+   stesso seggio. Anche questo è un numero con una data.
+   IL TERMINE RESTA: al 16 ottobre gli accordi non depositati smettono di esistere — coppieAl()
+   non li restituisce più, la leva non ha niente da applicare e il comando sparisce — e da lì la
+   lettura cambia comunque. Se prima del termine uno dei quattro viene ritirato o depositato,
+   questa riga va riletta, non lasciata.
    UN PREDEFINITO CHE È UN'IPOTESI fa tacere statoLeve() — nessuno ha cambiato niente — ed è la
    trappola già pagata con `inbilico`: quindi ipotesiNeiNumeri() dichiara anche gli accordi, e
    statoLeve() ha la frase che segue lo STATO nei due versi. */
@@ -2940,8 +2949,8 @@ function gauss(){if(_g!==null){var v=_g;_g=null;return v;}
    nella stessa direzione, quella dei blocchi le cui coppie sono state annotate. Un errore
    casuale si dichiara nell'intervallo, uno sistematico no. Se all'8 settembre la mappa è
    incompleta, si pubblica senza e lo si dichiara. */
-/* LE TRE RIGHE DEL 10 E DEL 12 SETTEMBRE 2026: LA FONTE DICE FIRMATO, NON DEPOSITATO.
-   La cronologia di Wikipedia scrive per tutte e tre «sign a surplus-vote agreement» — il
+/* LE RIGHE DEL 10 E DEL 12 SETTEMBRE E DEL 6 OTTOBRE 2026: LA FONTE DICE FIRMATO, NON DEPOSITATO.
+   La cronologia di Wikipedia scrive per tutte e quattro «sign a surplus-vote agreement» — il
    campo `fonte` porta la frase originale, verbatim, perché è quella che si verifica. Non
    dice «filed», e il deposito presso la Commissione elettorale è un atto diverso con un
    termine suo: il 16 ottobre, non l'8 settembre.
@@ -2968,7 +2977,9 @@ var APPARENTAMENTI=[
  {a:'byachad',     b:'beitenu',     data:'2026-09-10', stato:'proposto',
   fonte:"Together and Yisrael Beiteinu sign a surplus-vote agreement"},
  {a:'yashar',      b:'democratici', data:'2026-09-10', stato:'proposto',
-  fonte:"Yashar and The Democrats sign a surplus-vote agreement"}
+  fonte:"Yashar and The Democrats sign a surplus-vote agreement"},
+ {a:'likud',       b:'rzp_zehut',   data:'2026-10-06', stato:'proposto',
+  fonte:"Likud and RZP-Zehut sign a surplus-vote agreement"}
 ];
 /* IL TERMINE, RICAVATO DAL VOTO E NON SCRITTO A MANO. È l'undicesimo giorno prima delle
    urne — vedi il blocco qui sopra per i tre cicli su cui è verificato — quindi esce da
