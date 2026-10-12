@@ -264,7 +264,32 @@ p('nessun blocco dell\'anagrafica riscritto come elenco'+
    commenti. Valgono già il 52% del gzip, ed è la sola strada grande se un giorno servisse
    davvero spazio. Non si prende: sono la memoria delle trappole già pagate. Ma il numero
    va saputo, perché il tetto lo rifà chi lo sfonda e questa volta l abbiamo sfondato noi. */
-const TETTO_GZIP=287*1024;
+/* RIFATTO IL 12 OTTOBRE 2026, PRIMA DI SFONDARLO e non dopo: il margine era 1,3 KB e la
+   sessione che precede il termine degli accordi tocca la pagina in cinque punti, il primo dei
+   quali — allineare il seme BASE all'archivio — da solo lo avrebbe sfondato. I quattro
+   addendi, rimisurati tutti dall'ultimo rifacimento (a89deed, 27 agosto):
+     1 · il file compresso adesso                                285,7 KB
+     2 · il seme e l archivio fino al voto: l allineamento di BASE
+         alle 236 righe dell archivio, MISURATO applicandolo — 2,02 KB,
+         29 byte per riga — più le rilevazioni fino al silenzio del
+         23 ottobre, 15 giorni a 1,32 al giorno, cioè 20 righe        2,6 KB
+     3 · quello che resta da scrivere: sette interventi — l accordo
+         Shas + UTJ, un altro accordo prima del termine, il predefinito
+         della leva degli accordi, i mesi dell asse della tendenza, quello
+         che troverà la prova di regia, il campo dell esito dopo il voto,
+         contenitore e componente nella frase dell analisi — alla mediana
+         di crescita RADDOPPIATA come le tre volte precedenti
+         (1,01 → 2,02 KB l uno)                                   14,1 KB
+     4 · un commit grosso di riserva, il più pesante dei 45 misurati
+         dall ultimo rifacimento (f0e0e6f, la prosa dei quattro blocchi)   8,1 KB
+                                                              = 310,5 → 311
+   E L ADDENDO 2 È CAMBIATO DI NATURA: il 24 agosto una rilevazione costava 10 byte e il 27
+   tre, perché si aggiungevano righe a un dizionario saturo; allineare il seme ne aggiunge 71
+   di una forma nuova — liste che il seme non conosce, rzp_zehut, reserv_nep, amcha — e il
+   costo per riga torna a 29. È il caso in cui riportare il numero di ieri avrebbe
+   sottostimato. E la mediana per commit è scesa da 5,0 a 1,01 KB: i commit di settembre e
+   ottobre sono riparazioni piccole, e il tetto si allarga di 24 KB invece dei 64 di agosto. */
+const TETTO_GZIP=311*1024;
 /* ══ LA TAVOLOZZA DI RIPIEGO DICE QUELLO CHE DICONO LE VARIABILI CSS ══
    leggiTema() legge le variabili con getComputedStyle e cade su C_FALL_T quando non può —
    cioè in jsdom, cioè nelle prove e nel lavoro notturno. Fino al 24 agosto 2026 quella
