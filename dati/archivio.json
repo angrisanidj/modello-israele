@@ -7292,5 +7292,46 @@
    "amcha": 3.683046366405916
   },
   "_qk": "92@"
+ },
+ {
+  "data": "2026-10-12",
+  "istituto": "Direct Polls",
+  "testata": "Canale 14",
+  "campione": 538,
+  "casa": 1,
+  "seggi": {
+   "likud": 29,
+   "byachad": 7,
+   "rzp_zehut": 7,
+   "otzma": 7,
+   "shas": 10,
+   "utj": 8,
+   "beitenu": 5,
+   "raam": 5,
+   "lista_araba": 8,
+   "democratici": 10,
+   "yashar": 20,
+   "reserv_nep": 4
+  },
+  "sotto": {
+   "blue_white": 0.6,
+   "amcha": 2.9,
+   "haredi_pubblico": 0.6
+  },
+  "_q": {
+   "likud": 21.516420785713205,
+   "byachad": 5.490461742697294,
+   "rzp_zehut": 5.490461742697293,
+   "otzma": 5.490461742697293,
+   "shas": 7.476179364365574,
+   "utj": 6.053372600158128,
+   "beitenu": 3.9695857568489075,
+   "raam": 4.150755874764183,
+   "lista_araba": 6.217213710138303,
+   "democratici": 7.620057512860767,
+   "yashar": 14.922373466369091,
+   "reserv_nep": 3.6026557006899664
+  },
+  "_qk": "92@"
  }
 ]
