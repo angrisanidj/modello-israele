@@ -120,6 +120,11 @@ const scordate = sopra.filter(id => {
      NUMERO dei seggi, che e il dato. */
   if (!s.dentro) return !parola(c, String(s.persi)) ||
     (c.indexOf('tutti') < 0 && c.indexOf('in uno dei due campi') < 0);
+  /* E IL RAMO DI CHI NON ESCE, dal 14 ottobre 2026: se nessun seggio esce dal campo la frase
+     dice «i N seggi … resterebbero nel suo campo». La verifica non lo conosceva — frazione(0, N)
+     e' null, e si cercava la cifra «0» — perche' sul seme di allora il caso non c'era mai:
+     l'ha acceso il seme allineato, al 23 ottobre, su Popolo d'Israele. */
+  if (!s.fuori) return !parola(c, String(s.persi)) || c.indexOf('nel suo campo') < 0;
   const fr = A.frazione(s.fuori, s.persi);
   if (fr) return c.indexOf(fr) < 0;
   return !parola(c, String(s.fuori)) || !parola(c, String(s.persi));
@@ -163,12 +168,18 @@ esito(senzaNumero.length === 0,
 /* 7 · E LA NOTA NON PARLA DI LISTE CHE NON HA PRESENTATO. La clausola nomina le liste
       che il periodo prima ha gia dichiarato sul filo, e nessunaltra: e la conseguenza di
       quel rischio, non un elenco a se. */
+/* E LA SECONDA CATEGORIA, dal 14 ottobre 2026: dal 31 agosto la clausola nomina anche le
+   liste fuori dai due campi PER ANAGRAFICA con abbastanza seggi, e questa asserzione era
+   rimasta alla regola di prima. Sul seme di allora la seconda categoria non aveva mai un
+   caso, quindi non poteva accorgersene; col seme allineato, al 23 ottobre Popolo d'Israele
+   ci entra. Si ricava come la sezione 12, con P[i].b: la stessa lettura del codice. */
 const rischio = A.aRischio();
+const secondaCat = A.IDS.filter(id => A.P[id].b === 'incerto' && (A.SEG()[id] || 0) >= A.CLAUSOLA_MIN);
 const nominateFuori = A.IDS.filter(id =>
-  rischio.indexOf(id) < 0 && A.SEG()[id] &&
+  rischio.indexOf(id) < 0 && secondaCat.indexOf(id) < 0 && A.SEG()[id] &&
   testo.indexOf('seggi ' + A.nmA(id, 'di')) >= 0);
 esito(nominateFuori.length === 0,
-  'e la clausola non nomina liste che la nota non ha dichiarato sul filo',
+  'e la clausola non nomina liste che non siano sul filo o nella seconda categoria',
   nominateFuori.map(A.nm).join(', '));
 
 
@@ -256,8 +267,12 @@ esito(iChiude > 0 && iMecc > iChiude && fraDueA.indexOf('risk') < 0,
  *      non ha un campo in cui restare. La regola si RIDERIVA qui e si confronta: scrivere
  *      l elenco atteso sarebbe ricopiare la selezione invece di provarla. */
 const attesa = A.aRischio().slice();
+/* con P[i].b, come il codice, dal 14 ottobre 2026: la regola del 31 agosto dice che chi
+   SCEGLIE di quale lista parlare legge l'anagrafica. Con bloccoDi() la riderivazione
+   leggeva la leva, ed era in contraddizione con la regola senza che si vedesse: sul seme di
+   allora nessuna lista dell'ago aveva seggi. */
 A.IDS.forEach(id => {
-  if (A.bloccoDi(id) !== 'incerto') return;
+  if (A.P[id].b !== 'incerto') return;
   if ((A.SEG()[id] || 0) < A.CLAUSOLA_MIN) return;
   if (attesa.indexOf(id) < 0) attesa.push(id);
 });

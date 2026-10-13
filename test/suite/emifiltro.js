@@ -115,8 +115,11 @@ setTimeout(function(){
 
     /* i tre totali restano tutti e tre, e in evidenza c'è quello del blocco della voce */
     const tot = [].slice.call($('k-emi').querySelectorAll('text[data-g]'));
-    esito(tot.length === 6,
-      'vista ' + modo + ': i tre totali restano tutti e tre sotto filtro',
+    /* tanti quanti i blocchi con seggi, letti dalla proiezione: col seme allineato sono
+       quattro, e un numero scritto qui scade alla prima lista che entra o esce */
+    const conSeggi = Object.values(A.blocchi(A.SEG())).filter(v => v > 0).length;
+    esito(tot.length === 2 * conSeggi,
+      'vista ' + modo + ': i totali restano tutti sotto filtro, uno per blocco con seggi',
       String(tot.length / 2) + ' totali');
 
     /* ── Esc riporta alla vista piena ── */

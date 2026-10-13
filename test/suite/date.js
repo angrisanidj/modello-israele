@@ -39,6 +39,15 @@ function esito(cond, desc, dettaglio){
 
 const html = fs.readFileSync('../../index.html','utf8');
 const src0 = fs.readFileSync(__dirname + '/../app.js','utf8');
+/* IL SEME SI RIBASA AL 19 AGOSTO, dal 13 ottobre 2026. Questa suite congela l'orologio fra
+   il 22 agosto e novembre ed è scritta su un seme che finiva il 19 agosto: «l'ultimo sondaggio
+   è del 19», «il 25 agosto in finestra ne cade uno solo». Allineato il seme all'archivio,
+   arriva a ottobre e con l'orologio ad agosto quelle rilevazioni sarebbero nel futuro. Il
+   ribasamento di frescura.js sposta tutte le date della stessa quantità: quello che la suite
+   prova — le distanze fra oggi, l'ultimo sondaggio e l'ultima verifica — resta identico, e
+   nessun numero va riscritto. */
+const frescura = require('../frescura.js');
+const FINE_SEME = '2026-08-19';
 process.env.TZ = 'Europe/Rome';
 
 /* Rende l'intera pagina con l'orologio fermo a `iso` e il registro del lavoro notturno
@@ -85,9 +94,13 @@ async function alGiorno(iso, job, stretto, giro){
   const src = src0.replace('carica().then(render,render)',
     'global.A={render:render,stato:function(){return{GIORNI:GIORNI,ORIZZONTE:ORIZZONTE,MC:MC,SEG:SEG,' +
     'JOB:JOB,GIRO:GIRO,SOND:SOND,L:L,VOTO:VOTO,GAP_VERIFICA:GAP_VERIFICA,'+
-    'GAP_SONDAGGI:GAP_SONDAGGI,GAP_GIRO:GAP_GIRO};},' +
+    'GAP_SONDAGGI:GAP_SONDAGGI,GAP_GIRO:GAP_GIRO};},SOND:function(){return SOND;},setSOND:function(a){SOND=a;},setBASE:function(a){BASE=a;},EVENTI:function(){return EVENTI;},' +
     'q:q,ggCal:ggCal,blocchi:blocchi,finestra:finestra,titoloCortoOra:titoloCortoOra,fraseCorta:fraseCorta,formaTitolo:formaTitolo,composizioneCambiata:composizioneCambiata,TIT_NEUTRO:TIT_NEUTRO,promptAI:promptAI,votoPassato:votoPassato,SEG2:function(){return SEG;}};carica().then(render,render)');
   eval(src);
+  frescura(global.A, FINE_SEME);
+  /* e BASE con lui: a fetch respinto il seme È l'archivio pubblicato, e una pagina con le
+     date spostate nell'uno e non nell'altro conterebbe tutte le righe come non pubblicate */
+  global.A.setBASE(global.A.SOND().slice());
   /* la catena di carica() è fatta di microtask: un setTimeout(0) è un macrotask e arriva
      dopo tutte. Senza questa attesa JOB sarebbe ancora nullo e la prova misurerebbe lo
      stato prima del caricamento — la forma di prova che passa a vuoto e sembra verde. */
@@ -378,8 +391,12 @@ esito(/Voto concluso/.test(VOTO.cd) && /Voto concluso/.test(DOPO.cd),
   esito(JSON.stringify(OGGI.finestra.slice().sort()) === JSON.stringify(atteso),
     'la finestra dei 7 giorni contiene le rilevazioni dei sette giorni prima di oggi',
     OGGI.finestra.length + ' contro ' + atteso.length);
-  esito(new RegExp('^' + OGGI.finestra.length + ' rilevazioni pubblicate negli ultimi 7 giorni$')
-        .test(OGGI.anmeta),
+  /* l'accordo di numero si chiede, non si scrive: col seme ribasato il 22 agosto in finestra
+     ne cade una sola, e «rilevazioni pubblicate» scritto qui era la stessa copia a mano della
+     regola che l'asserzione più sotto, sul 25 agosto, esiste per impedire */
+  const nF = OGGI.finestra.length;
+  esito(new RegExp('^' + nF + (nF === 1 ? ' rilevazione pubblicata' : ' rilevazioni pubblicate') +
+        ' negli ultimi 7 giorni$').test(OGGI.anmeta),
     'e il sottotitolo dice quel numero', OGGI.anmeta);
 
   /* LE DUE ANCORE DIVERGONO DAVVERO, e la prova lo mostra invece di darlo per buono:

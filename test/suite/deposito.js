@@ -100,7 +100,11 @@ esito(!!tappa && tappa.d === '2026-09-08',
   tappa ? tappa.d : 'tappa assente');
 /* Un OR fra due condizioni qui era un'asserzione che non poteva cadere: la prima metà
    era sempre vera e la seconda non veniva mai valutata. Resta la sola che conta. */
-esito((html.match(/2026-09-08/g) || []).length === 1,
+/* ESCLUDENDO IL SEME, dal 13 ottobre 2026: allineato all'archivio, BASE porta rilevazioni
+   datate 8 settembre, che sono dati e non una riscrittura della tappa. Il resto del file —
+   prosa, calendario, codice — deve nominarla ancora una volta sola. */
+const senzaSeme = html.replace(/var BASE=\[[\s\S]*?\];/, '');
+esito((senzaSeme.match(/2026-09-08/g) || []).length === 1,
   'e la data in forma ISO compare una volta sola nel file: chi la riscrive fa cadere questa',
   String((html.match(/2026-09-08/g) || []).length) + ' occorrenze');
 

@@ -96,6 +96,8 @@ const ORIG = A.APP.map(x => Object.assign({}, x));
 function foto(){
   const S = A.stato();
   return {seg: JSON.stringify(A.blocchi(S.SEG)),
+          liste: JSON.stringify(Object.keys(S.SEG).sort().map(k => k + ':' + S.SEG[k])),
+          quo: JSON.stringify(Object.keys(S.QUO).sort().map(k => k + ':' + S.QUO[k].toFixed(4))),
           prec: S.PREC ? JSON.stringify(A.blocchi(S.PREC.seg)) : '—',
           n: S.PREC ? S.PREC.n : 0};
 }
@@ -134,7 +136,7 @@ const LEVE = [
   ['apparentamenti',      () => { A.setApp(COPPIA || ORIG); A.par('apparentamenti',1); },
                           () => { A.par('apparentamenti',0); A.setApp(ORIG); }]
 ];
-let mossePro = 0;
+let mossePro = 0; const conQualcosa = [], muteConQualcosa = [];
 LEVE.forEach(function(L){
   L[2](); A.render(); const off = foto();
   L[1](); A.render(); const on = foto();
@@ -152,6 +154,15 @@ LEVE.forEach(function(L){
   const oggi = off.seg !== on.seg;
   const prec = off.prec !== on.prec || off.n !== on.n;
   if (oggi) mossePro++;
+  /* HA QUALCOSA DA APPLICARE quando cambia le quote su cui il modello lavora; gli accordi
+     non toccano le quote, e lì vuol dire che a leva accesa — lo stato di adesso — almeno una
+     coppia entra nel riparto */
+  const ha = L[0] === 'apparentamenti'
+    ? A.coppieRiparto(A.sopraSoglia(), null).length > 0
+    : off.quo !== on.quo;
+  /* «muove la proiezione» vuol dire i seggi delle LISTE, non i totali di blocco: una leva può
+     spostare un seggio dentro un blocco, ed è una proiezione diversa */
+  if (ha) { conQualcosa.push(L[0]); if (off.liste === on.liste) muteConQualcosa.push(L[0]); }
   /* E LA PROPRIETÀ DI COMPORTAMENTO, che vale solo per le leve di stato: se muovono la
      proiezione devono muovere anche il paragone. Sugli accordi NON si può pretendere:
      una coppia può entrare in tutti e due i riparti e spostare un seggio solo in uno,
@@ -167,9 +178,16 @@ LEVE.forEach(function(L){
 /* IL BANCO DEVE ESERCITARE DAVVERO LE LEVE. Se un giorno l'archivio cambiasse tanto da
    rendere mute tutte e sei, le sei asserzioni qui sopra passerebbero senza guardare
    niente — è la forma di prova verde che questo progetto ha già pagato tre volte. */
-esito(mossePro >= 4,
-  'e almeno quattro leve su sei muovono davvero la proiezione: le prove qui sopra non passano a vuoto',
-  mossePro + ' su ' + LEVE.length);
+/* SULLA PROPRIETÀ, dal 14 ottobre 2026. Diceva «almeno quattro leve su sei», e al 23 ottobre
+   col seme allineato erano tre: dopo il termine del 16 la leva degli accordi non ha più niente
+   da applicare, e nella finestra non ci sono più rilevazioni con le liste arabe separate, quindi
+   nemmeno quella della Lista Unita. Non erano mute: erano vuote. La proprietà è che ogni leva
+   che HA qualcosa da applicare muova davvero la proiezione — e che ce ne sia almeno una, o
+   anche questa passerebbe a vuoto. */
+esito(conQualcosa.length > 0 && muteConQualcosa.length === 0,
+  'e ogni leva che ha qualcosa da applicare muove davvero la proiezione: le prove qui sopra non passano a vuoto',
+  'con qualcosa da applicare: ' + conQualcosa.join(', ') + (muteConQualcosa.length ? ' · mute: ' + muteConQualcosa.join(', ') : ''));
+esito(mossePro >= 1, 'e almeno una leva muove la proiezione', mossePro + ' su ' + LEVE.length);
 
 /* ══ 2 · LA LEVA DEGLI APPARENTAMENTI, DA VICINO ════════════════════════════
  * È quella che aveva il difetto, e la proprietà stretta è che l'accordo entri nel

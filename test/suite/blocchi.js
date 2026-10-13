@@ -146,12 +146,25 @@ console.log('   (la lista che entra e ' + ENTRA + ')');
    quale dei due stati valeva. Adesso lo dicono, e lo stato PREDEFINITO ha un'asserzione sua
    che legge PAR_DEF invece di ereditarlo in silenzio: è la stessa mossa dei totali
    dell'archivio, dove il numero si legge dal colspan che lo dichiara al lettore. */
+/* GLI AIUTI IMPOSTANO, NON AGGIUNGONO — dal 13 ottobre 2026. Sommavano i seggi a quelli che
+   la lista aveva già nel seme, e funzionava finché nel seme l'ago della bilancia era a zero:
+   allineato il seme all'archivio, Riservisti · NEP e Popolo d'Israele hanno seggi propri, e
+   «conAgo(0)» non portava più l'ago a zero. Adesso conAgo(n) porta ENTRA a n e ogni ALTRA
+   lista dell'ago a zero, e conBilico(n) porta la lista in bilico a n: la differenza va al
+   Likud o ne viene, così ogni riga chiude ancora a 120. */
+function imposta(o, id, n){
+  const d = n - (o.seggi[id] || 0);
+  if (!d || o.seggi.likud - d < 1) return;
+  o.seggi.likud -= d;
+  if (n) o.seggi[id] = n; else delete o.seggi[id];
+}
 function conAgo(seggi, leva){
   A.SOND = SEME.map(s => {
     const o = JSON.parse(JSON.stringify(s));
     delete o._q; delete o._qk;
-    if (seggi && o.seggi && o.seggi.likud >= 8) {
-      o.seggi.likud -= seggi; o.seggi[ENTRA] = (o.seggi[ENTRA] || 0) + seggi;
+    if (o.seggi && o.seggi.likud >= 8) {
+      A.IDS.filter(i => A.P[i].b === 'incerto' && i !== ENTRA).forEach(i => imposta(o, i, 0));
+      imposta(o, ENTRA, seggi || 0);
     }
     return o;
   });
@@ -511,9 +524,7 @@ function conBilico(seggi, leva){
   A.SOND = SEME.map(s => {
     const o = JSON.parse(JSON.stringify(s));
     delete o._q; delete o._qk;
-    if (seggi && o.seggi && o.seggi.likud >= 8) {
-      o.seggi.likud -= seggi; o.seggi[id] = (o.seggi[id] || 0) + seggi;
-    }
+    if (o.seggi && o.seggi.likud >= 8) imposta(o, id, seggi || 0);
     return o;
   });
   A.PAR.inbilico = leva ? 1 : 0;
@@ -643,7 +654,9 @@ function seggiOra(){ return A.IDS.filter(i => A.SEG[i]).map(i => i + ':' + A.SEG
      nel conteggio del modello l ago della bilancia resta a ZERO mentre nel conteggio
      della FONTE quei seggi ci sono: cioe' l ipotesi e' gia' applicata, ed e' esattamente
      il render in cui il comando compare. */
-  esito(b1.incerto === 0 && A.blocchi(A.SEG, true).incerto === A.SEG[id] && A.SEG[id] > 0,
+  /* la differenza fra i due conteggi, non lo zero: col seme allineato l'ago della bilancia ha
+     seggi propri, e quello che la leva sposta sono esattamente i seggi della lista in bilico */
+  esito(A.blocchi(A.SEG, true).incerto - b1.incerto === A.SEG[id] && A.SEG[id] > 0,
     'e con la leva accesa i seggi sono gia contati nel blocco: non c e un render in cui ' +
     'l ipotesi e applicata e il comando per toglierla non c e ancora',
     JSON.stringify(b1) + ' contro la fonte ' + JSON.stringify(A.blocchi(A.SEG, true)));
@@ -763,7 +776,10 @@ function seggiOra(){ return A.IDS.filter(i => A.SEG[i]).map(i => i + ':' + A.SEG
 
   conBilico(4, 1);
   const ip = A.ipotesiNeiNumeri();
-  esito(ip.length > 0 && /ipotesi/.test(ip) && /non un fatto/.test(ip),
+  /* «non un fatto» o «non fatti»: con due ipotesi nella frase la chiusa va al plurale, e col
+     seme allineato gli accordi ne sono una — la prova chiede che la frase dica che è un'ipotesi,
+     non in quale numero */
+  esito(ip.length > 0 && /ipotesi/.test(ip) && /non (un fatto|fatti)/.test(ip),
     'con la lista in Knesset e la leva accesa la dichiarazione c e, e dice che e un ipotesi', ip);
   esito(CLAUSOLA_LUNGA.test(ip) && CLAUSOLA_CORTA.test(A.ipotesiNeiNumeri(true)),
     'e porta la clausola della leva in bilico nelle due forme: e il controllo che rende vere a ' +
@@ -1208,9 +1224,16 @@ function confini(f){
         A.SOND = SEME.map((s, i) => {
           const o = JSON.parse(JSON.stringify(s));
           delete o._q; delete o._qk;
+          /* IMPOSTA, NON AGGIUNGE, dal 14 ottobre 2026: col seme allineato le liste dell'ago
+             hanno seggi propri, e sommando l'ago non era più «un blocco piccolo» — al 23 ottobre
+             arrivava a tutte le file e la ricerca tornava vuota. Qui si costruisce quello che
+             la sezione dice: ENTRA solo in una riga su qc, la lista spostata in una su tre, ogni
+             altra lista dell'ago a zero. Stesso imposta() degli aiuti. */
           if (o.seggi && o.seggi.likud >= 10) {
-            if (i % qc === 0) { o.seggi.likud -= nc; o.seggi[ENTRA] = (o.seggi[ENTRA] || 0) + nc; }
-            if (i % 3 === 0) { o.seggi.likud -= na; o.seggi[A.IN_BILICO[0].id] = (o.seggi[A.IN_BILICO[0].id] || 0) + na; }
+            const sp = A.IN_BILICO[0].id;
+            A.IDS.filter(k => A.P[k].b === 'incerto' && k !== ENTRA && k !== sp).forEach(k => imposta(o, k, 0));
+            imposta(o, ENTRA, i % qc === 0 ? nc : 0);
+            imposta(o, sp, i % 3 === 0 ? na : 0);
           }
           return o;
         });

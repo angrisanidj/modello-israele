@@ -24,13 +24,21 @@
  */
 function giornoUTC(d){ return Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()); }
 
-module.exports = function frescura(A){
+/* IL SECONDO ARGOMENTO, dal 13 ottobre 2026: la data su cui far cadere la rilevazione più
+   recente, invece di oggi. Serve alle suite che congelano l'orologio in un giorno del passato
+   e sono scritte sul seme di allora — date.js, al 22 agosto con l'ultimo sondaggio del 19:
+   allineato il seme all'archivio, il seme arriva a ottobre e quelle date diventano future.
+   Ribasandolo all'indietro tutto ciò che è relativo resta identico, ed è la stessa ragione
+   per cui si ribasa in avanti. Senza argomento il comportamento è quello di sempre: si sposta
+   solo in avanti, perché un archivio non è mai nel futuro di chi lo legge. */
+module.exports = function frescura(A, al){
   const s = A.SOND();
   if (!s.length) return 0;
   const ultimo = s.map(x => x.data).sort().pop();
-  const delta = Math.round((giornoUTC(new Date()) -
+  const meta = al ? new Date(al + 'T00:00:00') : new Date();
+  const delta = Math.round((giornoUTC(meta) -
                             giornoUTC(new Date(ultimo + 'T00:00:00'))) / 864e5);
-  if (delta > 0) {
+  if (al ? delta !== 0 : delta > 0) {
     const sposta = iso => new Date(giornoUTC(new Date(iso + 'T00:00:00')) + delta * 864e5)
       .toISOString().slice(0, 10);
     A.setSOND(s.map(x => Object.assign({}, x, {data: sposta(x.data)})));

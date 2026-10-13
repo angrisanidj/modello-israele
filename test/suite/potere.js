@@ -68,9 +68,17 @@ setTimeout(function(){
   A.sim(500);
   const SEG = A.SEG(), P = A.P();
 
-  /* ══ regime B, sui dati veri (N=2) ══ */
+  /* ══ regime B, sulle coalizioni vere ma DUE ══
+     Fino al 13 ottobre 2026 diceva «oggi le coalizioni praticabili sono 2»: era un fatto del
+     seme, e col seme allineato all'archivio sono venti — il riquadro passa da sé al regime a
+     gruppi, che è provato più sotto. Il regime in prosa si esercita sulle prime due
+     praticabili VERE, messe da sole: sono numeri del modello, non inventati, e il confine
+     fra le due forme è provato a parte su coalizioni sintetiche. */
+  const tutte = A.COALS().filter(c => !c.c.length);
+  esito(tutte.length >= 2, 'premessa: sui dati veri ci sono almeno due coalizioni praticabili', String(tutte.length));
+  A.setCOALS(tutte.slice(0, 2)); A.rPower();
   const okC = A.COALS().filter(c => !c.c.length);
-  esito(okC.length === 2 && okC.length <= 4, 'oggi le coalizioni praticabili sono 2: regime in prosa');
+  esito(okC.length === 2 && okC.length <= 4, 'con due coalizioni praticabili il riquadro e in prosa');
 
   /* il nucleo mostrato = intersezione delle praticabili, ricalcolata qui */
   let inter = okC[0].m.slice();

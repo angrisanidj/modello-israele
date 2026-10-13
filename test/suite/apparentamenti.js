@@ -193,20 +193,32 @@ esito(A.valida().length === 0,
      lo stesso accordo non cambia valore. La proprieta' del titolo della sezione — senza coppie il
      riparto e' quello di prima — la prova l'asserzione qui sopra che svuota la tabella, e non
      dipende dai dati. Se il seme cambia, questa attesa si rifa' sul fatto nuovo: non si aggiusta. */
-  /* LA DATA E' IL FATTO, NON «ADESSO». dhondt() senza data valuta gli accordi a oggi, e dopo
-     il 16 ottobre gli annunciati e mai depositati non contano piu': con l'orologio al 23
-     ottobre lo scarto era vuoto e questa attesa cadeva, avendo ragione il codice. Il fatto
-     che si prova e' quello misurato il 15 settembre 2026, quindi la data e' quella: e' la
-     data letterale legittima dell'invariante 10, non un modo di dire «oggi». */
-  const conAcc = A.dhondt(S.QUO, '2026-09-15'), senzaAcc = A.ripartoSoglia(S.QUO);
+  /* SULLA PROPRIETÀ, dal 13 ottobre 2026. Qui c'era un fatto del seme — «al 15 settembre gli
+     accordi spostano un seggio da Yashar alla Lista Unita araba» — e il commento diceva già che,
+     cambiato il seme, l'attesa andava rifatta. Col seme allineato all'archivio, al 15 settembre
+     gli accordi non spostano niente. Al posto del fatto c'è la proprietà strutturale del
+     meccanismo, che non scade: UN ACCORDO PUÒ DARE SEGGI SOLO AI SUOI MEMBRI. Chi non è in
+     nessuna coppia applicata può soltanto perderne, perché la lista virtuale prende il posto
+     delle due nel riparto e il seggio in più finisce a una delle due.
+     LA DATA E' IL FATTO, NON «ADESSO»: la vigilia del termine, l'ultimo giorno in cui tutti gli
+     accordi firmati sono vivi. Senza data, con l'orologio al 23 ottobre, non ce ne sarebbe
+     nessuno e la proprietà varrebbe a vuoto. E la premessa si misura: a quella data qualcosa
+     deve muoversi, o la proprietà non ha niente da guardare. */
+  const VIGILIA = '2026-10-15';
+  const conAcc = A.dhondt(S.QUO, VIGILIA), senzaAcc = A.ripartoSoglia(S.QUO);
   const scarto = Object.keys(Object.assign({}, conAcc, senzaAcc))
     .filter(k => (conAcc[k] || 0) !== (senzaAcc[k] || 0))
     .map(k => { const d = (conAcc[k] || 0) - (senzaAcc[k] || 0); return k + ' ' + (d > 0 ? '+' : '') + d; })
     .sort().join(', ');
-  esito(scarto === 'lista_araba +1, yashar -1',
-    'sul SEME, non sull archivio, gli accordi firmati spostano un seggio da Yashar alla Lista Unita ' +
-    'araba: e il fatto dopo la correzione della riga del 18 agosto',
+  const sopraQ = {}; Object.keys(S.QUO).forEach(k => { if (S.QUO[k] >= SOGLIA) sopraQ[k] = S.QUO[k]; });
+  const membri = {}; A.coppieRiparto(sopraQ, VIGILIA).forEach(c => { membri[c.a] = 1; membri[c.b] = 1; });
+  const guadagnano = Object.keys(conAcc).filter(k => (conAcc[k] || 0) > (senzaAcc[k] || 0));
+  esito(scarto !== '',
+    'premessa: sul seme, alla vigilia del termine, gli accordi firmati spostano almeno un seggio',
     scarto || 'nessuno scarto: gli accordi non spostano niente');
+  esito(guadagnano.every(k => membri[k]),
+    'e un accordo da seggi solo ai suoi membri: chi guadagna e in una coppia applicata',
+    'guadagnano ' + (guadagnano.join(', ') || 'nessuno') + ' · membri ' + Object.keys(membri).join(', '));
   esito(somma(A.dhondt(S.QUO)) === 120, 'e fa 120', String(somma(A.dhondt(S.QUO))));
 
   const diversi = [];
@@ -463,7 +475,20 @@ A.par('apparentamenti', 0);
 {
   const S0 = A.stato();
   const senza = A.ripartoSoglia(S0.QUO);
-  A.setApp([{a:'likud', b:'sionismo_rel', data:'2026-01-01', stato:'depositato',
+  /* LA COPPIA SI CERCA, dal 13 ottobre 2026. Era Likud + Sionismo Religioso, annotata in
+     CLAUDE.md; col seme allineato la famiglia è contata come RZP-Zehut e la componente non è
+     più fra le liste proiettate. Quale coppia sposti un seggio FRA I BLOCCHI dipende dalle
+     quote: si prova la prima che lo fa, fra tutte quelle sopra soglia. */
+  const SOPRA = Object.keys(S0.QUO).filter(k => S0.QUO[k] >= SOGLIA);
+  let coppia = null;
+  for (let x = 0; x < SOPRA.length && !coppia; x++) for (let y = x + 1; y < SOPRA.length && !coppia; y++) {
+    A.setApp([{a:SOPRA[x], b:SOPRA[y], data:'2026-01-01', stato:'depositato', fonte:'coppia di prova'}]);
+    const bc = A.blocchi(A.dhondt(S0.QUO, null)), bs = A.blocchi(senza);
+    if (bc.coalizione !== bs.coalizione) coppia = [SOPRA[x], SOPRA[y]];
+  }
+  esito(!!coppia, 'esiste sulle quote del seme una coppia che sposta un seggio fra i blocchi',
+    coppia ? coppia.join(' + ') : 'nessuna');
+  if (coppia) A.setApp([{a:coppia[0], b:coppia[1], data:'2026-01-01', stato:'depositato',
              fonte:'coppia di prova'}]);
   const con = A.dhondt(S0.QUO, null);
   esito(!ugual(con, senza),
@@ -1275,7 +1300,9 @@ A.render();
  * Le prove devono reggere la tabella che ci sarà, non quella che c'è. Il 2021 ne ha visti
  * sei, il 2022 quattro: tre righe insieme sono lo scenario normale, non l'estremo. */
 {
-  const COPPIE = [['shas','utj'], ['likud','sionismo_rel'], ['democratici','beitenu']];
+  /* la coppia del blocco Netanyahu è quella vera dal 6 ottobre: col seme allineato Sionismo
+     Religioso è contato nel contenitore, e una riga sulla componente veniva scartata */
+  const COPPIE = [['shas','utj'], ['likud','rzp_zehut'], ['democratici','beitenu']];
   const riga = (p, st, i) => {
     const r = {a:p[0], b:p[1], data:giorniFa(10 + i), stato:st};
     if (st === 'ritirato') r.fine = giorniFa(1);

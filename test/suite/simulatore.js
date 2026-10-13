@@ -265,11 +265,12 @@ setTimeout(function(){
      liste del blocco sono senza seggi, e cade se ne compare una non dichiarata — l idioma di
      opacita.js. Cosi il filtro continua a non poter nascondere niente, e il giorno in cui
      Zehut prende il primo seggio la riga cade di nuovo e chiede di togliere la voce. */
+  /* AGGIORNATO IL 13 OTTOBRE 2026, col seme allineato all'archivio: la famiglia è contata
+     come contenitore, RZP-Zehut prende seggi e restano senza le due componenti. La riga
+     cadrà di nuovo il giorno in cui una delle due prende un seggio da sola. */
   const SENZA_SEGGI = [
-    'zehut',      /* mappata l 1 settembre 2026, ancora sotto soglia: 1,1-2,6% */
-    'rzp_zehut'   /* il contenitore del blocco tecnico: prende seggi solo nelle rilevazioni
-                     che pubblicano la cella congiunta, e oggi il lato che vince e quello
-                     delle componenti */
+    'sionismo_rel', /* componente: le rilevazioni recenti pubblicano la cella congiunta */
+    'zehut'         /* componente, e sotto soglia anche da sola */
   ];
   const nonDichiarate = APERTURA.filter(i => !conSeggi(i) && SENZA_SEGGI.indexOf(i) < 0);
   const dichiarateConSeggi = SENZA_SEGGI.filter(conSeggi);
