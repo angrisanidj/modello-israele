@@ -541,6 +541,48 @@ esito(colId.length >= 8, 'le colonne di lista sono ' + colId.length, colId.join(
       'attesi ' + attesiSep.join(', ') + ' · resi ' + resiSep.join(', '));
   }
 
+  /* IL CASO CHE LA RIGA VERA NON ESERCITAVA — dal 13 ottobre 2026. Il filetto leggeva la
+     PRIMA COLONNA del blocco in tabella, e nel pannello le liste senza seggi non si mostrano:
+     se quella prima colonna era senza seggi in quella riga, il filetto spariva. Sul seme di
+     allora nessuna lista dell'ago della bilancia aveva seggi, quindi il blocco non compariva
+     mai nel pannello e la prova sopra era verde per assenza del caso. La fixture lo costruisce:
+     una lista dell'ago CON seggi preceduta, nell'ordine delle colonne, da una dello stesso
+     blocco SENZA. */
+  {
+    /* senza: la PRIMA colonna dell ago fra quelle che la tabella mostra, cioè una lista con seggi
+       in qualche riga; conSeggi: una lista dell ago che viene DOPO, e prende seggi solo qui */
+    const ORDINE = A.colonneBlocco(IDS);
+    const senza = A.colonneBlocco(IDS.filter(i => A.SOND().some(r => r.seggi[i]))).filter(i => P[i].b === 'incerto')[0];
+    const conSeggi = senza ? ORDINE.filter(i => P[i].b === 'incerto' && ORDINE.indexOf(i) > ORDINE.indexOf(senza))[0] : null;
+    esito(!!conSeggi && !!senza,
+      'premessa: la prima colonna dell ago in tabella e una lista con seggi altrove, e un altra lista dell ago la segue',
+      (senza || '-') + ' poi ' + (conSeggi || '-'));
+    if (conSeggi && senza) {
+      const base = A.SOND().slice().sort((a, b) => a.data < b.data ? 1 : -1)[0];
+      const seggi = Object.assign({}, base.seggi);
+      const donatrice = Object.keys(seggi).filter(k => P[k] && P[k].b === 'coalizione').sort((a, b) => seggi[b] - seggi[a])[0];
+      seggi[donatrice] -= 4; seggi[conSeggi] = 4; delete seggi[senza];
+      const FIX = {data: base.data, istituto: 'Istituto del filetto', testata: '', campione: 500, casa: 0, seggi: seggi};
+      A.SOND().unshift(FIX);
+      A.setMostra(A.SOND().length + 10);
+      A.render();
+      const det = [].slice.call(D.querySelectorAll('#k-tab .sondlist details.sondr'))
+        .find(d => /Istituto del filetto/.test(d.textContent));
+      const pastF = det ? [].slice.call(det.querySelectorAll('.sondv span:not(.cmp)')) : [];
+      const nomiF = pastF.map(x => x.querySelector('em').textContent.trim());
+      const idF = nomiF.map(nmF => IDS.find(k => P[k].n === nmF));
+      const attesiF = nomiF.filter((x, k) => k > 0 && P[idF[k]].b !== P[idF[k - 1]].b);
+      const resiF = pastF.filter(x => x.classList.contains('sep')).map(x => x.querySelector('em').textContent.trim());
+      esito(idF.indexOf(conSeggi) >= 0 && idF.indexOf(senza) < 0,
+        'la fixture e nel pannello: la lista dell ago con seggi c e, quella senza no', nomiF.join(', '));
+      esito(attesiF.indexOf(P[conSeggi].n) >= 0 && resiF.join('|') === attesiF.join('|'),
+        'e il filetto cade anche sulla lista dell ago, benche la prima colonna del suo blocco non sia mostrata',
+        'attesi ' + attesiF.join(', ') + ' · resi ' + resiF.join(', '));
+      A.SOND().shift();
+      A.render();
+    }
+  }
+
   /* ══ E GLI STESSI FILTRI ══
      Le due forme sono viste dello stesso dato anche quando il dato si restringe: un filtro
      che agisse su una sola delle due sarebbe la divergenza peggiore, perché ciascuna forma

@@ -74,7 +74,7 @@ global.FileReader = function(){}; global.fetch = () => Promise.reject(0);
 
 let src = fs.readFileSync(__dirname + '/../app.js','utf8');
 src = src.replace('carica().then(render,render)',
-  'global.A={render:render,C:function(){return C;}};carica().then(render,render)');
+  'global.A={render:render,C:function(){return C;},P:P,SOND:function(){return SOND;},setSOND:function(a){SOND=a;}};carica().then(render,render)');
 eval(src);
 const A = global.A;
 const $ = i => D.getElementById(i);
@@ -298,6 +298,40 @@ esito(fuoriCap.length === 0, 'la didascalia dell\'80% resta dentro il viewBox al
   fuoriCap.join(' · '));
 esito(margine >= 10, 'e ci resta con almeno dieci unità di margine, non per un pelo',
   'margine minimo ' + margine.toFixed(1) + ' unità su ' + (SWING.length*2) + ' stati');
+
+/* IL CASO CHE IL SERRAGGIO ESISTE PER COGLIERE — dal 13 ottobre 2026. Sul seme di allora
+   il serraggio non mordeva in nessuno stato, ed era stato tolto; sul seme allineato
+   all'archivio pubblicato, a swing +6, il centro della fascia dell'opposizione cadeva a
+   152,1 e la didascalia usciva di 2,5 unità. La fixture costruisce quel caso sul seme di
+   oggi, senza dipendere dall'archivio del giorno: dieci seggi per rilevazione passano
+   dall'opposizione al Likud, e lo swing fa il resto. E la PREMESSA si misura: il centro
+   della scala dell'80% — la riga sotto l'asse, letta dal disegno — deve cadere fuori dai
+   limiti, o la prova girerebbe su un caso in cui il serraggio non morde. */
+{
+  const SEME = A.SOND();
+  const P = A.P;
+  A.setSOND(SEME.map(r => {
+    const o = JSON.parse(JSON.stringify(r)); delete o._q; delete o._qk;
+    let da = 10;
+    Object.keys(o.seggi).filter(k => P[k] && P[k].b === 'opposizione')
+      .sort((a, b) => o.seggi[b] - o.seggi[a]).forEach(k => {
+        const t = Math.min(da, Math.max(0, o.seggi[k] - 4)); o.seggi[k] -= t; da -= t; });
+    o.seggi.likud = (o.seggi.likud || 0) + (10 - da);
+    return o;
+  }));
+  MOB = true; A.render(); swing(6);
+  const svg = $('k-hist2').querySelector('svg');
+  const scala = [...svg.querySelectorAll('line')].find(l => l.getAttribute('stroke-width') === '2.5');
+  const centro = scala ? (+scala.getAttribute('x1') + +scala.getAttribute('x2')) / 2 : NaN;
+  const cx = +leggi('k-hist2').cap.getAttribute('x');
+  esito(centro - CAPW/2 < 10 || W_VB - CAPW/2 - centro < 10,
+    'premessa: con la fixture a swing +6 il centro della fascia dell\'80% cadrebbe fuori dai limiti, cioè il serraggio morde',
+    'centro ' + centro.toFixed(1) + ' · limiti ' + (CAPW/2 + 10).toFixed(1) + '–' + (W_VB - CAPW/2 - 10).toFixed(1));
+  esito(cx - CAPW/2 >= 10 && W_VB - CAPW/2 - cx >= 10,
+    'e la didascalia resta dentro il viewBox con dieci unità di margine: il serraggio la tiene',
+    'cx ' + cx.toFixed(1) + ' · margine ' + Math.min(cx - CAPW/2, W_VB - CAPW/2 - cx).toFixed(1));
+  A.setSOND(SEME); swing(0); MOB = false; A.render();
+}
 MOB = false; A.render(); swing(0);
 
 /* ══ 4 · NESSUN TESTO SI SOVRAPPONE AL DISEGNO ══════════════════════════════

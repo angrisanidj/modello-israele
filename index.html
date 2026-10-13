@@ -6424,8 +6424,17 @@ function istogramma(arr,col,el,lab,centr,soglia){
     era codice che nessuna prova poteva esercitare, cioe' la cosa contro cui questo
     progetto mette in guardia. Al suo posto c'e' una prova che MISURA quel margine: se
     un giorno una distribuzione spinge la fascia di lato, cade e si vede. Un serraggio
-    l'avrebbe nascosto. */
- s+='<text x="'+((xa+xb)/2).toFixed(1)+'" y="'+(AY+44*FS).toFixed(1)+'" text-anchor="middle" font-size="'+(10.5*FS).toFixed(1)+'" fill="'+C.ink2+'">'+
+    l'avrebbe nascosto.
+    IL SERRAGGIO E' TORNATO IL 13 OTTOBRE 2026, ed e' quella prova ad averlo chiesto: sul
+    seme allineato all'archivio pubblicato, a swing +6, il centro della fascia dell'opposizione
+    cade a 152,1 e la didascalia esce dal viewBox di 2,5 unita'. Adesso morde, quindi la prova
+    lo esercita. La larghezza e' quella che soglia.js dichiara per il caso peggiore — 19 corpi
+    — e il margine sono le stesse dieci unita' che la prova pretende. */
+ /* i due limiti si arrotondano VERSO L'INTERNO al decimale con cui la x viene scritta: con
+    l'arrotondamento ordinario 164,6125 diventa 164,6 e il margine scende a 9,99 */
+ var capW=19*10.5*FS, capLo=Math.ceil((capW/2+10)*10)/10, capHi=Math.floor((W-capW/2-10)*10)/10,
+     capX=Math.max(capLo,Math.min(capHi,(xa+xb)/2));
+ s+='<text x="'+capX.toFixed(1)+'" y="'+(AY+44*FS).toFixed(1)+'" text-anchor="middle" font-size="'+(10.5*FS).toFixed(1)+'" fill="'+C.ink2+'">'+
     '8 simulazioni su 10 fra '+p10+' e '+p90+' seggi</text>';
  /* Contorno dell'evidenziazione, a due tinte e dipinto per ultimo, quindi sopra tutto.
     Una tinta sola non puo' farcela: nel tema chiaro dovrebbe stare sotto L 0,153 per
@@ -9839,11 +9848,19 @@ function rTab(){
   meta.push(s.campione ? f(s.campione)+' '+acc(s.campione,'intervistato','intervistati')
                        : 'campione non dichiarato');
   h+='<p class="sondmeta">'+meta.join(' · ')+'</p><div class="sondv">';
+  /* IL FILETTO CADE DOVE CAMBIA IL BLOCCO FRA LE LISTE MOSTRATE — dal 13 ottobre 2026. Prima
+     leggeva confine[i], cioe' la PRIMA COLONNA del blocco in tabella: qui pero' le liste senza
+     seggi in quella riga non si mostrano, e se la prima colonna di un blocco era una di quelle
+     il filetto non veniva disegnato affatto — Riservisti · NEP si leggeva attaccata
+     all'opposizione. Reggeva finche' nessuna lista dell'ago della bilancia aveva seggi, cioe'
+     per coincidenza. Il blocco e' lo stesso P[i].b da cui la tabella ricava confine. */
+  var bPrec=null;
   cols.forEach(function(i){var v=s.seggi[i]; if(!v) return;
    /* e la forma stretta segue la larga, o sarebbero due strade per lo stesso valore: qui
       il nome della lista sta gia' ACCANTO alla cifra, quindi l'identita' e' anche piu'
       esplicita che nella tabella */
-   h+='<span'+(confine[i]?' class="sep"':'')+'><em>'+E(nm(i))+'</em> <s>'+f(v)+'</s></span>';});
+   var sep=bPrec!==null&&P[i].b!==bPrec; bPrec=P[i].b;
+   h+='<span'+(sep?' class="sep"':'')+'><em>'+E(nm(i))+'</em> <s>'+f(v)+'</s></span>';});
   h+='</div></details>';
  });
  /* Il comando dice QUANTE ne aggiunge e QUANTE ne restano: sono due numeri di righe, come
