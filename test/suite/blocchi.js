@@ -1446,9 +1446,22 @@ function confini(f){
   esito(/a parte/.test(prem.leve) && !/invece che a parte/.test(prem.leve),
     'e la frase di statoLeve() descrive lo STATO, non una stringa fissa del verso vecchio',
     prem.leve);
-  esito(apert.ipotesi !== '' && prem.ipotesi === '',
-    'ipotesiNeiNumeri() fa il contrario: parla quando l ipotesi e nei numeri, e tace quando non c e',
-    'apertura «' + apert.ipotesi.slice(0,40) + '» · premuto «' + prem.ipotesi + '»');
+  /* LA CLAUSOLA DELLA LEVA PREMUTA, NON IL SILENZIO DELL'INTERA FRASE — dal 13 ottobre 2026.
+     Qui c'era «prem.ipotesi === ''», che tace solo se tacciono TUTTE le leve: vero finche' sul
+     seme gli accordi di eccedenza non spostavano niente. Con Shas e Giudaismo Unito Torah in
+     tabella — tutte e due nel seme — gli accordi spostano un seggio anche li', e a leva in
+     bilico spenta la frase dichiara giustamente gli accordi, che restano applicati. E' la terza
+     asserzione di questa forma nella stessa suite: le prime due le ha riscritte 0a16605, il 15
+     settembre. Adesso la proprieta' e' doppia: la clausola di QUESTA leva compare e sparisce, e
+     quella degli accordi — che nessuno ha toccato — resta identica nei due stati. */
+  const CL_BILICO = /(Un seggio è contato|Sono contati \d+ seggi) in un blocco in cui la fonte non (lo|li) mette/;
+  const clApp = t => (t.match(/(Un accordo di eccedenza|Sono applicati \d+ accordi di eccedenza)[^.]*\./) || [''])[0];
+  esito(CL_BILICO.test(apert.ipotesi) && !CL_BILICO.test(prem.ipotesi),
+    'ipotesiNeiNumeri() fa il contrario: la clausola della leva in bilico c e quando l ipotesi e nei numeri, e sparisce quando non c e',
+    'apertura «' + apert.ipotesi.slice(0,60) + '» · premuto «' + prem.ipotesi.slice(0,60) + '»');
+  esito(clApp(apert.ipotesi) === clApp(prem.ipotesi),
+    'e la clausola degli accordi, che nessuno ha toccato, e la stessa nei due stati',
+    (clApp(apert.ipotesi) || '(nessun accordo sposta seggi sul seme: identita a vuoto)') + ' | ' + clApp(prem.ipotesi));
 
   /* E LA RAGIONE SI LEGGE NEI DUE RAMI. Il campo «fonte» lo stampava solo il ramo spento,
      che dal rovesciamento legge soltanto chi preme: chi apre vedeva l ipotesi dichiarata e
