@@ -366,6 +366,48 @@ try{
 p('i workflow di GitHub sono YAML valido'+(yamlKO.length?' ('+yamlKO.join(' | ')+')':''),
   !yamlKO.length);
 
+/* ══ UN runs-on FISSATO È UNA DECISIONE A TERMINE, E SCADE DA SOLA ══
+   Applicato il 14 ottobre 2026. ubuntu-latest passa a Ubuntu 26 dal 19 ottobre, nella
+   settimana del voto, e i workflow sono stati fissati a ubuntu-24.04 fino ai risultati
+   ufficiali del 4 novembre. È la stessa forma dell'esperimento del cron qui sotto: una
+   decisione a termine che scade in silenzio è esattamente quello che questa riga impedisce.
+   Fra un mese un ubuntu-24.04 nel workflow sembrerebbe una scelta, e nessuno saprebbe
+   perché. Quindi: OGNI runs-on che non sia ubuntu-latest passa solo se il commento subito
+   sopra dichiara «provvisorio fino al <giorno> <mese> <anno>», e smette di passare il
+   giorno dopo quella data.
+   LA DATA SI LEGGE DAL COMMENTO, come per l'esperimento, perché è il posto in cui la cerca
+   chi apre il workflow: una costante qui sarebbe un secondo posto da tenere allineato.
+   E come per l'esperimento la spazzolata NON la vede — legge test/suite/ — quindi il
+   rosso arriva il 5 novembre, alla prima npm run verifica: è il cancello del lavoro
+   notturno, e l'archivio si ferma finché qualcuno torna a ubuntu-latest o sposta la data. */
+{
+  const MESI_RO = 'gennaio febbraio marzo aprile maggio giugno luglio agosto settembre ottobre novembre dicembre'.split(' ');
+  const fissati = [], roKO = [];
+  for (const f of readdirSync(join(qui,'..','.github','workflows'))){
+    if (!/\.ya?ml$/.test(f)) continue;
+    const righe = readFileSync(join(qui,'..','.github','workflows',f),'utf8').split(NL);
+    righe.forEach(function(r, i){
+      const m = r.match(/^\s*runs-on:\s*(\S+)/);
+      if (!m || m[1] === 'ubuntu-latest') return;
+      let j = i - 1, sopra = '';
+      while (j >= 0 && /^\s*#/.test(righe[j])) { sopra = righe[j] + ' ' + sopra; j--; }
+      const d = sopra.match(/PROVVISORIO FINO AL (\d{1,2}) ([a-zàéìòù]+) (\d{4})/i);
+      const mi = d ? MESI_RO.indexOf(d[2].toLowerCase()) : -1;
+      const scade = mi < 0 ? null : Date.UTC(+d[3], mi, +d[1] + 1);   /* scade il giorno DOPO */
+      const dove = f + ':' + (i + 1) + ' ' + m[1];
+      fissati.push(dove);
+      if (!scade) roKO.push(dove + ' senza «provvisorio fino al <data>» nel commento sopra');
+      else if (Date.now() >= scade) roKO.push(dove + ' era provvisorio fino al ' + d[1] + ' ' + d[2] + ' ' + d[3] +
+        ', e la data è passata: si torna a ubuntu-latest, o si sposta la data dicendo perché');
+    });
+  }
+  p(fissati.length
+      ? 'i runs-on fissati sono a termine e il termine non è passato (' + fissati.length + ' fissati' +
+        (roKO.length ? ': ' + roKO.join(' | ') : '') + ')'
+      : 'nessun runs-on fissato: tutti i job girano su ubuntu-latest',
+    !roKO.length);
+}
+
 /* ══ IL CRON A FINESTRA E LA GUARDIA CHE LO RENDE SOSTENIBILE ══
    Applicato il 28 agosto 2026, la mattina in cui il job NON E' PARTITO AFFATTO dopo che il
    giorno prima era slittato di undici ore. Le esecuzioni programmate di GitHub sono
