@@ -137,7 +137,11 @@ jobs:
   # saltato si legge «skipped», non «failed»: un tick che esce subito non deve sembrare una
   # notte fallita, ed e' precisamente per questo che la guardia non esce con un errore.
   guardia:
-    runs-on: ubuntu-latest
+    # UBUNTU-24.04 E NON ubuntu-latest, PROVVISORIO FINO AL 4 NOVEMBRE 2026. L'etichetta
+    # ubuntu-latest passa a Ubuntu 26 dal 19 ottobre, cioe' nella settimana del voto: un cambio
+    # d'immagine non deciso da noi, nei giorni in cui un job rotto non si ripara in tempo. Dopo i
+    # risultati ufficiali del 4 novembre si torna a ubuntu-latest, e si guarda il primo giro.
+    runs-on: ubuntu-24.04
     outputs:
       gia: ${{ steps.leggi.outputs.gia }}
     steps:
@@ -212,7 +216,11 @@ jobs:
     # soltanto l'esecuzione annullata, e dentro il job nessun passo guarda che cosa ha fatto
     # un altro. Vedi il passo che genera, e test/struttura.mjs.
     if: always() && needs.aggiorna.result != 'cancelled'
-    runs-on: ubuntu-latest
+    # UBUNTU-24.04 E NON ubuntu-latest, PROVVISORIO FINO AL 4 NOVEMBRE 2026. L'etichetta
+    # ubuntu-latest passa a Ubuntu 26 dal 19 ottobre, cioe' nella settimana del voto: un cambio
+    # d'immagine non deciso da noi, nei giorni in cui un job rotto non si ripara in tempo. Dopo i
+    # risultati ufficiali del 4 novembre si torna a ubuntu-latest, e si guarda il primo giro.
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
         with: {ref: main}
@@ -307,7 +315,11 @@ jobs:
     # lancia dopo aver guardato. La guardia non ripete una constatazione gia' fatta: la fa
     # dove non c'e'.
     if: github.event_name == 'workflow_dispatch' || needs.guardia.outputs.gia != '1'
-    runs-on: ubuntu-latest
+    # UBUNTU-24.04 E NON ubuntu-latest, PROVVISORIO FINO AL 4 NOVEMBRE 2026. L'etichetta
+    # ubuntu-latest passa a Ubuntu 26 dal 19 ottobre, cioe' nella settimana del voto: un cambio
+    # d'immagine non deciso da noi, nei giorni in cui un job rotto non si ripara in tempo. Dopo i
+    # risultati ufficiali del 4 novembre si torna a ubuntu-latest, e si guarda il primo giro.
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4

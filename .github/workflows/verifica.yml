@@ -4,7 +4,11 @@ on:
   pull_request:
 jobs:
   prove:
-    runs-on: ubuntu-latest
+    # UBUNTU-24.04 E NON ubuntu-latest, PROVVISORIO FINO AL 4 NOVEMBRE 2026. L'etichetta
+    # ubuntu-latest passa a Ubuntu 26 dal 19 ottobre, cioe' nella settimana del voto: un cambio
+    # d'immagine non deciso da noi, nei giorni in cui un job rotto non si ripara in tempo. Dopo i
+    # risultati ufficiali del 4 novembre si torna a ubuntu-latest, e si guarda il primo giro.
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
