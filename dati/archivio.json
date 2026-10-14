@@ -7333,5 +7333,43 @@
    "reserv_nep": 3.6026557006899664
   },
   "_qk": "92@"
+ },
+ {
+  "data": "2026-10-11",
+  "istituto": "Kantar",
+  "testata": "Kan 11",
+  "campione": 553,
+  "casa": 0,
+  "seggi": {
+   "likud": 20,
+   "byachad": 12,
+   "rzp_zehut": 5,
+   "otzma": 9,
+   "shas": 7,
+   "utj": 8,
+   "beitenu": 8,
+   "raam": 5,
+   "lista_araba": 8,
+   "democratici": 8,
+   "yashar": 22,
+   "reserv_nep": 4,
+   "amcha": 4
+  },
+  "_q": {
+   "likud": 14.895629722165156,
+   "byachad": 8.97639222634962,
+   "rzp_zehut": 4.1346947469636275,
+   "otzma": 6.777186421300699,
+   "shas": 5.372068200902867,
+   "utj": 6.0680540079701775,
+   "beitenu": 6.0680540079701775,
+   "raam": 4.1346947469636275,
+   "lista_araba": 6.048971699122825,
+   "democratici": 6.048971699122825,
+   "yashar": 16.44165263186041,
+   "reserv_nep": 3.4797629720661627,
+   "amcha": 3.5538669172418014
+  },
+  "_qk": "92@"
  }
 ]
