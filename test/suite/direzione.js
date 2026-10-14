@@ -55,7 +55,7 @@ global.fetch = () => Promise.reject(0);
 
 let src = fs.readFileSync(__dirname + '/../app.js','utf8');
 src = src.replace('carica().then(render,render)',
-  'global.A={render:render,rDirezione:rDirezione,rTrend:rTrend,blocchi:blocchi,nm:nm,' +
+  'global.A={termineApp:termineApp,render:render,rDirezione:rDirezione,rTrend:rTrend,blocchi:blocchi,nm:nm,' +
   'firmaPar:firmaPar,firmaRiparto:firmaRiparto,coppieRiparto:coppieRiparto,sopraSoglia:sopraSoglia,' +
   'notaSerie:notaSerie,scartoPS:scartoPS,SCARTO_PS:SCARTO_PS,' +
   'serie:serieModello,APP:APPARENTAMENTI,' +
@@ -93,6 +93,15 @@ const giorniFa = k => {
   return new Date(Date.UTC(o.getFullYear(), o.getMonth(), o.getDate()) - k*864e5).toISOString().slice(0,10);
 };
 const ORIG = A.APP.map(x => Object.assign({}, x));
+/* UNA DATA FISSA PRIMA DEL TERMINE, ricavata da termineApp() e non scritta. Fino al 14 ottobre
+   2026 le fixture degli accordi depositati dicevano «ieri», giorniFa(1): dal 17 ottobre un
+   deposito «ieri» è dopo il termine, e la convalida lo ferma. Una data fissa anteriore regge
+   per sempre, perché deposito ≤ oggi resta vero a ogni data successiva.
+   IL PREZZO, misurato e non dedotto: la sezione 2 prova un accordo «datato dopo il taglio», e
+   dal 23 ottobre circa nessuna data anteriore al termine cade dopo il taglio dei sette giorni.
+   Da lì quella sezione prova che l'accordo entra nei due termini, non più che entri benché
+   datato dopo il taglio. Prima del termine — cioè quando il difetto poteva esistere — lo prova. */
+const primaDelTermine = k => new Date(Date.parse(A.termineApp() + 'T00:00:00Z') - k*864e5).toISOString().slice(0,10);
 function foto(){
   const S = A.stato();
   return {seg: JSON.stringify(A.blocchi(S.SEG)),
@@ -197,7 +206,7 @@ esito(mossePro >= 1, 'e almeno una leva muove la proiezione', mossePro + ' su ' 
      prova vale anche dopo il 16 ottobre, quando la leva non ha più niente da applicare e
      un accordo annunciato non è più un'ipotesi ma una cosa che non è successa — con la
      leva, questa prova sarebbe scaduta col termine. */
-  const dopoIlTaglio = [{a: COPPIA[0].a, b: COPPIA[0].b, data: giorniFa(1), stato: 'depositato'}];
+  const dopoIlTaglio = [{a: COPPIA[0].a, b: COPPIA[0].b, data: primaDelTermine(3), deposito: primaDelTermine(3), stato: 'depositato'}];
   A.setApp([]); A.render();
   const off = foto();
   A.setApp(dopoIlTaglio); A.render();
@@ -258,11 +267,11 @@ esito(mossePro >= 1, 'e almeno una leva muove la proiezione', mossePro + ' su ' 
      che fra leva spenta e leva accesa: quello che si prova qui è la DATA, non la leva, e
      dopo il 16 ottobre la leva non applicherebbe più niente — la prova scadrebbe col
      termine, che è la stagionalità appena tolta di mezzo. */
-  const q = giorniFa(20);
+  const q = primaDelTermine(22);   /* fissa e anteriore al termine: vedi primaDelTermine() */
   A.setApp([]);
   A.par('apparentamenti', 0); A.render();
   const senza = A.serie().map(p => p.d + ':' + p.g + '/' + p.o + '/' + p.a);
-  A.setApp([{a: COPPIA[0].a, b: COPPIA[0].b, data: q, stato: 'depositato'}]); A.render();
+  A.setApp([{a: COPPIA[0].a, b: COPPIA[0].b, data: q, deposito: q, stato: 'depositato'}]); A.render();
   const con = A.serie().map(p => p.d + ':' + p.g + '/' + p.o + '/' + p.a);
 
   esito(senza.length === con.length, 'la serie ha lo stesso numero di punti nei due casi',
@@ -309,7 +318,7 @@ esito(mossePro >= 1, 'e almeno una leva muove la proiezione', mossePro + ' su ' 
      buone sarebbe una fixture stagionale — la stessa che npm run spazzola ha appena
      trovato in questa suite. */
   {
-    const accordo = [{a: COPPIA[0].a, b: COPPIA[0].b, data: giorniFa(3), stato: 'depositato'}];
+    const accordo = [{a: COPPIA[0].a, b: COPPIA[0].b, data: primaDelTermine(3), deposito: primaDelTermine(3), stato: 'depositato'}];
     A.setApp(accordo); A.render();
     const S = A.serie().slice();
     const b = A.blocchi(A.stato().SEG);

@@ -95,11 +95,17 @@ src = src.replace('carica().then(render,render)',
   'parola:parolaProposto,setQS:function(q,s){QUO=q;SEG=s;},' +
   'P:P,corre:corre,percheFuori:percheFuori,filtraRiparto:filtraRiparto,effettoApp:effettoApp,ripartoDepositati:ripartoDepositati,' +
   'ipotesiNeiNumeri:ipotesiNeiNumeri,testoCondivisione:testoCondivisione,promptAI:promptAI,' +
+  'depositatoAl:depositatoAl,serie:function(){return serieModello();},' +
   'statoLeve:(typeof statoLeve===\'function\'?statoLeve:null)};carica().then(render,render)');
 eval(src);
 try { A.render(); } catch(e) { console.log('KO il render non è partito — ' + (e && e.message)); }
 
 const ORIG = A.APP.map(x => Object.assign({}, x));
+/* LA TABELLA PUBBLICATA CON OGNI RIGA RIPORTATA A «proposto»: stesse coppie, stesse date, niente
+   deposito. Serve alle prove sul meccanismo degli accordi non depositati — l'identità a leva
+   spenta e l'effetto congiunto — che fino al 14 ottobre 2026 pretendevano di trovarli nella
+   tabella del giorno, e il 16, coi cinque depositati, cadevano su una riga giusta. */
+const PROVA_FIRMATI = ORIG.map(x => ({a: x.a, b: x.b, data: x.data, stato: 'proposto', fonte: x.fonte}));
 const SOGLIA = A.SOGLIA;
 
 /* LE DUE DATE CHE SEPARANO I DUE MONDI, ricavate dal termine e non scritte. Prima del 16
@@ -176,9 +182,9 @@ esito(A.valida().length === 0,
   /* LA LEVA SI SPEGNE QUI, invece di darla per spenta: fino al 14 settembre 2026 lo era per
      difetto, e l'asserzione diceva «a leva spenta» affidandosi al predefinito */
   A.par('apparentamenti', 0);
-  esito(A.coppieRiparto(null, null).length === A.APP.filter(x => x.stato === 'depositato').length,
+  esito(A.coppieRiparto(null, null).length === A.APP.filter(x => A.depositatoAl(x)).length,
     'e con la tabella vera, a leva spenta, entrano esattamente i depositati',
-    A.coppieRiparto(null, null).length + ' contro ' + A.APP.filter(x => x.stato === 'depositato').length + ' depositati');
+    A.coppieRiparto(null, null).length + ' contro ' + A.APP.filter(x => A.depositatoAl(x)).length + ' depositati');
   A.par('apparentamenti', A.PAR_DEF.apparentamenti);
 }
 
@@ -400,7 +406,7 @@ A.par('apparentamenti', 0);
 /* ══ 6 · PROPOSTO E DEPOSITATO SONO DUE COSE ════════════════════════════════ */
 
 {
-  A.setApp([{a:'raam', b:'lista_araba', data:'2026-08-22', stato:'depositato', fonte:'prova'}]);
+  A.setApp([{a:'raam', b:'lista_araba', data:'2026-08-22', deposito:'2026-08-22', stato:'depositato', fonte:'prova'}]);
   esito(A.par('apparentamenti') === 0 && A.coppieRiparto(null, null).length === 1,
     'un accordo DEPOSITATO entra nel riparto anche a leva spenta: l\'8 settembre si cambia uno stato, non il codice');
   A.setApp([{a:'raam', b:'lista_araba', data:'2026-08-22', stato:'proposto', fonte:'prova'}]);
@@ -409,8 +415,8 @@ A.par('apparentamenti', 0);
 
   /* una lista non può stare in due accordi: l'heskem odafim è fra DUE liste */
   A.setApp([
-    {a:'raam', b:'lista_araba', data:'2026-08-22', stato:'depositato', fonte:'prova'},
-    {a:'raam', b:'likud',       data:'2026-08-22', stato:'depositato', fonte:'prova'}
+    {a:'raam', b:'lista_araba', data:'2026-08-22', deposito:'2026-08-22', stato:'depositato', fonte:'prova'},
+    {a:'raam', b:'likud',       data:'2026-08-22', deposito:'2026-08-22', stato:'depositato', fonte:'prova'}
   ]);
   const cp = A.coppieRiparto(null, null);
   esito(cp.length === 1 && cp[0].b === 'lista_araba',
@@ -482,13 +488,13 @@ A.par('apparentamenti', 0);
   const SOPRA = Object.keys(S0.QUO).filter(k => S0.QUO[k] >= SOGLIA);
   let coppia = null;
   for (let x = 0; x < SOPRA.length && !coppia; x++) for (let y = x + 1; y < SOPRA.length && !coppia; y++) {
-    A.setApp([{a:SOPRA[x], b:SOPRA[y], data:'2026-01-01', stato:'depositato', fonte:'coppia di prova'}]);
+    A.setApp([{a:SOPRA[x], b:SOPRA[y], data:'2026-01-01', deposito:'2026-01-01', stato:'depositato', fonte:'coppia di prova'}]);
     const bc = A.blocchi(A.dhondt(S0.QUO, null)), bs = A.blocchi(senza);
     if (bc.coalizione !== bs.coalizione) coppia = [SOPRA[x], SOPRA[y]];
   }
   esito(!!coppia, 'esiste sulle quote del seme una coppia che sposta un seggio fra i blocchi',
     coppia ? coppia.join(' + ') : 'nessuna');
-  if (coppia) A.setApp([{a:coppia[0], b:coppia[1], data:'2026-01-01', stato:'depositato',
+  if (coppia) A.setApp([{a:coppia[0], b:coppia[1], data:'2026-01-01', deposito:'2026-01-01', stato:'depositato',
              fonte:'coppia di prova'}]);
   const con = A.dhondt(S0.QUO, null);
   esito(!ugual(con, senza),
@@ -634,21 +640,29 @@ esito(!!Object.keys(A.stato().SEG).length,
     return {n: numeri(), seg: JSON.stringify(S.SEG), quo: JSON.stringify(S.QUO)};
   }
   const diversi = (a, b) => { let d = 0; for (let i = 0; i < Math.max(a.length, b.length); i++) if (a[i] !== b[i]) d++; return d; };
-  const DEP = ORIG.filter(x => x.stato === 'depositato');
+  /* LA PROPRIETÀ È DEL MECCANISMO, NON DELLA TABELLA DEL GIORNO, dal 14 ottobre 2026. Prima si
+     provava sulla tabella pubblicata e si pretendeva che portasse accordi non depositati: il
+     16 ottobre, con i cinque depositati, quella pretesa cadeva su una riga GIUSTA — la regia di
+     quel giorno l'ha misurato. Adesso la tabella su cui si prova è PROVA_FIRMATI, cioè quella
+     pubblicata con ogni riga riportata a `proposto`: stesse coppie, stesse date, e la domanda
+     resta la stessa — una riga non depositata, a leva spenta, non muove niente. */
+  const DEP = PROVA_FIRMATI.filter(x => A.depositatoAl(x));
 
   const s1 = giro(DEP, 0), s2 = giro(DEP, 0);
   esito(diversi(s1.n, s2.n) === 0,
     'il seme è riproducibile: due render identici scrivono gli stessi numeri, quindi un confronto verde vuol dire qualcosa',
     diversi(s1.n, s2.n) + ' diversi');
 
-  esito(ORIG.some(x => x.stato !== 'depositato'),
-    'la tabella pubblicata porta accordi non depositati: senza, l\'identità si proverebbe a vuoto');
-  const prima = giro(DEP, 0), dopo = giro(ORIG, 0), accesa = giro(ORIG, 1);
+  esito(DEP.length === 0 && PROVA_FIRMATI.length === ORIG.length &&
+        PROVA_FIRMATI.every((x, i) => x.a === ORIG[i].a && x.b === ORIG[i].b && x.data === ORIG[i].data),
+    'la tabella di prova è quella pubblicata con le stesse coppie e date, e nessuna riga depositata',
+    DEP.length + ' depositate, ' + PROVA_FIRMATI.length + ' righe contro ' + ORIG.length);
+  const prima = giro(DEP, 0), dopo = giro(PROVA_FIRMATI, 0), accesa = giro(PROVA_FIRMATI, 1);
   Math.random = veroRandom;
   A.setApp(ORIG); A.par('apparentamenti', 0); A.render();
 
   esito(prima.seg === dopo.seg && prima.quo === dopo.quo,
-    'a leva SPENTA le tre righe non muovono né un seggio né una quota');
+    'a leva SPENTA le righe non depositate non muovono né un seggio né una quota');
   esito(prima.n.length === dopo.n.length && diversi(prima.n, dopo.n) === 0,
     'a leva SPENTA ogni numero in pagina è identico a prima — tolte le sedi che descrivono la tabella',
     prima.n.length + ' contro ' + dopo.n.length + ' numeri, ' + diversi(prima.n, dopo.n) + ' diversi');
@@ -717,7 +731,10 @@ esito(!!Object.keys(A.stato().SEG).length,
  * che esercita «Insieme valgono N» e la concordanza del verbo. Misurato: con le quote del
  * seme perturbate del ±30% il caso capita in 99 tentativi su 400, il primo al sesto. */
 {
-  const TUTTI = ORIG.filter(x => x.stato !== 'depositato');
+  /* la stessa tabella di prova della sezione 1: il congiunto è un fatto del meccanismo, e
+     pretendere accordi non depositati nella tabella del giorno faceva cadere questa prova il
+     giorno in cui vengono depositati tutti */
+  const TUTTI = PROVA_FIRMATI.filter(x => !A.depositatoAl(x));
   const S0 = A.stato();
   const ids = Object.keys(S0.QUO);
   /* SOLO GLI ACCORDI CHE IL SEME CONOSCE — dall'8 ottobre 2026. Il seme BASE si ferma prima del
@@ -750,7 +767,7 @@ esito(!!Object.keys(A.stato().SEG).length,
   esito(!!caso, 'esiste un vettore di quote in cui gli accordi valgono insieme meno della loro somma',
     caso ? 'somma ' + caso.som + ', insieme ' + caso.cong : 'nessuno in 400 tentativi');
   if (caso) {
-    A.setApp(ORIG); A.par('apparentamenti', 1);
+    A.setApp(PROVA_FIRMATI); A.par('apparentamenti', 1);
     A.setQS(caso.q, A.dhondt(caso.q, null, TRE));
     A.rApp();
     const riga = String(D.getElementById('k-appriga').textContent || '').replace(/\s+/g, ' ');
@@ -779,8 +796,8 @@ esito(!!Object.keys(A.stato().SEG).length,
   {
     /* il ramo atteso si deduce dalla tabella: col primo deposito la nota cambia frase, e
        una prova ancorata alla frase di oggi direbbe «difetto» dove c'è un accordo in più */
-    const dp = A.APP.filter(x => x.stato === 'depositato').length;
-    const an = A.coppieAl(null, true).filter(x => x.stato !== 'depositato').length;
+    const dp = A.APP.filter(x => A.depositatoAl(x)).length;
+    const an = A.coppieAl(null, true).filter(x => !A.depositatoAl(x)).length;
     esito(dp
         ? /Accordi depositati, e quindi sempre nel riparto/.test(spento)
         : /Nessun accordo risulta ancora depositato/.test(spento),
@@ -884,8 +901,16 @@ esito(!!Object.keys(A.stato().SEG).length,
 
   /* la data non è scritta a mano da nessuna parte: se lo fosse, il giorno in cui il voto
      si sposta il calendario direbbe una cosa e la nota un'altra */
+  /* SI GUARDA IL CODICE, NON LA TABELLA DEI FATTI, dal 14 ottobre 2026. Un accordo depositato
+     l'ultimo giorno utile porta `deposito:'2026-10-16'`, che è un fatto con una data e non una
+     costante temporale — l'invariante 10 dice che una data letterale è legittima quando è il
+     fatto che si registra. Senza togliere la tabella, la sera del 16 questa prova cadeva su una
+     riga giusta: l'ha misurato la regia di quel giorno. */
   const sorgente = fs.readFileSync(__dirname + '/../app.js','utf8');
-  esito(!sorgente.includes("'2026-10-16'") && !sorgente.includes('"2026-10-16"'),
+  const inizioTab = sorgente.indexOf('var APPARENTAMENTI=['), fineTab = sorgente.indexOf('];', inizioTab);
+  esito(inizioTab >= 0 && fineTab > inizioTab, 'la tabella degli accordi si trova nel sorgente, e si può togliere');
+  const codice = sorgente.slice(0, inizioTab) + sorgente.slice(fineTab);
+  esito(!codice.includes("'" + T + "'") && !codice.includes('"' + T + '"'),
     'e la data del termine non compare come costante nel codice');
 
   A.rCalendario();
@@ -924,7 +949,7 @@ esito(!!Object.keys(A.stato().SEG).length,
     'e a voto avvenuto nemmeno');
   A.setApp(vere);
   /* un DEPOSITATO invece attraversa il termine: è un fatto, non un'ipotesi */
-  A.setApp([{a:'raam', b:'lista_araba', data:'2026-09-20', stato:'depositato'}]);
+  A.setApp([{a:'raam', b:'lista_araba', data:'2026-09-20', deposito:'2026-09-20', stato:'depositato'}]);
   esito(A.coppieAl('2026-10-17', false).length === 1,
     'un accordo depositato resta nel riparto anche dopo il termine');
   A.setApp(ORIG);
@@ -1035,7 +1060,7 @@ esito(!!Object.keys(A.stato().SEG).length,
   /* due accordi che si contendono la stessa lista: il DEPOSITATO vince, e non perché è
      scritto prima — qui è scritto dopo apposta */
   A.setApp([{a:'raam', b:'lista_araba', data:'2026-08-22', stato:'proposto'},
-            {a:'lista_araba', b:'democratici', data:'2026-08-23', stato:'depositato'}]);
+            {a:'lista_araba', b:'democratici', data:'2026-08-23', deposito:'2026-08-23', stato:'depositato'}]);
   A.par('apparentamenti', 1); A.render();
   const dentro = A.coppieRiparto(A.sopraSoglia(), null);
   esito(dentro.length === 1 && dentro[0].stato === 'depositato',
@@ -1072,7 +1097,7 @@ esito(!!Object.keys(A.stato().SEG).length,
   esito(/16 ottobre 2026/.test(spenta) && /non il deposito delle liste/.test(spenta),
     'e dice il termine vero, contro quello che il lettore darebbe per scontato', spenta);
   {
-    const vivi = A.coppieAl(null, true).filter(x => x.stato !== 'depositato');
+    const vivi = A.coppieAl(null, true).filter(x => !A.depositatoAl(x));
     /* L'ATTESA È CAMBIATA IL 13 SETTEMBRE 2026, di proposito: la parola dello stato
        `proposto` era «annunciato» e la fonte dei tre accordi in tabella dice «sign». La
        prova non scrive la parola nuova: la chiede a parolaProposto(), che è la sola strada,
@@ -1151,7 +1176,7 @@ esito(!!Object.keys(A.stato().SEG).length,
   }
 
   /* con un depositato la riga lo dice anche a leva spenta, perché nessun comando lo governa */
-  A.setApp([{a:'raam', b:'lista_araba', data:giorniFa(1), stato:'depositato'}]);
+  A.setApp([{a:'raam', b:'lista_araba', data:giorniFa(1), deposito:giorniFa(1), stato:'depositato'}]);
   A.render();
   const dep = riga();
   esito(/1 accordo depositato/.test(dep) && /sempre nel riparto/.test(dep),
@@ -1258,7 +1283,10 @@ A.render();
  * Qui si prova che ognuno dei nove ADESSO parla, e che parla con il motivo giusto: «non è
  * in P{}» e non «non è sopra la soglia», che mandava a cercare nel posto sbagliato. */
 {
-  const buona = {a:'shas', b:'utj', data:giorniFa(2), stato:'depositato'};
+  /* la data è FISSA e anteriore al termine, non «due giorni fa»: questa sezione gira con l'orologio
+     vero, e dopo il 16 ottobre un deposito recente sarebbe dopo il termine — npm run spazzola lo
+     troverebbe */
+  const buona = {a:'shas', b:'utj', data:gMeno(2), deposito:gMeno(2), stato:'depositato'};
   esito(A.erroriRiga(buona).length === 0, 'una riga buona non ha errori',
     A.erroriRiga(buona).join('; '));
 
@@ -1268,13 +1296,13 @@ A.render();
     ['campo «b» mancante',       {a:'raam', data:giorniFa(1), stato:'proposto'},                   /manca il campo «b»/],
     ['la stessa lista due volte',{a:'raam', b:'raam', data:giorniFa(1), stato:'proposto'},         /apparentata con sé stessa/],
     ['campo «data» mancante',    {a:'shas', b:'utj', stato:'depositato'},                          /manca il campo «data»/],
-    ['data nel futuro',          {a:'shas', b:'utj', data:giorniFa(-30), stato:'depositato'},       /è nel futuro/],
-    ['data malformata',          {a:'shas', b:'utj', data:'22-08-2026', stato:'depositato'},        /non è nella forma/],
+    ['data nel futuro',          {a:'shas', b:'utj', data:giorniFa(-30), deposito:giorniFa(-30), stato:'depositato'},       /è nel futuro/],
+    ['data malformata',          {a:'shas', b:'utj', data:'22-08-2026', deposito:'22-08-2026', stato:'depositato'},        /non è nella forma/],
     ['stato scritto male',       {a:'shas', b:'utj', data:giorniFa(1), stato:'depositatp'},        /lo stato «depositatp» non esiste/],
     ['stato con la maiuscola',   {a:'shas', b:'utj', data:giorniFa(1), stato:'Depositato'},        /lo stato «Depositato» non esiste/],
     ['ritirato senza «fine»',    {a:'shas', b:'utj', data:giorniFa(9), stato:'ritirato'},          /senza il campo «fine»/],
     ['ritiro prima dell\'annuncio', {a:'shas', b:'utj', data:giorniFa(2), stato:'ritirato', fine:giorniFa(9)}, /precede l'annuncio/],
-    ['depositato con una «fine»',{a:'shas', b:'utj', data:giorniFa(9), stato:'depositato', fine:giorniFa(2)}, /non può avere una data di ritiro/]
+    ['depositato con una «fine»',{a:'shas', b:'utj', data:giorniFa(9), deposito:giorniFa(9), stato:'depositato', fine:giorniFa(2)}, /non può avere una data di ritiro/]
   ];
   CASI.forEach(function(c){
     const e = A.erroriRiga(c[1]);
@@ -1296,6 +1324,82 @@ A.render();
   A.setApp(ORIG); A.par('apparentamenti', 0); A.render();
 }
 
+/* ══ 19b · DUE DATE, E NESSUNA RETROAGISCE ══════════════════════════════════
+ * Dal 14 ottobre 2026 un accordo depositato porta DUE date: `data`, il giorno dell'annuncio,
+ * da cui conta per ipotesi — con la leva, e fino al termine — e `deposito`, da cui conta
+ * sempre. Con una data sola la regia di quel giorno ha misurato 16 punti della serie storica
+ * riscritti, a leva accesa o a leva spenta a seconda di quale giorno ci si scriveva.
+ * Le date si ricavano dal termine e non sono scritte: l'annuncio venti giorni prima, il
+ * deposito cinque. Le due proprietà, nei due versi che servono:
+ *   · prima del deposito l'accordo NON è depositato, a nessuna data — il mutante che fa
+ *     retroagire il deposito cade qui;
+ *   · fra l'annuncio e il deposito conta per ipotesi e NON sempre — il mutante che usa una
+ *     data sola, la `data` per tutti e due i mestieri, cade qui. */
+{
+  const ANN = gMeno(20), DEP = gMeno(5);
+  const riga = {a:'shas', b:'utj', data:ANN, deposito:DEP, stato:'depositato', fonte:'prova'};
+  esito(A.erroriRiga(riga).length === 0, 'una riga con annuncio e deposito è valida', A.erroriRiga(riga).join('; '));
+
+  const CASI = [
+    ['depositato senza «deposito»', {a:'shas', b:'utj', data:ANN, stato:'depositato'}, /senza il campo «deposito»/],
+    ['«deposito» su un proposto',   {a:'shas', b:'utj', data:ANN, deposito:DEP, stato:'proposto'}, /vale solo con stato «depositato»/],
+    ['deposito prima dell\'annuncio',{a:'shas', b:'utj', data:DEP, deposito:ANN, stato:'depositato'}, /precede l'annuncio/],
+    ['deposito malformato',         {a:'shas', b:'utj', data:ANN, deposito:'16-10-2026', stato:'depositato'}, /non è nella forma/],
+    /* il mese sbagliato, che è l'errore di battitura plausibile la sera del termine: il 16
+       novembre invece del 16 ottobre. Ricavato dal termine e non scritto. */
+    ['deposito dopo il termine',    {a:'shas', b:'utj', data:ANN, deposito:gMeno(-31), stato:'depositato'}, /dopo il termine/]
+  ];
+  CASI.forEach(function(c){
+    const e = A.erroriRiga(c[1]);
+    esito(e.length > 0 && c[2].test(e.join(' ')), 'la convalida prende «' + c[0] + '»', e.join('; ') || 'nessun errore');
+  });
+
+  A.setApp([riga]);
+  const entra = (q, ip) => A.coppieAl(q, ip).length === 1;
+  esito(!entra(gMeno(25), true), 'prima dell\'annuncio non esiste nemmeno per ipotesi');
+  esito(entra(gMeno(10), true), 'fra l\'annuncio e il deposito conta per ipotesi');
+  esito(!entra(gMeno(10), false),
+    'e NON conta sempre: a leva spenta, prima del deposito, non entra — il deposito non retroagisce e la data dell\'annuncio non fa le sue veci');
+  esito(!entra(gMeno(6), false) && entra(DEP, false),
+    'dal giorno del deposito conta sempre, e non dal giorno prima');
+  esito(entra(gMeno(-3), false) && entra(gMeno(-3), true), 'e dopo il termine resta, con la leva accesa o spenta');
+  esito(!A.depositatoAl(riga, gMeno(6)) && A.depositatoAl(riga, DEP), 'depositatoAl() dice lo stesso, alla data chiesta');
+
+  /* LA SERIE STORICA, che è il posto in cui la regia ha visto la riscrittura. Si confronta la
+     serie con la riga depositata contro due tabelle di riferimento: la stessa riga mai
+     depositata, a leva accesa, e nessuna riga, a leva spenta. La coppia e le date si cercano
+     sul seme — un accordo che non sposta niente proverebbe l'identità a vuoto. */
+  const chiave = p => p.d + ':' + p.g + '/' + p.o + '/' + p.a + '/' + p.i;
+  const serieCon = (tab, leva) => { A.setApp(tab); A.par('apparentamenti', leva); return A.serie().map(chiave); };
+  const date = serieCon([], 0).map(s => s.slice(0, 10));
+  const S0 = A.stato();
+  const SOPRA = Object.keys(S0.QUO).filter(k => S0.QUO[k] >= SOGLIA);
+  const ANN2 = date[Math.floor(date.length / 3)], DEP2 = date[Math.floor(2 * date.length / 3)];
+  let trovata = null;
+  for (let x = 0; x < SOPRA.length && !trovata; x++) for (let y = x + 1; y < SOPRA.length && !trovata; y++) {
+    const r = {a:SOPRA[x], b:SOPRA[y], data:ANN2, deposito:DEP2, stato:'depositato', fonte:'prova'};
+    const off = serieCon([r], 0), vuota = serieCon([], 0);
+    if (off.some((v, i) => date[i] >= DEP2 && v !== vuota[i])) trovata = r;
+  }
+  esito(!!trovata, 'sul seme c\'è una coppia che, depositata, sposta almeno un punto della serie: le identità qui sotto non sono a vuoto',
+    trovata ? trovata.a + '+' + trovata.b + ', annuncio ' + ANN2 + ', deposito ' + DEP2 : 'nessuna');
+  if (trovata) {
+    const firmata = {a:trovata.a, b:trovata.b, data:ANN2, stato:'proposto', fonte:'prova'};
+    const depOff = serieCon([trovata], 0), vuota = serieCon([], 0);
+    const depOn = serieCon([trovata], 1), firOn = serieCon([firmata], 1);
+    const primaDep = date.map((d, i) => i).filter(i => date[i] < DEP2);
+    esito(primaDep.every(i => depOff[i] === vuota[i]),
+      'a leva SPENTA nessun punto prima del deposito cambia',
+      primaDep.filter(i => depOff[i] !== vuota[i]).map(i => vuota[i] + ' → ' + depOff[i]).join(' · '));
+    esito(date.every((d, i) => d > A.termineApp() || depOn[i] === firOn[i]),
+      'a leva ACCESA la serie è identica a quella dell\'accordo soltanto firmato, fino al termine',
+      date.filter((d, i) => d <= A.termineApp() && depOn[i] !== firOn[i]).join(', '));
+    esito(depOff.some((v, i) => date[i] >= DEP2 && v !== vuota[i]),
+      'e a leva spenta dal deposito in poi la serie si muove: il confronto non è cieco');
+  }
+  A.setApp(ORIG); A.par('apparentamenti', 0); A.render();
+}
+
 /* ══ 20 · ZERO, UNO E TRE ACCORDI IN CIASCUNO STATO ═════════════════════════
  * Le prove devono reggere la tabella che ci sarà, non quella che c'è. Il 2021 ne ha visti
  * sei, il 2022 quattro: tre righe insieme sono lo scenario normale, non l'estremo. */
@@ -1306,6 +1410,9 @@ A.render();
   const riga = (p, st, i) => {
     const r = {a:p[0], b:p[1], data:giorniFa(10 + i), stato:st};
     if (st === 'ritirato') r.fine = giorniFa(1);
+    /* un depositato ha un giorno di deposito anteriore al termine: fisso, perché questa sezione
+       gira con l'orologio vero e dopo il 16 «dieci giorni fa» sarebbe dopo il termine */
+    if (st === 'depositato') { r.data = gMeno(10 + i); r.deposito = r.data; }
     return r;
   };
   const testoRiga = () => String(D.getElementById('k-appriga').innerHTML || '')

@@ -3078,7 +3078,41 @@ function erroriRiga(x){
   else if(x.data&&x.fine<x.data) e.push('il ritiro («'+x.fine+'») precede l\'annuncio («'+x.data+'»)');
   if(x.stato==='depositato') e.push('un accordo depositato non può avere una data di ritiro');
  }
+ /* IL GIORNO DEL DEPOSITO È UN CAMPO SUO, e non è la `data`: vedi depositatoAl() qui sotto.
+    Le convalide sono cinque, e la prima è quella che conta: un `depositato` senza giorno
+    del deposito non saprebbe da quando contare sempre, e l'unico ripiego possibile — la
+    `data` — è precisamente la strada che riscrive il passato. Meglio una riga ferma. */
+ if(x.stato==='depositato'&&!x.deposito)
+  e.push('stato «depositato» senza il campo «deposito»: manca il giorno in cui è stato depositato');
+ if(x.deposito){
+  if(x.stato!=='depositato') e.push('il campo «deposito» vale solo con stato «depositato»');
+  if(!/^\d{4}-\d{2}-\d{2}$/.test(x.deposito)) e.push('la data di deposito «'+x.deposito+'» non è nella forma AAAA-MM-GG');
+  else {
+   if(x.data&&x.deposito<x.data) e.push('il deposito («'+x.deposito+'») precede l\'annuncio («'+x.data+'»)');
+   /* IL TERMINE, LETTO DA termineApp() COME IL CALENDARIO, e non scritto qui. È la convalida
+      che prende l'errore di battitura plausibile — il mese sbagliato, «2026-11-16» — che
+      altrimenti passerebbe in silenzio: l'accordo resterebbe firmato e non depositato fino al
+      termine, e il 17 morirebbe.
+      NON SI CONFRONTA CON OGGI, ed è voluto: le prove valutano la tabella a date passate —
+      apparentamenti.js congela l'orologio alla vigilia — e lì un deposito successivo non è un
+      errore, è un accordo non ancora depositato, come lo tratta depositatoAl(). */
+   if(x.deposito>termineApp()) e.push('il deposito («'+x.deposito+'») è dopo il termine del '+dl(termineApp())+
+    ': dopo il termine non si deposita');
+  }
+ }
  return e;
+}
+/* DEPOSITATO A UNA DATA, NON DEPOSITATO E BASTA. Fino al 14 ottobre 2026 lo diceva solo lo
+   `stato`, e la `data` doveva fare due mestieri: il giorno dell'annuncio, da cui l'accordo
+   conta per ipotesi, e quello del deposito, da cui conta sempre. Con un campo solo una delle
+   due letture della serie storica veniva riscritta: con `data` = deposito cambiavano 16 punti
+   a leva ACCESA fra il 10 settembre e il 12 ottobre — l'accordo spariva da settimane in cui
+   era firmato — e con `data` = annuncio ne cambiavano 16 a leva SPENTA, perché un depositato
+   contava da settembre. Misurato sulla regia del 14 ottobre 2026.
+   Adesso le date sono due e nessuna retroagisce: dalla `data` l'accordo conta per ipotesi,
+   dal `deposito` conta sempre. È la regola scritta per l'annuncio, applicata al deposito. */
+function depositatoAl(x,al){
+ return x.stato==='depositato'&&!!x.deposito&&x.deposito<=(al||oggiISO());
 }
 /* Tutta la tabella, riga per riga, con il numero di riga: serve alla fascia rossa e alla
    prova, che sono i due posti in cui un errore deve arrivare a qualcuno. */
@@ -3095,14 +3129,14 @@ function coppieAl(al,ipotesi){
  return APPARENTAMENTI.filter(function(x){
   if(erroriRiga(x).length) return false;    /* una riga sbagliata non entra da nessuna parte */
   if(x.data>q) return false;
-  if(x.stato==='depositato') return true;
+  if(depositatoAl(x,q)) return true;
   if(x.fine&&q>=x.fine) return false;
   /* «ritirato» senza `fine` non arriva più fin qui — lo scarta la convalida — ma la
      guardia resta: è la differenza fra una riga che non esiste e una che vale sempre. */
   if(x.stato==='ritirato'&&!x.fine) return false;
   return !oltre&&!!ipotesi;
  }).sort(function(a,b){
-  return (a.stato==='depositato'?0:1)-(b.stato==='depositato'?0:1);
+  return (depositatoAl(a,q)?0:1)-(depositatoAl(b,q)?0:1);
  });
 }
 function coppieAttive(al){return coppieAl(al,!!PAR.apparentamenti);}
@@ -7819,7 +7853,7 @@ function rApp(){
      comandi, ed è l'unico posto in cui la pagina la dà. */
   var az=PAR.apparentamenti?'Togli':'Aggiungi',
       testo=az+' '+f(c.ann)+' '+acc(c.ann,'apparentamento','apparentamenti'),
-      quali=coppieAl(null,true).filter(function(x){return x.stato!=='depositato';})
+      quali=coppieAl(null,true).filter(function(x){return !depositatoAl(x);})
         .map(function(x){return nm(x.a)+' e '+nm(x.b)+', '+dl(x.data);}).join('; ');
   b.textContent=testo;
   /* aria-label e title sono la stessa stringa, nata una volta sola: è l'idioma di ETI nei
@@ -7837,7 +7871,7 @@ function rApp(){
 }
 function rigaApp(c){
  var nomi=function(x){return nm(x.a)+' e '+nm(x.b);},
-     ann=coppieAl(null,true).filter(function(x){return x.stato!=='depositato';}),
+     ann=coppieAl(null,true).filter(function(x){return !depositatoAl(x);}),
      t='';
  if(c.oltre){
   t=c.dep
@@ -9056,7 +9090,7 @@ function serieModello(){
   for(var j=0;j<t.length;j++) impronta=(impronta*31+t.charCodeAt(j))|0;
  });
  var key=SOND.length+':'+impronta+'|'+firmaPar()+'|'+
-   APPARENTAMENTI.map(function(x){return x.a+'+'+x.b+':'+x.stato+':'+x.data+':'+(x.fine||'');}).join(',');
+   APPARENTAMENTI.map(function(x){return x.a+'+'+x.b+':'+x.stato+':'+x.data+':'+(x.deposito||'')+':'+(x.fine||'');}).join(',');
  if(_serie&&_serieKey===key) return _serie;
  var viste={},date=[];
  SOND.forEach(function(s){if(!viste[s.data]){viste[s.data]=1;date.push(s.data);}});
@@ -9884,10 +9918,10 @@ function dataTappa(titolo){var i;for(i=0;i<TAPPE.length;i++) if(TAPPE[i].t===tit
 function notaApparentamenti(){
  var c=contoApp(sopraSoglia());
  var dep=coppieAl(null,false);
- var ann=coppieAl(null,true).filter(function(x){return x.stato!=='depositato';});
+ var ann=coppieAl(null,true).filter(function(x){return !depositatoAl(x);});
  /* Dopo il termine coppieAl() non li restituisce più — è il punto — quindi per dire che
     sono morti bisogna guardarli nella tabella, che è l'unico posto in cui restano. */
- var morti=APPARENTAMENTI.filter(function(x){return x.stato!=='depositato';});
+ var morti=APPARENTAMENTI.filter(function(x){return !depositatoAl(x);});
  var nomi=function(x){return nm(x.a)+' e '+nm(x.b);};
  /* LA NOTA RIMANDA ALLA GUIDA, NON RIPETE LA DEFINIZIONE.
     Fino al 23 agosto 2026 questa nota apriva con la stessa spiegazione del meccanismo che
