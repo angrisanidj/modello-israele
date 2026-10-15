@@ -1400,6 +1400,66 @@ A.render();
   A.setApp(ORIG); A.par('apparentamenti', 0); A.render();
 }
 
+/* ══ 19c · IL GIORNO DEL TERMINE, E QUELLO CHE LA PAGINA DICE DOPO ═══════════
+ * Trovato dalla regia del 14 ottobre 2026. Il 16, con la leva accesa — il predefinito — la
+ * riga di esito non nominava il termine: niente diceva che era l'ultimo giorno, né che il
+ * giorno dopo gli accordi non depositati non avrebbero contato più. La nota metodologica, dal
+ * 17, diceva ancora «gli accordi saranno tutti noti» e «si firmano fino al 16 ottobre»; e con
+ * gli accordi tutti depositati chiudeva con «non ne risulta firmato nessuno», che è falso.
+ * L'orologio si congela alle date che separano i rami, ricavate da termineApp() e dal
+ * calendario, e la tabella è quella pubblicata nelle due forme: firmata (A) e depositata il
+ * giorno del termine (B). */
+{
+  const T = A.termineApp();
+  const SIL = A.TAPPE.filter(x => /silenzio demoscopico/.test(x.t)).map(x => x.d)[0];
+  const dopoSil = new Date(Date.parse(SIL + 'T00:00:00Z') + 864e5).toISOString().slice(0, 10);
+  const DEPOSITATI = PROVA_FIRMATI.map(x => Object.assign({}, x, {stato: 'depositato', deposito: T}));
+  const riga = () => String(D.getElementById('k-appriga').textContent || '').replace(/\s+/g, ' ');
+  const nota = () => [...D.getElementById('k-foot').querySelectorAll('p')]
+    .filter(p => /heskem odafim/.test(p.textContent)).map(p => p.textContent.replace(/\s+/g, ' ')).join(' ');
+  const giro = (tab, leva) => { A.setApp(tab); A.par('apparentamenti', leva); A.render(); A.rFoot(); return {r: riga(), n: nota()}; };
+  esito(!!SIL && SIL > T, 'il silenzio demoscopico è nel calendario, dopo il termine', SIL);
+
+  congela(T);
+  [1, 0].forEach(function(leva){
+    const g = giro(PROVA_FIRMATI, leva), eti = leva ? 'a leva accesa' : 'a leva spenta';
+    esito(/Il termine per depositarli è oggi/.test(g.r),
+      'il giorno del termine la riga di esito lo nomina e dice che è oggi, ' + eti, g.r.slice(-200));
+    esito(/da domani gli accordi \S+ e non depositati non contano più/.test(g.r),
+      '  e dice che da domani gli accordi non depositati non contano più, ' + eti, g.r.slice(-200));
+  });
+  const gb = giro(DEPOSITATI, 1);
+  esito(/Il termine per depositarli è oggi/.test(gb.r),
+    'e lo nomina anche con gli accordi tutti depositati il giorno stesso', gb.r.slice(-200));
+  esito(/Nessun accordo \S+ è in attesa di deposito/.test(gb.n) && !/Non ne risulta \S+ nessuno/.test(gb.n),
+    'e la nota non dice «non ne risulta firmato nessuno» quando sono firmati e depositati tutti', gb.n.slice(-260));
+
+  congela(PRIMA);
+  const gp = giro(PROVA_FIRMATI, 1);
+  esito(/Il termine per depositarli è il /.test(gp.r) && /dal giorno dopo/.test(gp.r) && !/è oggi/.test(gp.r),
+    'la vigilia la riga nomina il termine con la sua data, e non dice «oggi»', gp.r.slice(-200));
+
+  congela(DOPO);
+  const ga = giro(PROVA_FIRMATI, 1), gd = giro(DEPOSITATI, 1);
+  [['A', ga], ['B', gd]].forEach(function(c){
+    esito(!/saranno tutti noti|cambierà solo per gli accordi|si firmano fino/.test(c[1].n),
+      'dal giorno dopo il termine la nota non parla più al futuro (' + c[0] + ')',
+      (c[1].n.match(/[^.]*(saranno|cambierà|si firmano)[^.]*\./) || [''])[0]);
+    esito(/si potevano depositare fino/.test(c[1].n) && /gli accordi sono tutti noti/.test(c[1].n),
+      '  e dice al passato fino a quando si depositavano, e che gli accordi sono noti (' + c[0] + ')', c[1].n.slice(0, 300));
+  });
+  esito(/Nessun accordo \S+ è rimasto senza deposito/.test(gd.n) && !/Non ne risulta \S+ nessuno/.test(gd.n),
+    'e con gli accordi tutti depositati non dice «non ne risulta firmato nessuno»', gd.n.slice(-200));
+
+  congela(dopoSil);
+  const gs = giro(PROVA_FIRMATI, 1);
+  esito(/il silenzio demoscopico è scattato/.test(gs.n) && !/fino ad allora/.test(gs.n),
+    'dopo il silenzio la nota dice che né accordi né sondaggi cambiano più quello che si legge', gs.n.slice(0, 400));
+
+  scongela();
+  A.setApp(ORIG); A.par('apparentamenti', 0); A.render();
+}
+
 /* ══ 20 · ZERO, UNO E TRE ACCORDI IN CIASCUNO STATO ═════════════════════════
  * Le prove devono reggere la tabella che ci sarà, non quella che c'è. Il 2021 ne ha visti
  * sei, il 2022 quattro: tre righe insieme sono lo scenario normale, non l'estremo. */

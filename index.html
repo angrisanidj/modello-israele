@@ -7873,6 +7873,18 @@ function rigaApp(c){
  var nomi=function(x){return nm(x.a)+' e '+nm(x.b);},
      ann=coppieAl(null,true).filter(function(x){return !depositatoAl(x);}),
      t='';
+ /* IL TERMINE SI NOMINA IN TUTTI I RAMI, e il giorno stesso dice «oggi» e «da domani». Fino al
+    15 ottobre 2026 lo nominava solo il ramo a leva spenta: con la leva accesa — il predefinito —
+    la riga del 16 non diceva che quello era l'ultimo giorno, né che il giorno dopo il seggio
+    degli accordi non depositati sarebbe tornato indietro. L'ha trovato la regia del termine.
+    Il giorno lo decide oggiISO() contro termineApp(), cioè lo stesso confronto di coppieAl():
+    il 16 gli accordi contano ancora, e la frase lo dice al presente. */
+ var oggiT=oggiISO()===c.termine,
+     termine=function(liste){
+      return 'Il termine per depositarli è '+(oggiT?'<b>oggi, '+dl(c.termine)+'</b>':'il <b>'+dl(c.termine)+'</b>')+
+       (liste?', non il deposito delle liste':'')+': '+(oggiT?'da domani':'dal giorno dopo')+
+       ' gli accordi '+parolaProposto(2)+' e non depositati non contano più.';
+     };
  if(c.oltre){
   t=c.dep
    ? 'Il termine per gli accordi di eccedenza è passato il <b>'+dl(c.termine)+'</b>: '+
@@ -7887,7 +7899,7 @@ function rigaApp(c){
     coppieAl(null,false).map(nomi).join('; ')+'. '
   : 'Nessun accordo di eccedenza è ancora depositato: il riparto non ne applica nessuno. ';
  if(!c.ann){
-  t+='Non ce n\'è nessuno '+parolaProposto(1)+' in attesa di deposito. Il termine è il <b>'+dl(c.termine)+'</b>.';
+  t+='Non ce n\'è nessuno '+parolaProposto(1)+' in attesa di deposito. '+termine(false);
  } else if(PAR.apparentamenti){
   /* L'effetto si misura chiedendo lo STESSO riparto senza gli annunciati: due chiamate a
      dhondt() con coppie diverse, non un secondo modo di contare i seggi. */
@@ -7914,13 +7926,13 @@ function rigaApp(c){
       (dett.length?', e '+acc(mossi,'lo','li')+' '+acc(c.ann,'sposta','spostano')+' fra i blocchi: '+dett.join(' · ')
                   :', dentro lo stesso blocco')
     : 'Non '+acc(c.ann,'sposta','spostano')+' nessun seggio')+
-   '. È un\'ipotesi, non un fatto.';
+   '. È un\'ipotesi, non un fatto. '+termine(false);
  } else {
   t+='<b>'+f(c.ann)+' '+parolaProposto(c.ann)+'</b> e non ancora '+
    acc(c.ann,'depositato','depositati')+', quindi fuori dal riparto: '+
    ann.map(function(x){return nomi(x)+', '+dl(x.data);}).join('; ')+
    '. Il pulsante '+acc(c.ann,'lo aggiunge','li aggiunge')+' e mostra quanto '+
-   acc(c.ann,'peserebbe','peserebbero')+'. Il termine è il <b>'+dl(c.termine)+'</b>, non il deposito delle liste.';
+   acc(c.ann,'peserebbe','peserebbero')+'. '+termine(true);
  }
  if(c.scarti.length) t+=' '+f(c.scarti.length)+' '+acc(c.scarti.length,'accordo non entra','accordi non entrano')+
   ': '+c.scarti.map(function(s){return nomi(s.x)+', perché '+s.perche;}).join('; ')+'.';
@@ -9135,10 +9147,25 @@ function notaSerie(S){
  /* Solo per gli accordi: una divergenza di altra origine vorrebbe un'altra diagnosi, e
     una frase che la attribuisse a questi mentirebbe. */
  if(!cp.length||!diff.length){e.innerHTML='';return;}
+ /* IL VERBO SEGUE LA RAGIONE PER CUI L'ACCORDO NON È NELLA LINEA, dal 15 ottobre 2026. Prima
+    diceva sempre «firmati», e con un accordo firmato a settembre e depositato il 16 ottobre — a
+    leva spenta conta solo dal deposito — la frase affermava una firma successiva all'ultima
+    rilevazione che non c'è mai stata: l'ha trovato la regia del termine. Le ragioni sono due:
+    annunciato dopo l'ultimo punto, o annunciato prima e depositato dopo. Gli accordi che
+    mancano si chiedono a coppieAl() alla data dell'ultimo punto, la stessa che usa la serie. */
+ var nellaLinea={};
+ coppieAl(ult.d,!!PAR.apparentamenti).forEach(function(x){nellaLinea[x.a+'+'+x.b]=1;});
+ var fuori=cp.filter(function(x){return !nellaLinea[x.a+'+'+x.b];});
+ if(!fuori.length) fuori=cp;
+ var dopoFirma=fuori.filter(function(x){return x.data>ult.d;}).length,
+     dopoDeposito=fuori.length-dopoFirma,
+     verbo=!dopoDeposito?parolaProposto(fuori.length)
+          :!dopoFirma?acc(fuori.length,'depositato','depositati')
+          :parolaProposto(2)+' o depositati';
  e.innerHTML='L\'ultimo punto della linea è del <b>'+dl(ult.d)+'</b>, e non comprende '+
-  acc(cp.length,'l\'accordo di eccedenza','gli accordi di eccedenza')+' in vigore: la linea dice '+
+  acc(fuori.length,'l\'accordo di eccedenza','gli accordi di eccedenza')+' in vigore: la linea dice '+
   'che cosa il modello avrebbe detto ogni giorno, con gli accordi noti a quel giorno, e '+
-  acc(cp.length,'questo è stato ','questi sono stati ')+parolaProposto(cp.length)+' dopo l\'ultima rilevazione. '+
+  acc(fuori.length,'questo è stato ','questi sono stati ')+verbo+' dopo l\'ultima rilevazione. '+
   'Da qui la differenza con la proiezione in cima alla pagina: '+diff.join(' · ')+'.';
 }
 function rTrend(){
@@ -9943,14 +9970,27 @@ function notaApparentamenti(){
     ricavava che la partita fosse chiusa. Le due date sono qui una accanto all'altra, con
     la distanza calcolata invece che scritta. */
  var dl8=dataTappa('Deposito delle liste'), sil=dataTappa('Scatta il silenzio demoscopico');
- t+='<b>Il termine per depositarli non è quello delle liste</b>: si firmano fino a '+
+ t+='<b>Il termine per depositarli non è quello delle liste</b>: '+(c.oltre?'si potevano depositare':'si firmano')+' fino a '+
   f(TERMINE_APP_GG)+' '+acc(TERMINE_APP_GG,'giorno','giorni')+' prima del voto, cioè il '+dl(c.termine)+
   (dl8?', '+f(ggFraISO(dl8,c.termine))+' giorni dopo la chiusura delle liste dell\''+dl(dl8):'')+'. '+
   'È il tempo in cui storicamente se ne firmano di più: nel 2021 tre accordi su sei sono arrivati dopo '+
   'il deposito delle liste, e nel 2022 tutti e quattro nell\'ultima settimana utile. ';
- if(sil) t+='Il termine cade <b>'+f(ggFraISO(c.termine,sil))+' giorni prima del silenzio demoscopico</b>: '+
-  'nell\'ultima settimana di campagna gli accordi saranno tutti noti e non arriveranno più sondaggi nuovi, '+
-  'quindi quello che si legge qui cambierà solo per gli accordi, non per i dati. ';
+ /* AL PASSATO DOPO IL TERMINE, dal 15 ottobre 2026. «Gli accordi saranno tutti noti» e «quello
+    che si legge qui cambierà solo per gli accordi» sono vere fino al 16 e false dal 17: dopo il
+    termine gli accordi non cambiano più, e a cambiare restano soltanto i sondaggi, fino al
+    silenzio. È l'invariante 10 — una frase al presente su un futuro già passato continua a
+    leggersi bene, e mente — e l'ha trovata la regia del termine. I rami sono tre perché i fatti
+    sono tre: prima del termine, fra il termine e il silenzio, dopo il silenzio. */
+ var oggiN=oggiISO();
+ if(sil) t+=!c.oltre
+  ? 'Il termine cade <b>'+f(ggFraISO(c.termine,sil))+' giorni prima del silenzio demoscopico</b>: '+
+    'nell\'ultima settimana di campagna gli accordi saranno tutti noti e non arriveranno più sondaggi nuovi, '+
+    'quindi quello che si legge qui cambierà solo per gli accordi, non per i dati. '
+  : oggiN<sil
+  ? 'Il termine è caduto <b>'+f(ggFraISO(c.termine,sil))+' giorni prima del silenzio demoscopico</b> del '+dl(sil)+
+    ': gli accordi sono tutti noti, e fino ad allora quello che si legge qui può cambiare solo per i sondaggi. '
+  : 'Il termine è caduto il '+dl(c.termine)+' e il silenzio demoscopico è scattato il '+dl(sil)+
+    ': da allora né gli accordi né i sondaggi possono cambiare quello che si legge qui. ';
  if(dep.length) t+='Accordi depositati, e quindi sempre nel riparto: '+dep.map(nomi).join('; ')+'. ';
  else if(c.oltre) t+='Il termine è passato e non risulta depositato nessun accordo. ';
  else t+='Nessun accordo risulta ancora depositato. ';
@@ -9958,6 +9998,10 @@ function notaApparentamenti(){
   t+=morti.length
    ? 'Gli accordi '+parolaProposto(2)+' e mai depositati — '+morti.map(nomi).join('; ')+' — non entrano più nel riparto: '+
      'dopo il termine non sono un\'ipotesi, sono una cosa che non è successa.'
+   /* CON DEI DEPOSITATI la frase di prima — «non ne risulta firmato nessuno» — diceva il
+      falso: erano firmati tutti, e tutti depositati. Lo scenario più probabile del 16
+      ottobre, e la regia l'ha trovato lì. Senza depositati resta vera: niente firmato. */
+   : dep.length ? 'Nessun accordo '+parolaProposto(1)+' è rimasto senza deposito.'
    : 'Non ne risulta '+parolaProposto(1)+' nessuno.';
  } else if(ann.length){
   var pp=parolaProposto(ann.length);
@@ -9966,7 +10010,8 @@ function notaApparentamenti(){
    (PAR.apparentamenti
     ? 'Il pulsante in cima è acceso, quindi entrano nel riparto: quello che si legge è un controfattuale, non un dato.'
     : 'Non entrano nel riparto: il pulsante in cima li aggiunge, per mostrare quanto peserebbero.');
- } else t+='Non ne risulta '+parolaProposto(1)+' nessuno.';
+ } else t+=dep.length ? 'Nessun accordo '+parolaProposto(1)+' è in attesa di deposito.'
+                      : 'Non ne risulta '+parolaProposto(1)+' nessuno.';
  if(c.scarti.length) t+=' '+f(c.scarti.length)+' '+acc(c.scarti.length,'accordo non entra','accordi non entrano')+
   ' comunque: '+c.scarti.map(function(s){return nomi(s.x)+', perché '+s.perche;}).join('; ')+'.';
  /* La ragione per cui una mappa incompleta è peggio di nessuna mappa va detta al lettore,

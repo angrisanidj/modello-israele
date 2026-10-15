@@ -364,6 +364,30 @@ esito(mossePro >= 1, 'e almeno una leva muove la proiezione', mossePro + ' su ' 
   A.setApp(ORIG); A.render();
 }
 
+/* ══ 5-quater · IL VERBO DICE PERCHÉ L'ACCORDO NON È NELLA LINEA ═════════════
+ * Trovato dalla regia del 14 ottobre 2026: un accordo firmato a settembre e depositato il 16
+ * ottobre, a leva spenta, conta solo dal deposito — e la nota diceva che era stato «firmato»
+ * dopo l'ultima rilevazione, cioè una firma che non c'è mai stata. Le ragioni sono due e la
+ * prova le esercita tutte e due, spostando l'ultimo punto all'indietro: un accordo annunciato
+ * dopo di lui si dice firmato, uno annunciato prima e depositato dopo si dice depositato. */
+{
+  const ULT = primaDelTermine(10);
+  const prova = (riga, leva) => {
+    A.setApp([riga]); A.par('apparentamenti', leva); A.render();
+    const S = A.serie().slice(), b = A.blocchi(A.stato().SEG);
+    S[S.length-1] = Object.assign({}, S[S.length-1], {d: ULT, g: b.coalizione + 1, a: b.arabo - 1});
+    A.notaSerie(S);
+    return testo('k-trendnota');
+  };
+  const depDopo = prova({a: COPPIA[0].a, b: COPPIA[0].b, data: primaDelTermine(20), deposito: primaDelTermine(3), stato: 'depositato'}, 0);
+  esito(/depositato dopo l'ultima rilevazione/.test(depDopo) && !/firmat/.test(depDopo),
+    'annunciato prima dell\'ultimo punto e depositato dopo: la nota dice «depositato», non «firmato»', depDopo);
+  const firDopo = prova({a: COPPIA[0].a, b: COPPIA[0].b, data: primaDelTermine(3), deposito: primaDelTermine(3), stato: 'depositato'}, 0);
+  esito(/firmato dopo l'ultima rilevazione/.test(firDopo),
+    'annunciato dopo l\'ultimo punto: la nota dice «firmato»', firDopo);
+  A.setApp(ORIG); A.par('apparentamenti', 0); A.render();
+}
+
 /* ══ 5-ter · I SEGGI FERMI E UNA PROBABILITÀ CHE SI MUOVE ═══════════════════
  * Il riquadro mostra quattro numeri, due di seggi e due di probabilità, e possono dire
  * cose diverse: «Opposizione sionista 57 invariato» accanto a «Prob. maggioranza
