@@ -1,10 +1,10 @@
 {
- "data": "2026-10-15",
- "valide": 225,
+ "data": "2026-10-16",
+ "valide": 228,
  "ambigue": 24,
  "blocchi": {
-  "coalizione": 49,
-  "opposizione": 50,
+  "coalizione": 48,
+  "opposizione": 51,
   "arabo": 13,
   "incerto": 8
  },
