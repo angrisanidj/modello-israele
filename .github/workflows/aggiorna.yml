@@ -425,38 +425,6 @@ jobs:
             exit 1
           fi
           git push origin main
-      # LA SPAZZOLATA NON FERMA L'ARCHIVIO, ed è il motivo per cui sta DOPO il push.
-      # npm run spazzola rilancia tutto il banco con l'orologio al 23 ottobre — il silenzio
-      # demoscopico, il primo giorno in cui la finestra dei sette giorni si svuota da sola —
-      # e dice quali prove danno per scontato un archivio fresco. È l'unico posto che se ne
-      # accorgerebbe PRIMA del giorno in cui scatta.
-      # COSTA QUANTO LA VERIFICA, NON «QUATTRO MINUTI» come diceva questa riga: misurato dal
-      # 14 al 17 ottobre 2026, 43-53 minuti per data, gli stessi della verifica qui sopra. Con
-      # due date sono circa cento minuti, e il job meta — che aspetta questo job — scrive
-      # l'anteprima solo dopo: circa tre ore e mezza dall'avvio. Nessun timeout-minutes, quindi
-      # vale il tetto di GitHub di 360 minuti per job.
-      # Ma una prova che scadrà fra due mesi non è una ragione per smettere di pubblicare i
-      # sondaggi di stanotte: il passo cattura l'esito invece di propagarlo, e quando cade
-      # apre una issue come per le colonne di lista non riconosciute.
-      - name: Spazzolata nel futuro
-        id: spazzola
-        run: |
-          # ANCHE IL 28 OTTOBRE, IL GIORNO DOPO IL VOTO — PROVVISORIO FINO AL 4 NOVEMBRE 2026.
-          # Il 23 da solo non vede le prove che scadono col voto: embed.js pretendeva con
-          # l'orologio vero che il voto non fosse passato, e dal 28 avrebbe reso rosso npm run
-          # verifica, cioè fermato ogni commit e il lavoro notturno. Il 28 lo vede.
-          # LA SCADENZA È IL 4 NOVEMBRE, I RISULTATI UFFICIALI, come per i runs-on fissati, e
-          # NON il 27: una scadenza al 27 avrebbe reso rosso test/struttura.mjs dal 28, cioè
-          # fermato ogni commit il giorno dopo il voto — lo stesso difetto appena tolto da
-          # embed.js. E una spazzolata con l'orologio congelato al 28 resta valida anche dopo il
-          # 28: non c'era niente da togliere quel giorno. Dal 5 novembre test/struttura.mjs
-          # diventa rosso e chiede di togliere la data in più, o di spostarla dicendo perché.
-          if npm run spazzola -- 2026-10-23 2026-10-28 > spazzola.txt 2>&1; then
-            echo "nessuna prova scade con l'orologio avanti"
-          else
-            echo "caduta=1" >> "$GITHUB_OUTPUT"
-          fi
-          cat spazzola.txt
       # ══ LA CONSEGNA, UNA VOLTA SOLA E IN FONDO ══
       #
       # Prima c'erano due issue — una per la guardia, una per la spazzolata — e le
@@ -481,49 +449,74 @@ jobs:
           # L'ESITO DEL JOB ARRIVA DA QUI, e non dai file: una notte bloccata non committa
           # niente, quindi non lascia traccia nel repository. job.status dentro un passo
           # «always()» dice come è andata FIN QUI, ed è l'unico posto in cui si sa.
-          SPAZZOLA_CADUTA=${{ steps.spazzola.outputs.caduta }} ESITO_JOB=${{ job.status }} ESECUZIONI_FERME=${{ steps.ferme.outputs.ferme }} node .github/scripts/riepilogo.mjs
-          [ -f corpo-dafare.md ] || exit 0
-          # STESSO IDIOMA DELL'ALTRO COMMIT, e non per simmetria: la guardia sta DOPO
-          # git add ed è «--cached», così guarda per costruzione esattamente i file che
-          # verranno committati. Qui l'insieme è uno solo e le due forme coinciderebbero,
-          # ma è precisamente la condizione in cui la forma sbagliata non si vede — nel
-          # passo di sopra i due insiemi divergevano e il job moriva.
-          #
-          # E «STESSO IDIOMA» ERA UNA DICHIARAZIONE CHE IL CODICE NON MANTENEVA. Il commit
-          # di sopra usa «git pull --rebase --autostash» con dodici righe che spiegano
-          # perché l'autostash serve; questo diceva di fare la stessa cosa e chiamava
-          # «git pull --rebase» nudo. Il 26 agosto 2026 la notte è andata così: il parser
-          # ha trovato due cose che bloccavano, il job si è fermato — giustamente — la
-          # issue è stata aperta, e poi QUESTO passo è morto su «cannot pull with rebase:
-          # You have unstaged changes». Risultato: dati/da-fare.json è rimasto al 25 agosto
-          # mentre stato-job.json diceva 26, cioè due file che la stessa notte scrive,
-          # divergenti di un giorno.
-          # È la stessa famiglia della sigla che dichiarava «incerti» mentre la riga era
-          # cablata a tre chiavi: un testo che afferma quello che il codice non fa. Adesso
-          # test/struttura.mjs confronta i due comandi e cade se divergono.
-          git config user.name "aggiornamento-notturno"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add dati/da-fare.json
-          if ! git diff --cached --quiet; then
-            git commit -m "Aggiornare il riepilogo delle cose da fare (lavoro notturno)"
-            git pull --rebase --autostash origin main && git push origin main || { git rebase --abort || true; echo "rebase non pulito: il file resta locale"; }
-          fi
-          TITOLO="Cose da fare — riepilogo del lavoro notturno"
-          NUM=$(gh issue list --state open --search "\"$TITOLO\" in:title" --json number,title                   --jq ".[] | select(.title==\"$TITOLO\") | .number" | head -1)
-          if [ "$(cat conto.txt)" = "0" ]; then
-            if [ -n "$NUM" ]; then
-              gh issue comment "$NUM" --body "Non resta niente da fare: chiudo."
-              gh issue close "$NUM"
-            else
-              echo "niente da fare e nessuna issue aperta: silenzio"
-            fi
-            exit 0
-          fi
-          if [ -n "$NUM" ]; then
-            # modifica del corpo: NON notifica, ed è quello che si vuole
-            gh issue edit "$NUM" --body-file corpo-dafare.md
-            echo "issue #$NUM aggiornata in silenzio"
+          ESITO_JOB=${{ job.status }} ESECUZIONI_FERME=${{ steps.ferme.outputs.ferme }} node .github/scripts/riepilogo.mjs
+          # la consegna — commit di dati/da-fare.json e issue — sta in uno script, perché la usa
+          # anche il job della spazzolata: vedi .github/scripts/consegna.sh
+          bash .github/scripts/consegna.sh
+
+  # ══ LA SPAZZOLATA IN UN JOB SUO, ACCANTO A meta E NON DAVANTI ══
+  # Fino al 17 ottobre 2026 era un passo del job aggiorna, dopo il push, e meta — che aspetta
+  # aggiorna — scriveva l'anteprima solo quando la spazzolata era finita: dal 18, con due date,
+  # circa tre ore e mezza dopo l'avvio. La spazzolata NON È UN CANCELLO: gira dopo il push, non
+  # ferma niente, e quando cade apre la issue. Quindi parte dopo aggiorna e corre in parallelo a
+  # meta, che non la aspetta.
+  # GIRA SOLO SE L'ARCHIVIO È ANDATO, come prima: era un passo senza «always()», quindi su
+  # una notte saltata dalla guardia o fermata da un errore non girava. Il checkout è ref: main,
+  # per vedere l'archivio appena spinto e il riepilogo appena committato.
+  # LA ISSUE ESCE ANCORA: se la spazzolata cade, riepilogo.mjs unisce la sua voce al
+  # dati/da-fare.json della notte — le altre voci non si duplicano, conEsito() e conPendenti()
+  # sono idempotenti — e la consegna è lo stesso script del job aggiorna.
+  spazzola:
+    needs: aggiorna
+    if: needs.aggiorna.result == 'success'
+    # UBUNTU-24.04 E NON ubuntu-latest, PROVVISORIO FINO AL 4 NOVEMBRE 2026. L'etichetta
+    # ubuntu-latest passa a Ubuntu 26 dal 19 ottobre, cioe' nella settimana del voto: un cambio
+    # d'immagine non deciso da noi, nei giorni in cui un job rotto non si ripara in tempo. Dopo i
+    # risultati ufficiali del 4 novembre si torna a ubuntu-latest, e si guarda il primo giro.
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with: {ref: main}
+      - uses: actions/setup-node@v4
+        with: {node-version: '22'}
+      - run: npm install
+      # LA SPAZZOLATA NON FERMA L'ARCHIVIO, ed è il motivo per cui sta DOPO il push.
+      # npm run spazzola rilancia tutto il banco con l'orologio al 23 ottobre — il silenzio
+      # demoscopico, il primo giorno in cui la finestra dei sette giorni si svuota da sola —
+      # e dice quali prove danno per scontato un archivio fresco. È l'unico posto che se ne
+      # accorgerebbe PRIMA del giorno in cui scatta.
+      # COSTA QUANTO LA VERIFICA, NON «QUATTRO MINUTI» come diceva questa riga: misurato dal
+      # 14 al 17 ottobre 2026, 43-53 minuti per data, gli stessi della verifica del job
+      # aggiorna. Con due date sono circa cento minuti: è la ragione per cui sta in un job suo,
+      # e meta non la aspetta. Nessun timeout-minutes, quindi vale il tetto di GitHub di 360
+      # minuti per job.
+      # Ma una prova che scadrà fra due mesi non è una ragione per smettere di pubblicare i
+      # sondaggi di stanotte: il passo cattura l'esito invece di propagarlo, e quando cade
+      # apre una issue come per le colonne di lista non riconosciute.
+      - name: Spazzolata nel futuro
+        id: spazzola
+        run: |
+          # ANCHE IL 28 OTTOBRE, IL GIORNO DOPO IL VOTO — PROVVISORIO FINO AL 4 NOVEMBRE 2026.
+          # Il 23 da solo non vede le prove che scadono col voto: embed.js pretendeva con
+          # l'orologio vero che il voto non fosse passato, e dal 28 avrebbe reso rosso npm run
+          # verifica, cioè fermato ogni commit e il lavoro notturno. Il 28 lo vede.
+          # LA SCADENZA È IL 4 NOVEMBRE, I RISULTATI UFFICIALI, come per i runs-on fissati, e
+          # NON il 27: una scadenza al 27 avrebbe reso rosso test/struttura.mjs dal 28, cioè
+          # fermato ogni commit il giorno dopo il voto — lo stesso difetto appena tolto da
+          # embed.js. E una spazzolata con l'orologio congelato al 28 resta valida anche dopo il
+          # 28: non c'era niente da togliere quel giorno. Dal 5 novembre test/struttura.mjs
+          # diventa rosso e chiede di togliere la data in più, o di spostarla dicendo perché.
+          if npm run spazzola -- 2026-10-23 2026-10-28 > spazzola.txt 2>&1; then
+            echo "nessuna prova scade con l'orologio avanti"
           else
-            # creazione + assegnazione: notifica, ed è l'unica volta che deve farlo
-            gh issue create --title "$TITOLO" --body-file corpo-dafare.md --assignee angrisanidj
+            echo "caduta=1" >> "$GITHUB_OUTPUT"
           fi
+          cat spazzola.txt
+      - name: Consegna la spazzolata caduta
+        if: steps.spazzola.outputs.caduta == '1'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          # la voce della spazzolata si unisce al riepilogo della notte, poi la stessa consegna
+          SPAZZOLA_CADUTA=1 node .github/scripts/riepilogo.mjs
+          bash .github/scripts/consegna.sh

@@ -396,10 +396,19 @@ function esito(cond, desc, dettaglio){
       .map(x => x.replace(/\s*\($/, '')))].filter(n => esportate.indexOf(n) >= 0);
     esito(chiamate.length > 0 && chiamate.every(n => imp.indexOf(n) >= 0),
       'riepilogo.mjs importa ogni funzione di dafare.mjs che chiama', 'chiamate ' + JSON.stringify(chiamate) + ' · importate ' + JSON.stringify(imp));
-    const yml = fs.readFileSync(__dirname + '/../../.github/workflows/aggiorna.yml', 'utf8');
+    /* IL WORKFLOW PIÙ GLI SCRIPT CHE I SUOI PASSI CHIAMANO, dal 17 ottobre 2026: la consegna —
+       e con lei questa frase — è uscita da aggiorna.yml per diventare .github/scripts/consegna.sh,
+       condivisa dai job aggiorna e spazzola. La proprietà è la stessa di prima: una frase sola,
+       dentro il ramo del conto a zero. La lettura è test/workflow.cjs, la stessa di struttura.mjs.
+       E IL RAMO SI CERCA PRIMA DELLA FRASE, ALLA SUA FINE: la frase sta fra l'«if» del conto a zero
+       e l'«exit 0» che lo chiude. Prima bastava «dopo l'if», ma con un file solo il ramo era
+       l'ultima cosa del passo; adesso il testo continua con altro. */
+    const yml = require('../workflow.cjs').workflowConScript('aggiorna.yml');
     const iZero = yml.indexOf('"$(cat conto.txt)" = "0"'), iFrase = yml.indexOf('Non resta niente da fare');
-    esito(iZero > 0 && iFrase > iZero && yml.split('Non resta niente da fare').length === 2,
-      'e il workflow scrive «Non resta niente da fare» una volta sola, dentro il ramo del conto a zero');
+    const iFineRamo = iZero < 0 ? -1 : yml.indexOf('exit 0', iZero);
+    esito(iZero > 0 && iFrase > iZero && iFrase < iFineRamo && yml.split('Non resta niente da fare').length === 2,
+      'e il workflow, con gli script che chiama, scrive «Non resta niente da fare» una volta sola, dentro il ramo del conto a zero',
+      'ramo ' + iZero + ' · frase ' + iFrase + ' · fine del ramo ' + iFineRamo + ' · occorrenze ' + (yml.split('Non resta niente da fare').length - 1));
   }
 
   console.log('\ndafare: ' + ok + '/' + (ok + ko));

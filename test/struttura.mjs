@@ -5,6 +5,8 @@ import {execFileSync} from 'node:child_process';
 import {gzipSync} from 'node:zlib';
 import {fileURLToPath} from 'node:url';
 import {dirname,join} from 'node:path';
+/* la lettura «workflow + script chiamati», una volta sola: vedi test/workflow.cjs */
+import wf from './workflow.cjs';
 const qui=dirname(fileURLToPath(import.meta.url));
 const NL=String.fromCharCode(10);
 const html=readFileSync(join(qui,'..','index.html'),'utf8');
@@ -733,8 +735,16 @@ await (async function(){
   if(!/\.ya?ml$/.test(f)) continue;
   const doc=load(readFileSync(join(qui,'..','.github','workflows',f),'utf8'));
   const passi=[];
+  /* UNO SCRIPT CHIAMATO DA UN PASSO SI LEGGE CON IL PASSO, dal 17 ottobre 2026: la consegna
+     del riepilogo è uscita dal workflow per diventare .github/scripts/consegna.sh, condivisa
+     dai job aggiorna e spazzola. Senza questa riga i controlli qui sotto — commit senza
+     guardia, rebase senza autostash, virgolette aperte — avrebbero smesso di vederla senza
+     che nessuno lo dicesse, cioè sarebbero diventati verdi per assenza del caso.
+     LA REGOLA STA IN test/workflow.cjs, e qui si chiama: la usa anche test/suite/dafare.js, e
+     due copie della regola che dice quali script un passo chiama divergerebbero alla prima
+     modifica. */
   for(const j of Object.values((doc&&doc.jobs)||{}))
-   for(const s of (j&&j.steps)||[]) if(typeof s.run==='string') passi.push([s.name||'(senza nome)',s.run]);
+   for(const s of (j&&j.steps)||[]) if(typeof s.run==='string') passi.push([s.name||'(senza nome)',wf.conScript(s.run)]);
   passi.forEach(function(par){
    const nome=par[0];
    par[1].split('\n').forEach(function(r,i){
@@ -809,6 +819,50 @@ await (async function(){
  }
  p('nei comandi dei workflow nessuna sequenza di escape non interpretata e nessuna riga aperta'+
    (cattivi.length?' — '+cattivi.slice(0,2).join(' · '):''), cattivi.length===0);
+
+ /* UNO SCRIPT CHIAMATO DA UN PASSO DEVE ESISTERE. Senza questa riga, togliere consegna.sh
+    lasciava verdi tutti i controlli qui sopra — non avevano più niente da leggere — e il passo
+    sarebbe morto di notte su «No such file». Misurato il 17 ottobre 2026 togliendo il file. */
+ {
+  const mancanti=[];
+  for(const f of readdirSync(join(qui,'..','.github','workflows'))){
+   if(!/\.ya?ml$/.test(f)) continue;
+   wf.scriptChiamati(readFileSync(join(qui,'..','.github','workflows',f),'utf8'))
+    .forEach(r=>{ if(!existsSync(join(qui,'..',r))) mancanti.push(f+' → '+r); });
+  }
+  p('ogni script che un passo dei workflow chiama esiste'+(mancanti.length?' — mancano: '+mancanti.join(', '):''),
+    mancanti.length===0);
+ }
+
+ /* LA SPAZZOLATA STA IN UN JOB SUO, ACCANTO A meta E NON DAVANTI, e consegna la issue.
+    Applicato il 17 ottobre 2026: quando era un passo del job aggiorna, meta — che aspetta
+    aggiorna — scriveva l'anteprima solo dopo la spazzolata, che costa 43-53 minuti per data.
+    Le proprietà sono quattro e vanno insieme: il comando della spazzolata NON è nel job
+    aggiorna; il suo job aspetta aggiorna; meta NON aspetta il suo job; e il suo job ha un
+    passo, condizionato alla caduta, che unisce la voce al riepilogo e consegna la issue —
+    senza quest'ultimo la spazzolata cadrebbe in silenzio, che è la cosa che non deve fare. */
+ {
+  const doc=load(readFileSync(join(qui,'..','.github','workflows','aggiorna.yml'),'utf8'));
+  const J=(doc&&doc.jobs)||{};
+  const runDi=j=>((J[j]&&J[j].steps)||[]).map(s=>typeof s.run==='string'?s.run:'').join('\n');
+  const senzaCommenti=t=>t.split('\n').filter(r=>!/^\s*#/.test(r)).join('\n');
+  const nomeSp=Object.keys(J).find(j=>/npm run spazzola/.test(senzaCommenti(runDi(j))));
+  const needs=j=>[].concat((J[j]&&J[j].needs)||[]);
+  const passiSp=nomeSp?(J[nomeSp].steps||[]):[];
+  const consegna=passiSp.find(s=>typeof s.run==='string'&&/SPAZZOLA_CADUTA=1/.test(senzaCommenti(s.run))&&
+    /bash\s+\.github\/scripts\/consegna\.sh/.test(senzaCommenti(s.run)));
+  const ko=[];
+  if(!nomeSp) ko.push('nessun job lancia npm run spazzola');
+  else {
+   if(nomeSp==='aggiorna') ko.push('la spazzolata è ancora nel job aggiorna');
+   if(needs(nomeSp).indexOf('aggiorna')<0) ko.push('il job «'+nomeSp+'» non aspetta aggiorna');
+   if(needs('meta').indexOf(nomeSp)>=0) ko.push('meta aspetta la spazzolata');
+   if(!consegna) ko.push('il job «'+nomeSp+'» non consegna la issue quando cade');
+   else if(!/caduta/.test(String(consegna.if||''))) ko.push('la consegna della spazzolata non è condizionata alla caduta');
+  }
+  p('la spazzolata gira in un job suo dopo aggiorna, meta non la aspetta, e quando cade consegna la issue'+
+    (ko.length?' — '+ko.join('; '):''), ko.length===0);
+ }
 })();
 
 /* ══ LE META CHE LEGGE CHI NON ESEGUE IL JAVASCRIPT ══

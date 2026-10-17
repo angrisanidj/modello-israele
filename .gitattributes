@@ -4,3 +4,7 @@
 
 # index.html è il file pubblicato: LF anche sul disco, su qualunque sistema.
 *.html text eol=lf
+
+# Gli script di shell: LF anche sul disco. Un «\r» in fondo a una riga rompe il comando su
+# Linux, e struttura.mjs legge questi file dalla copia di lavoro.
+*.sh text eol=lf
