@@ -428,21 +428,29 @@ jobs:
       # LA SPAZZOLATA NON FERMA L'ARCHIVIO, ed è il motivo per cui sta DOPO il push.
       # npm run spazzola rilancia tutto il banco con l'orologio al 23 ottobre — il silenzio
       # demoscopico, il primo giorno in cui la finestra dei sette giorni si svuota da sola —
-      # e dice quali prove danno per scontato un archivio fresco. Costa quattro minuti, che
-      # in un job che gira una volta al giorno non si notano, ed è l'unico posto che se ne
+      # e dice quali prove danno per scontato un archivio fresco. È l'unico posto che se ne
       # accorgerebbe PRIMA del giorno in cui scatta.
+      # COSTA QUANTO LA VERIFICA, NON «QUATTRO MINUTI» come diceva questa riga: misurato dal
+      # 14 al 17 ottobre 2026, 43-53 minuti per data, gli stessi della verifica qui sopra. Con
+      # due date sono circa cento minuti, e il job meta — che aspetta questo job — scrive
+      # l'anteprima solo dopo: circa tre ore e mezza dall'avvio. Nessun timeout-minutes, quindi
+      # vale il tetto di GitHub di 360 minuti per job.
       # Ma una prova che scadrà fra due mesi non è una ragione per smettere di pubblicare i
       # sondaggi di stanotte: il passo cattura l'esito invece di propagarlo, e quando cade
       # apre una issue come per le colonne di lista non riconosciute.
       - name: Spazzolata nel futuro
         id: spazzola
         run: |
-          # ANCHE IL 28 OTTOBRE, IL GIORNO DOPO IL VOTO — PROVVISORIO FINO AL 27 OTTOBRE 2026.
+          # ANCHE IL 28 OTTOBRE, IL GIORNO DOPO IL VOTO — PROVVISORIO FINO AL 4 NOVEMBRE 2026.
           # Il 23 da solo non vede le prove che scadono col voto: embed.js pretendeva con
           # l'orologio vero che il voto non fosse passato, e dal 28 avrebbe reso rosso npm run
-          # verifica, cioè fermato ogni commit e il lavoro notturno. Il 28 lo vede. Dal 28 in
-          # poi quella data non è più futuro, e la riga si toglie: test/struttura.mjs diventa
-          # rosso il giorno dopo la data scritta qui, come per i runs-on fissati.
+          # verifica, cioè fermato ogni commit e il lavoro notturno. Il 28 lo vede.
+          # LA SCADENZA È IL 4 NOVEMBRE, I RISULTATI UFFICIALI, come per i runs-on fissati, e
+          # NON il 27: una scadenza al 27 avrebbe reso rosso test/struttura.mjs dal 28, cioè
+          # fermato ogni commit il giorno dopo il voto — lo stesso difetto appena tolto da
+          # embed.js. E una spazzolata con l'orologio congelato al 28 resta valida anche dopo il
+          # 28: non c'era niente da togliere quel giorno. Dal 5 novembre test/struttura.mjs
+          # diventa rosso e chiede di togliere la data in più, o di spostarla dicendo perché.
           if npm run spazzola -- 2026-10-23 2026-10-28 > spazzola.txt 2>&1; then
             echo "nessuna prova scade con l'orologio avanti"
           else

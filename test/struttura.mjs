@@ -408,12 +408,17 @@ p('i workflow di GitHub sono YAML valido'+(yamlKO.length?' ('+yamlKO.join(' | ')
     !roKO.length);
 
   /* ══ LE DATE IN PIÙ DELLA SPAZZOLATA NOTTURNA, A TERMINE ══
-     Applicato il 17 ottobre 2026. Fino al voto la spazzolata del lavoro notturno guarda anche
-     il 28 ottobre, il giorno dopo il voto, perché il solo 23 non vedeva le prove che scadono col
-     voto. Una data passata alla spazzolata è futuro finché non lo è più: dal 28 smette di
-     guardare avanti, e una riga che resta lì dopo sembrerebbe una scelta. Stessa regola dei
-     runs-on qui sopra, letta dallo stesso posto: il commento subito sopra il comando. Senza date
-     esplicite la spazzolata usa il suo predefinito, e la riga non ha niente da far scadere. */
+     Applicato il 17 ottobre 2026. La spazzolata del lavoro notturno guarda anche il 28 ottobre,
+     il giorno dopo il voto, perché il solo 23 non vedeva le prove che scadono col voto. Una data
+     in più è una decisione a termine, e una riga che resta lì per sempre sembrerebbe una scelta:
+     stessa regola dei runs-on qui sopra, letta dallo stesso posto — il commento subito sopra il
+     comando. Senza date esplicite la spazzolata usa il suo predefinito, e non c'è niente da far
+     scadere.
+     LA SCADENZA È IL 4 NOVEMBRE, NON IL 27 OTTOBRE, e la prima stesura sbagliava qui: col 27
+     questa riga sarebbe diventata rossa il 28, cioè avrebbe fermato ogni commit il giorno dopo il
+     voto — il difetto appena tolto da embed.js, rimesso dal controllo che doveva sorvegliarlo. E
+     una spazzolata con l'orologio congelato al 28 resta valida anche dopo il 28: toglierla quel
+     giorno non serviva. Il 4 novembre è la data dei runs-on, i risultati ufficiali. */
   {
     const righe = readFileSync(join(qui,'..','.github','workflows','aggiorna.yml'),'utf8').split(NL);
     /* la riga del COMANDO, non un commento che lo nomina: i commenti del workflow dicono
