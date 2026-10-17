@@ -813,14 +813,33 @@ function pagina(opz){
 
   /* LA FASCIA DEL DOPO-VOTO NON COMPARE PRIMA DEL VOTO, e la prova guarda le DUE cose che
      devono valere insieme: la classe che la accende non c'è, e la regola che la nasconde
-     c'è. Guardarne una sola lasciava passare il difetto: la classe era giusta da sempre. */
-  const pv = sint.D.getElementById('k-postvoto');
-  esito(!!pv, 'la fascia del dopo-voto esiste nel markup anche nella forma compatta');
-  esito(pv && pv.className.indexOf('on') < 0,
-    'e prima del voto NON porta la classe che la accende: la condizione non scatta',
-    pv ? pv.className : '');
-  esito(sint.foto.votoPassato === false,
-    'e votoPassato() lo conferma', String(sint.foto.votoPassato));
+     c'è. Guardarne una sola lasciava passare il difetto: la classe era giusta da sempre.
+     CON L'OROLOGIO CONGELATO, NEI DUE VERSI, dal 17 ottobre 2026. Prima si guardava la
+     pagina resa con l'orologio VERO e si pretendeva che il voto non fosse passato: era una
+     fixture stagionale, e dal 28 ottobre — il giorno dopo il voto — sarebbe caduta, rendendo
+     rosso npm run verifica, cioè fermando ogni commit e il lavoro notturno fino ai risultati.
+     La proprietà non è «oggi è prima del voto»: è che nella forma compatta la classe segue
+     votoPassato(). Le due date si ricavano da VOTO, come nella sezione 7. */
+  const VOTO8 = new Date((HTML.match(/var VOTO=new Date\('([\d-]+)/) || [])[1] + 'T00:00:00');
+  const D8 = Date;
+  const sintAl = q => {
+    const t = q.getTime();
+    global.Date = class extends D8 { constructor(...a){ if (!a.length) super(t); else super(...a); }
+      static now(){ return t; } };
+    try { const p = pagina({search: '?embed=sintesi'}); try { p.A.finiSintesi(); } catch(e){} return p; }
+    finally { global.Date = D8; }
+  };
+  const sPrima = sintAl(new D8(VOTO8.getTime() - 30 * 864e5));
+  const sDopo = sintAl(new D8(VOTO8.getTime() + 3 * 864e5));
+  const pv = sPrima.D.getElementById('k-postvoto'), pvDopo = sDopo.D.getElementById('k-postvoto');
+  esito(!isNaN(VOTO8.getTime()) && !!pv && !!pvDopo,
+    'la fascia del dopo-voto esiste nel markup anche nella forma compatta, prima e dopo il voto');
+  esito(!!pv && !/\bon\b/.test(pv.className) && sPrima.foto.votoPassato === false,
+    'e trenta giorni prima del voto NON porta la classe che la accende, e votoPassato() lo conferma',
+    pv ? pv.className + ' · ' + sPrima.foto.votoPassato : '');
+  esito(!!pvDopo && /\bon\b/.test(pvDopo.className) && sDopo.foto.votoPassato === true,
+    'mentre tre giorni dopo il voto la porta: la classe segue la condizione, non il calendario di chi esegue la prova',
+    pvDopo ? pvDopo.className + ' · ' + sDopo.foto.votoPassato : '');
 
   /* IL FONDO DELLA PAGINA VIENE DALLA TAVOLOZZA, non da una costante scritta a mano.
      Il beige #e8e6e0 non apparteneva a nessuno dei due temi. */
