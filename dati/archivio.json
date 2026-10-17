@@ -7602,5 +7602,47 @@
    "casa_sionista": 1.6,
    "unity_erdan": 1.2
   }
+ },
+ {
+  "data": "2026-10-15",
+  "istituto": "Lazar · Panel4All",
+  "testata": "Maariv",
+  "campione": 700,
+  "casa": 0,
+  "seggi": {
+   "likud": 18,
+   "byachad": 13,
+   "rzp_zehut": 6,
+   "otzma": 8,
+   "shas": 7,
+   "utj": 8,
+   "beitenu": 8,
+   "raam": 6,
+   "lista_araba": 8,
+   "democratici": 9,
+   "yashar": 21,
+   "reserv_nep": 4,
+   "amcha": 4
+  },
+  "sotto": {
+   "blue_white": 1.1,
+   "haredi_pubblico": 0.5
+  },
+  "_q": {
+   "likud": 13.353176695260892,
+   "byachad": 9.720888247051262,
+   "rzp_zehut": 4.662840234923847,
+   "otzma": 6.135490981325858,
+   "shas": 5.379024747194565,
+   "utj": 6.135490981325857,
+   "beitenu": 6.096962898671122,
+   "raam": 4.662840234923847,
+   "lista_araba": 6.096962898671122,
+   "democratici": 6.849964450810331,
+   "yashar": 15.817780447916927,
+   "reserv_nep": 3.578872777719617,
+   "amcha": 3.5097044042047667
+  },
+  "_qk": "92@"
  }
 ]
