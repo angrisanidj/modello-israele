@@ -437,7 +437,13 @@ jobs:
       - name: Spazzolata nel futuro
         id: spazzola
         run: |
-          if npm run spazzola > spazzola.txt 2>&1; then
+          # ANCHE IL 28 OTTOBRE, IL GIORNO DOPO IL VOTO — PROVVISORIO FINO AL 27 OTTOBRE 2026.
+          # Il 23 da solo non vede le prove che scadono col voto: embed.js pretendeva con
+          # l'orologio vero che il voto non fosse passato, e dal 28 avrebbe reso rosso npm run
+          # verifica, cioè fermato ogni commit e il lavoro notturno. Il 28 lo vede. Dal 28 in
+          # poi quella data non è più futuro, e la riga si toglie: test/struttura.mjs diventa
+          # rosso il giorno dopo la data scritta qui, come per i runs-on fissati.
+          if npm run spazzola -- 2026-10-23 2026-10-28 > spazzola.txt 2>&1; then
             echo "nessuna prova scade con l'orologio avanti"
           else
             echo "caduta=1" >> "$GITHUB_OUTPUT"

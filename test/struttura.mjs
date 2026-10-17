@@ -406,6 +406,34 @@ p('i workflow di GitHub sono YAML valido'+(yamlKO.length?' ('+yamlKO.join(' | ')
         (roKO.length ? ': ' + roKO.join(' | ') : '') + ')'
       : 'nessun runs-on fissato: tutti i job girano su ubuntu-latest',
     !roKO.length);
+
+  /* ══ LE DATE IN PIÙ DELLA SPAZZOLATA NOTTURNA, A TERMINE ══
+     Applicato il 17 ottobre 2026. Fino al voto la spazzolata del lavoro notturno guarda anche
+     il 28 ottobre, il giorno dopo il voto, perché il solo 23 non vedeva le prove che scadono col
+     voto. Una data passata alla spazzolata è futuro finché non lo è più: dal 28 smette di
+     guardare avanti, e una riga che resta lì dopo sembrerebbe una scelta. Stessa regola dei
+     runs-on qui sopra, letta dallo stesso posto: il commento subito sopra il comando. Senza date
+     esplicite la spazzolata usa il suo predefinito, e la riga non ha niente da far scadere. */
+  {
+    const righe = readFileSync(join(qui,'..','.github','workflows','aggiorna.yml'),'utf8').split(NL);
+    /* la riga del COMANDO, non un commento che lo nomina: i commenti del workflow dicono
+       «npm run spazzola» per spiegarlo, ed è la trappola già pagata da ARCO_ORD */
+    const i = righe.findIndex(r => !/^\s*#/.test(r) && r.indexOf('npm run spazzola') >= 0);
+    const date = i < 0 ? [] : (righe[i].match(/\d{4}-\d{2}-\d{2}/g) || []);
+    let j = i - 1, sopra = '';
+    while (j >= 0 && /^\s*#/.test(righe[j])) { sopra = righe[j] + ' ' + sopra; j--; }
+    const d = sopra.match(/PROVVISORIO FINO AL (\d{1,2}) ([a-zàéìòù]+) (\d{4})/i);
+    const mi = d ? MESI_RO.indexOf(d[2].toLowerCase()) : -1;
+    const scade = mi < 0 ? null : Date.UTC(+d[3], mi, +d[1] + 1);   /* scade il giorno DOPO */
+    p(i < 0 ? 'la spazzolata notturna c\'è nel workflow (non trovata)'
+      : !date.length ? 'la spazzolata notturna usa la sua data predefinita: niente da far scadere'
+      : 'la spazzolata notturna con date esplicite (' + date.join(', ') + ') è a termine' +
+        (!scade ? ': manca «provvisorio fino al <data>» nel commento sopra il comando'
+         : Date.now() >= scade ? ': era provvisoria fino al ' + d[1] + ' ' + d[2] + ' ' + d[3] +
+           ', e la data è passata — si toglie la data in più, o si sposta dicendo perché'
+         : ', fino al ' + d[1] + ' ' + d[2] + ' ' + d[3]),
+      i >= 0 && (!date.length || (!!scade && Date.now() < scade)));
+  }
 }
 
 /* ══ IL CRON A FINESTRA E LA GUARDIA CHE LO RENDE SOSTENIBILE ══
