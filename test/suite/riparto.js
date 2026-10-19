@@ -67,10 +67,25 @@ const SOGLIA = parseFloat((HTML.match(/3\.25/) || ['3.25'])[0]);
  * girerebbe a vuoto provando che una lista sopra soglia entra. */
 esito(Math.abs(SOGLIA - 3.25) < 1e-9, 'la soglia è il 3,25% dichiarato nel sorgente', String(SOGLIA));
 
-/* OTZMA È FUORI DALLA FIXTURE APPOSTA, ed è la lista che «entra» nel blocco 2: le cinque
-   della coalizione ci sono tutte nell'anagrafica, quindi se la fixture le contenesse tutte
-   non ne resterebbe nessuna da far entrare e la prova non avrebbe un caso. I suoi punti
-   stanno nel Likud finché non entra. */
+/* NESSUN ACCORDO DI ECCEDENZA, DICHIARATO E NON EREDITATO, dal 19 ottobre 2026. Questa suite
+   prova la SOGLIA, non gli accordi, e chiamava dhondt(sh) senza il terzo argomento: cioè
+   chiedeva gli accordi alla tabella pubblicata, alla leva PAR.apparentamenti — accesa per
+   difetto dal 14 settembre — e alla data di oggi. Prima del 16 ottobre applicava così, in
+   silenzio, l'accordo Likud + RZP-Zehut del 6 ottobre (tutte e due sopra soglia nella
+   fixture); dal 17 non più, perché un accordo mai depositato dopo il termine non esiste. I
+   numeri della sezione 2 hanno cambiato significato quel giorno, e non è caduto niente.
+   UNA PROVA CHE EREDITA UN PREDEFINITO NE EREDITA ANCHE LE SCADENZE. Quindi le due strade del
+   riparto ricevono qui «nessun accordo» in modo esplicito: [] a dhondt(), una struttura nulla
+   a ripartoVeloce(). È più stretto che fissare la leva, che lascerebbe la prova dipendere
+   ancora dalla tabella e dalla data: gli accordi sul riparto li prova apparentamenti.js. */
+const NESSUN_ACCORDO = [];
+
+/* LA LISTA CHE «ENTRA» NEL BLOCCO 2 NON È SCRITTA QUI: la si CERCA, ed è la prima lista della
+   coalizione nell'anagrafica che la fixture non contiene. Oggi è RZP-Zehut (rzp_zehut); questo
+   commento diceva Otzma, che è fuori dalla fixture anche lei ma viene dopo nell'ordine. Le
+   liste della coalizione non ci sono tutte apposta: se la fixture le contenesse tutte non ne
+   resterebbe nessuna da far entrare e la prova non avrebbe un caso. I punti di quella che
+   entra stanno nel Likud finché non entra. */
 const OGGI = {
   likud:29.5, shas:7.5, utj:6.5, sionismo_rel:4.5,
   byachad:16.0, democratici:6.0, beitenu:7.0, yashar:14.0,
@@ -94,7 +109,7 @@ esito(Object.keys(OGGI).some(k => blocco(k) === 'coalizione') &&
  * scende. È il modo di isolare l'effetto della soglia da quello del travaso. */
 {
   const sotto = Object.assign({}, OGGI, {sionismo_rel: 2.8});
-  const a = A.dhondt(OGGI), b = A.dhondt(sotto);
+  const a = A.dhondt(OGGI, null, NESSUN_ACCORDO), b = A.dhondt(sotto, null, NESSUN_ACCORDO);
   esito(totale(a) === 120 && totale(b) === 120,
     'i seggi fanno 120 con la lista sopra soglia e con la lista sotto',
     totale(a) + ' / ' + totale(b));
@@ -141,7 +156,7 @@ esito(Object.keys(OGGI).some(k => blocco(k) === 'coalizione') &&
     'la configurazione composta somma a 97,3: gli 1,7 sotto soglia restano persi',
     String(s12));
 
-  const a = A.dhondt(OGGI), b = A.dhondt(ch12);
+  const a = A.dhondt(OGGI, null, NESSUN_ACCORDO), b = A.dhondt(ch12, null, NESSUN_ACCORDO);
   esito(totale(b) === 120, 'con una lista dentro e una fuori i seggi fanno ancora 120',
     String(totale(b)));
   esito(b[NUOVA] > 0, 'la lista che entra prende seggi', String(b[NUOVA]));
@@ -160,7 +175,7 @@ esito(Object.keys(OGGI).some(k => blocco(k) === 'coalizione') &&
   /* IL VERSO OPPOSTO, o l'asserzione qui sopra passerebbe anche con una lista che non entra
      affatto: portandola sotto soglia il blocco deve scendere ANCORA. */
   const senza = Object.assign({}, ch12); senza[NUOVA] = 2.0;
-  const c = A.dhondt(senza);
+  const c = A.dhondt(senza, null, NESSUN_ACCORDO);
   esito(somma(c, 'coalizione') < somma(b, 'coalizione'),
     'e se anche quella che entra restasse sotto soglia, il blocco scenderebbe ancora',
     somma(b, 'coalizione') + ' → ' + somma(c, 'coalizione'));
@@ -177,7 +192,7 @@ esito(Object.keys(OGGI).some(k => blocco(k) === 'coalizione') &&
   const ch12 = Object.assign({}, OGGI, {sionismo_rel: 2.8, likud: 25.0});
   ch12[NUOVA] = 4.5;
   const ids = Object.keys(ch12);
-  const lento = A.dhondt(ch12);
+  const lento = A.dhondt(ch12, null, NESSUN_ACCORDO);
   /* ripartoVeloce(sh, n, out) SCRIVE IN out e non restituisce niente: è la forma delle
      20.000 simulazioni, dove allocare un oggetto per giro costerebbe. E MUTA sh, azzerando
      in luogo le quote sotto soglia — quindi le si passa una COPIA, o il confronto con
@@ -189,8 +204,11 @@ esito(Object.keys(OGGI).some(k => blocco(k) === 'coalizione') &&
      settembre 2026 la si chiamava senza struttura, e reggeva perché la leva degli accordi
      nasceva spenta: dhondt() senza coppie e ripartoVeloce() senza struttura erano la stessa
      domanda per coincidenza. Accesa per difetto, dhondt() applica gli accordi e il confronto
-     misurava due scenari diversi — Likud 32 contro 33, Democratici 8 contro 7. */
-  try { A.ripartoVeloce(sh.slice(), ids.length, out, A.strutturaApp(ids, null)); }
+     misurava due scenari diversi — Likud 32 contro 33, Democratici 8 contro 7.
+     Dal 19 ottobre gli stessi accordi sono NESSUNO, dichiarato a tutte e due: [] alla lenta e
+     una struttura nulla alla veloce. La regola resta quella — stessi accordi alle due strade —
+     e non dipende più da leva, tabella e data. */
+  try { A.ripartoVeloce(sh.slice(), ids.length, out, null); }
   catch (e) { errore = e && e.message; }
   if (errore !== null) {
     /* non si dichiara provato quello che non si è esercitato: se la firma cambia, la riga
