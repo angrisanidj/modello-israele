@@ -9353,12 +9353,20 @@ function rTrend(){
      '" stroke="'+C.hair2+'" stroke-width="1"/>'+
      '<text x="'+(Lm-6)+'" y="'+(Y(v)+4).toFixed(1)+'" text-anchor="end" font-size="'+(12*FS).toFixed(1)+'" fill="'+C.mute+'">'+v+'</text>';
  }
- var mesi=['gen','feb','mar','apr','mag','giu','lug','ago','set','ott'];
+ /* I MESI SI GENERANO DALL'INTERVALLO, NON DA UN ELENCO SCRITTO A MANO, dal 19 ottobre 2026.
+    Prima l'elenco si fermava a «ott», il ciclo era «m<10» e l'anno era il 2026 scritto: il
+    primo fatto di novembre — dopo il voto la cronologia ne avrà — avrebbe allungato l'asse
+    fino a novembre senza un'etichetta, e il cambio d'anno non sarebbe esistito. È la stessa
+    classe del «i mesi sono otto» del 2 settembre: un numero legato a quanti mesi copre l'asse,
+    scritto a mano. Adesso si va dal mese di t0 a quello di t1, anno compreso. */
+ var mesi=['gen','feb','mar','apr','mag','giu','lug','ago','set','ott','nov','dic'];
  var visibili=[];
- for(var m=0;m<10;m++){
-  var dm=new Date(2026,m,1), fine=new Date(2026,m+1,0);
-  if(+fine<t0||+dm>t1) continue;                 /* il mese va etichettato se si sovrappone */
-  visibili.push({m:m,d:(+dm<t0?new Date(t0):dm)});
+ var d0=new Date(t0), d1=new Date(t1);
+ for(var y=d0.getFullYear(),m=d0.getMonth(); y<d1.getFullYear()||(y===d1.getFullYear()&&m<=d1.getMonth()); ){
+  var dm=new Date(y,m,1), fine=new Date(y,m+1,0);
+  if(!(+fine<t0||+dm>t1))                        /* il mese va etichettato se si sovrappone */
+   visibili.push({m:m,d:(+dm<t0?new Date(t0):dm)});
+  if(++m===12){m=0;y++;}
  }
  visibili.forEach(function(x,i){
   /* il conto parte dall'ULTIMO: l'estremo recente e' sempre etichettato, l'antico puo'

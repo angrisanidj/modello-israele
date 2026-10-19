@@ -54,7 +54,7 @@ global.Blob = function(){}; global.URL = {createObjectURL(){ return ''; }};
 global.FileReader = function(){}; global.fetch = () => Promise.reject(0);
 
 let src = fs.readFileSync(__dirname + '/../app.js','utf8');
-src = src.replace('carica().then(render,render)', 'global.A={render:render,impilaEtichette:impilaEtichette,piedePNG:piedePNG,PNG_DISEGNI:PNG_DISEGNI,SERIE:SERIE,BL:BL};carica().then(render,render)');
+src = src.replace('carica().then(render,render)', 'global.A={serie:function(){return serieModello();},EVENTI:EVENTI,render:render,impilaEtichette:impilaEtichette,piedePNG:piedePNG,PNG_DISEGNI:PNG_DISEGNI,SERIE:SERIE,BL:BL};carica().then(render,render)');
 eval(src);
 
 /* ── il reso, misurato su browser il 22 agosto 2026 ── */
@@ -64,6 +64,11 @@ const RESO = {380: {larghezza:326, viewBox:520}, 760: {larghezza:674, viewBox:90
 const ASC = 0.657, DISC = 0;          /* le cifre non hanno discendenti */
 const LARG_MESE = 1.236;              /* «mag» in frazioni del corpo */
 
+/* I DODICI MESI, non i dieci che il codice conosceva. La regola che riconosce un'etichetta
+   di mese diceva «gen…ott»: un'etichetta «nov» disegnata domani non sarebbe stata nemmeno
+   contata, cioè la prova sarebbe stata cieca proprio sul mese che il voto porta. */
+const MESI12 = ['gen','feb','mar','apr','mag','giu','lug','ago','set','ott','nov','dic'];
+const RE_MESE = new RegExp('^(' + MESI12.join('|') + ')$');
 function leggi(){
   const svg = D.getElementById('k-trend').querySelector('svg');
   const vb = svg.getAttribute('viewBox').split(' ').map(Number);
@@ -71,7 +76,7 @@ function leggi(){
   const ass = testi.filter(t => t.getAttribute('text-anchor') === 'end' && /^\d+$/.test(t.textContent))
     .map(t => ({v:+t.textContent, y:+t.getAttribute('y'), fs:+t.getAttribute('font-size')}))
     .sort((a,b) => a.v - b.v);
-  const mesi = testi.filter(t => /^(gen|feb|mar|apr|mag|giu|lug|ago|set|ott)$/.test(t.textContent))
+  const mesi = testi.filter(t => RE_MESE.test(t.textContent))
     .map(t => ({m:t.textContent, x:+t.getAttribute('x'), fs:+t.getAttribute('font-size')}))
     .sort((a,b) => a.x - b.x);
   const orizz = [].slice.call(svg.querySelectorAll('line'))
@@ -198,14 +203,52 @@ esito(margineAsse(stretto) * k(380) >= 9,
    stessa cosa che il disegno deve mostrare. Il conto viene dalle etichette rese, ma
    l ATTESA viene dall arco: se il disegno ne saltasse uno, il primo numero scenderebbe e il
    secondo no. */
-const mesiArco = (function(){
-  const p = largo.mesi.map(x => x.m), mm = ['gen','feb','mar','apr','mag','giu','lug','ago','set','ott','nov','dic'];
-  const a = mm.indexOf(p[0]), b = mm.indexOf(p[p.length-1]);
-  return (a < 0 || b < 0) ? -1 : b - a + 1;
-})();
-esito(largo.mesi.length === mesiArco,
-  'sopra i 660 i mesi restano tutti: nessun salto fra il primo e l ultimo',
-  JSON.stringify(largo.mesi.map(x => x.m)) + ' · attesi ' + mesiArco);
+/* E L'ARCO SI RICAVA DALLE DATE DEI DATI, NON DALLE ETICHETTE DISEGNATE, dal 19 ottobre
+   2026. La stesura di prima prendeva il primo e l'ultimo mese ETICHETTATO e contava quelli in
+   mezzo: un mese che manca IN FONDO — novembre, il primo fatto dopo il voto — era invisibile
+   per costruzione, perché l'ultima etichetta disegnata era ancora «ott» e l'attesa si fermava
+   lì. Adesso l'attesa è la sequenza dei mesi di calendario che l'asse copre davvero: dalla
+   prima data della serie all'ultima fra serie ed eventi, che è lo stesso intervallo su cui
+   rTrend() costruisce l'asse. E porta l'anno, o il cambio d'anno sarebbe un «gen» dopo «dic»
+   che nessun indice saprebbe mettere in fila. */
+const mesiFra = (da, a) => {
+  const out = [];
+  let y = +da.slice(0, 4), m = +da.slice(5, 7) - 1;
+  const yb = +a.slice(0, 4), mb = +a.slice(5, 7) - 1;
+  while (y < yb || (y === yb && m <= mb)) { out.push(MESI12[m]); m++; if (m === 12) { m = 0; y++; } }
+  return out;
+};
+const arcoDati = () => {
+  const S = A.serie(), ev = A.EVENTI.map(e => e.data).sort();
+  let fine = S[S.length - 1].d;
+  if (ev.length && ev[ev.length - 1] > fine) fine = ev[ev.length - 1];
+  return mesiFra(S[0].d, fine);
+};
+const attesi = arcoDati();
+esito(JSON.stringify(largo.mesi.map(x => x.m)) === JSON.stringify(attesi),
+  'sopra i 660 i mesi sono tutti quelli che le date dei dati coprono, in ordine, nessuno in meno',
+  JSON.stringify(largo.mesi.map(x => x.m)) + ' · attesi ' + JSON.stringify(attesi));
+
+/* LE DUE DATE CHE IL CODICE SCRITTO A MANO NON REGGEVA, esercitate con un evento in più:
+   uno a novembre — il primo fatto dopo il voto — e uno che scavalca l'anno. Si aggiungono
+   alla cronologia, si rende, si guarda, si tolgono. Sotto i 660 si pretende soltanto che
+   l'ultimo mese ci sia: il dimezzamento è provato più giù. */
+[['un evento a novembre', '2026-11-04'], ['un evento che scavalca l\'anno', '2027-01-15']].forEach(([caso, data]) => {
+  A.EVENTI.push({data: data, testo: 'Evento di prova: ' + caso});
+  try {
+    MOB = false; A.render(); const L = leggi();
+    MOB = true;  A.render(); const St = leggi();
+    const att = arcoDati();
+    esito(JSON.stringify(L.mesi.map(x => x.m)) === JSON.stringify(att),
+      'con ' + caso + ' (' + data + ') l\'asse porta tutti i mesi fino a quello dell\'evento',
+      JSON.stringify(L.mesi.map(x => x.m)) + ' · attesi ' + JSON.stringify(att));
+    esito(St.mesi.length > 0 && St.mesi[St.mesi.length - 1].m === att[att.length - 1],
+      '  e sotto i 660 il mese più recente c\'è',
+      'ultimo ' + (St.mesi.length ? St.mesi[St.mesi.length - 1].m : 'nessuno') + ' · atteso ' + att[att.length - 1]);
+  } finally {
+    A.EVENTI.pop(); MOB = false; A.render();
+  }
+});
 esito(stretto.mesi.length === Math.ceil(largo.mesi.length / 2),
   'sotto i 660 se ne mostra uno sì e uno no',
   JSON.stringify(stretto.mesi.map(x => x.m)));
