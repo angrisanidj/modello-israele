@@ -49,7 +49,8 @@ src = src.slice(0, src.indexOf('carica().then(render,render)')) +
   'ripartoSenza:ripartoSenza,listeSulFilo:listeSulFilo,chiGoverna:chiGoverna,' +
   'combinazioniSoglia:combinazioniSoglia,codaSomme:codaSomme,P:P,' +
   'fraseCombinazioni:fraseCombinazioni,fraseScenarioSoglia:fraseScenarioSoglia,' +
-  'segnoDipendeDaIpotesi:segnoDipendeDaIpotesi,fraseBanda:fraseBanda,setPAR:function(k,v){PAR[k]=v;},PAR:function(){return PAR;}};})();';
+  'segnoDipendeDaIpotesi:segnoDipendeDaIpotesi,fraseBanda:fraseBanda,setPAR:function(k,v){PAR[k]=v;},PAR:function(){return PAR;},' +
+  'SOND:function(){return SOND;},setSOND:function(v){SOND=v;},blocchi:blocchi};})();';
 eval(src);
 const A = global.A;
 A.render();
@@ -569,6 +570,70 @@ const corpoFrase = SRC.slice(SRC.indexOf('function fraseSoglia(id,s){'),
 esito(corpoFrase.indexOf("bloccoDi(id)==='incerto'") >= 0,
   'e la formulazione resta sul conteggio, o le parole non concorderebbero con i numeri',
   corpoFrase.split('\n').filter(r => r.indexOf('bloccoDi') >= 0).join(' ').trim());
+
+/* ══ 25 · LE §24 E §20 SU UNA LISTA RICLASSIFICATA LONTANA DALLA SOGLIA ══════════════
+ * Le rimutazioni del 19 ottobre 2026 hanno trovato che sui dati del seme queste due sezioni
+ * giravano a vuoto. Popolo d'Israele, l'unica lista che la leva riclassifica, sta anche sul
+ * filo — 0,17 punti dalla soglia — quindi entra nella clausola per la PRIMA categoria, e un
+ * listeClausola() che leggesse la leva non cambiava niente: lo prendeva solo il controllo sul
+ * sorgente della §24.3. E nessuna lista oggi ha i due segni che divergono, quindi la §20
+ * provava solo che segnoDipendeDaIpotesi() TACE quando deve, non che PARLI quando deve: una
+ * funzione che taceva sempre passava.
+ * LA FIXTURE È FATTA DI DATI, NON DI VARIABILI: dieci rilevazioni ricopiate dalle ultime vere,
+ * con le stesse date, in cui Popolo d'Israele prende dieci seggi al Likud. render() ricalcola
+ * tutto — quote, seggi, Monte Carlo — quindi aRischio() e il controfattuale di
+ * segnoDipendeDaIpotesi() girano davvero. E la lista sta LONTANA dalla soglia, non appena
+ * fuori dal filo: la premessa lo pretende con due punti di margine, così la prova regge se il
+ * filo si sposta di qualche decimo. */
+{
+  const ID = A.IDS.find(i => A.bloccoDi(i) !== A.P[i].b);
+  esito(!!ID, 'premessa: esiste una lista che la leva riclassifica', String(ID));
+  if (ID) {
+    const VERO = A.SOND().map(s => JSON.parse(JSON.stringify(s)));
+    const ultime = VERO.slice().sort((x, y) => x.data < y.data ? 1 : -1).filter(s => !s.pre).slice(0, 10);
+    const FIX = ultime.map(s => {
+      const n = JSON.parse(JSON.stringify(s));
+      const da = Math.min(10, (n.seggi.likud || 0) - 1);
+      n.seggi.likud -= da; n.seggi[ID] = (n.seggi[ID] || 0) + da;
+      if (n.sotto) delete n.sotto[ID];
+      delete n._q; delete n._qk; n.istituto = n.istituto + ' · prova';
+      return n;
+    });
+    A.setSOND(VERO.concat(FIX)); A.render();
+    const lontano = A.QUO()[ID] - A.SOGLIA;
+    esito(lontano >= 2 && A.aRischio().indexOf(ID) < 0 && A.listeSulFilo().indexOf(ID) < 0,
+      'premessa: nella fixture ' + A.nm(ID) + ' sta lontana dalla soglia, non sul filo e non fra le liste a rischio',
+      'quota ' + A.QUO()[ID].toFixed(2) + ', a ' + lontano.toFixed(2) + ' punti dalla soglia');
+    esito(A.bloccoDi(ID) !== A.P[ID].b && (A.SEG()[ID] || 0) >= A.CLAUSOLA_MIN,
+      '  e la leva la riclassifica ancora, con abbastanza seggi per la seconda categoria',
+      A.P[ID].b + ' → ' + A.bloccoDi(ID) + ', ' + (A.SEG()[ID] || 0) + ' seggi');
+
+    /* 25.1 · la §24 con la lista che solo la seconda categoria può portare dentro */
+    const prima = A.listeClausola().slice().sort().join(',');
+    A.setPAR('inbilico', A.PAR().inbilico ? 0 : 1); A.render();
+    const dopo = A.listeClausola().slice().sort().join(',');
+    A.setPAR('inbilico', A.PAR().inbilico ? 0 : 1); A.render();
+    esito(prima === dopo && prima.split(',').indexOf(ID) >= 0,
+      'con la lista lontana dalla soglia listeClausola la sceglie con la leva accesa e spenta',
+      '[' + prima + '] contro [' + dopo + ']');
+
+    /* 25.2 · la §20: il controfattuale vero, e la prova chiede che la funzione PARLI. I due
+       numeri non sono scritti qui: si rifanno con lo stesso controfattuale — il riparto senza
+       la lista, letto con la leva e con la fonte — e si confrontano con quelli della funzione. */
+    const sg = A.segnoDipendeDaIpotesi(ID);
+    const senza = A.ripartoSenza([ID]), b = A.bloccoDi(ID);
+    const leva = A.blocchi(senza)[b] - A.blocchi(A.SEG())[b];
+    const fonte = A.blocchi(senza, true)[b] - A.blocchi(A.SEG(), true)[b];
+    esito(((leva < 0 && fonte > 0) || (leva > 0 && fonte < 0)),
+      'premessa: nella fixture, togliendo ' + A.nm(ID) + ', i due conteggi spostano il blocco in versi opposti',
+      'con la leva ' + leva + ', con la fonte ' + fonte);
+    esito(!!sg && sg.leva === leva && sg.fonte === fonte,
+      'e segnoDipendeDaIpotesi() parla, con gli stessi due numeri del controfattuale',
+      sg ? 'leva ' + sg.leva + ', fonte ' + sg.fonte : 'tace');
+
+    A.setSOND(VERO); A.render();
+  }
+}
 
 console.log('\nsoglianota: ' + ok + '/' + (ok + ko));
 if (ko) process.exit(1);

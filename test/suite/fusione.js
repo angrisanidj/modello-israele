@@ -49,7 +49,7 @@ global.fetch = () => Promise.reject(0);
 let src = fs.readFileSync(__dirname + '/../app.js','utf8');
 src = src.replace('carica().then(render,render)',
   'global.A={calcola:calcola,QUO:function(){return QUO;},P:function(){return P;},nm:nm,' +
-  'setSOND:function(v){SOND=v;},setPAR:function(k,v){PAR[k]=v;},sim:function(v){SIM=v;}};' +
+  'SOND:function(){return SOND;},attiviAl:attiviAl,setSOND:function(v){SOND=v;},setPAR:function(k,v){PAR[k]=v;},sim:function(v){SIM=v;}};' +
   'carica().then(render,render)');
 eval(src);
 
@@ -111,6 +111,49 @@ setTimeout(function(){
       'archivio vero, scenario ' + (v ? 'acceso' : 'spento') + ': nessun contenitore accanto a una sua componente in QUO',
       JSON.stringify(coppie) + ' · QUO: ' + JSON.stringify(Object.keys(Q)));
   });
+
+  /* ══ 1-bis · ogni famiglia dell'anagrafica, esercitata sull'archivio vero ══
+     Trovato dalle rimutazioni del 19 ottobre 2026: la sezione 1 saltava in silenzio la
+     famiglia RZP-Zehut. Nella finestra dei sessanta giorni le rilevazioni del seme nominano
+     solo la cella congiunta, mai le componenti, quindi non c'era niente da risolvere — e un
+     modello che non la trattasse più come famiglia passava lo stesso.
+     Qui l'archivio vero prende UNA rilevazione in più per ogni famiglia: la copia della più
+     recente che nomina il contenitore, con il contenitore sostituito dalla sua prima
+     componente. HA LA DATA DELLA RILEVAZIONE PIÙ RECENTE, e non una data di oggi: la finestra
+     dei sessanta giorni si àncora alla rilevazione più recente — attiviAl() — quindi così cade
+     dentro a qualunque orologio, anche al 28 ottobre e al 20 novembre. E la premessa lo
+     pretende invece di darlo per scontato. */
+  {
+    const VERO = A.SOND().map(s => JSON.parse(JSON.stringify(s)));
+    const ultima = VERO.map(s => s.data).sort().pop();
+    const giro = [];
+    nomi.forEach(function(c){
+      const con = VERO.filter(s => !s.pre && s.seggi && s.seggi[c]).sort((x, y) => x.data < y.data ? 1 : -1)[0];
+      if (!con) { giro.push({c: c, manca: true}); return; }
+      const comp = FAM[c][0], n = JSON.parse(JSON.stringify(con));
+      n.seggi[comp] = n.seggi[c]; delete n.seggi[c];
+      n.data = ultima; n.istituto = n.istituto + ' · prova ' + c; delete n._q; delete n._qk;
+      giro.push({c: c, comp: comp, fix: n});
+    });
+    esito(giro.every(g => !g.manca),
+      'premessa: ogni famiglia ha nel seme una rilevazione che nomina il contenitore da copiare',
+      giro.filter(g => g.manca).map(g => g.c).join(', ') || 'tutte');
+    giro.filter(g => !g.manca).forEach(function(g){
+      /* lo scenario della Lista Unita SPENTO: acceso, fonde apposta le componenti arabe nel
+         contenitore, e lì il lato non lo decide la rilevazione più recente ma lo scenario */
+      A.setSOND(VERO.concat([g.fix])); A.setPAR('listaunita', 0); A.calcola();
+      const nella = A.attiviAl(null, true).some(s => s.istituto === g.fix.istituto);
+      const Q = A.QUO();
+      const insieme = Q[g.c] !== undefined ? FAM[g.c].filter(k => Q[k] !== undefined) : [];
+      esito(nella,
+        'premessa: la rilevazione con ' + A.nm(g.comp) + ' al posto di ' + A.nm(g.c) + ' cade nella finestra dei 60 giorni',
+        g.fix.data);
+      esito(insieme.length === 0 && Q[g.comp] !== undefined,
+        '  e con lei ' + A.nm(g.c) + ' si risolve dalla parte delle componenti: nessun contenitore accanto a una sua componente',
+        'contenitore ' + (Q[g.c] === undefined ? 'fuori' : 'dentro') + ' · componenti in QUO: ' + (FAM[g.c].filter(k => Q[k] !== undefined).join(', ') || 'nessuna'));
+    });
+    A.setSOND(VERO); A.calcola();
+  }
 
   /* ══ 2 · la famiglia si risolve nel lato della rilevazione più recente ══
      Nei due versi, perché una regola che scegliesse sempre le componenti passerebbe
