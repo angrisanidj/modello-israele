@@ -2117,6 +2117,15 @@ var P={
  byachad     :{n:"B'Yachad",           l:"Bennett · Lapid",    c:"#C2003D", b:"opposizione", o:6,  gov:1, r22:24},
  yesh_atid   :{n:"Yesh Atid",           l:"Yair Lapid",         c:"#790028", b:"opposizione", o:6.4,gov:1, r22:24,  dentro:"byachad"},
  bennett26   :{n:"Bennett 2026",        l:"Naftali Bennett",    c:"#E20064", b:"opposizione", o:6.6,gov:1, r22:null, dentro:"byachad"},
+ /* GANTZ HA SOSPESO LA CAMPAGNA IL 19 OTTOBRE 2026, MA BLU E BIANCO RESTA SULLA SCHEDA, e per
+    questo NON ha il campo `fine`. È la differenza con Unità e con Casa Sionista qui sotto:
+    quelle si sono RITIRATE dalla corsa, e `fine` dice che da quel giorno la lista non
+    concorre più — esce dal riparto e la sua quota si ridistribuisce. Qui la lista concorre
+    ancora: chi la vota la trova sulla scheda, e i suoi voti saranno sprecati sotto soglia
+    (Times of Israel, liveblog del 19 ottobre 2026). Mettere `fine` vorrebbe dire assumere
+    dove vanno i suoi elettori, e questo lo diranno i sondaggi fino al silenzio del 23.
+    LA CONDIZIONE CHE RIAPRE: un ritiro FORMALE della lista presso la Commissione elettorale
+    centrale. Allora sì `fine`, con la data del ritiro, come per Unità. */
  blue_white  :{n:"Blu e Bianco",       l:"Benny Gantz",        c:"#C30094", b:"opposizione", o:7,  gov:1, r22:12},
  yashar      :{n:"Yashar",             l:"Gadi Eisenkot",      c:"#FF1F91", b:"opposizione", o:8,  gov:1, r22:null},
  /* SI E RITIRATA IL 6 SETTEMBRE 2026: Hili Tropper corre con Yashar e scioglie l'alleanza
