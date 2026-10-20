@@ -7644,5 +7644,84 @@
    "amcha": 3.5097044042047667
   },
   "_qk": "92@"
+ },
+ {
+  "data": "2026-10-18",
+  "istituto": "Direct Polls",
+  "testata": "Canale 14",
+  "campione": 538,
+  "casa": 1,
+  "seggi": {
+   "likud": 29,
+   "byachad": 10,
+   "rzp_zehut": 7,
+   "otzma": 7,
+   "shas": 10,
+   "utj": 8,
+   "beitenu": 6,
+   "raam": 6,
+   "lista_araba": 7,
+   "democratici": 8,
+   "yashar": 22
+  },
+  "sotto": {
+   "blue_white": 0.9,
+   "reserv_nep": 2.4,
+   "amcha": 2.4,
+   "haredi_pubblico": 0.5
+  },
+  "_q": {
+   "likud": 22.233333333333334,
+   "byachad": 7.666666666666667,
+   "rzp_zehut": 5.366666666666666,
+   "otzma": 5.366666666666666,
+   "shas": 7.666666666666667,
+   "utj": 6.133333333333334,
+   "beitenu": 4.6,
+   "raam": 4.6,
+   "lista_araba": 5.366666666666666,
+   "democratici": 6.133333333333334,
+   "yashar": 16.866666666666667
+  },
+  "_qk": "92@"
+ },
+ {
+  "data": "2026-10-18",
+  "istituto": "Kantar",
+  "testata": "Kan 11",
+  "campione": 554,
+  "casa": 0,
+  "seggi": {
+   "likud": 21,
+   "byachad": 12,
+   "rzp_zehut": 7,
+   "otzma": 8,
+   "shas": 8,
+   "utj": 7,
+   "beitenu": 8,
+   "raam": 5,
+   "lista_araba": 8,
+   "democratici": 9,
+   "yashar": 23,
+   "reserv_nep": 4
+  },
+  "sotto": {
+   "amcha": 3.1
+  },
+  "_q": {
+   "likud": 15.789078877973731,
+   "byachad": 9.077004679609582,
+   "rzp_zehut": 5.2592365508983265,
+   "otzma": 6.004703509521895,
+   "shas": 6.1672273376563504,
+   "utj": 5.4239048591448595,
+   "beitenu": 6.1672273376563504,
+   "raam": 4.246300363845336,
+   "lista_araba": 6.147833156814451,
+   "democratici": 6.8899779475762495,
+   "yashar": 17.253815015526648,
+   "reserv_nep": 3.5736903637762207
+  },
+  "_qk": "92@"
  }
 ]
