@@ -7723,5 +7723,83 @@
    "reserv_nep": 3.5736903637762207
   },
   "_qk": "92@"
+ },
+ {
+  "data": "2026-10-19",
+  "istituto": "Hamidgam Project",
+  "testata": "Canale 13",
+  "campione": 1016,
+  "casa": 0,
+  "seggi": {
+   "likud": 18,
+   "byachad": 14,
+   "rzp_zehut": 7,
+   "otzma": 7,
+   "shas": 7,
+   "utj": 7,
+   "beitenu": 8,
+   "raam": 6,
+   "lista_araba": 9,
+   "democratici": 9,
+   "yashar": 20,
+   "reserv_nep": 4,
+   "amcha": 4
+  },
+  "_q": {
+   "likud": 13.353859011919582,
+   "byachad": 10.440936882601308,
+   "rzp_zehut": 5.379299603004257,
+   "otzma": 5.379299603004257,
+   "shas": 5.379299603004257,
+   "utj": 5.379299603004257,
+   "beitenu": 6.1358044908226095,
+   "raam": 4.663078495349942,
+   "lista_araba": 6.8503144682603265,
+   "democratici": 6.8503144682603265,
+   "yashar": 15.099554378831993,
+   "reserv_nep": 3.5790556498983728,
+   "amcha": 3.509883742038506
+  },
+  "_qk": "92@"
+ },
+ {
+  "data": "2026-10-19",
+  "istituto": "Midgam",
+  "testata": "Canale 12",
+  "campione": 507,
+  "casa": 0,
+  "seggi": {
+   "likud": 21,
+   "byachad": 14,
+   "rzp_zehut": 7,
+   "otzma": 8,
+   "shas": 8,
+   "utj": 7,
+   "beitenu": 8,
+   "raam": 5,
+   "lista_araba": 9,
+   "democratici": 9,
+   "yashar": 24
+  },
+  "sotto": {
+   "blue_white": 1.4,
+   "reserv_nep": 2.1,
+   "amcha": 2.8,
+   "haredi_pubblico": 0.2
+  },
+  "_q": {
+   "likud": 15.92243436978844,
+   "byachad": 10.665655843794074,
+   "rzp_zehut": 5.4133449166493905,
+   "otzma": 6.161219452504527,
+   "shas": 6.161219452504527,
+   "utj": 5.4133449166493905,
+   "beitenu": 6.161219452504527,
+   "raam": 4.113573689148151,
+   "lista_araba": 6.909574685352172,
+   "democratici": 6.909574685352172,
+   "yashar": 18.168838535752634
+  },
+  "_qk": "92@"
  }
 ]
