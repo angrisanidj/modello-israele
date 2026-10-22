@@ -355,5 +355,12 @@
   "testo": "Blue & White withdraws from race",
   "visto": "2026-10-21",
   "stato": "nuovo"
+ },
+ {
+  "chiave": "2026-10-23|from-23-59-local-time-today-until-the-close-of-polls-on-27-oct-new-opini",
+  "data": "2026-10-23",
+  "testo": "From 23:59 local time today until the close of polls on 27 Oct, new opinion polls must not be published",
+  "visto": "2026-10-22",
+  "stato": "nuovo"
  }
 ]
