@@ -1,10 +1,10 @@
 {
- "generato": "2026-10-22",
+ "generato": "2026-10-23",
  "job": {
   "esito": "ok",
   "motivo": null,
-  "archivioAl": "2026-10-19",
-  "rilevazioniNuove": 0
+  "archivioAl": "2026-10-22",
+  "rilevazioniNuove": 6
  },
  "conto": {
   "blocca": 0,
@@ -17,8 +17,8 @@
    "id": "eventi-da-tradurre",
    "categoria": "eventi",
    "urgenza": "richiede",
-   "titolo": "2 voci-evento da tradurre",
-   "quanti": 2,
+   "titolo": "3 voci-evento da tradurre",
+   "quanti": 3,
    "dettaglio": {
     "voci": [
      {
@@ -30,6 +30,11 @@
       "chiave": "2026-10-23|from-23-59-local-time-today-until-the-close-of-polls-on-27-oct-new-opini",
       "data": "2026-10-23",
       "testo": "From 23:59 local time today until the close of polls on 27 Oct, new opinion polls must not be published"
+     },
+     {
+      "chiave": "2026-10-23|from-23-59-local-time-on-friday-23-october-until-the-close-of-polls-on-t",
+      "data": "2026-10-23",
+      "testo": "From 23:59 local time on Friday 23 October until the close of polls on Tuesday 27 October, no new opinion polls may be published"
      }
     ]
    },
