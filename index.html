@@ -2117,16 +2117,19 @@ var P={
  byachad     :{n:"B'Yachad",           l:"Bennett · Lapid",    c:"#C2003D", b:"opposizione", o:6,  gov:1, r22:24},
  yesh_atid   :{n:"Yesh Atid",           l:"Yair Lapid",         c:"#790028", b:"opposizione", o:6.4,gov:1, r22:24,  dentro:"byachad"},
  bennett26   :{n:"Bennett 2026",        l:"Naftali Bennett",    c:"#E20064", b:"opposizione", o:6.6,gov:1, r22:null, dentro:"byachad"},
- /* GANTZ HA SOSPESO LA CAMPAGNA IL 19 OTTOBRE 2026, MA BLU E BIANCO RESTA SULLA SCHEDA, e per
-    questo NON ha il campo `fine`. È la differenza con Unità e con Casa Sionista qui sotto:
-    quelle si sono RITIRATE dalla corsa, e `fine` dice che da quel giorno la lista non
-    concorre più — esce dal riparto e la sua quota si ridistribuisce. Qui la lista concorre
-    ancora: chi la vota la trova sulla scheda, e i suoi voti saranno sprecati sotto soglia
-    (Times of Israel, liveblog del 19 ottobre 2026). Mettere `fine` vorrebbe dire assumere
-    dove vanno i suoi elettori, e questo lo diranno i sondaggi fino al silenzio del 23.
-    LA CONDIZIONE CHE RIAPRE: un ritiro FORMALE della lista presso la Commissione elettorale
-    centrale. Allora sì `fine`, con la data del ritiro, come per Unità. */
- blue_white  :{n:"Blu e Bianco",       l:"Benny Gantz",        c:"#C30094", b:"opposizione", o:7,  gov:1, r22:12},
+ /* BLU E BIANCO NON CONCORRE: `fine` AL 19 OTTOBRE 2026. Gantz ha sospeso la campagna il 19
+    (Times of Israel, liveblog di quel giorno; Wikipedia: «Blue & White withdraws from race»), e
+    fino al 24 ottobre la riga è rimasta senza `fine` perché la lista sembrava restare sulla
+    scheda: metterlo voleva dire assumere dove vanno i suoi elettori. La condizione scritta per
+    riaprire era un ritiro FORMALE presso la Commissione elettorale centrale, ed è arrivato:
+    nell'elenco ufficiale delle liste, «רשימות המועמדים לכנסת», la Commissione scrive
+    «כחול לבן בראשות בני גנץ – הרשימה אינה מתמודדת בבחירות לכנסת ה-26», la lista non concorre.
+    Una lista che non si può votare non tiene la sua quota: da qui `fine`, come Unità e Casa
+    Sionista. La Commissione non dà un giorno; il 19 è quello della sospensione, deciso
+    dall'autore il 24 ottobre 2026. Misurato quel giorno: nessun seggio si sposta, e Riservisti ·
+    NEP passa da 0,15 a 0,19 punti dalla soglia, cioè dal 32% al 28% di probabilità di restare
+    fuori — l'ultimo punto di Blu e Bianco che si ridistribuisce. */
+ blue_white  :{n:"Blu e Bianco",       l:"Benny Gantz",        fine:"2026-10-19", c:"#C30094", b:"opposizione", o:7,  gov:1, r22:12},
  yashar      :{n:"Yashar",             l:"Gadi Eisenkot",      c:"#FF1F91", b:"opposizione", o:8,  gov:1, r22:null},
  /* SI E RITIRATA IL 6 SETTEMBRE 2026: Hili Tropper corre con Yashar e scioglie l'alleanza
     con i Riservisti, che si fondono col Nuovo Partito Economico. La fonte lo registra due
@@ -2530,7 +2533,8 @@ var EVENTI=[
     registro come scartato: è un candidato che si ritira, non una lista. */
  {data:"2026-10-02",testo:"La Corte Suprema annulla l'esclusione delle liste arabe decisa dalla Commissione"},
  {data:"2026-10-06",testo:"Likud e Sionismo Religioso–Zehut firmano un accordo di eccedenza"},
- {data:"2026-10-11",testo:"Shas e Giudaismo Unito Torah firmano un accordo di eccedenza"}
+ {data:"2026-10-11",testo:"Shas e Giudaismo Unito Torah firmano un accordo di eccedenza"},
+ {data:"2026-10-19",testo:"Benny Gantz ritira Blu e Bianco dalla corsa"}
 ];
 /* LE DUE SOGLIE DELLA DIVERGENZA FRA LE DATE.
    Non sono ricavabili dai dati: dipendono da come è impostato il lavoro notturno, che
@@ -2987,16 +2991,27 @@ function gauss(){if(_g!==null){var v=_g;_g=null;return v;}
    A leva spenta non cambia nessun punto, ed è la prima cosa che apparentamenti.js prova.
    L'ORDINE DEI MEMBRI è quello della fonte, e non conta per il riparto: la coppia è una
    lista virtuale con la somma delle quote, e divisori() la divide in modo simmetrico. */
+/* DEPOSITATI TUTTI E CINQUE, IL 16 OTTOBRE 2026. La conferma è della Commissione elettorale
+   centrale: «הודעה על התקשרויות בין רשימות המועמדים», Yalkut HaPirsumim 15045, p. 1098, del
+   19 ottobre 2026, pubblicata nella pagina «רשימות המועמדים לכנסת», capitolo «הסכמי עודפים».
+   Elenca sei coppie: queste cinque, e una sesta fra due liste che non sono in P{} — Brit Olam
+   e HaTikun — che non entra nel riparto di nessuno.
+   IL 19 È LA DATA DELLA PUBBLICAZIONE, NON DEL DEPOSITO, e non si scrive in `deposito`: dopo il
+   termine non si deposita, ed erroriRiga() lo rifiuterebbe. Il deposito è avvenuto entro il
+   termine — Ynet colloca la firma negli uffici della Commissione venerdì 16 a mezzogiorno — e
+   la data è stata decisa dall'autore il 24 ottobre 2026.
+   `fonte` resta la frase della firma, verbatim: è quella che la cronologia di Wikipedia scrive.
+   Il blocco qui sopra racconta il tempo in cui queste righe erano `proposto`. */
 var APPARENTAMENTI=[
- {a:'lista_araba', b:'raam',        data:'2026-09-12', stato:'proposto',
+ {a:'lista_araba', b:'raam',        data:'2026-09-12', deposito:'2026-10-16', stato:'depositato',
   fonte:"Joint List and Ra'am sign a surplus-vote agreement"},
- {a:'byachad',     b:'beitenu',     data:'2026-09-10', stato:'proposto',
+ {a:'byachad',     b:'beitenu',     data:'2026-09-10', deposito:'2026-10-16', stato:'depositato',
   fonte:"Together and Yisrael Beiteinu sign a surplus-vote agreement"},
- {a:'yashar',      b:'democratici', data:'2026-09-10', stato:'proposto',
+ {a:'yashar',      b:'democratici', data:'2026-09-10', deposito:'2026-10-16', stato:'depositato',
   fonte:"Yashar and The Democrats sign a surplus-vote agreement"},
- {a:'likud',       b:'rzp_zehut',   data:'2026-10-06', stato:'proposto',
+ {a:'likud',       b:'rzp_zehut',   data:'2026-10-06', deposito:'2026-10-16', stato:'depositato',
   fonte:"Likud and RZP-Zehut sign a surplus-vote agreement"},
- {a:'shas',        b:'utj',         data:'2026-10-11', stato:'proposto',
+ {a:'shas',        b:'utj',         data:'2026-10-11', deposito:'2026-10-16', stato:'depositato',
   fonte:"Shas and United Torah Judaism sign a surplus-vote agreement"}
 ];
 /* IL TERMINE, RICAVATO DAL VOTO E NON SCRITTO A MANO. È l'undicesimo giorno prima delle

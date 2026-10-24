@@ -52,7 +52,6 @@ const INVENTARIO = {
   scuro: {
     democratici: 'tavolozza scura 4,36: pavimento del codice colore, non del testo — giro a parte',
     bennett26:   'tavolozza scura 4,36: pavimento del codice colore, non del testo — giro a parte',
-    blue_white:  'tavolozza scura 4,36: pavimento del codice colore, non del testo — giro a parte',
     beitenu:     'tavolozza scura 4,36: pavimento del codice colore, non del testo — giro a parte',
     shas:        'tavolozza scura 4,36: pavimento del codice colore, non del testo — giro a parte',
     lista_araba: 'tavolozza scura 4,39: pavimento del codice colore, non del testo — giro a parte'
