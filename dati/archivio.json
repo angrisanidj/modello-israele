@@ -8078,5 +8078,41 @@
    "reserv_nep": 3.569598973016213
   },
   "_qk": "92@"
+ },
+ {
+  "data": "2026-10-22",
+  "istituto": "Kantar",
+  "testata": "Israel Hayom",
+  "campione": null,
+  "casa": 0,
+  "seggi": {
+   "likud": 21,
+   "byachad": 14,
+   "rzp_zehut": 6,
+   "otzma": 8,
+   "shas": 8,
+   "utj": 7,
+   "beitenu": 7,
+   "raam": 5,
+   "lista_araba": 9,
+   "democratici": 8,
+   "yashar": 23,
+   "reserv_nep": 4
+  },
+  "_q": {
+   "likud": 15.769219389911843,
+   "byachad": 10.52675913065009,
+   "rzp_zehut": 4.695830982162454,
+   "otzma": 5.997150799285652,
+   "shas": 5.997150799285652,
+   "utj": 5.417082676886382,
+   "beitenu": 5.417082676886382,
+   "raam": 4.173608331443068,
+   "lista_araba": 7.0453364450951765,
+   "democratici": 6.159470205107093,
+   "yashar": 17.232113183775024,
+   "reserv_nep": 3.5691953795111595
+  },
+  "_qk": "92@"
  }
 ]
