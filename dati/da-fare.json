@@ -1,16 +1,31 @@
 {
- "generato": "2026-10-27",
+ "generato": "2026-10-28",
  "job": {
-  "esito": "ok",
-  "motivo": null,
-  "archivioAl": "2026-10-23",
-  "rilevazioniNuove": 0
+  "esito": "fermo",
+  "motivo": "istituti non riconosciuti: Election results",
+  "archivioAl": "2026-10-27",
+  "rilevazioniNuove": 3
  },
  "conto": {
-  "blocca": 0,
-  "richiedono": 0,
+  "blocca": 1,
+  "richiedono": 1,
   "informative": 0
  },
- "riga": "Niente da fare.",
- "voci": []
+ "riga": "1 cosa richiede te — una BLOCCA la pubblicazione",
+ "voci": [
+  {
+   "id": "job-fermo",
+   "categoria": "job",
+   "urgenza": "blocca",
+   "titolo": "Il lavoro notturno si è fermato",
+   "quanti": 1,
+   "dettaglio": {
+    "motivo": "istituti non riconosciuti: Election results",
+    "esecuzioni": 1,
+    "archivioAl": "2026-10-27"
+   },
+   "chiude": "Il motivo è: istituti non riconosciuti: Election results. L'archivio pubblicato resta fermo al 2026-10-27 finché la causa non è tolta.",
+   "procedura": null
+  }
+ ]
 }
