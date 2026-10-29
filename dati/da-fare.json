@@ -1,5 +1,5 @@
 {
- "generato": "2026-10-28",
+ "generato": "2026-10-29",
  "job": {
   "esito": "fermo",
   "motivo": "istituti non riconosciuti: Election results",
@@ -17,11 +17,11 @@
    "id": "job-fermo",
    "categoria": "job",
    "urgenza": "blocca",
-   "titolo": "Il lavoro notturno si è fermato",
-   "quanti": 1,
+   "titolo": "Il lavoro notturno si è fermato da 2 esecuzioni",
+   "quanti": 2,
    "dettaglio": {
     "motivo": "istituti non riconosciuti: Election results",
-    "esecuzioni": 1,
+    "esecuzioni": 2,
     "archivioAl": "2026-10-27"
    },
    "chiude": "Il motivo è: istituti non riconosciuti: Election results. L'archivio pubblicato resta fermo al 2026-10-27 finché la causa non è tolta.",
