@@ -17,11 +17,11 @@
    "id": "job-fermo",
    "categoria": "job",
    "urgenza": "blocca",
-   "titolo": "Il lavoro notturno si è fermato da 2 esecuzioni",
-   "quanti": 2,
+   "titolo": "Il lavoro notturno si è fermato da 3 esecuzioni",
+   "quanti": 3,
    "dettaglio": {
     "motivo": "istituti non riconosciuti: Election results",
-    "esecuzioni": 2,
+    "esecuzioni": 3,
     "archivioAl": "2026-10-27"
    },
    "chiude": "Il motivo è: istituti non riconosciuti: Election results. L'archivio pubblicato resta fermo al 2026-10-27 finché la causa non è tolta.",
